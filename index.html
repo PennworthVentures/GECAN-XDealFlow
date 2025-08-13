@@ -1261,15 +1261,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
                                             <button id="kanban-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm" title="Kanban View"><i class="fa fa-columns"></i></button>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- This is the container for the sticky side panel on desktop -->
-                <div id="sticky-filter-sidebar"></div>
-
-                 <!-- Advanced Filters Panel -->
+                                         <!-- Advanced Filters Panel -->
             <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
                 <div class="filter-section rounded-2xl p-6 -mt-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1280,6 +1272,15 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
                     </div>
                     <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
                         <select id="sort-select" class="form-input p-3 text-sm"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- This is the container for the sticky side panel on desktop -->
+                <div id="sticky-filter-sidebar"></div>
+
+            
                     </div>
                 </div>
             </div>
@@ -1798,11 +1799,11 @@ init: () => {
 //  guaranteed to be free of CSS conflicts.
 // ===================================================================
 toggleAdvancedFilters: () => {
+    // The container is now INSIDE the main filter header
     const container = document.getElementById('advanced-filters-container');
     const btn = document.getElementById('toggle-advanced-filters-btn');
-    const content = container.querySelector('.filter-section');
 
-    if (!container || !btn || !content) {
+    if (!container || !btn) {
         console.error("Advanced filter components not found. Cannot toggle.");
         return;
     }
@@ -1822,16 +1823,14 @@ toggleAdvancedFilters: () => {
         // 2. Attach listeners to the newly created elements.
         Logic.setupAdvancedFilterListeners();
         
-        // 3. Animate the panel open.
-        container.style.maxHeight = 'none';
-        const scrollHeight = content.scrollHeight;
-        container.style.maxHeight = '0px';
-
-        setTimeout(() => {
-            container.style.maxHeight = scrollHeight + 'px';
+        // 3. Animate the panel open using its own content height.
+        // We now target the direct child of the container for measurement.
+        const contentToMeasure = container.querySelector('.filter-section');
+        if (contentToMeasure) {
+            container.style.maxHeight = contentToMeasure.scrollHeight + 'px';
             container.classList.add('open');
             btn.classList.add('active');
-        }, 10);
+        }
     }
 },
 /**
