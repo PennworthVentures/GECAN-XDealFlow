@@ -1124,68 +1124,56 @@ init: () => {
             //  - Ensures tickers are always placed correctly before the controls.
             // =====================================================================
             renderMarketTickers: () => {
-                // FIX: Target the main unified command center container
-                const container = document.getElementById('world-clock-command-center');
-                // FIX: Get a reference to the separator to insert tickers before it
-                const separator = document.getElementById('clock-separator'); 
-                if (!container || !separator) return;
+    // DEFINITIVE FIX: Target the dedicated container for tickers.
+    const container = document.getElementById('market-ticker-container');
+    if (!container) return;
 
-                // First, remove any existing tickers to prevent duplicates on refresh
-                container.querySelectorAll('.market-ticker-item').forEach(el => el.remove());
+    // Clear only the ticker container on refresh.
+    container.innerHTML = '';
 
-                const assetsToDisplay = ['BTC-USD', 'XAU-OZ-USD'];
-                const filteredAssets = AppState.marketMatrix.filter(asset => assetsToDisplay.includes(asset.key));
-                
-                if (filteredAssets.length === 0 && !AppState.isDataLoading.marketMatrix) {
-                     // Optionally display an error, but for now, we just return
-                     return;
-                }
-                
-                filteredAssets.forEach(asset => {
-                    // FIX: Corrected typo from AppState.previousPrices to AppState.previousMarketPrices
-                    const prevPrice = AppState.previousMarketPrices[asset.key] || asset.price;
-                    let changeClass = 'stale';
-                    let changeIcon = 'fa-minus';
+    const assetsToDisplay = ['BTC-USD', 'XAU-OZ-USD'];
+    const filteredAssets = AppState.marketMatrix.filter(asset => assetsToDisplay.includes(asset.key));
 
-                    if (asset.price > prevPrice) {
-                        changeClass = 'up';
-                        changeIcon = 'fa-arrow-up';
-                    } else if (asset.price < prevPrice) {
-                        changeClass = 'down';
-                        changeIcon = 'fa-arrow-down';
-                    }
-                    
-                    const flashClass = (asset.price !== prevPrice) ? `price-flash-${changeClass}` : '';
-                    const logoHTML = UI.getPremiumTickerLogoHTML(asset.key);
+    if (filteredAssets.length === 0 && !AppState.isDataLoading.marketMatrix) {
+        return;
+    }
 
-                    const tickerDiv = document.createElement('div');
-                    tickerDiv.className = `market-ticker-item fade-in-up ${flashClass}`;
-                    tickerDiv.dataset.assetKey = asset.key;
-                    tickerDiv.innerHTML = `
-                        <div class="flex items-center justify-between mb-2">
-                            <div>
-                                <p class="font-bold text-white text-lg">${asset.baseAsset}/${asset.quoteAsset}</p>
-                                <p class="text-xs text-gray-400">${asset.name}</p>
-                            </div>
-                            ${logoHTML}
-                        </div>
-                        <div class="flex items-end gap-3">
-                            <p class="price price-${changeClass}">$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
-                            <i class="fas ${changeIcon} text-lg mb-2 price-${changeClass}"></i>
-                        </div>
-                        <p class="text-xs text-gray-500 font-mono mt-1">Last Updated: ${new Date(asset.lastUpdated).toLocaleTimeString()}</p>
-                    `;
-                    // FIX: Insert the new ticker *before* the separator element to ensure correct side-by-side order
-                    container.insertBefore(tickerDiv, separator);
-                });
+    filteredAssets.forEach(asset => {
+        const prevPrice = AppState.previousMarketPrices[asset.key] || asset.price;
+        let changeClass = 'stale', changeIcon = 'fa-minus';
+        if (asset.price > prevPrice) { changeClass = 'up'; changeIcon = 'fa-arrow-up'; } 
+        else if (asset.price < prevPrice) { changeClass = 'down'; changeIcon = 'fa-arrow-down'; }
+        
+        const flashClass = (asset.price !== prevPrice) ? `price-flash-${changeClass}` : '';
+        const logoHTML = UI.getPremiumTickerLogoHTML(asset.key);
 
-                // Update the previous prices state for the next update cycle
-                filteredAssets.forEach(asset => {
-                    // FIX: Corrected typo from AppState.previousPrices to AppState.previousMarketPrices
-                    AppState.previousMarketPrices[asset.key] = asset.price;
-                });
-            },
+        const tickerDiv = document.createElement('div');
+        tickerDiv.className = `market-ticker-item fade-in-up ${flashClass}`;
+        tickerDiv.dataset.assetKey = asset.key;
+        tickerDiv.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <p class="font-bold text-white text-lg">${asset.baseAsset}/${asset.quoteAsset}</p>
+                    <p class="text-xs text-gray-400">${asset.name}</p>
+                </div>
+                ${logoHTML}
+            </div>
+            <div class="flex items-end gap-3">
+                <p class="price price-${changeClass}">$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <i class="fas ${changeIcon} text-lg mb-2 price-${changeClass}"></i>
+            </div>
+            <p class="text-xs text-gray-500 font-mono mt-1">Last Updated: ${new Date(asset.lastUpdated).toLocaleTimeString()}</p>
+        `;
+        // DEFINITIVE FIX: Use the much safer appendChild method on the dedicated container.
+        // This completely avoids the 'insertBefore' error.
+        container.appendChild(tickerDiv);
+    });
 
+    // Update previous prices state
+    filteredAssets.forEach(asset => {
+        AppState.previousMarketPrices[asset.key] = asset.price;
+    });
+},
  // =================================================================================
     //  DEFINITIVE FIX v4: Ultra-Compatible & Visually Enhanced Particle Web
     //  This configuration is guaranteed to work with the corrected CSS stacking order.
