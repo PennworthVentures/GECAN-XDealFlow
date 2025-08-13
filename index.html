@@ -1226,60 +1226,64 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
             </div>
         </div>
 
-        <!-- B. Sticky Filter System (DEFINITIVE & CORRECTED ARCHITECTURE) -->
-        <div class="relative">
-            <!-- This invisible element triggers the sticky state change -->
-            <div id="sticky-sentinel" class="absolute -top-24 h-px w-full"></div>
+<!-- B. Sticky Filter System (STABLE ARCHITECTURE) -->
+<div class="relative">
+    <!-- This invisible element triggers the sticky state change -->
+    <div id="sticky-sentinel" class="absolute -top-24 h-px w-full"></div>
 
-            <!-- This placeholder now holds the unified filter component in the normal document flow -->
-            <div id="desktop-filter-placeholder">
-                
-                <!-- THIS IS THE UNIFIED FILTER COMPONENT. IT CONTAINS BOTH THE CONTROLS AND THE EXPANDABLE PANEL. -->
-                <div id="sticky-filter-header" class="z-40 transition-all duration-300 -mt-4">
-                    
-                    <!-- Part 1: Always-visible controls -->
-                    <div id="sticky-filter-content" class="pt-4 space-y-6">
-                         <!-- Filter Tabs (3D Animated) -->
-                        <div class="filter-tabs flex flex-wrap justify-center gap-2 md:gap-3">
-                            <div class="filter-tab active" data-type="offers"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-handshake"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-handshake"></i></div></div></div><span class="tab-text">Offers</span></div>
-                            <div class="filter-tab" data-type="enquiries"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-search-dollar"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-search-dollar"></i></div></div></div><span class="tab-text">Buyer Enquiries</span></div>
-                            <div class="filter-tab" data-type="crowdfunding"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-rocket"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-rocket"></i></div></div></div><span class="tab-text">Investment Projects</span></div>
-                            <div class="filter-tab" data-type="services"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-cogs"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-cogs"></i></div></div></div><span class="tab-text">Professional Services</span></div>
+    <!-- This placeholder holds the filter component in the normal document flow and maintains layout stability -->
+    <div id="desktop-filter-placeholder">
+        <div id="sticky-filter-header" class="z-40 transition-all duration-300 -mt-4">
+            <div id="sticky-filter-content" class="pt-4 space-y-6">
+                 <!-- Filter Tabs (3D Animated) -->
+                <div class="filter-tabs flex flex-wrap justify-center gap-2 md:gap-3">
+                    <div class="filter-tab active" data-type="offers"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-handshake"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-handshake"></i></div></div></div><span class="tab-text">Offers</span></div>
+                    <div class="filter-tab" data-type="enquiries"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-search-dollar"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-search-dollar"></i></div></div></div><span class="tab-text">Buyer Enquiries</span></div>
+                    <div class="filter-tab" data-type="crowdfunding"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-rocket"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-rocket"></i></div></div></div><span class="tab-text">Investment Projects</span></div>
+                    <div class="filter-tab" data-type="services"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-cogs"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-cogs"></i></div></div></div><span class="tab-text">Professional Services</span></div>
+                </div>
+                <!-- Main Filter Controls -->
+                <div class="filter-section rounded-2xl p-4 md:p-6">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="relative w-full md:flex-1 group" id="search-container">
+                            <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[var(--primary-azure)] transition-colors duration-300"></i>
+                            <input type="text" id="search-input" placeholder="Search by ID, Asset, Venue, Procedure..." class="form-input w-full py-3 pl-12 pr-28 text-sm">
+                            <button id="reset-filters-btn-inline" class="hidden absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg text-xs hover:bg-sky-500/40 hover:text-white transition-all">
+                                <i class="fas fa-undo"></i><span>Reset</span>
+                            </button>
+                            <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div>
                         </div>
-                        <!-- Main Filter Controls -->
-                        <div class="filter-section rounded-2xl p-4 md:p-6">
-                            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                                <div class="relative w-full md:flex-1 group" id="search-container">
-                                    <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[var(--primary-azure)] transition-colors duration-300"></i>
-                                    <input type="text" id="search-input" placeholder="Search by ID, Asset, Venue, Procedure..." class="form-input w-full py-3 pl-12 pr-28 text-sm">
-                                    <button id="reset-filters-btn-inline" class="hidden absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg text-xs hover:bg-sky-500/40 hover:text-white transition-all">
-                                        <i class="fas fa-undo"></i><span>Reset</span>
-                                    </button>
-                                    <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div>
-                                </div>
-                                <div class="flex items-center gap-2 md:gap-4 flex-wrap justify-center">
-                                    <button id="toggle-advanced-filters-btn" class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-sliders-h"></i><span>Advanced Filters</span><span id="active-filter-count" class="hidden bg-[var(--primary-azure)] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span></button>
-                                    <button id="reset-filters" class="btn-secondary hidden px-4 py-2.5 rounded-xl text-sm"><i class="fas fa-undo"></i>Reset All</button>
-                                    <div class="flex items-center gap-1 bg-[var(--background-dark)] border border-[var(--border-color)] p-1 rounded-xl">
-                                        <button id="card-view-btn" class="btn-primary px-4 py-2 rounded-lg text-sm" title="Card View"><i class="fa fa-th-large"></i></button>
-                                        <button id="kanban-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm" title="Kanban View"><i class="fa fa-columns"></i></button>
-                                    </div>
-                                </div>
+                        <div class="flex items-center gap-2 md:gap-4 flex-wrap justify-center">
+                            <button id="toggle-advanced-filters-btn" class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-sliders-h"></i><span>Advanced Filters</span><span id="active-filter-count" class="hidden bg-[var(--primary-azure)] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span></button>
+                            <button id="reset-filters" class="btn-secondary hidden px-4 py-2.5 rounded-xl text-sm"><i class="fas fa-undo"></i>Reset All</button>
+                            <div class="flex items-center gap-1 bg-[var(--background-dark)] border border-[var(--border-color)] p-1 rounded-xl">
+                                <button id="card-view-btn" class="btn-primary px-4 py-2 rounded-lg text-sm" title="Card View"><i class="fa fa-th-large"></i></button>
+                                <button id="kanban-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm" title="Kanban View"><i class="fa fa-columns"></i></button>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- This is the container for the sticky side panel on desktop -->
+    <div id="sticky-filter-sidebar"></div>
+</div>
 
-                    <!-- Part 2: THE ADVANCED PANEL IS NOW LOGICALLY GROUPED INSIDE THE COMPONENT -->
-                    <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden">
-                        <div class="filter-section rounded-2xl p-6 pt-0"> <!-- pt-0 prevents double padding -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <!-- Dynamic content will be populated here by JS -->
-                            </div>
-                            <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
-                                <select id="sort-select" class="form-input p-3 text-sm"></select>
-                            </div>
-                        </div>
-                    </div>
+<!-- Advanced Filters Panel (Separate from the above component for stability) -->
+<div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
+    <div class="filter-section rounded-2xl p-6 -mt-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm"></select></div>
+            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
+            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm"></select></div>
+            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm"></select></div>
+        </div>
+        <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
+            <select id="sort-select" class="form-input p-3 text-sm"></select>
+        </div>
+    </div>
+</div>
                 </div> <!-- End of the unified #sticky-filter-header component -->
 
             </div> <!-- End of #desktop-filter-placeholder -->
@@ -1922,21 +1926,14 @@ populateAdvancedFilterDropdowns: () => {
         return uniqueItems.map(item => `<option value="${item}">${item}</option>`).join('');
     };
 
-    // --- STEP 1: SAFELY GET A REFERENCE TO THE ELEMENTS ---
     const assetSelect = document.getElementById('asset-category-select');
     const settlementSelect = document.getElementById('settlement-select');
     const procedureSelect = document.getElementById('procedure-select');
 
-    // --- STEP 2: THE CRITICAL GUARD CLAUSE ---
-    // If ANY of these elements are not found in the DOM, immediately and
-    // safely exit the function to prevent the "cannot set innerHTML of null" error.
     if (!assetSelect || !settlementSelect || !procedureSelect) {
         return;
     }
 
-    // --- STEP 3: POPULATE THE DROPDOWNS ---
-    // This code block is now guaranteed to be safe because the guard
-    // clause above ensures the elements exist before we try to modify them.
     const assetCategories = AppState.allOffers.map(o => o.ASSET_CATEGORY);
     assetSelect.innerHTML = createOptions(assetCategories);
 
@@ -1946,6 +1943,31 @@ populateAdvancedFilterDropdowns: () => {
     const coreProcedures = AppState.allOffers.map(o => o.CORE_PROCEDURE_TYPE);
     procedureSelect.innerHTML = createOptions(coreProcedures);
 },
+populateStatusFilter: () => {
+                const statuses = [
+                    { name: "ACTIVE", dotClass: "status-dot-active" },
+                    { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "status-dot-active-limited-bandwidth" },
+                    { name: "PENDING REVIEW", dotClass: "status-dot-pending-review" },
+                    { name: "WITHDRAWN", dotClass: "status-dot-withdrawn" },
+                    { name: "BLACKLISTED", dotClass: "status-dot-blacklisted" }
+                ];
+                const container = document.getElementById('status-filters-container');
+                if (!container) return; 
+
+                container.innerHTML = statuses.map(status => `
+                    <label class="status-checkbox-item">
+                        <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
+                        <span class="custom-checkbox"><i class="fas fa-check"></i></span>
+                        <span class="flex items-center gap-3 text-gray-400">
+                            <span class="w-2.5 h-2.5 rounded-full ${status.dotClass}"></span>
+                            <span class="text-sm">${status.name}</span>
+                        </span>
+                    </label>
+                `).join('');
+                
+                container.addEventListener('change', Logic.handleStatusFilterChange);
+            },
+            
             // SEVERE UPGRADE: Replaces the old slider function
             updateConfidenceStars: (hoverRating = 0) => {
                 const stars = document.querySelectorAll('.confidence-star');
