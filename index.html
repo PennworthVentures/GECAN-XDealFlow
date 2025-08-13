@@ -305,7 +305,7 @@
     PINNACLE JAVASCRIPT ENGINE v10.1 - UNABRIDGED & FULLY FUNCTIONAL
     ==================================================================================
     -->
-    <script>
+   <script>
     // === API & CONFIGURATION ===
     const API_URL = "https://script.google.com/macros/s/AKfycbxhC2bk6LMz2muF5TY8TdIt3tiAl6ozBAvgi1TG91v9WX2x2mH2M3SvpHu0nn8XgyN4/exec";
     const DEFAULT_THEME_CONFIG = {"particles":{"number":{"value":120,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.1,"sync":false}},"size":{"value":2.5,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#4a4a5a","opacity":0.2,"width":1},"move":{"enable":true,"speed":1.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"repulse"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.8,"color":"#8b5cf6"}},"repulse":{"distance":350,"duration":0.4}}},"retina_detect":true};
@@ -345,26 +345,27 @@
             };
         },
         formatNumber: (num) => {
-            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-            if (num >= 1e3) return (num / 1e3).toFixed(0) + 'K';
-            return num.toString();
+            const n = parseFloat(num);
+            if (isNaN(n)) return '0';
+            if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+            return n.toString();
         },
         formatCurrency: (amount, currency = 'USD') => {
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+            const n = parseFloat(amount);
+            if (isNaN(n)) return '$0';
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
         },
         parseDate: (dateStr) => {
             if (!dateStr || typeof dateStr !== 'string') return new Date('1970-01-01');
-            const parts = dateStr.split('/');
-            if (parts.length === 3 && !isNaN(parseInt(parts[0])) && !isNaN(parseInt(parts[1])) && !isNaN(parseInt(parts[2]))) {
-                if (String(parts[2]).length === 4) {
-                    const d = new Date(parts[2], parts[1] - 1, parts[0]);
-                    if (!isNaN(d.getTime())) return d;
-                }
+            if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) { // DD/MM/YYYY
+                const [day, month, year] = dateStr.split('/');
+                const d = new Date(`${year}-${month}-${day}T00:00:00Z`);
+                if (!isNaN(d.getTime())) return d;
             }
-            const d = new Date(dateStr);
-            if (!isNaN(d.getTime())) return d;
-            return new Date('1970-01-01');
+            const d = new Date(dateStr); // Handles ISO 8601 and other formats
+            return isNaN(d.getTime()) ? new Date('1970-01-01') : d;
         },
         getAssetClass: (asset) => {
             const sectorMap = {
@@ -379,46 +380,35 @@
             const modal = document.getElementById(modalId);
             if (!modal || modal.classList.contains('hidden')) return;
             const modalContent = modal.querySelector('#modal-content-wrapper') || modal.querySelector('div[id^="engagement-suite"]');
-            if (modalContent) {
-                modalContent.style.transform = 'scale(0.95)';
-                modalContent.style.opacity = '0';
-            }
             modal.style.opacity = '0';
+            if(modalContent) modalContent.style.transform = 'scale(0.9)';
             setTimeout(() => {
                 modal.classList.add('hidden');
                 if (modalContent) modalContent.innerHTML = '';
-                modal.style.opacity = '1';
                 document.body.classList.remove('modal-open');
             }, 300);
         },
         showNotification: (message, type = 'info') => {
             const toast = document.createElement('div');
-            const styles = {
-                success: 'bg-green-600', error: 'bg-red-600',
-                warning: 'bg-yellow-600', info: 'bg-blue-600'
-            };
-            toast.className = `fixed top-4 right-4 p-4 rounded-xl shadow-2xl z-[9999] text-white font-medium ${styles[type]} backdrop-blur-lg fade-in-up`;
+            const styles = { success: 'bg-green-600', error: 'bg-red-600', warning: 'bg-yellow-600', info: 'bg-blue-600' };
+            toast.className = `fixed top-24 right-4 p-4 rounded-xl shadow-2xl z-[9999] text-white font-medium ${styles[type]} backdrop-blur-lg fade-in-up`;
             toast.innerHTML = `<div class="flex items-center gap-3"><i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i><span>${message}</span></div>`;
             document.body.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(100%)';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 4000);
         }
     };
 
     // === UI RENDERING ENGINE ===
     const UI = {
         initStatic: () => {
+            Logic.initInteractiveBackground();
             UI.populateTimezoneSelect();
             UI.initClocks(['Asia/Singapore', 'Europe/London', 'America/New_York']);
-            Logic.initInteractiveBackground();
-            document.body.classList.add('repulsor-active');
-            document.addEventListener('mousemove', (e) => {
-                document.body.style.setProperty('--mouse-x', e.clientX + 'px');
-                document.body.style.setProperty('--mouse-y', e.clientY + 'px');
-            });
+            UI.setupNavLinks();
         },
         initParticles: (config) => {
             const themeConfig = config || DEFAULT_THEME_CONFIG;
@@ -456,11 +446,13 @@
                 if (column) {
                     const count = column.children.length;
                     const totalVolume = Array.from(column.children).reduce((acc, card) => {
-                        const offer = AppState.allOffers.find(o => o.OFFER_ID === card.dataset.offerId);
+                        const offer = AppState.allOffers.find(o => o.OFFER_ID === card.dataset.id);
                         return acc + (parseFloat(String(offer?.TOTAL_VOLUME_AVAILABLE || '0').replace(/,/g, '')) || 0);
                     }, 0);
-                    document.getElementById(`count-${statusKey}`).innerText = count;
-                    document.getElementById(`volume-${statusKey}`).innerText = `${Utils.formatNumber(totalVolume)} units`;
+                    const countEl = document.getElementById(`count-${statusKey}`);
+                    const volEl = document.getElementById(`volume-${statusKey}`);
+                    if (countEl) countEl.innerText = count;
+                    if (volEl) volEl.innerText = `${Utils.formatNumber(totalVolume)} units`;
                 }
             });
         },
@@ -483,6 +475,7 @@
         updateMetrics: (items) => {
             const metrics = Logic.calculateMetrics(items);
             const container = document.getElementById('metrics-bar');
+            if (!container) return;
             const metricsData = [
                 { label: 'Total Items', value: metrics.totalItems, icon: 'fa-chart-bar', theme: '--primary-azure' },
                 { label: 'Active Items', value: metrics.activeItems, icon: 'fa-check-circle', theme: '--status-active' },
@@ -492,13 +485,8 @@
             container.innerHTML = metricsData.map(m => `
                 <div class="metrics-item" style="--metrics-color: var(${m.theme}); --metrics-glow: var(${m.theme.replace('primary', 'glow').replace('status', 'glow')});">
                     <div class="flex items-center justify-between w-full">
-                        <div>
-                            <p class="font-orbitron font-bold text-3xl text-white">${m.value}</p>
-                            <p class="text-sm text-gray-400">${m.label}</p>
-                        </div>
-                        <div class="metrics-icon-container">
-                            <div class="metrics-icon-3d"><div class="icon-face icon-front"><i class="fas ${m.icon}"></i></div><div class="icon-face icon-back"></div><div class="icon-glow-ring"></div></div>
-                        </div>
+                        <div><p class="font-orbitron font-bold text-3xl text-white">${m.value}</p><p class="text-sm text-gray-400">${m.label}</p></div>
+                        <div class="metrics-icon-container"><div class="metrics-icon-3d"><div class="icon-face icon-front"><i class="fas ${m.icon}"></i></div><div class="icon-face icon-back"></div><div class="icon-glow-ring"></div></div></div>
                     </div>
                 </div>
             `).join('');
@@ -518,7 +506,7 @@
             const container = document.getElementById('market-ticker-container');
             if (!container) return;
             container.innerHTML = '';
-            const assetsToDisplay = ['BTC-USD', 'XAU-OZ-USD']; // Correct key for Gold (Ounce)
+            const assetsToDisplay = ['BTC-USD', 'XAU-OZ-USD'];
             AppState.marketMatrix.filter(asset => assetsToDisplay.includes(asset.key)).forEach(asset => {
                 const prevPrice = AppState.previousMarketPrices[asset.key] || asset.price;
                 let changeClass = 'stale', changeIcon = 'fa-minus';
@@ -529,1178 +517,113 @@
                 const tickerDiv = document.createElement('div');
                 tickerDiv.className = `market-ticker-item fade-in-up ${flashClass}`;
                 tickerDiv.dataset.assetKey = asset.key;
-                tickerDiv.innerHTML = `...`; // Full ticker HTML
-                container.appendChild(tickerDiv);
+                tickerDiv.innerHTML = `<div class="flex items-center justify-between mb-2"><div><p class="font-bold text-white text-lg">${asset.baseAsset}/${asset.quoteAsset}</p><p class="text-xs text-gray-400">${asset.name}</p></div>${logoHTML}</div><div class="flex items-end gap-3"><p class="price price-${changeClass}">$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p><i class="fas ${changeIcon} text-lg mb-2 price-${changeClass}"></i></div><p class="text-xs text-gray-500 font-mono mt-1">Last Updated: ${new Date(asset.lastUpdated).toLocaleTimeString()}</p>`;
+                const separator = document.getElementById('clock-separator');
+                if (separator) container.parentNode.insertBefore(tickerDiv, separator);
+                else container.appendChild(tickerDiv);
                 AppState.previousMarketPrices[asset.key] = asset.price;
             });
         },
-                    /**
-             * [DEFINITIVE] Creates the premium HTML for a single **Offer** card.
-             * @param {object} offer - The offer data object from the API.
-             * @param {number} index - The index for staggered animation delay.
-             * @returns {string} The complete, styled HTML for the card.
-             */
-            createOfferCardHTML: (offer, index) => {
-                const statusClasses = UI.getStatusClass(offer.OFFER_STATUS);
-                const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
-                const stars = offer.GECAN_CONFIDENCE || 0;
-                const engagedBuyers = offer.ENGAGED_BUYERS || 0;
-                const volume = parseFloat(String(offer.TOTAL_VOLUME_AVAILABLE || '0').replace(/,/g, '')) || 0;
-                
-                return `
-                    <div class="offer-card ${statusClasses.border} ${assetClass} cursor-pointer fade-in-up" 
-                         style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" 
-                         data-type="offer" data-id="${offer.OFFER_ID}">
-                        
-                        <div class="card-content h-full flex flex-col">
-                            <!-- Card Header -->
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div class="flex-1">
-                                        <h2 class="asset-header text-2xl font-bold mb-1">${offer.ASSET_CATEGORY}</h2>
-                                        <p class="text-sm text-gray-400">${offer.ASSET_SUBTYPE}</p>
-                                    </div>
-                                    <span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${offer.OFFER_ID}</span>
-                                </div>
-                                
-                                <h3 class="text-lg font-bold text-white mb-3 line-clamp-2">${offer.OFFER_DESCRIPTION}</h3>
-                                
-                                <p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">
-                                    ${offer.EXECUTIVE_SUMMARY_AND_OVERVIEW}
-                                </p>
-                                
-                                <!-- Status and Key Info Grid -->
-                                <div class="border-t border-[var(--border-secondary)] pt-4 grid grid-cols-2 gap-4 text-sm mb-4">
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Status</span>
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-2 h-2 rounded-full ${statusClasses.dot}"></div>
-                                            <span class="font-medium text-white text-xs">${offer.OFFER_STATUS}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Venue</span>
-                                        <span class="font-medium text-white text-xs">${offer.TRANSACTION_VENUE}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Procedure</span>
-                                        <span class="font-semibold text-[var(--asset-primary)] text-xs">${offer.CORE_PROCEDURE_TYPE}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Confidence</span>
-                                        <span class="text-yellow-400 text-sm">
-                                            ${'★'.repeat(stars)}<span class="text-gray-600">${'☆'.repeat(5 - stars)}</span>
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Volume and Pricing Block -->
-                                <div class="bg-[var(--background-secondary)] bg-opacity-50 backdrop-blur-sm rounded-xl p-4">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="text-xs font-medium text-gray-400">Volume Available</span>
-                                        <span class="text-sm font-bold text-[var(--asset-primary)]">
-                                            ${Utils.formatNumber(volume)} ${offer.UNITS_OF_MEASURE || 'units'}
-                                        </span>
-                                    </div>
-                                    <p class="text-xs font-mono text-gray-300 leading-relaxed line-clamp-2">
-                                        ${offer.DISCOUNT_COMMISSION_SUMMARY}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <!-- Card Footer -->
-                            <div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-users text-[var(--text-muted)]"></i>
-                                    <span>${engagedBuyers} Engaged</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-calendar-alt text-gray-500"></i>
-                                    <span>${offer.DATE_RECEIVED}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-
-            /**
-             * [DEFINITIVE] Creates the premium HTML for a single **Buyer Enquiry** card.
-             * @param {object} enquiry - The enquiry data object from the API.
-             * @param {number} index - The index for staggered animation delay.
-             * @returns {string} The complete, styled HTML for the card.
-             */
-            createEnquiryCardHTML: (enquiry, index) => {
-                const statusClasses = UI.getStatusClass(enquiry.ENQUIRY_STATUS);
-                const assetClass = Utils.getAssetClass(enquiry.TARGET_ASSET_CATEGORY);
-                const stars = enquiry.GECAN_CONFIDENCE || 0;
-                const volume = parseFloat(String(enquiry.REQUIRED_TOTAL_VOLUME || '0').replace(/,/g, '')) || 0;
-
-                return `
-                    <div class="offer-card ${statusClasses.border} ${assetClass} cursor-pointer fade-in-up" 
-                         style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" 
-                         data-type="enquiry" data-id="${enquiry.ENQUIRY_ID}">
-                        
-                        <div class="card-content h-full flex flex-col">
-                            <!-- Card Header -->
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div class="flex-1">
-                                        <h2 class="asset-header text-2xl font-bold mb-1">${enquiry.TARGET_ASSET_CATEGORY}</h2>
-                                        <p class="text-sm text-gray-400">${enquiry.TARGET_ASSET_SUBTYPE}</p>
-                                    </div>
-                                    <span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${enquiry.ENQUIRY_ID}</span>
-                                </div>
-                                
-                                <h3 class="text-lg font-bold text-white mb-3 line-clamp-2">${enquiry.ENQUIRY_DESCRIPTION}</h3>
-                                
-                                <p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">
-                                    ${enquiry.BUYER_REQUIREMENT_SUMMARY}
-                                </p>
-                                
-                                <!-- Status and Key Info Grid -->
-                                <div class="border-t border-[var(--border-secondary)] pt-4 grid grid-cols-2 gap-4 text-sm mb-4">
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Status</span>
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-2 h-2 rounded-full ${statusClasses.dot}"></div>
-                                            <span class="font-medium text-white text-xs">${enquiry.ENQUIRY_STATUS}</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Venue</span>
-                                        <span class="font-medium text-white text-xs">${enquiry.PREFERRED_TRANSACTION_VENUE}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Procedure</span>
-                                        <span class="font-semibold text-[var(--asset-primary)] text-xs">${enquiry.CORE_PROCEDURE_TYPE}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs text-gray-400 block mb-1">Confidence</span>
-                                        <span class="text-yellow-400 text-sm">
-                                            ${'★'.repeat(stars)}<span class="text-gray-600">${'☆'.repeat(5 - stars)}</span>
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Volume and Pricing Block -->
-                                <div class="bg-[var(--background-secondary)] bg-opacity-50 backdrop-blur-sm rounded-xl p-4">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="text-xs font-medium text-gray-400">Required Volume</span>
-                                        <span class="text-sm font-bold text-[var(--asset-primary)]">
-                                            ${Utils.formatNumber(volume)} ${enquiry.UNITS_OF_MEASURE || 'units'}
-                                        </span>
-                                    </div>
-                                    <p class="text-xs font-mono text-gray-300 leading-relaxed line-clamp-2">
-                                        Target Pricing: ${enquiry.TARGET_PRICING_STRUCTURE}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <!-- Card Footer -->
-                            <div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-link text-[var(--text-muted)]"></i>
-                                    <span>${enquiry.MATCHED_OFFERS_COUNT} Matched Offers</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-calendar-alt text-gray-500"></i>
-                                    <span>${enquiry.DATE_RECEIVED}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-
-            /**
-             * [DEFINITIVE] Creates the premium HTML for a single **Investment Project** card.
-             * @param {object} project - The project data object from the API.
-             * @param {number} index - The index for staggered animation delay.
-             * @returns {string} The complete, styled HTML for the card.
-             */
-            createProjectCardHTML: (project, index) => {
-                const assetClass = Utils.getAssetClass(project.PRIMARY_SECTOR);
-                const fundingSought = Utils.formatCurrency(project.TOTAL_FUNDING_SOUGHT_USD);
-                const irr = parseFloat(project.PROJECTED_INTERNAL_RATE_OF_RETURN_IRR) || 0;
-                
-                return `
-                    <div class="offer-card ${assetClass} cursor-pointer fade-in-up" 
-                         style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" 
-                         data-type="project" data-id="${project.PROJECT_ID}">
-                        <div class="card-content h-full flex flex-col">
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div>
-                                        <p class="text-sm font-semibold text-[var(--asset-primary)]">${project.PRIMARY_SECTOR}</p>
-                                        <h2 class="asset-header text-2xl font-bold -ml-1">${project.PROJECT_NAME}</h2>
-                                    </div>
-                                    <span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${project.PROJECT_ID}</span>
-                                </div>
-                                <p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">
-                                    ${project.EXECUTIVE_SUMMARY}
-                                </p>
-                                <div class="grid grid-cols-3 gap-4 text-center mt-6">
-                                    <div>
-                                        <p class="text-xs text-gray-400">Funding Sought</p>
-                                        <p class="font-bold text-white text-lg">${fundingSought}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-400">Projected IRR</p>
-                                        <p class="font-bold text-green-400 text-lg">${irr > 0 ? irr + '%' : 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs text-gray-400">Equity Offered</p>
-                                        <p class="font-bold text-cyan-400 text-lg">${project.EQUITY_OFFERED > 0 ? project.EQUITY_OFFERED + '%' : 'N/A'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-lightbulb text-yellow-400"></i>
-                                    <span>${project.PROJECT_STAGE} Stage</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-calendar-alt text-gray-500"></i>
-                                    <span>${project.PROPOSAL_SUBMISSION_DATE}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-            
-            /**
-             * [DEFINITIVE] Creates the premium HTML for a single **Professional Service** card.
-             * @param {object} service - The service data object from the API.
-             * @param {number} index - The index for staggered animation delay.
-             * @returns {string} The complete, styled HTML for the card.
-             */
-            createServiceCardHTML: (service, index) => {
-                const assetClass = Utils.getAssetClass(service.SERVICE_CATEGORY);
-                const reliabilityScore = service.SERVICE_RELIABILITY_SCORE || 0;
-
-                return `
-                    <div class="offer-card ${assetClass} cursor-pointer fade-in-up" 
-                         style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" 
-                         data-type="service" data-id="${service.SERVICE_ID}">
-                        <div class="card-content h-full flex flex-col">
-                            <div class="flex-grow">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div>
-                                        <p class="text-sm font-semibold text-[var(--asset-primary)]">${service.SERVICE_CATEGORY}</p>
-                                        <h2 class="asset-header text-2xl font-bold -ml-1">${service.SERVICE_NAME}</h2>
-                                    </div>
-                                    <span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${service.SERVICE_ID}</span>
-                                </div>
-                                <p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">
-                                    ${service.SERVICE_OVERVIEW_AND_VALUE_PROPOSITION}
-                                </p>
-                                <div class="grid grid-cols-2 gap-4 text-sm mt-6">
-                                    <div>
-                                        <span class="text-xs text-gray-400 block">Jurisdiction</span>
-                                        <span class="font-medium text-white">${service.PROVIDER_JURISDICTION}</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs text-gray-400 block">Pricing Model</span>
-                                        <span class="font-medium text-white">${service.PRICING_MODEL}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-tachometer-alt text-cyan-400"></i>
-                                    <span>Reliability: ${reliabilityScore}/100</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-calendar-alt text-gray-500"></i>
-                                    <span>Onboarded: ${service.DATE_ONBOARDED}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            },
-                    /**
-             * [DEFINITIVE] Creates the premium HTML for a single Kanban column.
-             * This function generates the structural "bucket" for a given status, complete with
-             * a themed header, live counters for items and volume, and a scrollable container
-             * for the Kanban cards.
-             * @param {string} status - The status name for the column (e.g., "ACTIVE").
-             * @returns {string} The complete, styled HTML for the column structure.
-             */
-            createKanbanColumnHTML: (status) => {
-                const statusKey = status.toLowerCase().replace(/[\s-]+/g, '');
-                const statusClasses = UI.getStatusClass(status);
-                
-                return `
-                    <div class="kanban-column flex flex-col bg-gradient-to-b from-[var(--background-secondary)] to-transparent p-4 rounded-2xl border border-[var(--border-secondary)] shadow-lg h-[80vh]">
-                        <div class="mb-4 flex-shrink-0">
-                            <h2 class="text-base font-bold text-white flex items-center gap-3 mb-2">
-                                <div class="w-3 h-3 rounded-full ${statusClasses.dot} shadow-lg"></div>
-                                <span class="flex-1">${status}</span>
-                                <span class="text-sm font-normal bg-black/30 text-gray-300 rounded-full px-3 py-1" id="count-${statusKey}">0</span>
-                            </h2>
-                            <p class="text-xs text-gray-500 flex items-center gap-1">
-                                <i class="fas fa-cubes text-gray-400"></i>
-                                <span id="volume-${statusKey}">0 units</span>
-                            </p>
-                        </div>
-                        <div class="kanban-cards-container space-y-3 flex-grow overflow-y-auto pr-2" id="col-${statusKey}">
-                            <!-- Kanban cards are dynamically injected here -->
-                        </div>
-                    </div>
-                `;
-            },
-
-            /**
-             * [DEFINITIVE] Creates the premium HTML for a single Kanban card.
-             * This function generates a compact, data-rich card for display within a Kanban column,
-             * maintaining the platform's 3D hover effects and asset-specific theming in a smaller form factor.
-             * @param {object} offer - The offer data object from the API.
-             * @returns {string} The complete, styled HTML for the Kanban card.
-             */
-            createKanbanCardHTML: (offer) => {
-                const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
-                const stars = offer.GECAN_CONFIDENCE || 0;
-                const volume = parseFloat(String(offer.TOTAL_VOLUME_AVAILABLE || '0').replace(/,/g, '')) || 0;
-                
-                return `
-                    <div class="kanban-card ${assetClass} cursor-pointer" 
-                         data-type="offer" data-id="${offer.OFFER_ID}">
-                        <div class="mb-3">
-                            <h3 class="font-bold text-white text-sm mb-1 line-clamp-2">${offer.OFFER_DESCRIPTION}</h3>
-                            <p class="text-xs font-mono text-gray-500">${offer.OFFER_ID}</p>
-                        </div>
-                        
-                        <div class="flex justify-between items-center text-xs mb-3">
-                            <span class="font-semibold text-[var(--asset-primary)] flex items-center gap-1">
-                                <i class="fas fa-tag"></i>
-                                ${offer.ASSET_CATEGORY}
-                            </span>
-                            <span class="text-gray-400 flex items-center gap-1">
-                                <i class="fas fa-map-marker-alt"></i>
-                                ${offer.TRANSACTION_VENUE}
-                            </span>
-                        </div>
-                        
-                        <div class="flex justify-between items-center text-xs text-gray-400">
-                            <span class="text-yellow-400">
-                                ${'★'.repeat(stars)}<span class="text-gray-600">${'☆'.repeat(5 - stars)}</span>
-                            </span>
-                            <span class="font-medium">${Utils.formatNumber(volume)} units</span>
-                        </div>
-                    </div>
-                `;
-            },
-
-            /**
-             * [DEFINITIVE] Renders the complete HTML for the Intermediary Deal Submission Portal.
-             * This function generates the entire multi-step engagement form, including the dynamic
-             * "Engagement Feasibility Score" UI, data pre-population from the target offer, and
-             * all necessary fields for a formal enquiry submission.
-             * @param {object} offer - The full offer object data to pre-populate the form.
-             * @param {object} referralInfo - The validated referral info {id, partnerName}.
-             * @returns {string} The complete HTML string for the modal content.
-             */
-            renderEngagementSuiteModal: (offer, referralInfo) => {
-                const title = `Intermediary Deal Submission Portal`;
-                return `
-                <div id="engagement-suite" class="rounded-3xl w-full max-w-4xl max-h-[95vh] flex flex-col bg-[var(--background-secondary)] border-2 border-[var(--border-premium)] shadow-2xl">
-                    <div class="flex-shrink-0 p-6 md:p-8 border-b border-[var(--border-premium)] bg-[var(--background-primary)]/50">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="text-xl md:text-2xl font-bold text-white">${title}</h3>
-                                <p class="text-sm text-gray-400">Enquiry Against Offer: ${offer.OFFER_ID} (${offer.OFFER_DESCRIPTION})</p>
-                            </div>
-                            <button type="button" onclick="Utils.closeModal('modal-overlay')" class="text-2xl text-gray-500 hover:text-white transition-colors">×</button>
-                        </div>
-                        <div class="my-6 p-4 bg-gradient-to-r from-gray-800 via-gray-900 to-black rounded-2xl border border-gray-700 shadow-lg">
-                            <div class="flex justify-between items-center mb-2">
-                                <h4 class="font-bold text-lg text-white">Engagement Feasibility Score</h4>
-                                <span id="feasibility-score" class="text-3xl font-black text-green-400 transition-all duration-300">100%</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2.5">
-                                <div id="feasibility-bar" class="bg-gradient-to-r from-green-500 to-emerald-400 h-2.5 rounded-full transition-all duration-500" style="width: 100%;"></div>
-                            </div>
-                            <p id="feasibility-guidance" class="text-xs text-gray-400 mt-3 transition-opacity duration-300">
-                                <i class="fas fa-check-circle text-green-500 mr-1"></i>Your enquiry perfectly aligns with the seller's offer.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex-grow overflow-y-auto p-6 md:p-8">
-                        <form id="modal-form" class="space-y-6">
-                            <input type="hidden" id="modal-timezone" value="${Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'}">
-                            <div class="form-section">
-                                <h4 class="font-bold text-white mb-4">1. Your Details (Enquiry Source)</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" id="modal-user-name" placeholder="Your Full Name*" class="form-input w-full" required>
-                                    <input type="email" id="modal-user-email" placeholder="Your Email Address*" class="form-input w-full" required>
-                                    <input type="text" id="modal-user-phone" placeholder="Your Phone (Signal/WA)*" class="form-input w-full" required>
-                                    <select id="modal-user-relationship" class="form-input w-full" required><option value="" disabled selected>Your Relationship to Buyer*</option><option value="Mandate">Mandate</option><option value="Broker/Intermediary">Broker/Intermediary</option><option value="Consultant">Consultant</option><option value="Direct Principal">I am the Direct Principal</option></select>
-                                </div>
-                            </div>
-                            <div class="form-section">
-                                <h4 class="font-bold text-white mb-4">2. End Buyer Identity</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" id="modal-buyer-name" placeholder="Buyer Principal Full Name*" class="form-input w-full" required>
-                                    <input type="text" id="modal-buyer-entity" placeholder="Buyer Legal Entity Name*" class="form-input w-full" required>
-                                    <input type="text" id="modal-buyer-jurisdiction" placeholder="Buyer Jurisdiction*" class="form-input w-full" required>
-                                    <input type="text" value="Partner: ${referralInfo.partnerName} (${referralInfo.id})" class="form-input text-gray-400 bg-gray-800/50 border-gray-700" readonly>
-                                </div>
-                            </div>
-                            <div class="form-section">
-                                <h4 class="font-bold text-white mb-4">3. Core Deal Structure (Verify & Amend)</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" id="modal-asset-category" value="${offer.ASSET_CATEGORY}" data-original="${offer.ASSET_CATEGORY}" class="form-input deal-param" required>
-                                    <input type="text" id="modal-core-procedure" value="${offer.CORE_PROCEDURE_TYPE}" data-original="${offer.CORE_PROCEDURE_TYPE}" class="form-input deal-param" required>
-                                    <input type="text" id="modal-preferred-venue" value="${offer.TRANSACTION_VENUE}" data-original="${offer.TRANSACTION_VENUE}" class="form-input deal-param" required>
-                                    <input type="text" id="modal-settlement-protocol" value="${offer.SETTLEMENT_PROTOCOL}" data-original="${offer.SETTLEMENT_PROTOCOL}" class="form-input deal-param" required>
-                                </div>
-                                <div id="wallet-input-area" class="mt-4"></div>
-                            </div>
-                            <div class="form-section">
-                                <h4 class="font-bold text-white mb-4">4. Commercials & Supporting Documents</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <input type="text" id="modal-required-volume" value="${offer.TOTAL_VOLUME_AVAILABLE}" data-original="${offer.TOTAL_VOLUME_AVAILABLE}" class="form-input deal-param" required>
-                                    <input type="text" id="modal-target-price" value="${offer.PRICE_REFERENCE_BASIS}" data-original="${offer.PRICE_REFERENCE_BASIS}" class="form-input deal-param" required>
-                                </div>
-                                <textarea id="modal-comments" placeholder="Additional comments on buyer requirements, SOP points, etc..." class="form-input w-full h-24"></textarea>
-                                <div class="mt-4">
-                                    <label class="block text-sm font-medium text-gray-300 mb-2">Attach Documents (CIS, POF, etc.)</label>
-                                    <input type="file" id="modal-file-upload" class="hidden" multiple>
-                                    <label for="modal-file-upload" class="flex items-center gap-2 form-input cursor-pointer hover:bg-[var(--background-secondary)] transition-colors">
-                                        <i class="fas fa-plus-circle"></i><span id="file-upload-label">Add Files... (15MB Limit)</span>
-                                    </label>
-                                    <div id="file-list-container" class="mt-3 space-y-2"></div>
-                                </div>
-                            </div>
-                            <div class="mt-8 flex justify-end">
-                                <button type="submit" class="btn-primary font-bold py-3 px-8"><i class="fas fa-paper-plane mr-2"></i>Submit Formal Enquiry</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                `;
-            },
-                    /**
-             * [DEFINITIVE] Generates the premium, 3D-flipping SVG logo HTML for a market ticker.
-             * This function maps a specific asset key (e.g., 'BTC-USD') to a custom-designed,
-             * high-fidelity SVG icon, ensuring a visually rich and on-brand representation for
-             * key market indicators.
-             * @param {string} assetKey - The unique key of the market asset.
-             * @returns {string} The complete HTML for the 3D flipper container with the SVG.
-             */
-            getPremiumTickerLogoHTML: (assetKey) => {
-                let svgContent = '';
-                // This switch statement provides a scalable way to add new custom logos.
-                switch (assetKey) {
-                    case 'BTC-USD':
-                        svgContent = `
-                            <svg class="premium-ticker-svg" viewBox="0 0 100 100">
-                                <defs>
-                                    <radialGradient id="btc-grad" cx="50%" cy="50%" r="50%">
-                                        <stop offset="0%" stop-color="#FFB94A"/>
-                                        <stop offset="100%" stop-color="#F7931A"/>
-                                    </radialGradient>
-                                </defs>
-                                <circle cx="50" cy="50" r="48" fill="url(#btc-grad)"/>
-                                <path d="M69.1,53.9c0.8-4.6-2.1-7.2-6.9-9.3l2.2-8.8l-5.3-1.3l-2.1,8.5c-0.6-0.1-1.2-0.3-1.8-0.4l2.1-8.5l-5.3-1.3l-2.2,8.8c-0.5-0.1-1-0.2-1.5-0.3l0,0l-7.3-1.8l-1.4,5.6c0,0,4,1,3.9,1.1c2.1,0.5,2.7,2.1,2.6,3.4l-2.6,10.3c0.1,0,0.2,0.1,0.4,0.1c-0.2-0.1-0.4-0.1-0.6-0.2l-1.7,6.7c-0.4,0.8-1.3,1.9-3.2,1.4c-0.1-0.1-3.9-1-3.9-1l-2.6,6.1l7,1.7c0.5,0.1,1,0.2,1.5,0.4l-2.2,8.9l5.3,1.3l2.2-8.8c0.6,0.2,1.2,0.3,1.8,0.4l-2.2,8.8l5.3,1.3l2.2-8.9c3.9,0.7,7,0,8.8-3.6c1.6-3.3,1.1-6.2-0.5-8.6C70.3,57,70.1,55.5,69.1,53.9z M61.7,63.1c-1,4.1-5.6,5.6-9.5,4.6l1.8-7.2c0.5,0.1,1,0.3,1.5,0.4l-0.1-0.4C60.2,61,62.3,60.1,61.7,63.1z M62.8,49.9c-0.9,3.6-4.9,5-8.2,4.2l1.7-6.7c0.5,0.1,0.9,0.2,1.4,0.3l-0.1-0.4C61.4,47.7,63.4,47.1,62.8,49.9z" fill="#FFFFFF"/>
-                            </svg>
-                        `;
-                        break;
-                    case 'XAU-OZ-USD': // Corrected key for Gold (Ounce)
-                        svgContent = `
-                            <svg class="premium-ticker-svg" viewBox="0 0 100 100">
-                                <defs>
-                                    <linearGradient id="gold-grad-top" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FEF08A" /><stop offset="100%" stop-color="#FDE68A" /></linearGradient>
-                                    <linearGradient id="gold-grad-front" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FBBF24" /><stop offset="100%" stop-color="#D97706" /></linearGradient>
-                                </defs>
-                                <polygon points="15,30 85,30 75,50 25,50" fill="url(#gold-grad-top)" />
-                                <polygon points="25,50 75,50 75,70 25,70" fill="url(#gold-grad-front)" />
-                                <text x="50" y="65" font-family="Orbitron, monospace" font-size="8" fill="#000" text-anchor="middle" font-weight="bold" opacity="0.4">FINE GOLD</text>
-                            </svg>
-                        `;
-                        break;
-                    default:
-                        // A generic, styled fallback icon ensures the UI never breaks.
-                        svgContent = `
-                            <svg class="premium-ticker-svg" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="var(--background-secondary)"/>
-                                <text x="50" y="55" font-family="Orbitron, monospace" font-size="12" fill="var(--text-silver)" text-anchor="middle">N/A</text>
-                            </svg>
-                        `;
-                }
-
-                // The complete HTML structure for the 3D flipper animation.
-                return `
-                    <div class="ticker-logo-container">
-                        <div class="ticker-logo-flipper">
-                            <div class="logo-face-front">${svgContent}</div>
-                            <div class="logo-face-back">${svgContent}</div>
-                        </div>
-                    </div>
-                `;
-            },
-
-            /**
-             * [DEFINITIVE] Initializes the world clock system. It clears any existing clocks,
-             * creates a new set based on the provided timezones, and starts the master
-             * interval to keep all clocks synchronized every second.
-             * @param {Array<string>} [initialTimezones=[]] - An array of timezone strings to display initially.
-             */
-            initClocks: (initialTimezones = []) => {
-                const container = document.getElementById('clock-container');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                initialTimezones.forEach(tz => UI.createClock(tz));
-                
-                if (AppState.clockInterval) clearInterval(AppState.clockInterval);
-                AppState.clockInterval = setInterval(UI.updateAllClocks, 1000);
-                UI.updateAllClocks(); // Initial call to prevent 1-second delay
-            },
-            
-            /**
-             * [DEFINITIVE] Generates and renders the complete set of filter controls for all modules.
-             * This function creates the HTML for the primary navigation tabs, search bar, view switchers,
-             * and the dynamic advanced filter panels, then injects them into the desktop sidebar and
-             * prepares them for mobile cloning.
-             * @param {string} type - The currently active data type (e.g., 'offers').
-             */
-            renderAllFilters: (type) => {
-                const sidebar = document.getElementById('filter-sidebar');
-                if (!sidebar) return;
-
-                const navTabs = [
-                    { type: 'offers', icon: 'fa-handshake', text: 'Offers' },
-                    { type: 'enquiries', icon: 'fa-search-dollar', text: 'Buyer Enquiries' },
-                    { type: 'projects', icon: 'fa-rocket', text: 'Investment Projects' },
-                    { type: 'services', icon: 'fa-cogs', text: 'Professional Services' }
-                ];
-                
-                sidebar.innerHTML = `
-                    <!-- Main Navigation Tabs -->
-                    <div class="filter-tabs flex flex-wrap justify-center gap-2">
-                        ${navTabs.map(tab => `
-                            <div class="filter-tab ${tab.type === type ? 'active' : ''}" data-type="${tab.type}">
-                                <div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas ${tab.icon}"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas ${tab.icon}"></i></div></div></div>
-                                <span class="tab-text">${tab.text}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <!-- Search & View Controls -->
-                    <div class="filter-section">
-                        <div class="relative w-full group mb-4" id="search-container">
-                            <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                            <input type="text" id="search-input" placeholder="Search all fields..." class="form-input w-full py-3 pl-12 pr-4">
-                            <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div>
-                        </div>
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-1 bg-black/20 p-1 rounded-xl">
-                                <button id="card-view-btn" class="btn-primary px-4 py-2" title="Card View"><i class="fa fa-th-large"></i></button>
-                                <button id="kanban-view-btn" class="btn-secondary px-4 py-2" title="Kanban View"><i class="fa fa-columns"></i></button>
-                            </div>
-                            <button id="toggle-advanced-filters-btn" class="btn-secondary flex items-center gap-2">
-                                <i class="fas fa-sliders-h"></i><span>Advanced</span>
-                                <span id="active-filter-count" class="hidden bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Dynamic Advanced Filters Container -->
-                    <div id="advanced-filters-container" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
-                        <div class="filter-section -mt-4">
-                            <div id="advanced-filters-content" class="grid grid-cols-1 gap-6">
-                                <!-- Advanced filters are injected here -->
-                            </div>
-                            <div class="mt-6 pt-6 border-t border-[var(--border-secondary)] flex justify-between items-center">
-                                <select id="sort-select" class="form-input w-auto"></select>
-                                <button id="reset-filters-btn" class="btn-secondary text-red-400 border-red-500/50 hover:bg-red-500/20 hover:text-red-300">
-                                    <i class="fas fa-undo"></i> Reset
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                // After rendering the structure, populate the dynamic content
-                UI.populateAdvancedFilters(type);
-            },
-
-                    /**
-             * [DEFINITIVE] Updates the visibility and glow state of the inline reset button
-             * located inside the main search bar. This provides immediate, contextual feedback to the user.
-             */
-            updateInlineResetButton: () => {
-                const btn = document.getElementById('reset-filters-btn-inline');
-                if (!btn) return;
-
-                const isActive = Logic.areFiltersActive();
-                
-                // Toggle visibility: 'hidden' class is removed if filters are active.
-                btn.classList.toggle('hidden', !isActive);
-
-                // Toggle the 'glow-active' class which triggers the premium pulsing animation.
-                btn.classList.toggle('glow-active', isActive);
-            },
-
-            /**
-             * [DEFINITIVE] Controls the visibility of the primary "Reset All" button located
-             * within the advanced filter panel.
-             */
-            updateMainResetButtonVisibility: () => {
-                const btn = document.getElementById('reset-filters-btn');
-                if (!btn) return;
-                
-                const isActive = Logic.areFiltersActive();
-                btn.classList.toggle('hidden', !isActive);
-            },
-
-            /**
-             * [DEFINITIVE] Gracefully closes the advanced filter panel and resets its toggle button state.
-             * This ensures the UI remains consistent when the panel is closed programmatically or by user action.
-             */
-            closeAdvancedFilters: () => {
-                const container = document.getElementById('advanced-filters-container');
-                const btn = document.getElementById('toggle-advanced-filters-btn');
-                if (!container || !btn) return;
-
-                container.classList.remove('open');
-                btn.classList.remove('active');
-                
-                // Animate the panel shut by setting its max-height to 0.
-                container.style.maxHeight = '0px';
-            },
-
-            /**
-             * [DEFINITIVE] Manages the open/close state and animation of the advanced filter panel.
-             * This function is the core engine for the toggle button. It checks if the panel is open,
-             * populates it with the correct filters for the active tab if needed, and then animates
-             * it into or out of view using a smooth max-height transition.
-             */
-            toggleAdvancedFilters: () => {
-                const container = document.getElementById('advanced-filters-container');
-                const btn = document.getElementById('toggle-advanced-filters-btn');
-                const content = container.querySelector('.filter-section');
-                if (!container || !btn || !content) return;
-
-                const isOpen = container.classList.toggle('open');
-                btn.classList.toggle('active', isOpen);
-
-                if (isOpen) {
-                    // When opening, first ensure the content is correct for the current tab.
-                    UI.populateAdvancedFilters(AppState.activeFilters.type);
-                    
-                    // Then, re-attach listeners to the newly created dynamic elements.
-                    Logic.setupAdvancedFilterListeners();
-                    
-                    // Finally, animate the panel open by setting max-height to its scrollable height.
-                    container.style.maxHeight = content.scrollHeight + 'px';
-                } else {
-                    // Animate the panel shut.
-                    container.style.maxHeight = '0px';
-                }
-            },
-
-            /**
-             * [DEFINITIVE] Dynamically builds the specific advanced filter controls for the active tab.
-             * This is a crucial data-aware function that ensures only relevant filters are displayed,
-             * preventing user confusion and creating a tailored experience for each data module. It
-             * populates dropdowns with unique values directly from the current dataset.
-             * @param {string} type - The active data type (e.g., 'offers', 'enquiries').
-             */
-            populateAdvancedFilters: (type) => {
-                const contentContainer = document.getElementById('advanced-filters-content');
-                if (!contentContainer) return;
-
-                const createOptions = (items) => ['All', ...new Set(items.filter(Boolean).sort())].map(item => `<option value="${item}">${item}</option>`).join('');
-                let html = '';
-
-                // This switch is the core routing logic that builds the UI for each module.
-                switch (type) {
-                    case 'offers':
-                        html = `
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label>
-                                <select id="asset-category-select" data-filter-key="assetCategory" class="form-input w-full">${createOptions(AppState.allOffers.map(o => o.ASSET_CATEGORY))}</select>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label>
-                                <div id="status-filters-container" class="space-y-2"></div>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label>
-                                <select id="settlement-select" data-filter-key="settlementProtocol" class="form-input w-full">${createOptions(AppState.allOffers.map(o => o.SETTLEMENT_PROTOCOL))}</select>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label>
-                                <select id="procedure-select" data-filter-key="coreProcedure" class="form-input w-full">${createOptions(AppState.allOffers.map(o => o.CORE_PROCEDURE_TYPE))}</select>
-                            </div>
-                        `;
-                        contentContainer.innerHTML = html;
-                        UI.populateStatusFilter(); // Status checkboxes require their own specific renderer.
-                        break;
-
-                    case 'enquiries':
-                        html = `
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Target Asset Category</label>
-                                <select data-filter-key="targetAssetCategory" class="form-input w-full">${createOptions(AppState.allEnquiries.map(e => e.TARGET_ASSET_CATEGORY))}</select>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Enquiry Status</label>
-                                <div id="status-filters-container" class="space-y-2"></div>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Preferred Venue</label>
-                                <select data-filter-key="preferredVenue" class="form-input w-full">${createOptions(AppState.allEnquiries.map(e => e.PREFERRED_TRANSACTION_VENUE))}</select>
-                            </div>
-                        `;
-                        contentContainer.innerHTML = html;
-                        // Use a dedicated status renderer for enquiries
-                        UI.populateStatusFilter(['PENDING_VETTING', 'ACTIVE', 'ENGAGED', 'CLOSED']);
-                        break;
-
-                    case 'projects':
-                        html = `
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Primary Sector</label>
-                                <select data-filter-key="primarySector" class="form-input w-full">${createOptions(AppState.allProjects.map(p => p.PRIMARY_SECTOR))}</select>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Project Stage</label>
-                                <select data-filter-key="projectStage" class="form-input w-full">${createOptions(AppState.allProjects.map(p => p.PROJECT_STAGE))}</select>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Funding Type Sought</label>
-                                <select data-filter-key="fundingType" class="form-input w-full">${createOptions(AppState.allProjects.map(p => p.FUNDING_TYPE_SOUGHT))}</select>
-                            </div>
-                        `;
-                        contentContainer.innerHTML = html;
-                        break;
-                        
-                    case 'services':
-                        html = `
-                            <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Service Category</label>
-                                <select data-filter-key="serviceCategory" class="form-input w-full">${createOptions(AppState.allServices.map(s => s.SERVICE_CATEGORY))}</select>
-                            </div>
-                             <div class="flex flex-col gap-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Pricing Model</label>
-                                <select data-filter-key="pricingModel" class="form-input w-full">${createOptions(AppState.allServices.map(s => s.PRICING_MODEL))}</select>
-                            </div>
-                        `;
-                        contentContainer.innerHTML = html;
-                        break;
-                }
-            },
-
-                    /**
-             * [DEFINITIVE] Generates the HTML for the interactive search suggestions dropdown.
-             * This function dynamically creates a premium, styled list of asset categories
-             * for quick filtering, along with a prominent "Reset All" action, enhancing
-             * user navigation and search efficiency.
-             * @returns {string} The complete HTML string for the suggestions dropdown.
-             */
-            createSearchDropdownHTML: () => {
-                // Get unique asset categories from the currently active data source.
-                const currentData = Logic.getCurrentData();
-                let uniqueAssets = [];
-                if (currentData.length > 0) {
-                    const assetKey = Logic.getAssetKeyForType(AppState.activeFilters.type);
-                    uniqueAssets = ['All', ...new Set(currentData.map(o => o[assetKey]).filter(Boolean).sort())];
-                }
-
-                // Build the HTML for each suggestion item.
-                let html = uniqueAssets.map(asset => `
-                    <div class="suggestion-item" data-asset="${asset}">
-                        <i class="fas fa-tag text-gray-400"></i>
-                        <span class="asset-label">${asset}</span>
-                        <span class="asset-tag">Category</span>
-                    </div>
-                `).join('');
-                
-                // Append the "Reset All Filters" action button to the list.
-                html += `
-                    <div class="suggestion-item reset-search" data-action="reset">
-                        <i class="fas fa-undo text-red-400"></i>
-                        <span class="asset-label text-red-400">Reset All Filters</span>
-                        <span class="asset-tag">Action</span>
-                    </div>`;
-
-                return html;
-            },
-
-            /**
-             * [DEFINITIVE] Populates the <select> elements in the advanced filter panel.
-             * This function is now OBSOLETE as its logic has been integrated directly into the
-             * more robust `populateAdvancedFilters(type)` function. This consolidation
-             * prevents redundant code and ensures that dropdowns are always populated with the
-             * correct, context-aware data when the panel is built.
-             *
-             * This function is kept here for documentation but should not be called directly.
-             * The logic lives on inside `populateAdvancedFilters`.
-             */
-            populateAdvancedFilterDropdowns: () => {
-                // This function's logic is now handled by UI.populateAdvancedFilters()
-                // See that function for the unabridged implementation.
-                console.warn("DEPRECATED: populateAdvancedFilterDropdowns() is now part of populateAdvancedFilters().");
-            },
-
-            /**
-             * [DEFINITIVE] Generates and renders the HTML for the status filter checkboxes.
-             * This function builds a dynamic list of checkboxes based on the provided status types,
-             * allowing for a modular and reusable component across different data tabs (e.g., Offers, Enquiries).
-             * @param {Array<string>} [statusList] - An optional array of specific statuses to render. If not provided, defaults to the comprehensive list for Offers.
-             */
-            populateStatusFilter: (statusList) => {
-                // Default to the comprehensive Offer statuses if no specific list is provided.
-                const statuses = statusList ? statusList.map(s => ({ name: s })) : [
-                    { name: "ACTIVE" }, { name: "ACTIVE-LIMITED BANDWIDTH" }, 
-                    { name: "PENDING REVIEW" }, { name: "WITHDRAWN" }, { name: "BLACKLISTED" }
-                ];
-
-                const container = document.querySelector('#status-filters-container');
-                if (!container) return;
-
-                // For each status, generate the full premium checkbox HTML structure.
-                container.innerHTML = statuses.map(status => {
-                    const statusClasses = UI.getStatusClass(status.name);
-                    return `
-                        <label class="status-checkbox-item">
-                            <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
-                            <span class="custom-checkbox"><i class="fas fa-check"></i></span>
-                            <span class="flex items-center gap-3 text-gray-400">
-                                <span class="w-2.5 h-2.5 rounded-full ${statusClasses.dot}"></span>
-                                <span class="text-sm">${status.name}</span>
-                            </span>
-                        </label>
-                    `;
-                }).join('');
-            },
-
-            /**
-             * [DEFINITIVE] Calculates and displays the number of currently active filters.
-             * This function provides clear visual feedback to the user by showing a badge
-             * on the "Advanced Filters" button, indicating how many non-default filters
-             * are currently applied to the dataset.
-             */
-            updateActiveFilterCount: () => {
-                let count = 0;
-                const activeTab = AppState.activeFilters.type;
-                const filters = AppState.activeFilters[activeTab];
-
-                if (!filters) return;
-
-                // Increment count for each active filter, aware of module-specific keys.
-                switch (activeTab) {
-                    case 'offers':
-                        if (filters.assetCategory !== 'All') count++;
-                        if (filters.statuses.length > 0) count++;
-                        if (filters.settlementProtocol !== 'All') count++;
-                        if (filters.coreProcedure !== 'All') count++;
-                        break;
-                    case 'enquiries':
-                        if (filters.targetAssetCategory !== 'All') count++;
-                        if (filters.enquiryStatus.length > 0) count++;
-                        if (filters.preferredVenue !== 'All') count++;
-                        break;
-                    case 'projects':
-                        if (filters.primarySector !== 'All') count++;
-                        if (filters.projectStage !== 'All') count++;
-                        if (filters.fundingType !== 'All') count++;
-                        break;
-                    case 'services':
-                        if (filters.serviceCategory !== 'All') count++;
-                        if (filters.pricingModel !== 'All') count++;
-                        break;
-                }
-
-                const countBadge = document.getElementById('active-filter-count');
-                if (countBadge) {
-                    if (count > 0) {
-                        countBadge.textContent = count;
-                        countBadge.classList.remove('hidden');
-                    } else {
-                        countBadge.classList.add('hidden');
-                    }
-                }
-            },
-
-            /**
-             * [DEFINITIVE] Initializes and animates the "Live Users" counter in the header.
-             * This function creates a dynamic, fluctuating number to give the dashboard a sense
-             * of live activity and engagement, enhancing the user's perception of a bustling platform.
-             */
-            initUserCount: () => {
-                // This function is now OBSOLETE and has been removed to align with the final UI design,
-                // where the user count was determined to be a static placeholder.
-                // If live functionality is restored, the logic would be re-inserted here.
-                // For now, the static number in the HTML is the definitive implementation.
-                console.warn("DEPRECATED: initUserCount() has been removed in favor of a static UI element.");
-            },
-
-                    /**
-             * [DEFINITIVE - DEPRECATED] A legacy master render function.
-             * This function was present in the original architecture but has been superseded by the
-             * more intelligent and modular `Logic.applyFiltersAndRender()`. The new function provides
-             * more granular control over the UI states (loading, no results, placeholders, etc.).
-             * This function is preserved here for historical reference but is no longer called in the
-             * primary application flow to prevent regressions and ensure stability.
-             */
-            renderAll: () => {
-                console.warn("DEPRECATED: renderAll() has been replaced by Logic.applyFiltersAndRender(). No action was taken.");
-            },
-
-            /**
-             * [DEFINITIVE] Maps a status string to its corresponding CSS classes for borders and dots.
-             * This utility is essential for applying consistent, theme-aware styling to cards and
-             * Kanban columns based on their status, ensuring a visually coherent user interface.
-             * @param {string} status - The status string (e.g., "ACTIVE", "PENDING REVIEW").
-             * @returns {{border: string, dot: string}} An object with CSS class names.
-             */
-            getStatusClass: (status) => {
-                const s = String(status || '').toLowerCase().replace(/[\s-]+/g, '');
-                
-                if (s.includes('activelimitedbandwidth')) return { border: 'status-active-limited-bandwidth', dot: 'status-dot-active-limited-bandwidth' };
-                if (s.includes('active')) return { border: 'status-active', dot: 'status-dot-active' };
-                if (s.includes('pendingreview')) return { border: 'status-pending-review', dot: 'status-dot-pending-review' };
-                if (s.includes('withdrawn')) return { border: 'status-withdrawn', dot: 'status-dot-withdrawn' };
-                if (s.includes('blacklisted')) return { border: 'status-blacklisted', dot: 'status-dot-blacklisted' };
-                
-                // A safe fallback to prevent UI errors with unexpected status values.
-                return { border: 'status-withdrawn', dot: 'status-dot-withdrawn' };
-            },
-            
-            /**
-             * [DEFINITIVE] Creates and appends the complete HTML for a single premium world clock.
-             * This function is responsible for building the DOM structure for a new clock, including
-             * the analog face, digital display, and a remove button. It ensures that new clocks
-             * are added with the correct animations and are immediately ready for updates.
-             * @param {string} timezone - The IANA timezone string (e.g., "Asia/Singapore").
-             */
-            createClock: (timezone) => {
-                const container = document.getElementById('clock-container');
-                const tzData = AppState.timezones.find(t => t.value === timezone);
-                
-                // Prevent duplicate clocks or errors if the timezone is invalid.
-                if (!container || !tzData || document.querySelector(`.premium-clock[data-timezone="${timezone}"]`)) return;
-                
-                // Make the separator visible if it was hidden (e.g., on the first clock added).
-                const separator = document.getElementById('clock-separator');
-                if (separator) separator.classList.remove('hidden');
-
-                const clockDiv = document.createElement('div');
-                clockDiv.className = 'text-center fade-in-up relative group';
-                clockDiv.innerHTML = `
-                    <div class="premium-clock" data-timezone="${tzData.value}">
-                        ${UI.createClockMarkers()}
-                        <div class="hand hour-hand"></div>
-                        <div class="hand minute-hand"></div>
-                        <div class="hand second-hand"></div>
-                    </div>
-                    <div class="mt-3">
-                        <p class="text-sm font-bold text-white">${tzData.name.split(' ')[0]}</p>
-                        <p class="text-xs text-gray-400 clock-time" data-timezone="${tzData.value}">--:--:--</p>
-                    </div>
-                    <button class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" 
-                            onclick="UI.removeClock('${timezone}')">&times;</button>
-                `;
-                container.appendChild(clockDiv);
-                
-                // Trigger an immediate update for the new clock.
-                UI.updateAllClocks();
-            },
-
-            /**
-             * [DEFINITIVE] A helper function to generate the HTML for the tick marks on a clock face.
-             * This creates the 12 markers, with major markers (12, 3, 6, 9) styled differently for
-             * readability, contributing to the premium analog clock aesthetic.
-             * @returns {string} The HTML string of all 12 marker divs.
-             */
-            createClockMarkers: () => {
-                let markers = '';
-                for (let i = 0; i < 12; i++) {
-                    const angle = i * 30;
-                    // A marker is "major" if its index is a multiple of 3.
-                    const isMajor = i % 3 === 0;
-                    markers += `<div class="clock-marker ${isMajor ? 'major' : ''}" style="transform: translateX(-50%) rotate(${angle}deg)"></div>`;
-                }
-                return markers;
-            },
-            
-            /**
-             * [DEFINITIVE] The event handler for the "Add Clock" button.
-             * It reads the selected timezone from the dropdown, validates that it's not already
-             * displayed, and then calls the `createClock` function to render it. It provides
-             * user feedback via notifications for both success and warning cases.
-             */
-            addClock: () => {
-                const select = document.getElementById('add-clock-select');
-                if (!select) return;
-
-                const timezone = select.value;
-                if (!document.querySelector(`.premium-clock[data-timezone="${timezone}"]`)) {
-                    UI.createClock(timezone);
-                    const tzName = AppState.timezones.find(t => t.value === timezone)?.name || 'Clock';
-                    Utils.showNotification(`Added ${tzName}`, 'success');
-                } else {
-                    Utils.showNotification('That clock is already displayed.', 'warning');
-                }
-            },
-
-                    /**
-             * [DEFINITIVE] The event handler to remove a clock from the display.
-             * This function finds the clock's parent container by its timezone dataset attribute,
-             * applies a smooth fade-out and shrink animation for a premium user experience, and then
-             * removes the element from the DOM. It also intelligently hides the command center separator
-             * if the last clock is removed.
-             * @param {string} timezone - The IANA timezone string of the clock to remove.
-             */
-            removeClock: (timezone) => {
-                const clockElement = document.querySelector(`.premium-clock[data-timezone="${timezone}"]`)?.closest('.fade-in-up');
-                if (clockElement) {
-                    // Apply exit animation classes.
-                    clockElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    clockElement.style.opacity = '0';
-                    clockElement.style.transform = 'scale(0.8)';
-                    
-                    // Remove the element from the DOM after the animation completes.
-                    setTimeout(() => {
-                        clockElement.remove();
-                        
-                        // Check if this was the last clock.
-                        const remainingClocks = document.querySelectorAll('.premium-clock').length;
-                        const separator = document.getElementById('clock-separator');
-                        if (remainingClocks === 0 && separator) {
-                            separator.classList.add('hidden');
-                        }
-                    }, 300);
-                }
-            },
-
-            /**
-             * [DEFINITIVE] Updates the hands on all visible clocks.
-             * This function is the heart of the live clock system, called every second by setInterval.
-             * It calculates the precise degree rotation for the hour, minute, and second hands for each
-             * displayed timezone and applies the transformation, ensuring all clocks are perfectly
-             * synchronized and smoothly animated.
-             */
-            updateAllClocks: () => {
-                const now = new Date();
-                document.querySelectorAll('.premium-clock').forEach(clock => {
-                    const timezone = clock.dataset.timezone;
-                    try {
-                        const time = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
-                        const seconds = time.getSeconds();
-                        const minutes = time.getMinutes();
-                        const hours = time.getHours(); // Use 24-hour format for calculation accuracy
-                        
-                        // Precise degree calculation for smooth hand movement.
-                        const secondsDeg = (seconds / 60) * 360;
-                        const minutesDeg = (minutes / 60) * 360 + (seconds / 60) * 6;
-                        const hoursDeg = (hours / 12) * 360 + (minutes / 60) * 30;
-                        
-                        // Select the hand elements within the current clock.
-                        const secondHand = clock.querySelector('.second-hand');
-                        const minuteHand = clock.querySelector('.minute-hand');
-                        const hourHand = clock.querySelector('.hour-hand');
-                        
-                        // Apply the calculated rotations.
-                        if (secondHand) secondHand.style.transform = `translateX(-50%) rotate(${secondsDeg}deg)`;
-                        if (minuteHand) minuteHand.style.transform = `translateX(-50%) rotate(${minutesDeg}deg)`;
-                        if (hourHand) hourHand.style.transform = `translateX(-50%) rotate(${hoursDeg}deg)`;
-                        
-                        // Update the corresponding digital time display.
-                        const timeDisplay = document.querySelector(`.clock-time[data-timezone="${timezone}"]`);
-                        if (timeDisplay) {
-                            timeDisplay.textContent = time.toLocaleTimeString('en-GB'); // Use GB for HH:MM:SS format
-                        }
-                    } catch (e) {
-                        // Log errors for invalid timezones but don't crash the app.
-                        console.warn(`Could not update clock for invalid timezone: ${timezone}`, e);
-                        const timeDisplay = document.querySelector(`.clock-time[data-timezone="${timezone}"]`);
-                        if (timeDisplay) timeDisplay.textContent = 'Error';
-                    }
-                });
-            },
-
-            /**
-             * [DEFINITIVE] Populates the "Add Clock" dropdown menu with available timezones.
-             * This function dynamically generates the <option> elements from the AppState,
-             * ensuring the list is easily maintainable and consistent with the application's configuration.
-             */
-            populateTimezoneSelect: () => {
-                const select = document.getElementById('add-clock-select');
-                if (!select) return;
-
-                select.innerHTML = AppState.timezones
-                    .map(tz => `<option value="${tz.value}">${tz.name}</option>`)
-                    .join('');
-            },
-            
-            /**
-             * [DEFINITIVE - DEPRECATED] A legacy master function for rendering sidebar content.
-             * In the original architecture, this function was responsible for populating a dedicated
-             * sidebar with tickers. In the current pinnacle architecture, this functionality has been
-             * superseded by the more advanced and visually integrated `UI.renderHoloStream()` function.
-             * This function is preserved for historical context but is no longer called.
-             */
-            renderSidebar: () => {
-                console.warn("DEPRECATED: renderSidebar() has been replaced by UI.renderHoloStream(). No action was taken.");
-            },
-            
-            /**
-             * [DEFINITIVE - DEPRECATED] Legacy functions for rendering specific ticker types.
-             * These functions, `renderFeaturedTicker` and `renderBulletinsTicker`, were the original
-             * methods for populating the old sidebar. Their logic has been fully consolidated into the
-             * single, more powerful `UI.renderHoloStream()` function, which now handles all item types
-             * in a unified and data-aware manner. They are preserved here for documentation and to
-             * explicitly confirm that no functionality has been lost in the upgrade.
-             */
-            renderFeaturedTicker: () => {
-                console.warn("DEPRECATED: renderFeaturedTicker() logic is now inside UI.renderHoloStream(). No action was taken.");
-            },
-            renderBulletinsTicker: () => {
-                console.warn("DEPRECATED: renderBulletinsTicker() logic is now inside UI.renderHoloStream(). No action was taken.");
-            },
-        // ... all other UI functions are here ...
+        createOfferCardHTML: (offer, index) => {
+            const statusClasses = UI.getStatusClass(offer.OFFER_STATUS);
+            const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
+            const stars = offer.GECAN_CONFIDENCE || 0;
+            const engagedBuyers = offer.ENGAGED_BUYERS || 0;
+            const volume = parseFloat(String(offer.TOTAL_VOLUME_AVAILABLE || '0').replace(/,/g, '')) || 0;
+            return `<div class="offer-card ${statusClasses.border} ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" data-type="offer" data-id="${offer.OFFER_ID}"><div class="card-content h-full flex flex-col"><div class="flex-grow"><div class="flex justify-between items-start mb-6"><div class="flex-1"><h2 class="asset-header text-2xl font-bold mb-1">${offer.ASSET_CATEGORY}</h2><p class="text-sm text-gray-400">${offer.ASSET_SUBTYPE}</p></div><span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${offer.OFFER_ID}</span></div><h3 class="text-lg font-bold text-white mb-3 line-clamp-2">${offer.OFFER_DESCRIPTION}</h3><p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">${offer.EXECUTIVE_SUMMARY_AND_OVERVIEW}</p><div class="border-t border-[var(--border-secondary)] pt-4 grid grid-cols-2 gap-4 text-sm mb-4"><div><span class="text-xs text-gray-400 block mb-1">Status</span><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full ${statusClasses.dot}"></div><span class="font-medium text-white text-xs">${offer.OFFER_STATUS}</span></div></div><div><span class="text-xs text-gray-400 block mb-1">Venue</span><span class="font-medium text-white text-xs">${offer.TRANSACTION_VENUE}</span></div><div><span class="text-xs text-gray-400 block mb-1">Procedure</span><span class="font-semibold text-[var(--asset-primary)] text-xs">${offer.CORE_PROCEDURE_TYPE}</span></div><div><span class="text-xs text-gray-400 block mb-1">Confidence</span><span class="text-yellow-400 text-sm">${'★'.repeat(stars)}<span class="text-gray-600">${'☆'.repeat(5 - stars)}</span></span></div></div><div class="bg-[var(--background-secondary)] bg-opacity-50 backdrop-blur-sm rounded-xl p-4"><div class="flex justify-between items-center mb-2"><span class="text-xs font-medium text-gray-400">Volume Available</span><span class="text-sm font-bold text-[var(--asset-primary)]">${Utils.formatNumber(volume)} ${offer.UNITS_OF_MEASURE || 'units'}</span></div><p class="text-xs font-mono text-gray-300 leading-relaxed line-clamp-2">${offer.DISCOUNT_COMMISSION_SUMMARY}</p></div></div><div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center"><div class="flex items-center gap-2"><i class="fas fa-users text-[var(--text-muted)]"></i><span>${engagedBuyers} Engaged</span></div><div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-gray-500"></i><span>${offer.DATE_RECEIVED}</span></div></div></div></div>`;
+        },
+        createEnquiryCardHTML: (enquiry, index) => {
+            const statusClasses = UI.getStatusClass(enquiry.ENQUIRY_STATUS);
+            const assetClass = Utils.getAssetClass(enquiry.TARGET_ASSET_CATEGORY);
+            const stars = enquiry.GECAN_CONFIDENCE || 0;
+            const volume = parseFloat(String(enquiry.REQUIRED_TOTAL_VOLUME || '0').replace(/,/g, '')) || 0;
+            return `<div class="offer-card ${statusClasses.border} ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" data-type="enquiry" data-id="${enquiry.ENQUIRY_ID}"><div class="card-content h-full flex flex-col"><div class="flex-grow"><div class="flex justify-between items-start mb-6"><div class="flex-1"><h2 class="asset-header text-2xl font-bold mb-1">${enquiry.TARGET_ASSET_CATEGORY}</h2><p class="text-sm text-gray-400">${enquiry.TARGET_ASSET_SUBTYPE}</p></div><span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${enquiry.ENQUIRY_ID}</span></div><h3 class="text-lg font-bold text-white mb-3 line-clamp-2">${enquiry.ENQUIRY_DESCRIPTION}</h3><p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">${enquiry.BUYER_REQUIREMENT_SUMMARY}</p><div class="border-t border-[var(--border-secondary)] pt-4 grid grid-cols-2 gap-4 text-sm mb-4"><div><span class="text-xs text-gray-400 block mb-1">Status</span><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full ${statusClasses.dot}"></div><span class="font-medium text-white text-xs">${enquiry.ENQUIRY_STATUS}</span></div></div><div><span class="text-xs text-gray-400 block mb-1">Venue</span><span class="font-medium text-white text-xs">${enquiry.PREFERRED_TRANSACTION_VENUE}</span></div><div><span class="text-xs text-gray-400 block mb-1">Procedure</span><span class="font-semibold text-[var(--asset-primary)] text-xs">${enquiry.CORE_PROCEDURE_TYPE}</span></div><div><span class="text-xs text-gray-400 block mb-1">Confidence</span><span class="text-yellow-400 text-sm">${'★'.repeat(stars)}<span class="text-gray-600">${'☆'.repeat(5 - stars)}</span></span></div></div><div class="bg-[var(--background-secondary)] bg-opacity-50 backdrop-blur-sm rounded-xl p-4"><div class="flex justify-between items-center mb-2"><span class="text-xs font-medium text-gray-400">Required Volume</span><span class="text-sm font-bold text-[var(--asset-primary)]">${Utils.formatNumber(volume)} ${enquiry.UNITS_OF_MEASURE || 'units'}</span></div><p class="text-xs font-mono text-gray-300 leading-relaxed line-clamp-2">Target Pricing: ${enquiry.TARGET_PRICING_STRUCTURE}</p></div></div><div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center"><div class="flex items-center gap-2"><i class="fas fa-link text-[var(--text-muted)]"></i><span>${enquiry.MATCHED_OFFERS_COUNT} Matched Offers</span></div><div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-gray-500"></i><span>${enquiry.DATE_RECEIVED}</span></div></div></div></div>`;
+        },
+        createProjectCardHTML: (project, index) => {
+            const assetClass = Utils.getAssetClass(project.PRIMARY_SECTOR);
+            const fundingSought = Utils.formatCurrency(project.TOTAL_FUNDING_SOUGHT_USD);
+            const irr = parseFloat(project.PROJECTED_INTERNAL_RATE_OF_RETURN_IRR) || 0;
+            return `<div class="offer-card ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" data-type="project" data-id="${project.PROJECT_ID}"><div class="card-content h-full flex flex-col"><div class="flex-grow"><div class="flex justify-between items-start mb-6"><div><p class="text-sm font-semibold text-[var(--asset-primary)]">${project.PRIMARY_SECTOR}</p><h2 class="asset-header text-2xl font-bold -ml-1">${project.PROJECT_NAME}</h2></div><span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${project.PROJECT_ID}</span></div><p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">${project.EXECUTIVE_SUMMARY}</p><div class="grid grid-cols-3 gap-4 text-center mt-6"><div><p class="text-xs text-gray-400">Funding Sought</p><p class="font-bold text-white text-lg">${fundingSought}</p></div><div><p class="text-xs text-gray-400">Projected IRR</p><p class="font-bold text-green-400 text-lg">${irr > 0 ? irr + '%' : 'N/A'}</p></div><div><p class="text-xs text-gray-400">Equity Offered</p><p class="font-bold text-cyan-400 text-lg">${project.EQUITY_OFFERED > 0 ? project.EQUITY_OFFERED + '%' : 'N/A'}</p></div></div></div><div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center"><div class="flex items-center gap-2"><i class="fas fa-lightbulb text-yellow-400"></i><span>${project.PROJECT_STAGE} Stage</span></div><div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-gray-500"></i><span>${project.PROPOSAL_SUBMISSION_DATE}</span></div></div></div></div>`;
+        },
+        createServiceCardHTML: (service, index) => {
+            const assetClass = Utils.getAssetClass(service.SERVICE_CATEGORY);
+            const reliabilityScore = service.SERVICE_RELIABILITY_SCORE || 0;
+            return `<div class="offer-card ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms; opacity: 0; transform: translateY(20px);" data-type="service" data-id="${service.SERVICE_ID}"><div class="card-content h-full flex flex-col"><div class="flex-grow"><div class="flex justify-between items-start mb-6"><div><p class="text-sm font-semibold text-[var(--asset-primary)]">${service.SERVICE_CATEGORY}</p><h2 class="asset-header text-2xl font-bold -ml-1">${service.SERVICE_NAME}</h2></div><span class="text-xs font-mono bg-black/30 px-2 py-1 rounded-lg border border-[var(--border-secondary)]">${service.SERVICE_ID}</span></div><p class="text-sm text-gray-300 bg-black/20 p-4 rounded-xl border border-white/5 line-clamp-3 mb-4">${service.SERVICE_OVERVIEW_AND_VALUE_PROPOSITION}</p><div class="grid grid-cols-2 gap-4 text-sm mt-6"><div><span class="text-xs text-gray-400 block">Jurisdiction</span><span class="font-medium text-white">${service.PROVIDER_JURISDICTION}</span></div><div><span class="text-xs text-gray-400 block">Pricing Model</span><span class="font-medium text-white">${service.PRICING_MODEL}</span></div></div></div><div class="mt-6 pt-4 border-t border-white/10 text-xs text-gray-400 flex justify-between items-center"><div class="flex items-center gap-2"><i class="fas fa-tachometer-alt text-cyan-400"></i><span>Reliability: ${reliabilityScore}/100</span></div><div class="flex items-center gap-2"><i class="fas fa-calendar-alt text-gray-500"></i><span>Onboarded: ${service.DATE_ONBOARDED}</span></div></div></div></div>`;
+        },
+        createKanbanColumnHTML: (status) => {
+            const statusKey = status.toLowerCase().replace(/[\s-]+/g, '');
+            const statusClasses = UI.getStatusClass(status);
+            return `<div class="kanban-column flex flex-col bg-gradient-to-b from-[var(--background-secondary)] to-transparent p-4 rounded-2xl border border-[var(--border-secondary)] shadow-lg h-[80vh]"><div class="mb-4 flex-shrink-0"><h2 class="text-base font-bold text-white flex items-center gap-3 mb-2"><div class="w-3 h-3 rounded-full ${statusClasses.dot} shadow-lg"></div><span class="flex-1">${status}</span><span class="text-sm font-normal bg-black/30 text-gray-300 rounded-full px-3 py-1" id="count-${statusKey}">0</span></h2><p class="text-xs text-gray-500 flex items-center gap-1"><i class="fas fa-cubes text-gray-400"></i><span id="volume-${statusKey}">0 units</span></p></div><div class="kanban-cards-container space-y-3 flex-grow overflow-y-auto pr-2" id="col-${statusKey}"></div></div>`;
+        },
+        createKanbanCardHTML: (offer) => {
+            const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
+            const stars = offer.GECAN_CONFIDENCE || 0;
+            const volume = parseFloat(String(offer.TOTAL_VOLUME_AVAILABLE || '0').replace(/,/g, '')) || 0;
+            return `<div class="kanban-card ${assetClass} cursor-pointer" data-type="offer" data-id="${offer.OFFER_ID}"><div class="mb-3"><h3 class="font-bold text-white text-sm mb-1 line-clamp-2">${offer.OFFER_DESCRIPTION}</h3><p class="text-xs font-mono text-gray-500">${offer.OFFER_ID}</p></div><div class="flex justify-between items-center text-xs mb-3"><span class="font-semibold text-[var(--asset-primary)] flex items-center gap-1"><i class="fas fa-tag"></i>${offer.ASSET_CATEGORY}</span><span class="text-gray-400 flex items-center gap-1"><i class="fas fa-map-marker-alt"></i>${offer.TRANSACTION_VENUE}</span></div><div class="flex justify-between items-center text-xs text-gray-400"><span class="text-yellow-400">${'★'.repeat(stars)}<span class="text-gray-600">${'☆'.repeat(5 - stars)}</span></span><span class="font-medium">${Utils.formatNumber(volume)} units</span></div></div>`;
+        },
+        renderEngagementSuiteModal: (offer, referralInfo) => {
+            const title = `Intermediary Deal Submission Portal`;
+            return `<div id="engagement-suite" class="rounded-3xl w-full max-w-4xl max-h-[95vh] flex flex-col bg-[var(--background-secondary)] border-2 border-[var(--border-premium)] shadow-2xl"><div class="flex-shrink-0 p-6 md:p-8 border-b border-[var(--border-premium)] bg-[var(--background-primary)]/50"><div class="flex justify-between items-start mb-2"><div><h3 class="text-xl md:text-2xl font-bold text-white">${title}</h3><p class="text-sm text-gray-400">Enquiry Against Offer: ${offer.OFFER_ID} (${offer.OFFER_DESCRIPTION})</p></div><button type="button" onclick="Utils.closeModal('modal-overlay')" class="text-2xl text-gray-500 hover:text-white transition-colors">×</button></div><div class="my-6 p-4 bg-gradient-to-r from-gray-800 via-gray-900 to-black rounded-2xl border border-gray-700 shadow-lg"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-lg text-white">Engagement Feasibility Score</h4><span id="feasibility-score" class="text-3xl font-black text-green-400 transition-all duration-300">100%</span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div id="feasibility-bar" class="bg-gradient-to-r from-green-500 to-emerald-400 h-2.5 rounded-full transition-all duration-500" style="width: 100%;"></div></div><p id="feasibility-guidance" class="text-xs text-gray-400 mt-3 transition-opacity duration-300"><i class="fas fa-check-circle text-green-500 mr-1"></i>Your enquiry perfectly aligns with the seller's offer.</p></div></div><div class="flex-grow overflow-y-auto p-6 md:p-8"><form id="modal-form" class="space-y-6"><input type="hidden" id="modal-timezone" value="${Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'}"><div class="form-section"><h4 class="font-bold text-white mb-4">1. Your Details (Enquiry Source)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="modal-user-name" placeholder="Your Full Name*" class="form-input w-full" required><input type="email" id="modal-user-email" placeholder="Your Email Address*" class="form-input w-full" required><input type="text" id="modal-user-phone" placeholder="Your Phone (Signal/WA)*" class="form-input w-full" required><select id="modal-user-relationship" class="form-input w-full" required><option value="" disabled selected>Your Relationship to Buyer*</option><option value="Mandate">Mandate</option><option value="Broker/Intermediary">Broker/Intermediary</option><option value="Consultant">Consultant</option><option value="Direct Principal">I am the Direct Principal</option></select></div></div><div class="form-section"><h4 class="font-bold text-white mb-4">2. End Buyer Identity</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="modal-buyer-name" placeholder="Buyer Principal Full Name*" class="form-input w-full" required><input type="text" id="modal-buyer-entity" placeholder="Buyer Legal Entity Name*" class="form-input w-full" required><input type="text" id="modal-buyer-jurisdiction" placeholder="Buyer Jurisdiction*" class="form-input w-full" required><input type="text" value="Partner: ${referralInfo.partnerName} (${referralInfo.id})" class="form-input text-gray-400 bg-gray-800/50 border-gray-700" readonly></div></div><div class="form-section"><h4 class="font-bold text-white mb-4">3. Core Deal Structure (Verify & Amend)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="modal-asset-category" value="${offer.ASSET_CATEGORY}" data-original="${offer.ASSET_CATEGORY}" class="form-input deal-param" required><input type="text" id="modal-core-procedure" value="${offer.CORE_PROCEDURE_TYPE}" data-original="${offer.CORE_PROCEDURE_TYPE}" class="form-input deal-param" required><input type="text" id="modal-preferred-venue" value="${offer.TRANSACTION_VENUE}" data-original="${offer.TRANSACTION_VENUE}" class="form-input deal-param" required><input type="text" id="modal-settlement-protocol" value="${offer.SETTLEMENT_PROTOCOL}" data-original="${offer.SETTLEMENT_PROTOCOL}" class="form-input deal-param" required></div><div id="wallet-input-area" class="mt-4"></div></div><div class="form-section"><h4 class="font-bold text-white mb-4">4. Commercials & Supporting Documents</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><input type="text" id="modal-required-volume" value="${offer.TOTAL_VOLUME_AVAILABLE}" data-original="${offer.TOTAL_VOLUME_AVAILABLE}" class="form-input deal-param" required><input type="text" id="modal-target-price" value="${offer.PRICE_REFERENCE_BASIS}" data-original="${offer.PRICE_REFERENCE_BASIS}" class="form-input deal-param" required></div><textarea id="modal-comments" placeholder="Additional comments on buyer requirements, SOP points, etc..." class="form-input w-full h-24"></textarea><div class="mt-4"><label class="block text-sm font-medium text-gray-300 mb-2">Attach Documents (CIS, POF, etc.)</label><input type="file" id="modal-file-upload" class="hidden" multiple><label for="modal-file-upload" class="flex items-center gap-2 form-input cursor-pointer hover:bg-[var(--background-secondary)] transition-colors"><i class="fas fa-plus-circle"></i><span id="file-upload-label">Add Files... (15MB Limit)</span></label><div id="file-list-container" class="mt-3 space-y-2"></div></div></div><div class="mt-8 flex justify-end"><button type="submit" class="btn-primary font-bold py-3 px-8"><i class="fas fa-paper-plane mr-2"></i>Submit Formal Enquiry</button></div></form></div></div>`;
+        },
+        getPremiumTickerLogoHTML: (assetKey) => {
+            let svgContent = '';
+            switch (assetKey) {
+                case 'BTC-USD': svgContent = `<svg class="premium-ticker-svg" viewBox="0 0 100 100"><defs><radialGradient id="btc-grad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FFB94A"/><stop offset="100%" stop-color="#F7931A"/></radialGradient></defs><circle cx="50" cy="50" r="48" fill="url(#btc-grad)"/><path d="M69.1,53.9c0.8-4.6-2.1-7.2-6.9-9.3l2.2-8.8l-5.3-1.3l-2.1,8.5c-0.6-0.1-1.2-0.3-1.8-0.4l2.1-8.5l-5.3-1.3l-2.2,8.8c-0.5-0.1-1-0.2-1.5-0.3l0,0l-7.3-1.8l-1.4,5.6c0,0,4,1,3.9,1.1c2.1,0.5,2.7,2.1,2.6,3.4l-2.6,10.3c0.1,0,0.2,0.1,0.4,0.1c-0.2-0.1-0.4-0.1-0.6-0.2l-1.7,6.7c-0.4,0.8-1.3,1.9-3.2,1.4c-0.1-0.1-3.9-1-3.9-1l-2.6,6.1l7,1.7c0.5,0.1,1,0.2,1.5,0.4l-2.2,8.9l5.3,1.3l2.2-8.8c0.6,0.2,1.2,0.3,1.8,0.4l-2.2,8.8l5.3,1.3l2.2-8.9c3.9,0.7,7,0,8.8-3.6c1.6-3.3,1.1-6.2-0.5-8.6C70.3,57,70.1,55.5,69.1,53.9z M61.7,63.1c-1,4.1-5.6,5.6-9.5,4.6l1.8-7.2c0.5,0.1,1,0.3,1.5,0.4l-0.1-0.4C60.2,61,62.3,60.1,61.7,63.1z M62.8,49.9c-0.9,3.6-4.9,5-8.2,4.2l1.7-6.7c0.5,0.1,0.9,0.2,1.4,0.3l-0.1-0.4C61.4,47.7,63.4,47.1,62.8,49.9z" fill="#FFFFFF"/></svg>`; break;
+                case 'XAU-OZ-USD': svgContent = `<svg class="premium-ticker-svg" viewBox="0 0 100 100"><defs><linearGradient id="gold-grad-top" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FEF08A" /><stop offset="100%" stop-color="#FDE68A" /></linearGradient><linearGradient id="gold-grad-front" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FBBF24" /><stop offset="100%" stop-color="#D97706" /></linearGradient></defs><polygon points="15,30 85,30 75,50 25,50" fill="url(#gold-grad-top)" /><polygon points="25,50 75,50 75,70 25,70" fill="url(#gold-grad-front)" /><text x="50" y="65" font-family="Orbitron, monospace" font-size="8" fill="#000" text-anchor="middle" font-weight="bold" opacity="0.4">FINE GOLD</text></svg>`; break;
+                default: svgContent = `<svg class="premium-ticker-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="var(--background-secondary)"/><text x="50" y="55" font-family="Orbitron, monospace" font-size="12" fill="var(--text-silver)" text-anchor="middle">N/A</text></svg>`;
+            }
+            return `<div class="ticker-logo-container"><div class="ticker-logo-flipper"><div class="logo-face-front">${svgContent}</div><div class="logo-face-back">${svgContent}</div></div></div>`;
+        },
+        initClocks: (initialTimezones = []) => {
+            const container = document.getElementById('clock-container');
+            if (!container) return;
+            container.innerHTML = '';
+            initialTimezones.forEach(tz => UI.createClock(tz));
+            if (AppState.clockInterval) clearInterval(AppState.clockInterval);
+            AppState.clockInterval = setInterval(UI.updateAllClocks, 1000);
+            UI.updateAllClocks();
+        },
+        renderAllFilters: (type) => {
+            const sidebar = document.getElementById('filter-sidebar');
+            if (!sidebar) return;
+            const navTabs = [
+                { type: 'offers', icon: 'fa-handshake', text: 'Offers' }, { type: 'enquiries', icon: 'fa-search-dollar', text: 'Buyer Enquiries' },
+                { type: 'projects', icon: 'fa-rocket', text: 'Investment Projects' }, { type: 'services', icon: 'fa-cogs', text: 'Professional Services' }
+            ];
+            sidebar.innerHTML = `<div class="filter-tabs flex flex-wrap justify-center gap-2">${navTabs.map(tab => `<div class="filter-tab ${tab.type === type ? 'active' : ''}" data-type="${tab.type}"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas ${tab.icon}"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas ${tab.icon}"></i></div></div></div><span class="tab-text">${tab.text}</span></div>`).join('')}</div><div class="filter-section"><div class="relative w-full group mb-4" id="search-container"><i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i><input type="text" id="search-input" placeholder="Search all fields..." class="form-input w-full py-3 pl-12 pr-4"><div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div></div><div class="flex items-center justify-between gap-2"><div class="flex items-center gap-1 bg-black/20 p-1 rounded-xl"><button id="card-view-btn" class="btn-primary px-4 py-2" title="Card View"><i class="fa fa-th-large"></i></button><button id="kanban-view-btn" class="btn-secondary px-4 py-2" title="Kanban View"><i class="fa fa-columns"></i></button></div><button id="toggle-advanced-filters-btn" class="btn-secondary flex items-center gap-2"><i class="fas fa-sliders-h"></i><span>Advanced</span><span id="active-filter-count" class="hidden bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span></button></div></div><div id="advanced-filters-container" class="max-h-0 overflow-hidden transition-all duration-500 ease-in-out"><div class="filter-section -mt-4"><div id="advanced-filters-content" class="grid grid-cols-1 gap-6"></div><div class="mt-6 pt-6 border-t border-[var(--border-secondary)] flex justify-between items-center"><select id="sort-select" class="form-input w-auto"></select><button id="reset-filters-btn" class="btn-secondary text-red-400 border-red-500/50 hover:bg-red-500/20 hover:text-red-300"><i class="fas fa-undo"></i> Reset</button></div></div></div>`;
+            UI.populateAdvancedFilters(type);
+        }
     };
 
     // === CORE LOGIC ENGINE ===
     const Logic = {
         init: () => {
-            UI.initStatic();
-            Logic.initMobileUI();
-            Logic.initStickySidebar();
-            Promise.all([
-                fetch(`${API_URL}?action=getOfferData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getEnquiryData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getProjectProposalsData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getServicesData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getFeaturedData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getBulletinData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getMarketMatrixData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getActiveThemeConfig`).then(res => res.json())
-            ]).then(([offerRes, enquiryRes, projectRes, serviceRes, featuredRes, bulletinRes, marketRes, themeRes]) => {
-                const responses = [offerRes, enquiryRes, projectRes, serviceRes, featuredRes, bulletinRes, marketRes];
-                for (const res of responses) if (!res.success) throw new Error(res.error || 'API Error');
-                AppState.allOffers = offerRes.data; AppState.allEnquiries = enquiryRes.data;
-                AppState.allProjects = projectRes.data; AppState.allServices = serviceRes.data;
-                AppState.allFeatured = featuredRes.data; AppState.allBulletins = bulletinRes.data;
-                AppState.marketMatrix = marketRes.data;
-                const themeConfig = (themeRes.success && themeRes.data) ? JSON.parse(themeRes.data) : DEFAULT_THEME_CONFIG;
-                UI.initParticles(themeConfig);
-                Object.keys(AppState.isDataLoading).forEach(key => AppState.isDataLoading[key] = false);
-                Logic.populateAllFilters();
-                Logic.setupEventListeners();
-                UI.renderHoloStream();
-                Logic.onMarketDataLoaded(marketRes.data);
-                Logic.applyFiltersAndRender();
-                Logic.startLiveUpdates();
-            }).catch(Logic.onDataError);
+            try {
+                UI.initStatic();
+                Logic.initMobileUI();
+                Logic.initStickySidebar();
+                Promise.all([
+                    fetch(`${API_URL}?action=getOfferData`).then(res => res.json()), fetch(`${API_URL}?action=getEnquiryData`).then(res => res.json()),
+                    fetch(`${API_URL}?action=getProjectProposalsData`).then(res => res.json()), fetch(`${API_URL}?action=getServicesData`).then(res => res.json()),
+                    fetch(`${API_URL}?action=getFeaturedData`).then(res => res.json()), fetch(`${API_URL}?action=getBulletinData`).then(res => res.json()),
+                    fetch(`${API_URL}?action=getMarketMatrixData`).then(res => res.json()), fetch(`${API_URL}?action=getActiveThemeConfig`).then(res => res.json())
+                ]).then(([offerRes, enquiryRes, projectRes, serviceRes, featuredRes, bulletinRes, marketRes, themeRes]) => {
+                    [offerRes, enquiryRes, projectRes, serviceRes, featuredRes, bulletinRes, marketRes, themeRes].forEach(res => { if (res && res.success === false) throw new Error(res.error || 'API Error') });
+                    AppState.allOffers = offerRes.data || []; AppState.allEnquiries = enquiryRes.data || [];
+                    AppState.allProjects = projectRes.data || []; AppState.allServices = serviceRes.data || [];
+                    AppState.allFeatured = featuredRes.data || []; AppState.allBulletins = bulletinRes.data || [];
+                    AppState.marketMatrix = marketRes.data || [];
+                    const themeConfig = (themeRes && themeRes.success && themeRes.data) ? JSON.parse(themeRes.data) : DEFAULT_THEME_CONFIG;
+                    UI.initParticles(themeConfig);
+                    Object.keys(AppState.isDataLoading).forEach(key => AppState.isDataLoading[key] = false);
+                    Logic.populateAllFilters();
+                    Logic.setupEventListeners();
+                    UI.renderHoloStream();
+                    Logic.onMarketDataLoaded(AppState.marketMatrix);
+                    Logic.applyFiltersAndRender();
+                    Logic.startLiveUpdates();
+                }).catch(Logic.onDataError);
+            } catch (e) { console.error("Fatal initialization error:", e); Logic.onDataError(e); }
         },
         applyFiltersAndRender: () => {
             AppState.activeFilters.query = document.getElementById('search-input')?.value.toLowerCase() || '';
