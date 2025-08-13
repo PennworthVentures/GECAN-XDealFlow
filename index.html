@@ -1709,7 +1709,6 @@ toggleAdvancedFilters: () => {
         return;
     }
     
-    // Check if the panel is currently open by looking for the '.open' class
     const isOpen = container.classList.contains('open');
 
     if (isOpen) {
@@ -1718,15 +1717,25 @@ toggleAdvancedFilters: () => {
         container.classList.remove('open');
         btn.classList.remove('active');
     } else {
-        // --- OPEN THE PANEL ---
-        // 1. Ensure the filter content is correctly populated for the active tab first.
+        // --- OPEN THE PANEL (Corrected Logic) ---
+        // 1. Populate the content first, as you are already doing.
         UI.populateAdvancedFilters(AppState.activeFilters.type);
-        // 2. Set up listeners for the newly created elements inside.
         Logic.setupAdvancedFilterListeners();
-        // 3. Set max-height to its content's scroll height to animate open.
-        container.style.maxHeight = content.scrollHeight + 'px';
-        container.classList.add('open');
-        btn.classList.add('active');
+
+        // 2. THE FIX: Temporarily remove the height restriction to measure the content.
+        container.style.maxHeight = 'none';
+        const scrollHeight = content.scrollHeight; // Now this will get the correct, full height.
+        
+        // 3. Immediately set the height back to 0. This happens in the same execution frame, so there's no visual flicker.
+        container.style.maxHeight = '0px';
+
+        // 4. Force a browser repaint. The minimal timeout ensures the browser has registered the 'max-height: 0px'
+        // state before we ask it to transition to the new height.
+        setTimeout(() => {
+            container.style.maxHeight = scrollHeight + 'px';
+            container.classList.add('open');
+            btn.classList.add('active');
+        }, 10); // 10ms is more than enough.
     }
 },
 
