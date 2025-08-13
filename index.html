@@ -80,7 +80,7 @@
         #sticky-filter-wrapper.is-sticky-sidebar { position: fixed; top: 120px; width: 384px; }
         .filter-section { background: var(--background-glass); backdrop-filter: blur(25px); border: 1px solid var(--border-secondary); border-radius: 1.5rem; }
         
-        .offer-card { background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 1.5rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; box-shadow: var(--shadow-standard); }
+        .offer-card, .kanban-card { background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 1.5rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; box-shadow: var(--shadow-ultra); }
         .offer-card:hover { transform: var(--transform-ultra); border-color: var(--asset-primary, var(--primary-royal)); box-shadow: var(--shadow-luxury), 0 0 80px var(--asset-glow, var(--glow-azure)); }
         .asset-header { font-family: 'Orbitron', monospace; font-weight: 800; background: var(--asset-gradient, linear-gradient(135deg, var(--primary-azure), var(--primary-royal))); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: all 0.6s ease; }
         .offer-card:hover .asset-header { transform: translateZ(40px) scale(1.1); text-shadow: 0 0 30px var(--asset-glow); }
@@ -114,11 +114,11 @@
         .asset-color-JET_A1_FUEL { --asset-primary: #0ea5e9; --asset-glow: rgba(14, 165, 233, 0.7); --asset-gradient: linear-gradient(135deg, #0ea5e9, #38bdf8); }
         .asset-color-REAL_ESTATE_DEVELOPMENT { --asset-primary: #9f1239; --asset-glow: rgba(159, 18, 57, 0.7); --asset-gradient: linear-gradient(135deg, #9f1239, #be123c); }
         .asset-color-FINANCIAL_ADVISORY { --asset-primary: #0369a1; --asset-glow: rgba(3, 105, 161, 0.7); --asset-gradient: linear-gradient(135deg, #0369a1, #0ea5e9); }
-        /* Add other asset colors following the same pattern... */
+        .asset-color-DEFAULT { --asset-primary: var(--primary-royal); --asset-glow: var(--glow-royal); --asset-gradient: linear-gradient(135deg, var(--primary-royal), var(--primary-amethyst)); }
 
         .premium-footer { border-top: 1px solid var(--border-premium); background: var(--background-glass-premium); backdrop-filter: blur(40px); box-shadow: 0 -15px 60px rgba(0, 0, 0, 0.8); }
         .footer-title { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--text-diamond); text-shadow: 0 0 10px var(--glow-azure); }
-        .holo-stream-container { perspective: 1200px; background: rgba(10, 10, 15, 0.6); backdrop-filter: blur(20px); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 80px var(--glow-amethyst); }
+        .holo-stream-container { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 40; perspective: 1200px; background: rgba(10, 10, 15, 0.6); backdrop-filter: blur(20px); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 80px var(--glow-amethyst); }
         .holo-stream-track { display: flex; position: absolute; left: 0; top: 0; bottom: 0; align-items: center; animation: holo-scroll 120s linear infinite; }
         @keyframes holo-scroll { to { transform: translateX(-50%); } }
         .holo-item { flex-shrink: 0; margin: 0 1rem; color: var(--text-silver); background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 1rem; transition: all 0.4s ease; cursor: pointer; }
@@ -216,41 +216,37 @@
         </main>
     </div>
 
-    <!-- Footer -->
-    <footer class="premium-footer mt-32 relative print-hide">
-        <div class="container mx-auto p-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
-            <div>
-                <h3 class="footer-title text-xl mb-4">GECAN™</h3>
-                <p class="text-sm text-text-muted mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
-                <p class="text-xs text-text-muted/70">© 2025 All Rights Reserved.</p>
-            </div>
-            <div>
-                <h4 class="footer-title text-lg mb-4">Legal Disclaimer</h4>
-                <p class="text-xs text-text-muted leading-relaxed">The information presented is for informational purposes only. GECAN™ acts solely as an intermediary. We make no warranties regarding accuracy, completeness, or performance of any offer or counterparty.</p>
-            </div>
-            <div>
-                <h4 class="footer-title text-lg mb-4">Risk & Compliance</h4>
-                <p class="text-xs text-text-muted leading-relaxed">All transactions carry inherent risks. Users must conduct independent due diligence and agree to indemnify GECAN™ from any claims or liabilities.</p>
-            </div>
-        </div>
-    </footer>
+    <!-- HoloStream & Footer Wrapper -->
     <div id="fixed-bottom-ui-wrapper" class="print-hide">
-      <div id="holo-stream-container" class="h-28 print-hide">
-          <div class="holo-stream-track">
-              <!-- HoloStream items will be dynamically injected here by JavaScript -->
+      <footer class="premium-footer relative">
+          <div class="container mx-auto p-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
+              <div>
+                  <h3 class="footer-title text-xl mb-4">GECAN™</h3>
+                  <p class="text-sm text-text-muted mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
+                  <p class="text-xs text-text-muted/70">© 2025 All Rights Reserved.</p>
+              </div>
+              <div>
+                  <h4 class="footer-title text-lg mb-4">Legal Disclaimer</h4>
+                  <p class="text-xs text-text-muted leading-relaxed">The information presented is for informational purposes only. GECAN™ acts solely as an intermediary. We make no warranties regarding accuracy, completeness, or performance of any offer or counterparty.</p>
+              </div>
+              <div>
+                  <h4 class="footer-title text-lg mb-4">Risk & Compliance</h4>
+                  <p class="text-xs text-text-muted leading-relaxed">All transactions carry inherent risks. Users must conduct independent due diligence and agree to indemnify GECAN™ from any claims or liabilities.</p>
+              </div>
           </div>
+      </footer>
+      <div id="holo-stream-container" class="h-28 print-hide">
+          <div class="holo-stream-track"></div>
       </div>
     </div>
 
 
     <!-- Modals & Print Container -->
     <div id="modal-overlay" class="hidden fixed inset-0 items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div id="modal-content-wrapper" class="w-full max-w-6xl max-h-[90vh] flex flex-col scale-95 transition-transform duration-300"></div>
+        <div id="modal-content-wrapper" class="w-full max-w-6xl max-h-[90vh] flex flex-col scale-95 transition-all duration-300"></div>
     </div>
     <div id="engagement-modal" class="hidden fixed inset-0 items-center justify-center p-4"></div>
-    <div id="printable-container" class="hidden">
-      <!-- Print content injected here -->
-    </div>
+    <div id="printable-container" class="hidden"></div>
 
 <script>
     // =========================================================================
@@ -278,7 +274,7 @@
         debounce: (func, wait) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), wait); }; },
         formatNumber: (n) => { if(!n) return '0'; if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'; return n.toLocaleString('en-US'); },
         parseDate: (d) => { if (!d || typeof d !== 'string') return new Date('1970-01-01'); const p = d.split('/'); if (p.length === 3 && String(p[2]).length === 4) { const dt = new Date(p[2], p[1] - 1, p[0]); if (!isNaN(dt.getTime())) return dt; } const dt = new Date(d); return isNaN(dt.getTime()) ? new Date('1970-01-01') : dt; },
-        getAssetClass: (a) => `asset-color-${String(a||'').replace(/[\s\(\)\/&,]+/g, '_').toUpperCase()}`,
+        getAssetClass: (a) => `asset-color-${String(a||'DEFAULT').replace(/[\s\(\)\/&,]+/g, '_').toUpperCase()}`,
         closeModal: (id = 'modal-overlay') => {
             const modal = document.getElementById(id);
             if (!modal) return;
@@ -311,11 +307,12 @@
     const UI = {
         init: () => {
             UI.renderFilters();
+            UI.setupNavLinks();
         },
         initParticles: (config) => {
             let themeConfig = DEFAULT_THEME_CONFIG;
             try { if(config) themeConfig = JSON.parse(config); } catch(e) { /* use default */ }
-            if (window.particlesJS) particlesJS('particles-js', themeConfig);
+            if (window.particlesJS) particlesJS('particles-js', themeConfig || DEFAULT_THEME_CONFIG);
         },
         renderFilters: () => {
             const container = document.getElementById('sticky-filter-wrapper');
@@ -375,8 +372,8 @@
         populateStatusFilter: () => {
              const container = document.getElementById('status-filters-container');
              if (!container) return;
-             const statuses = [{ name: "ACTIVE", dotClass: "status-dot-active" }, { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "status-dot-active-limited-bandwidth" }, { name: "PENDING REVIEW", dotClass: "status-dot-pending-review" }, { name: "WITHDRAWN", dotClass: "status-dot-withdrawn" }, { name: "BLACKLISTED", dotClass: "status-dot-blacklisted" }];
-             container.innerHTML = statuses.map(s => `<label class="flex items-center space-x-2 cursor-pointer p-1 rounded-md hover:bg-background-accent"><input type="checkbox" class="status-checkbox hidden" value="${s.name.toUpperCase()}"><span class="w-2.5 h-2.5 rounded-full ${s.dotClass} border border-white/20"></span><span class="text-xs text-text-silver">${s.name}</span></label>`).join('');
+             const statuses = [{ name: "ACTIVE", dotClass: "bg-status-active" }, { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "bg-status-limited" }, { name: "PENDING REVIEW", dotClass: "bg-status-pending" }, { name: "WITHDRAWN", dotClass: "bg-status-withdrawn" }, { name: "BLACKLISTED", dotClass: "bg-status-blacklisted" }];
+             container.innerHTML = statuses.map(s => `<label class="flex items-center space-x-2 cursor-pointer p-1 rounded-md hover:bg-background-tertiary"><input type="checkbox" class="status-checkbox hidden" value="${s.name.toUpperCase()}"><span class="w-2.5 h-2.5 rounded-full ${s.dotClass} border border-white/20"></span><span class="text-xs text-text-silver">${s.name}</span></label>`).join('');
         },
         renderContent: () => {
             const { type } = AppState.activeFilters;
@@ -457,7 +454,7 @@
             const container = document.getElementById('clock-container');
             if(!container) return;
             const timezones = [{name: "New York", value: "America/New_York"}, {name: "London", value: "Europe/London"}, {name: "Dubai", value: "Asia/Dubai"}, {name: "Singapore", value: "Asia/Singapore"}];
-            container.innerHTML = timezones.map(tz => `<div class="text-center fade-in-up"><div class="premium-clock" data-timezone="${tz.value}"><div class="hand hour-hand"></div><div class="hand minute-hand"></div><div class="hand second-hand"></div></div><div class="mt-3"><p class="text-sm font-bold text-white">${tz.name}</p><p class="text-xs text-text-muted clock-time">--:--:--</p></div></div>`).join('');
+            container.innerHTML = timezones.map(tz => `<div class="text-center fade-in-up"><div class="premium-clock" data-timezone="${tz.value}"><div class="hand hour-hand"></div><div class="hand minute-hand"></div><div class="hand second-hand"></div></div><div class="mt-3"><p class="text-sm font-bold text-white">${tz.name}</p><p class="text-xs text-text-muted clock-time" data-timezone="${tz.value}">--:--:--</p></div></div>`).join('');
             setInterval(UI.updateAllClocks, 1000);
         },
         updateAllClocks: () => {
@@ -507,10 +504,7 @@
             const placeholder = placeholders[type];
             const el = document.getElementById('placeholder-content');
             if (!placeholder || !el) { if(el) el.classList.add('hidden'); return; }
-            el.querySelector('#placeholder-icon').className = `fas ${placeholder.icon}`;
-            el.querySelector('#placeholder-title').textContent = placeholder.title;
-            el.querySelector('#placeholder-text').textContent = placeholder.text;
-            el.querySelector('#placeholder-tag').textContent = placeholder.tag;
+            el.innerHTML = `<div class="showcase-icon-wrapper"><div class="showcase-icon-3d"><div class="showcase-icon-base"><i class="fas ${placeholder.icon}"></i></div></div></div><h2 class="showcase-title">${placeholder.title}</h2><p class="showcase-subtitle">${placeholder.text}</p><span class="showcase-tag">${placeholder.tag}</span>`;
             el.classList.remove('hidden');
         },
         createOfferCardHTML: (offer, index) => {
@@ -540,12 +534,20 @@
             const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
             return `<div class="kanban-card p-3 rounded-lg border-l-4 ${assetClass}" data-id="${offer.OFFER_ID}" data-type="offer" data-volume="${parseFloat(String(offer.TOTAL_VOLUME_AVAILABLE||'0').replace(/,/g,''))}"><p class="font-bold text-sm text-text-platinum line-clamp-2">${offer.OFFER_DESCRIPTION}</p><p class="text-xs text-text-muted mt-1">${offer.OFFER_ID}</p></div>`;
         },
-        renderEngagementSuiteModal: (offer, referralInfo) => { /* Full implementation here, returns HTML string */ return `...`; },
+        renderEngagementSuiteModal: (offer, referralInfo) => {
+             return `<div class="flex-shrink-0 p-6 md:p-8 border-b border-border-secondary bg-background-secondary/50"><div class="flex justify-between items-start mb-2"><div><h3 class="text-xl md:text-2xl font-bold text-white">Intermediary Deal Submission</h3><p class="text-sm text-text-muted">Enquiry Against Offer: ${offer.OFFER_ID}</p></div><button type="button" onclick="Utils.closeModal('modal-overlay')" class="text-2xl text-text-muted hover:text-white">×</button></div></div><div class="flex-grow overflow-y-auto p-6 md:p-8"><form id="modal-form" class="space-y-6"><!-- Full form HTML --></form></div>`;
+        },
         setupNavLinks: () => {
             const navContainer = document.getElementById('nav-container');
             const path = window.location.pathname;
             const currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
-            const links = [ { page: 'index', icon: 'fa-tachometer-alt', text: 'XDealFlow' }, { page: 'aboutus', icon: 'fa-landmark-flag', text: 'About Us' }, { page: 'toolkits', icon: 'fa-microchip', text: 'Toolkits' }, { page: 'architect', icon: 'fa-drafting-compass', text: 'Architect' }, { page: 'intelligence', icon: 'fa-sitemap', text: 'Intelligence' } ];
+            const links = [
+                { page: 'index', icon: 'fa-tachometer-alt', text: 'XDealFlow' },
+                { page: 'aboutus', icon: 'fa-landmark-flag', text: 'About Us' },
+                { page: 'toolkits', icon: 'fa-microchip', text: 'Toolkits' },
+                { page: 'architect', icon: 'fa-drafting-compass', text: 'Architect' },
+                { page: 'intelligence', icon: 'fa-sitemap', text: 'Intelligence' }
+            ];
             if (navContainer) navContainer.innerHTML = links.map(link => `<a href="./${link.page}.html" class="nav-btn ${currentPageFile === link.page ? 'active' : ''}"><i class="fas ${link.icon}"></i><span>${link.text}</span></a>`).join('');
         }
     };
@@ -567,7 +569,6 @@
             Promise.all([
                 fetch(`${API_URL}?action=getActiveThemeConfig`).then(res => res.json()),
                 fetch(`${API_URL}?action=getOfferData`).then(res => res.json()),
-                // For now, these are placeholders that will resolve to null
                 Promise.resolve({success: true, data: null}), // Enquiries
                 Promise.resolve({success: true, data: null}), // Crowdfunding
                 Promise.resolve({success: true, data: null}), // Services
@@ -579,16 +580,10 @@
                 if (allResponses.some(r => !r.success)) throw new Error("One or more critical API calls failed.");
                 
                 UI.initParticles(themeRes.data);
-                AppState.allData = {
-                    offers: offersRes.data || [],
-                    enquiries: enquiriesRes.data,
-                    crowdfunding: crowdfundingRes.data,
-                    services: servicesRes.data
-                };
+                AppState.allData = { offers: offersRes.data || [], enquiries: enquiriesRes.data, crowdfunding: crowdfundingRes.data, services: servicesRes.data };
                 AppState.allFeatured = featuredRes.data || [];
                 AppState.allBulletins = bulletinsRes.data || [];
                 AppState.marketMatrix = marketRes.data || [];
-                
                 AppState.isDataLoading = false;
                 
                 UI.renderFilterControls('offers');
@@ -605,26 +600,20 @@
         filterAndSortData: (items) => {
             const { type, query, assetCategory, statuses, settlementProtocol, coreProcedure } = AppState.activeFilters;
             if (!items) return [];
-
-            let filtered = items.filter(item => {
-                if (type === 'offers') {
-                    const searchMatch = !query || Object.values(item).some(val => String(val).toLowerCase().includes(query));
-                    const assetMatch = assetCategory === 'All' || item.ASSET_CATEGORY === assetCategory;
-                    const statusMatch = statuses.length === 0 || statuses.includes(String(item.OFFER_STATUS).toUpperCase());
-                    const settlementMatch = settlementProtocol === 'All' || item.SETTLEMENT_PROTOCOL === settlementProtocol;
-                    const procedureMatch = coreProcedure === 'All' || item.CORE_PROCEDURE_TYPE === coreProcedure;
-                    return searchMatch && assetMatch && statusMatch && settlementMatch && procedureMatch;
-                }
-                // Basic search for other types
-                return !query || Object.values(item).some(val => String(val).toLowerCase().includes(query));
-            });
-            return filtered.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
+            return items.filter(item => {
+                if (type !== 'offers') return !query || Object.values(item).some(val => String(val).toLowerCase().includes(query));
+                const searchMatch = !query || Object.values(item).some(val => String(val).toLowerCase().includes(query));
+                const assetMatch = assetCategory === 'All' || item.ASSET_CATEGORY === assetCategory;
+                const statusMatch = statuses.length === 0 || statuses.includes(String(item.OFFER_STATUS).toUpperCase());
+                const settlementMatch = settlementProtocol === 'All' || item.SETTLEMENT_PROTOCOL === settlementProtocol;
+                const procedureMatch = coreProcedure === 'All' || item.CORE_PROCEDURE_TYPE === coreProcedure;
+                return searchMatch && assetMatch && statusMatch && settlementMatch && procedureMatch;
+            }).sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
         },
         sortItems: (a, b, sortType) => {
             const parseNum = (item, key) => parseFloat(String(item[key] || '0').replace(/,/g, '')) || 0;
             const dateKeyA = a.DATE_RECEIVED || a.PROPOSAL_SUBMISSION_DATE || a.DATE_ONBOARDED;
             const dateKeyB = b.DATE_RECEIVED || b.PROPOSAL_SUBMISSION_DATE || b.DATE_ONBOARDED;
-
             switch (sortType) {
                 case 'date_asc': return Utils.parseDate(dateKeyA) - Utils.parseDate(dateKeyB);
                 case 'confidence_desc': return (b.GECAN_CONFIDENCE || 0) - (a.GECAN_CONFIDENCE || 0);
@@ -640,6 +629,7 @@
             const avgConfidence = totalItems > 0 ? items.reduce((acc, i) => acc + (i.GECAN_CONFIDENCE || 0), 0) / totalItems : 0;
             return { totalItems, activeItems, totalVolume, avgConfidence };
         },
+        applyFiltersAndRender: () => { UI.renderContent(AppState.allData[AppState.activeFilters.type], AppState.activeFilters.type); },
         switchFilterType: (type) => {
             if (AppState.activeFilters.type === type) return;
             AppState.activeFilters.type = type;
@@ -649,27 +639,20 @@
             Logic.applyFiltersAndRender();
         },
         resetFilters: (showNotif = true) => {
-            AppState.activeFilters = { type: AppState.activeFilters.type, query: '', assetCategory: 'All', statuses: [], settlementProtocol: 'All', coreProcedure: 'All' };
+            const currentType = AppState.activeFilters.type;
+            AppState.activeFilters = { type: currentType, query: '', assetCategory: 'All', statuses: [], settlementProtocol: 'All', coreProcedure: 'All' };
             AppState.activeSort = 'date_desc';
-            const controls = document.getElementById('filter-controls-container');
-            if(controls) {
-                controls.querySelector('#search-input').value = '';
-                controls.querySelector('#sort-select').value = 'date_desc';
-                if(AppState.activeFilters.type === 'offers') {
-                    controls.querySelector('#asset-category-select').value = 'All';
-                    controls.querySelector('#settlement-select').value = 'All';
-                    controls.querySelector('#procedure-select').value = 'All';
-                    controls.querySelectorAll('.status-checkbox').forEach(cb => cb.checked = false);
-                }
-            }
+            UI.renderFilterControls(currentType); // Re-render to reset inputs
             Logic.applyFiltersAndRender();
             if (showNotif) Utils.showNotification('Filters Reset', 'success');
         },
         switchView: (view) => {
             if (AppState.currentView === view || AppState.activeFilters.type !== 'offers') return;
             AppState.currentView = view;
-            document.getElementById('card-view-btn')?.classList.toggle('active', view === 'card');
-            document.getElementById('kanban-view-btn')?.classList.toggle('active', view === 'kanban');
+            const cardBtn = document.querySelector('#sticky-filter-wrapper #card-view-btn');
+            const kanbanBtn = document.querySelector('#sticky-filter-wrapper #kanban-view-btn');
+            if(cardBtn) cardBtn.classList.toggle('active', view === 'card');
+            if(kanbanBtn) kanbanBtn.classList.toggle('active', view === 'kanban');
             Logic.applyFiltersAndRender();
         },
         initStickySidebar: () => {
@@ -696,6 +679,7 @@
             const overlay = document.getElementById('mobile-sidebar-overlay');
             const closeBtn = document.getElementById('mobile-sidebar-close-btn');
             const sidebarContent = document.getElementById('mobile-sidebar-content');
+            if(!fab || !sidebar || !overlay || !closeBtn || !sidebarContent) return;
 
             const openSidebar = () => {
                 sidebar.classList.add('open');
@@ -705,6 +689,7 @@
                     const nav = document.getElementById('nav-container')?.cloneNode(true);
                     const filters = document.getElementById('sticky-filter-wrapper')?.cloneNode(true);
                     if (nav) {
+                        nav.id = 'mobile-nav-clone';
                         nav.classList.add('mobile-nav-clone');
                         nav.classList.remove('hidden');
                         sidebarContent.appendChild(nav);
@@ -713,7 +698,6 @@
                         filters.id = 'mobile-filter-clone';
                         filters.classList.add('mobile-filter-clone');
                         sidebarContent.appendChild(filters);
-                        // Re-attach listeners for the cloned elements
                         Logic.setupFilterListeners(true);
                     }
                 }
@@ -733,8 +717,8 @@
                 const card = e.target.closest('.offer-card, .kanban-card');
                 if (card) Logic.openModal(card.dataset.id || card.dataset.offerId, card.dataset.type || 'offer');
             });
-            document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') Utils.closeModal('modal-overlay'); });
-            document.getElementById('engagement-modal').addEventListener('click', (e) => { if (e.target.id === 'engagement-modal') Utils.closeModal('engagement-modal'); });
+            document.getElementById('modal-overlay')?.addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') Utils.closeModal('modal-overlay'); });
+            document.getElementById('engagement-modal')?.addEventListener('click', (e) => { if (e.target.id === 'engagement-modal') Utils.closeModal('engagement-modal'); });
         },
         setupFilterListeners: (isMobileClone = false) => {
             const scope = isMobileClone ? document.getElementById('mobile-sidebar-content') : document;
@@ -754,9 +738,9 @@
         setupAdvancedFilterListeners: (isMobileClone = false) => {
             const scope = isMobileClone ? document.getElementById('mobile-sidebar-content') : document;
             if(!scope) return;
-            const addListener = (id, key, event = 'change') => {
+            const addListener = (id, key) => {
                 const el = scope.querySelector(`#${id}`);
-                if(el) el.addEventListener(event, e => {
+                if(el) el.addEventListener('change', e => {
                     AppState.activeFilters[key] = e.target.value;
                     Logic.applyFiltersAndRender();
                 });
@@ -772,30 +756,59 @@
             });
         },
         updateSortOptions: (type) => {
-            const sortSelect = document.querySelector('#sticky-filter-wrapper #sort-select');
-            if (!sortSelect) return;
-            let options = `<option value="date_desc">Date (Newest)</option><option value="date_asc">Date (Oldest)</option>`;
-            if (type === 'offers') options += `<option value="confidence_desc">Confidence</option><option value="volume_desc">Volume</option>`;
-            sortSelect.innerHTML = options;
+            document.querySelectorAll('#sort-select').forEach(sortSelect => {
+                let options = `<option value="date_desc">Date (Newest)</option><option value="date_asc">Date (Oldest)</option>`;
+                if (type === 'offers') options += `<option value="confidence_desc">Confidence</option><option value="volume_desc">Volume</option>`;
+                sortSelect.innerHTML = options;
+            });
             AppState.activeSort = 'date_desc';
         },
         openModal: (id, type) => {
             const item = AppState.allData[type].find(d => (d.OFFER_ID || d.ENQUIRY_ID || d.PROJECT_ID || d.SERVICE_ID) === id);
             if (!item) return;
-            // ... Full unabridged modal rendering logic as defined in previous correct versions
+            
+            const modalWrapper = document.getElementById('modal-content-wrapper');
+            const modalOverlay = document.getElementById('modal-overlay');
+            
+            const createDetailItem = (label, value, icon) => `<div class="modal-grid-item"><p class="text-xs text-text-silver flex items-center mb-2"><i class="fas ${icon} fa-fw mr-2 text-primary-azure"></i>${label}</p><p class="font-semibold text-sm text-white">${value || 'N/A'}</p></div>`;
+
+            let headerContent = '', bodyContent = '', footerContent = '', pdfFooter = '';
+            
+            if (type === 'offer') {
+                const offer = item;
+                const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
+                headerContent = `<div class="p-6 flex justify-between items-center border-b border-border-secondary"><h2 class="text-xl font-bold text-white">${offer.OFFER_DESCRIPTION}</h2><button onclick="Utils.closeModal()" class="text-2xl text-text-muted hover:text-white">&times;</button></div>`;
+                bodyContent = `<div class="p-6 overflow-y-auto ${assetClass}">...full body HTML for offer...</div>`;
+                footerContent = `<div class="p-6 border-t border-border-secondary flex justify-between items-center"><button onclick="Logic.generateAndDownloadDossier('${offer.OFFER_ID}')" class="btn-primary">Print Summary</button><button onclick="Logic.initiateEngagement('${offer.OFFER_ID}')" class="btn-engagement">Initiate Engagement</button></div>`;
+                pdfFooter = offer.PDF_FOOTER_HTML;
+            }
+            
+            modalWrapper.innerHTML = `<div class="flex-shrink-0">${headerContent}</div><div class="flex-grow overflow-y-auto">${bodyContent}</div><div class="flex-shrink-0">${footerContent}</div>`;
+            document.getElementById('printable-container').innerHTML = `${headerContent}${bodyContent}${pdfFooter}`;
+
+            document.body.classList.add('modal-open');
+            modalOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                modalOverlay.classList.remove('opacity-0');
+                modalWrapper.classList.remove('scale-95');
+            }, 10);
         },
         initiateEngagement: (offerId) => {
             AppState.engagementTargetOfferId = offerId;
             const modal = document.getElementById('engagement-modal');
-            modal.innerHTML = `<div id="engagement-suite" class="rounded-3xl w-full max-w-2xl p-8 bg-background-tertiary border-2 border-border-premium shadow-2xl"><!-- Referral Form HTML --></div>`;
+            modal.innerHTML = `<div id="engagement-suite" class="rounded-3xl w-full max-w-2xl p-8 bg-background-tertiary border-2 border-border-premium shadow-2xl"><h2 class="text-3xl font-bold text-white text-center mb-4">Secure Engagement Protocol</h2><p class="text-center text-text-muted mb-6">A valid Partner Referral ID is required.</p><input type="text" id="referral-id-input" placeholder="Enter Referral ID" class="form-input text-center w-full mb-4"><button id="validate-referral-btn" class="btn-primary w-full">Validate & Proceed</button><div id="referral-error" class="hidden text-red-400 text-center mt-2"></div><button onclick="Utils.closeModal('engagement-modal')" class="text-text-muted text-center block mx-auto mt-4">Cancel</button></div>`;
             modal.classList.remove('hidden');
-            document.getElementById('validate-referral-btn')?.addEventListener('click', Logic.validateReferralId);
+            document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateReferralId);
         },
         validateReferralId: () => {
             const input = document.getElementById('referral-id-input');
             const referralId = input.value.trim();
-            if (!referralId) return;
-            // Fetch POST request to validate
+            const btn = document.getElementById('validate-referral-btn');
+            const errorDiv = document.getElementById('referral-error');
+            if (!referralId) { errorDiv.textContent = 'ID is required.'; errorDiv.classList.remove('hidden'); return; }
+            
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -805,37 +818,66 @@
                     AppState.referralInfo = response.message;
                     Utils.closeModal('engagement-modal');
                     setTimeout(() => Logic.openEngagementSuite(AppState.engagementTargetOfferId, AppState.referralInfo), 350);
-                } else { /* show error */ }
-            }).catch(console.error);
+                } else {
+                    errorDiv.textContent = 'Invalid or inactive Referral ID.'; errorDiv.classList.remove('hidden');
+                }
+            }).catch(err => {
+                errorDiv.textContent = 'Server validation error.'; errorDiv.classList.remove('hidden');
+            }).finally(() => {
+                btn.disabled = false; btn.innerHTML = 'Validate & Proceed';
+            });
         },
-        openEngagementSuite: (offerId, referralInfo) => { /* opens full form modal */ },
-        setupEngagementFormListeners: (offerId) => { /* attaches listeners to form */ },
+        openEngagementSuite: (offerId, referralInfo) => {
+            const offer = AppState.allData.offers.find(o => o.OFFER_ID === offerId);
+            const modalWrapper = document.getElementById('modal-content-wrapper');
+            const modalOverlay = document.getElementById('modal-overlay');
+            modalWrapper.innerHTML = UI.renderEngagementSuiteModal(offer, referralInfo);
+            modalOverlay.classList.remove('hidden');
+            Logic.setupEngagementFormListeners(offerId);
+        },
+        setupEngagementFormListeners: (offerId) => {
+            document.getElementById('modal-form')?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                Logic.submitEngagementForm(offerId);
+            });
+        },
         submitEngagementForm: async (offerId) => {
-            // Gathers form data
-            const userInfoPayload = { /* ... */ };
-            // Processes files
-            // Fetch POST request to send email
+            const btn = document.querySelector('#modal-form button[type="submit"]');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            // Gather form data into userInfoPayload
+            const userInfoPayload = {}; /* ... full payload construction ... */
+            
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'sendEngagementRequestEmail', data: { offerId, userInfo: userInfoPayload } })
             }).then(res => res.json()).then(response => {
-                if (response.success) Utils.showNotification(response.message, 'success');
-                else throw new Error(response.error);
-            }).catch(console.error);
+                if (!response.success) throw new Error(response.error);
+                Utils.showNotification(response.message, 'success');
+                Utils.closeModal('modal-overlay');
+            }).catch(err => {
+                Utils.showNotification(err.message, 'error');
+            }).finally(() => {
+                btn.disabled = false; btn.innerHTML = 'Submit Formal Enquiry';
+            });
         },
         generateAndDownloadDossier: (offerId) => {
+            const btn = document.getElementById(`print-dossier-btn-${offerId}`);
             const offer = AppState.allData.offers.find(o => o.OFFER_ID === offerId);
-            if (!offer) return;
-            // Fetch POST request to generate PDF
+            if (!offer || !btn) return;
+
+            const originalContent = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+            
             fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'generateOfferDossierPdf', data: { offerData: offer } })
             }).then(res => res.json()).then(response => {
-                if (response.success) Logic.downloadPdf(response.message);
-                else throw new Error(response.error);
-            }).catch(console.error);
+                if (!response.success) throw new Error(response.error);
+                Logic.downloadPdf(response.message);
+            }).catch(err => Utils.showNotification(err.message, 'error'))
+            .finally(() => { btn.disabled = false; btn.innerHTML = originalContent; });
         },
         downloadPdf: (response) => {
             if (!response || !response.success) return;
@@ -843,6 +885,7 @@
             link.href = `data:application/pdf;base64,${response.pdfData}`;
             link.download = response.fileName;
             link.click();
+            Utils.showNotification('Dossier downloaded!', 'success');
         },
         initInteractiveBackground: () => {
             const vortex = document.getElementById('background-vortex');
@@ -863,7 +906,7 @@
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', Logic.init);
-    window.Utils = Utils; // Expose for legacy inline onclick handlers
+    window.Utils = Utils;
 </script>
 </body>
 </html>
