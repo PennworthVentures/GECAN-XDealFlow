@@ -710,6 +710,87 @@ body.modal-open { overflow: hidden; }
     filter: brightness(1.1);
 }
 
+        /* ========================================================================= */
+/* === SEVERE UPGRADE: Pinnacle Status Filter Component === */
+/* This block styles the new, intuitive, color-coded status filters. */
+/* ========================================================================= */
+
+/* --- A. Status Color Dot Definitions --- */
+.status-dot-active { background-color: var(--status-active); }
+.status-dot-active-limited-bandwidth { background-color: var(--status-limited); }
+.status-dot-pending-review { background-color: var(--status-pending); }
+.status-dot-withdrawn { background-color: var(--status-withdrawn); }
+.status-dot-blacklisted { background-color: var(--status-blacklisted); }
+
+/* --- B. Main Container & Item Layout --- */
+/* The label acts as the main clickable container for each filter item. */
+.status-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 12px space between elements */
+    padding: 0.6rem 0.5rem; /* Vertical and horizontal padding */
+    border-radius: 0.5rem; /* 8px rounded corners */
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    user-select: none; /* Prevents text selection on click */
+}
+
+/* Add a subtle background highlight on hover for better feedback. */
+.status-checkbox-item:hover {
+    background-color: rgba(148, 163, 184, 0.1);
+}
+
+/* --- C. Hiding the Default Checkbox --- */
+/* We hide the ugly default checkbox but keep it accessible for screen readers. */
+.status-checkbox-item .status-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* --- D. Custom Checkbox Box Styling --- */
+.custom-checkbox {
+    position: relative;
+    height: 1.25rem; /* 20px */
+    width: 1.25rem; /* 20px */
+    background-color: var(--background-glass);
+    border: 2px solid var(--border-secondary);
+    border-radius: 0.375rem; /* 6px */
+    display: grid;
+    place-items: center;
+    transition: all 0.2s ease-in-out;
+    flex-shrink: 0; /* Prevents the box from shrinking */
+}
+
+/* --- E. Custom Checkmark Icon Styling (The Tick) --- */
+/* The Font Awesome check icon is hidden by default. */
+.custom-checkbox .fa-check {
+    font-size: 0.8rem; /* 14px */
+    color: var(--text-diamond);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* --- F. The "Checked" State Logic (The Magic) --- */
+/* When the hidden checkbox is checked... */
+.status-checkbox:checked ~ .custom-checkbox {
+    /* ...change the background of our custom box to a premium gradient... */
+    background: var(--gradient-primary);
+    border-color: var(--primary-azure);
+    /* ...and apply a subtle glow. */
+    box-shadow: 0 0 15px var(--glow-azure);
+}
+
+/* When the hidden checkbox is checked... */
+.status-checkbox:checked ~ .custom-checkbox .fa-check {
+    /* ...make the checkmark icon visible and animate it in. */
+    opacity: 1;
+    transform: scale(1);
+}
+
 /* Standard Form Input Styling */
 .form-input { background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 0.75rem; padding: 0.75rem 1rem; color: var(--text-platinum); transition: all 0.4s ease; }
 .form-input:focus { outline: none; border-color: var(--primary-azure); background: var(--background-glass-premium); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); transform: translateY(-2px); }
@@ -1821,31 +1902,34 @@ populateAdvancedFilterDropdowns: () => {
             //  DEFINITIVE FIX v2: Rock-Solid Checkbox HTML Structure
             // ===================================================================
             populateStatusFilter: () => {
-                const statuses = [
-                    { name: "ACTIVE", dotClass: "status-dot-active" },
-                    { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "status-dot-active-limited-bandwidth" },
-                    { name: "PENDING REVIEW", dotClass: "status-dot-pending-review" },
-                    { name: "WITHDRAWN", dotClass: "status-dot-withdrawn" },
-                    { name: "BLACKLISTED", dotClass: "status-dot-blacklisted" }
-                ];
-                const container = document.getElementById('status-filters-container');
-                
-                // THE FIX: The <label> now wraps everything. This is the most reliable pattern.
-                container.innerHTML = statuses.map(status => `
-                    <label class="status-checkbox-item">
-                        <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
-                        <span class="custom-checkbox"><i class="fas fa-check"></i></span>
-                        <span class="flex items-center gap-3 text-gray-400">
-                            <span class="w-2.5 h-2.5 rounded-full ${status.dotClass}"></span>
-                            <span class="text-sm">${status.name}</span>
-                        </span>
-                    </label>
-                `).join('');
-                
-                // The event listener is attached to the container for efficiency
-                container.addEventListener('change', Logic.handleStatusFilterChange);
-            },
+    const statuses = [
+        { name: "ACTIVE", dotClass: "status-dot-active" },
+        { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "status-dot-active-limited-bandwidth" },
+        { name: "PENDING REVIEW", dotClass: "status-dot-pending-review" },
+        { name: "WITHDRAWN", dotClass: "status-dot-withdrawn" },
+        { name: "BLACKLISTED", dotClass: "status-dot-blacklisted" }
+    ];
+    const container = document.getElementById('status-filters-container');
+    if (!container) return; // Safeguard if the element doesn't exist
 
+    // THE UPGRADED HTML STRUCTURE:
+    // - The <label> now wraps everything for better accessibility and click handling.
+    // - A custom <span> is used for the checkmark box.
+    // - The status text is now grouped with its colored dot.
+    container.innerHTML = statuses.map(status => `
+        <label class="status-checkbox-item">
+            <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
+            <span class="custom-checkbox"><i class="fas fa-check"></i></span>
+            <span class="flex items-center gap-3 text-gray-400">
+                <span class="w-2.5 h-2.5 rounded-full ${status.dotClass}"></span>
+                <span class="text-sm">${status.name}</span>
+            </span>
+        </label>
+    `).join('');
+    
+    // The event listener is attached once to the container for maximum efficiency.
+    container.addEventListener('change', Logic.handleStatusFilterChange);
+},
             // SEVERE UPGRADE: Replaces the old slider function
             updateConfidenceStars: (hoverRating = 0) => {
                 const stars = document.querySelectorAll('.confidence-star');
