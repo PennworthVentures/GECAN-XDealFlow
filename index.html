@@ -1922,46 +1922,29 @@ populateAdvancedFilterDropdowns: () => {
         return uniqueItems.map(item => `<option value="${item}">${item}</option>`).join('');
     };
 
+    // --- STEP 1: SAFELY GET A REFERENCE TO THE ELEMENTS ---
+    const assetSelect = document.getElementById('asset-category-select');
+    const settlementSelect = document.getElementById('settlement-select');
+    const procedureSelect = document.getElementById('procedure-select');
+
+    // --- STEP 2: THE CRITICAL GUARD CLAUSE ---
+    // If ANY of these elements are not found in the DOM, immediately and
+    // safely exit the function to prevent the "cannot set innerHTML of null" error.
+    if (!assetSelect || !settlementSelect || !procedureSelect) {
+        return;
+    }
+
+    // --- STEP 3: POPULATE THE DROPDOWNS ---
+    // This code block is now guaranteed to be safe because the guard
+    // clause above ensures the elements exist before we try to modify them.
     const assetCategories = AppState.allOffers.map(o => o.ASSET_CATEGORY);
-    document.getElementById('asset-category-select').innerHTML = createOptions(assetCategories);
+    assetSelect.innerHTML = createOptions(assetCategories);
 
     const settlementProtocols = AppState.allOffers.map(o => o.SETTLEMENT_PROTOCOL);
-    document.getElementById('settlement-select').innerHTML = createOptions(settlementProtocols);
+    settlementSelect.innerHTML = createOptions(settlementProtocols);
 
     const coreProcedures = AppState.allOffers.map(o => o.CORE_PROCEDURE_TYPE);
-    document.getElementById('procedure-select').innerHTML = createOptions(coreProcedures);
-},
-            // ===================================================================
-            //  DEFINITIVE FIX v2: Rock-Solid Checkbox HTML Structure
-            // ===================================================================
-            populateStatusFilter: () => {
-    const statuses = [
-        { name: "ACTIVE", dotClass: "status-dot-active" },
-        { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "status-dot-active-limited-bandwidth" },
-        { name: "PENDING REVIEW", dotClass: "status-dot-pending-review" },
-        { name: "WITHDRAWN", dotClass: "status-dot-withdrawn" },
-        { name: "BLACKLISTED", dotClass: "status-dot-blacklisted" }
-    ];
-    const container = document.getElementById('status-filters-container');
-    if (!container) return; // Safeguard if the element doesn't exist
-
-    // THE UPGRADED HTML STRUCTURE:
-    // - The <label> now wraps everything for better accessibility and click handling.
-    // - A custom <span> is used for the checkmark box.
-    // - The status text is now grouped with its colored dot.
-    container.innerHTML = statuses.map(status => `
-        <label class="status-checkbox-item">
-            <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
-            <span class="custom-checkbox"><i class="fas fa-check"></i></span>
-            <span class="flex items-center gap-3 text-gray-400">
-                <span class="w-2.5 h-2.5 rounded-full ${status.dotClass}"></span>
-                <span class="text-sm">${status.name}</span>
-            </span>
-        </label>
-    `).join('');
-    
-    // The event listener is attached once to the container for maximum efficiency.
-    container.addEventListener('change', Logic.handleStatusFilterChange);
+    procedureSelect.innerHTML = createOptions(coreProcedures);
 },
             // SEVERE UPGRADE: Replaces the old slider function
             updateConfidenceStars: (hoverRating = 0) => {
