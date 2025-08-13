@@ -339,15 +339,26 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
 }
 
 /* DEFINITIVE FONT COLOR FIX: Target search input specifically within the sidebar */
-#sticky-filter-sidebar #search-input {
+#sticky-filter-sidebar #search-input,
+#sticky-filter-sidebar #search-input:focus {
     min-height: 48px;
     font-size: 1rem;
-    color: var(--text-diamond) !important; /* Use !important to override any conflicting styles */
-    background: rgba(0,0,0,0.3); /* Darken input for better contrast */
+    color: var(--text-diamond) !important; /* Bright white text */
+    background-color: rgba(0, 0, 0, 0.35) !important; /* Slightly darker for better contrast */
+    -webkit-text-fill-color: var(--text-diamond) !important; /* Crucial for overriding Chrome defaults */
+    border-color: var(--border-premium) !important; /* Ensure border is visible */
+    box-shadow: none !important; /* Remove any conflicting main-content focus shadows */
 }
+
 #sticky-filter-sidebar #search-input::placeholder {
-    color: var(--text-muted);
-    opacity: 1; /* Ensure placeholder is not transparent */
+    color: var(--text-muted) !important;
+    opacity: 0.3 !important;
+}
+
+/* When the search input group is focused within the sidebar, give it a subtle glow */
+#sticky-filter-sidebar #search-container:focus-within {
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25);
+    border-radius: 0.75rem; /* Match the input's border-radius */
 }
 #sticky-filter-sidebar #advanced-filters-container {
     flex-grow: 1;
@@ -1801,15 +1812,14 @@ toggleAdvancedFilters: () => {
         container.classList.remove('open');
         btn.classList.remove('active');
     } else {
-        // --- OPEN THE PANEL (Corrected Logic) ---
-        // 1. Populate the filter content for the active tab first.
+        // --- OPEN THE PANEL ---
+        // 1. Populate the filter HTML.
         UI.populateAdvancedFilters(AppState.activeFilters.type);
         
-        // 2. THE CRITICAL FIX: Re-attach listeners to the NEWLY CREATED elements.
-        // This ensures dropdowns and checkboxes work when opened from the sidebar.
+        // 2. Attach listeners to the newly created elements.
         Logic.setupAdvancedFilterListeners();
         
-        // 3. Measure and animate open (this logic is correct and remains).
+        // 3. Animate the panel open.
         container.style.maxHeight = 'none';
         const scrollHeight = content.scrollHeight;
         container.style.maxHeight = '0px';
@@ -4428,18 +4438,17 @@ submitEngagementForm: async (offerId) => {
             setupAdvancedFilterListeners: () => {
                 // Helper function to add listeners and restore state for <select> dropdowns
                 const addSelectListener = (id, filterKey) => {
-                    const selectElement = document.getElementById(id);
-                    if (selectElement) {
-                        // DEFINITIVE STATE RESTORATION: Set the dropdown's value to match the state.
-                        selectElement.value = AppState.activeFilters[filterKey] || 'All';
-                        
-                        // Attach the event listener for future changes.
-                        selectElement.addEventListener('change', (e) => {
-                            AppState.activeFilters[filterKey] = e.target.value;
-                            Logic.applyFiltersAndRender();
-                        });
-                    }
-                };
+        const selectElement = document.getElementById(id);
+        if (selectElement) {
+            // Restore the UI's value from the state.
+            selectElement.value = AppState.activeFilters[filterKey] || 'All';
+            // Attach listener for FUTURE changes.
+            selectElement.addEventListener('change', (e) => {
+                AppState.activeFilters[filterKey] = e.target.value;
+                Logic.applyFiltersAndRender();
+            });
+        }
+    };
 
                 // --- Main Sorting Dropdown ---
                 const sortSelect = document.getElementById('sort-select');
