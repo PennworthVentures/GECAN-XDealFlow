@@ -196,6 +196,22 @@ body.modal-open { overflow: hidden; }
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 2.5rem;
+    /* SEVERE UPGRADE: Add a transition to allow for smooth margin changes */
+    transition: margin-left 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+        /* --- DEFINITIVE SIDEBAR OVERLAP FIX --- */
+/* This powerful rule says: "When the #sticky-filter-sidebar has the .is-stuck class..." */
+body:has(#sticky-filter-sidebar.is-stuck) .main-layout {
+    /* "...then apply a left margin to the .main-layout." */
+    /* 360px is the sidebar width + 24px is the left margin + another 24px for visual padding */
+    margin-left: calc(360px + 24px + 24px);
+}
+
+/* This ensures the rule does not apply on smaller screens where the sidebar is hidden */
+@media (max-width: 1280px) {
+    body:has(#sticky-filter-sidebar.is-stuck) .main-layout {
+        margin-left: 0; /* Reset the margin */
+    }
 }
 
 /* Footer & HoloStream Wrapper System (DEFINITIVE FIX) */
@@ -245,27 +261,24 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
 /* Sticky Filter Side Panel System */
 #sticky-filter-sidebar {
     position: fixed;
-    /* DEFINITIVE ALIGNMENT FIX: 96px for header + increased 32px margin for more breathing room */
-    top: calc(96px + 32px); 
+    /* DEFINITIVE ALIGNMENT FIX: Uses the dynamically calculated CSS variable from JavaScript.
+       var(--header-height, 120px) means "use the --header-height variable, but if it's not defined yet,
+       fall back to a safe default of 120px". The 32px is the desired margin. */
+    top: calc(var(--header-height, 96px) + 32px);
     left: 24px;
-    bottom: calc(112px + 24px); /* 112px (h-28) for HoloStream + margin */
+    bottom: calc(112px + 24px); 
     z-index: 45;
     width: 360px;
     transform: translateX(calc(-100% - 24px));
-    
-    /* SEVERE UPGRADE: Added transitions for the new 3D hover effect */
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
-    
-    /* Base styling for the panel itself */
     background: var(--background-glass-premium);
     backdrop-filter: blur(30px) saturate(180%);
     -webkit-backdrop-filter: blur(30px) saturate(180%);
     box-shadow: var(--shadow-luxury);
     border: 1px solid var(--border-premium);
     border-radius: 1.5rem;
-    
-    display: flex; /* Ensures inner content behaves correctly */
-    perspective: 1500px; /* Enables 3D transforms for children */
+    display: flex;
+    perspective: 1500px;
 }
 #sticky-filter-sidebar.is-stuck {
     transform: translateX(0);
@@ -2934,50 +2947,76 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
         }, { once: true });
     },
 
+            /**
+             * Initializes the entire application by orchestrating parallel data fetching
+             * and sequential UI setup for a fast, robust user experience. It includes
+             * pinnacle-grade error handling and diagnostic logging.
+             */
             init: () => {
-                // Activate mouse-driven visual effects & backgrounds
-                document.body.classList.add('repulsor-active');
-                document.addEventListener('mousemove', (e) => {
-                    document.body.style.setProperty('--mouse-x', e.clientX + 'px');
-                    document.body.style.setProperty('--mouse-y', e.clientY + 'px');
-                });
-                initInteractiveBackground();
+                try {
+                    // --- STAGE 1: IMMEDIATE STATIC UI SETUP & DYNAMIC POSITIONING ---
+                    // This runs instantly, so the user never sees a blank page.
+                    UI.init();
+                    
+                    // --- DEFINITIVE ALIGNMENT FIX ---
+                    // Measure the header and set the CSS variable for the sticky sidebar.
+                    Logic.setDynamicHeaderHeight();
+                    // Add listeners to re-calculate if the window (and thus header) resizes.
+                    window.addEventListener('resize', Logic.setDynamicHeaderHeight);
+                    window.addEventListener('orientationchange', Logic.setDynamicHeaderHeight);
+                    // --- END FIX ---
+                    
+                    // --- STAGE 2: PARALLEL DATA & THEME FETCHING ---
+                    // All network requests are fired at once for maximum speed.
+                    Promise.all([
+                        Logic.createApiRequest('getOfferData').then(d => { AppState.allOffers = d || []; AppState.isDataLoading.offers = false; }),
+                        Logic.createApiRequest('getEnquiryData').then(d => { AppState.allEnquiries = d || []; AppState.isDataLoading.enquiries = false; }),
+                        Logic.createApiRequest('getProjectProposalsData').then(d => { AppState.allCrowdfunding = d || []; AppState.isDataLoading.crowdfunding = false; }),
+                        Logic.createApiRequest('getServicesData').then(d => { AppState.allServices = d || []; AppState.isDataLoading.services = false; }),
+                        Logic.createApiRequest('getFeaturedData').then(d => { AppState.allFeatured = d || []; AppState.isDataLoading.featured = false; }),
+                        Logic.createApiRequest('getBulletinData').then(d => { AppState.allBulletins = d || []; AppState.isDataLoading.bulletins = false; }),
+                        Logic.createApiRequest('getMarketMatrixData').then(Logic.onMarketDataLoaded),
+                        Logic.createApiRequest('getActiveThemeConfig').then(json => { try { if (json) UI.initParticles(JSON.parse(json)); } catch (e) { console.error("Theme Error", e); } })
+                    ]).then(() => {
+                        // --- STAGE 3: POST-LOAD DYNAMIC UI CONSTRUCTION ---
+                        // This block ONLY runs if ALL promises above were successful.
+                        document.getElementById('loading-spinner').classList.add('hidden');
+                        
+                        UI.populateAdvancedFilterDropdowns();
+                        UI.populateStatusFilter();
+                        UI.renderHoloStream();
+                        
+                        Logic.applyFiltersAndRender();
+                        Logic.setupEventListeners();
+                        Logic.initStickyFilters();
+                        Logic.initFixedBottomUI();
+                        Logic.initMobileUI();
+                        
+                        Logic.startLiveUpdates();
+                        
+                        console.log("%c GECAN Platform Initialization: System Online.", "color: #22c55e; font-weight: bold;");
 
-                UI.init(); // Initializes particles with default theme first
-                Logic.populateNavLinks(); // Populate nav links immediately with relative paths
-
-                // --- STAGE 1: PARALLEL DATA & THEME FETCHING via API_URL ---
-                Promise.all([
-                    Logic.createApiRequest('getOfferData', 'GET').then(data => { AppState.allOffers = data || []; AppState.isDataLoading.offers = false; }),
-                    Logic.createApiRequest('getEnquiryData', 'GET').then(data => { AppState.allEnquiries = data || []; AppState.isDataLoading.enquiries = false; }),
-                    Logic.createApiRequest('getProjectProposalsData', 'GET').then(data => { AppState.allCrowdfunding = data || []; AppState.isDataLoading.crowdfunding = false; }),
-                    Logic.createApiRequest('getServicesData', 'GET').then(data => { AppState.allServices = data || []; AppState.isDataLoading.services = false; }),
-                    Logic.createApiRequest('getFeaturedData', 'GET').then(data => { AppState.allFeatured = data || []; AppState.isDataLoading.featured = false; }),
-                    Logic.createApiRequest('getBulletinData', 'GET').then(data => { AppState.allBulletins = data || []; AppState.isDataLoading.bulletins = false; }),
-                    Logic.createApiRequest('getMarketMatrixData', 'GET').then(data => Logic.onMarketDataLoaded(data)),
-                    Logic.createApiRequest('getActiveThemeConfig', 'GET').then(jsonConfig => {
-                        try {
-                            if (jsonConfig) UI.initParticles(JSON.parse(jsonConfig));
-                        } catch (e) { console.error("Failed to parse theme JSON.", e); }
-                    })
-                ]).then(() => {
-                    // --- STAGE 2: POST-LOAD UI CONSTRUCTION ---
-                    document.getElementById('loading-spinner').classList.add('hidden');
-                    UI.populateAdvancedFilterDropdowns();
-                    UI.populateStatusFilter();
-                    UI.renderHoloStream();
-                    Logic.applyFiltersAndRender();
-                    Logic.setupEventListeners();
-                    Logic.initStickyFilters();
-                    Logic.initFixedFooter();
-                    Logic.initMobileUI();
-                    Logic.startLiveUpdates();
-                }).catch(Logic.onDataError);
+                    }).catch(Logic.onDataError); // Catches any error from the API calls.
+                } catch (initializationError) {
+                    // Catches any error from the initial static setup (e.g., in UI.init).
+                    Logic.onDataError(initializationError);
+                }
             },
 
-  // ===================================================================
-    //  DEFINITIVE FIX: Flicker-Free Sticky Header Logic (Sentinel Method)
-    // ===================================================================
+            /**
+             * Measures the main header's actual rendered height and sets it as a global CSS
+             * variable (`--header-height`). This is the definitive solution to ensure the
+             * sticky sidebar is always perfectly positioned below the header.
+             */
+            setDynamicHeaderHeight: () => {
+                const header = document.querySelector('.premium-header');
+                if (header) {
+                    const headerHeight = header.offsetHeight;
+                    // Set a CSS variable on the root element (<html>) that CSS can access.
+                    document.documentElement.style.setProperty('--header-height', `${headerHeight}px`);
+                }
+            },
+            
     initStickyFilters: () => {
     const sentinel = document.getElementById('sticky-sentinel');
     const filterElement = document.getElementById('sticky-filter-header');
