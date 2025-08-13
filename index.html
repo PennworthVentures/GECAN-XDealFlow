@@ -1671,60 +1671,145 @@
 
     // === CORE LOGIC ENGINE ===
     const Logic = {
-        init: () => {
-            UI.initStatic();
-            Logic.initMobileUI();
-            Logic.initStickySidebar();
-            Promise.all([
-                fetch(`${API_URL}?action=getOfferData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getEnquiryData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getProjectProposalsData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getServicesData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getFeaturedData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getBulletinData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getMarketMatrixData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getActiveThemeConfig`).then(res => res.json())
-            ]).then(([offerRes, enquiryRes, projectRes, serviceRes, featuredRes, bulletinRes, marketRes, themeRes]) => {
-                const responses = [offerRes, enquiryRes, projectRes, serviceRes, featuredRes, bulletinRes, marketRes];
-                for (const res of responses) if (!res.success) throw new Error(res.error || 'API Error');
-                AppState.allOffers = offerRes.data; AppState.allEnquiries = enquiryRes.data;
-                AppState.allProjects = projectRes.data; AppState.allServices = serviceRes.data;
-                AppState.allFeatured = featuredRes.data; AppState.allBulletins = bulletinRes.data;
-                AppState.marketMatrix = marketRes.data;
-                const themeConfig = (themeRes.success && themeRes.data) ? JSON.parse(themeRes.data) : DEFAULT_THEME_CONFIG;
-                UI.initParticles(themeConfig);
-                Object.keys(AppState.isDataLoading).forEach(key => AppState.isDataLoading[key] = false);
-                Logic.populateAllFilters();
-                Logic.setupEventListeners();
-                UI.renderHoloStream();
-                Logic.onMarketDataLoaded(marketRes.data);
-                Logic.applyFiltersAndRender();
-                Logic.startLiveUpdates();
-            }).catch(Logic.onDataError);
-        },
+            init: () => {
+                try {
+                    // --- STAGE 1: IMMEDIATE STATIC UI INITIALIZATION ---
+                    UI.initStatic();
+                    Logic.initMobileUI();
+                    Logic.initStickySidebar();
+
+                    // --- STAGE 2: ASYNCHRONOUS PARALLEL DATA FETCHING ---
+                    Promise.all([
+                        fetch(`${API_URL}?action=getOfferData`).then(res => res.json()),
+                        fetch(`${API_URL}?action=getEnquiryData`).then(res => res.json()),
+                        fetch(`${API_URL}?action=getProjectProposalsData`).then(res => res.json()),
+                        fetch(`${API_URL}?action=getServicesData`).then(res => res.json()),
+                        fetch(`${API_URL}?action=getFeaturedData`).then(res => res.json()),
+                        fetch(`${API_URL}?action=getBulletinData`).then(res => res.json()),
+                        fetch(`${API_URL}?action=getMarketMatrixData`).then(res => res.json()),
+                        fetch(`${API_URL}?action=getActiveThemeConfig`).then(res => res.json())
+                    ]).then(([
+                        offerRes, enquiryRes, projectRes, serviceRes, 
+                        featuredRes, bulletinRes, marketRes, themeRes
+                    ]) => {
+                        // --- STAGE 3: DATA VALIDATION & STATE HYDRATION ---
+                        const responses = [offerRes, enquiryRes, projectRes, serviceRes, featuredRes, bulletinRes, marketRes, themeRes];
+                        for (const res of responses) {
+                            if (res && res.success === false) {
+                                throw new Error(res.error || 'An unknown API error occurred.');
+                            }
+                        }
+
+                        AppState.allOffers = offerRes.data || [];
+                        AppState.allEnquiries = enquiryRes.data || [];
+                        AppState.allProjects = projectRes.data || [];
+                        AppState.allServices = serviceRes.data || [];
+                        AppState.allFeatured = featuredRes.data || [];
+                        AppState.allBulletins = bulletinRes.data || [];
+                        AppState.marketMatrix = marketRes.data || [];
+
+                        // --- STAGE 4: DYNAMIC UI INITIALIZATION (DATA-DEPENDENT) ---
+                        const themeConfig = (themeRes && themeRes.success && themeRes.data) ? JSON.parse(themeRes.data) : DEFAULT_THEME_CONFIG;
+                        UI.initParticles(themeConfig);
+                        
+                        Object.keys(AppState.isDataLoading).forEach(key => AppState.isDataLoading[key] = false);
+                        
+                        // CORRECTED: Call the single, robust filter population function.
+                        Logic.populateAllFilters();
+                        
+                        UI.renderHoloStream();
+                        Logic.onMarketDataLoaded(AppState.marketMatrix);
+                        Logic.applyFiltersAndRender();
+                        
+                        // --- STAGE 5: BIND LISTENERS & START LIVE UPDATES ---
+                        Logic.setupEventListeners();
+                        Logic.startLiveUpdates();
+
+                    }).catch(Logic.onDataError);
+
+                } catch (e) {
+                    console.error("A fatal error occurred during initialization:", e);
+                    Logic.onDataError(e);
+                }
+            },
+
+            /**
+             * [DEFINITIVE - NEWLY ADDED] Master function to build and populate all filter controls.
+             * This function is the single source of truth for creating the filter UI. It ensures that
+             * all controls (tabs, search, advanced panels) are rendered correctly based on the initial
+             * application state.
+             */
+            populateAllFilters: () => {
+                const activeTab = AppState.activeFilters.type;
+                
+                // Render the entire filter structure (tabs, search, containers) into the sidebar.
+                // The desktop view will use this, and the mobile UI will clone it.
+                UI.renderAllFilters(activeTab);
+
+                // Now that the structure exists, populate the dynamic parts like sort options.
+                Logic.updateSortOptions(activeTab);
+            },
+
+        /**
+             * [DEFINITIVE - NEWLY ADDED] A helper function to get the correct asset key for a given data type.
+             * This is crucial for making the search and filter logic modular and reusable.
+             * @param {string} type - The data type (e.g., 'offers', 'enquiries').
+             * @returns {string} The corresponding asset category key from the data object.
+             */
+            getAssetKeyForType: (type) => {
+                switch (type) {
+                    case 'enquiries': return 'TARGET_ASSET_CATEGORY';
+                    case 'projects': return 'PRIMARY_SECTOR';
+                    case 'services': return 'SERVICE_CATEGORY';
+                    case 'offers':
+                    default: return 'ASSET_CATEGORY';
+                }
+            },
+        
         applyFiltersAndRender: () => {
-            AppState.activeFilters.query = document.getElementById('search-input')?.value.toLowerCase() || '';
-            const activeTab = AppState.activeFilters.type;
-            const currentData = Logic.getCurrentData();
-            const isLoading = AppState.isDataLoading[activeTab];
-            document.getElementById('loading-spinner').classList.toggle('hidden', !isLoading);
-            if (isLoading) return;
-            if (currentData.length === 0) { UI.renderPlaceholderContent(activeTab); UI.updateMetrics([]); return; }
-            const filteredItems = currentData.filter(item => Logic.filterItem(item, activeTab));
-            filteredItems.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
-            const hasResults = filteredItems.length > 0;
-            document.getElementById('no-results').classList.toggle('hidden', hasResults);
-            document.getElementById('placeholder-content').classList.add('hidden');
-            UI.updateMetrics(filteredItems);
-            const isCardView = AppState.currentView === 'card';
-            const showKanban = activeTab === 'offers' && !isCardView;
-            document.getElementById('card-container').classList.toggle('hidden', !isCardView || !hasResults);
-            document.getElementById('kanban-container').classList.toggle('hidden', !showKanban || !hasResults);
-            if (hasResults) {
-                if (isCardView) UI.renderCards(filteredItems, activeTab);
-                else if (showKanban) UI.renderKanban(filteredItems);
-            }
-        },
+                const searchInput = document.getElementById('search-input');
+                AppState.activeFilters.query = searchInput ? searchInput.value.toLowerCase() : '';
+                
+                const activeTab = AppState.activeFilters.type;
+                const currentData = Logic.getCurrentData();
+                const isLoading = AppState.isDataLoading[activeTab];
+                
+                document.getElementById('loading-spinner').classList.toggle('hidden', !isLoading);
+                if (isLoading) {
+                    ['card-container', 'kanban-container', 'no-results', 'placeholder-content'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.classList.add('hidden');
+                    });
+                    return;
+                }
+
+                if (currentData.length === 0 && Logic.isPlaceholderView()) {
+                    UI.renderPlaceholderContent(activeTab);
+                    UI.updateMetrics([]);
+                    Logic.updateActiveFilterCount();
+                    return;
+                }
+
+                const filteredItems = currentData.filter(item => Logic.filterItem(item, activeTab));
+                filteredItems.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
+                
+                const hasResults = filteredItems.length > 0;
+                document.getElementById('no-results').classList.toggle('hidden', hasResults);
+                document.getElementById('placeholder-content').classList.add('hidden');
+                
+                UI.updateMetrics(filteredItems);
+                Logic.updateActiveFilterCount();
+                
+                const isCardView = AppState.currentView === 'card';
+                const showKanban = activeTab === 'offers' && !isCardView;
+                document.getElementById('card-container').classList.toggle('hidden', !isCardView || !hasResults);
+                document.getElementById('kanban-container').classList.toggle('hidden', !showKanban || !hasResults);
+
+                if (hasResults) {
+                    if (isCardView) UI.renderCards(filteredItems, activeTab);
+                    else if (showKanban) UI.renderKanban(filteredItems);
+                }
+            },
         filterItem: (item, type) => {
             const queryMatch = Logic.searchMatch(item, AppState.activeFilters.query);
             if (!queryMatch) return false;
