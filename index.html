@@ -1,912 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <base target="_top">
-    <title>GECAN™ Commodities Exchange | XDealFlow Dashboard</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GECAN | Real-Time Data Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                screens: { 'sm': '640px', 'md': '768px', 'lg': '1024px', 'xl': '1280px', '2xl': '1536px', '3xl': '1920px' }
-            }
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
-
-        /* ========================================================================= */
-        /* === PINNACLE THEME & AESTHETICS ENGINE v9.0 === */
-        /* ========================================================================= */
-        :root {
-            --brand-gecan-blue: #1c2e4a; --brand-gecan-gold: #b4975a;
-            --primary-azure: #0ea5e9; --primary-sapphire: #3b82f6; --primary-royal: #6366f1; --primary-amethyst: #8b5cf6;
-            --primary-gold: #fbbf24; --primary-diamond: #f8fafc;
-            --background-primary: #02040a; --background-secondary: #0f172a; --background-tertiary: #1e293b;
-            --background-glass: rgba(15, 23, 42, 0.85); --background-glass-premium: rgba(10, 10, 20, 0.9);
-            --border-secondary: #334155; --border-premium: #475569;
-            --text-diamond: #f8fafc; --text-platinum: #e2e8f0; --text-silver: #cbd5e1; --text-muted: #94a3b8;
-            --glow-azure: rgba(14, 165, 233, 0.7); --glow-sapphire: rgba(59, 130, 246, 0.7); --glow-royal: rgba(99, 102, 241, 0.7); 
-            --glow-amethyst: rgba(139, 92, 246, 0.7); --glow-diamond: rgba(248, 250, 252, 0.8);
-            --status-active: #22c55e; --status-pending: #f59e0b; --status-blacklisted: #ef4444; 
-            --status-withdrawn: #6b7280; --status-limited: #3b82f6;
-            --shadow-luxury: 0 25px 50px -12px rgba(0, 0, 0, 0.9); --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
-            --shadow-ultra: 0 10px 20px rgba(0, 0, 0, 0.7);
-            --transform-hover: translateY(-8px) rotateX(5deg) scale(1.03); --transform-active: translateY(-12px) rotateX(8deg) scale(1.05);
-            --transform-ultra: translateY(-16px) rotateX(10deg) rotateY(5deg) scale(1.07);
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: sans-serif;
         }
-        
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background: transparent; color: var(--text-platinum); overflow-x: hidden; }
-        body.modal-open, body.mobile-sidebar-open { overflow: hidden; }
-
-        #interactive-background { position: fixed; inset: 0; z-index: -3; perspective: 1500px; background: var(--background-primary); }
-        #background-vortex { position: absolute; width: 300px; height: 300px; background: conic-gradient(from 0deg, transparent, var(--glow-azure), var(--glow-royal), transparent); border-radius: 50%; transition: transform 0.1s linear, filter 0.2s linear; animation: vortex-spin 10s linear infinite; box-shadow: inset 0 0 100px var(--glow-azure), 0 0 200px var(--glow-royal); }
-        #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
-        
-        .premium-header { position: sticky; top: 0; z-index: 50; background: var(--background-glass-premium); backdrop-filter: blur(40px); border-bottom: 1px solid var(--border-premium); box-shadow: var(--shadow-ultra); }
-        .gecan-logo-flipper { position: relative; width: 250px; height: 120px; transform-style: preserve-3d; transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1); }
-        .gecan-logo-container:hover .gecan-logo-flipper { transform: rotateY(180deg); }
-        .logo-face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; }
-        .logo-front { font-family: 'Orbitron', monospace; font-weight: 900; font-size: 2.5rem; background: linear-gradient(135deg, var(--primary-azure), var(--primary-royal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 60px var(--glow-azure); animation: logo-pulse 5s ease-in-out infinite; }
-        .logo-back { transform: rotateY(180deg); }
-        .logo-back img { height: 100%; width: auto; object-fit: contain; filter: brightness(1.1) drop-shadow(0 0 20px var(--brand-gecan-gold)) drop-shadow(0 0 40px var(--brand-gecan-blue)); }
-        .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 600; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transform-style: preserve-3d; }
-        .nav-btn.active, .nav-btn:hover { color: var(--text-diamond); border-color: var(--primary-azure); text-shadow: 0 0 15px var(--glow-diamond); transform: translateY(-3px); }
-        .nav-btn.active::before, .nav-btn:hover::before { transform: scaleX(1); }
-        .nav-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(14, 165, 233, 0.3), rgba(139, 92, 246, 0.3)); transform: scaleX(0); transform-origin: left; transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1); z-index: -1; }
-
-        #command-center-toggle summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; color: var(--text-muted); font-family: 'Orbitron', monospace; transition: all 0.3s ease; }
-        #command-center-toggle summary::-webkit-details-marker { display: none; }
-        #command-center-toggle summary:hover { color: var(--text-diamond); }
-        #command-center-toggle .toggle-icon { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        #command-center-toggle[open] .toggle-icon { transform: rotate(180deg); }
-        #world-clock-command-center { display: grid; max-height: 0; overflow: hidden; transition: max-height 0.7s ease-in-out, margin-top 0.7s ease-in-out, opacity 0.5s ease-in-out; opacity: 0; }
-        #command-center-toggle[open] + #world-clock-command-center { max-height: 1000px; margin-top: 3rem; opacity: 1; }
-        .premium-clock { width: 140px; height: 140px; border: 4px solid var(--border-secondary); border-radius: 50%; position: relative; background: var(--background-glass); box-shadow: inset 0 0 20px rgba(0,0,0,0.5), var(--shadow-premium); }
-        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center; border-radius: 4px; }
-        .hour-hand { width: 6px; height: 35px; background: var(--text-platinum); z-index: 12; }
-        .minute-hand { width: 4px; height: 50px; background: var(--text-silver); z-index: 13; }
-        .second-hand { width: 2px; height: 55px; background: var(--primary-azure); z-index: 14; filter: drop-shadow(0 0 8px var(--glow-azure)); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        .main-content-grid { display: grid; grid-template-columns: 1fr; }
-        @media (min-width: 1024px) { .main-content-grid { grid-template-columns: 1fr 384px; gap: 2rem; } }
-        #desktop-sidebar-container { position: relative; }
-        #sticky-filter-placeholder { transition: height 0.3s ease-in-out; }
-        #sticky-filter-wrapper.is-sticky-sidebar { position: fixed; top: 120px; width: 384px; }
-        .filter-section { background: var(--background-glass); backdrop-filter: blur(25px); border: 1px solid var(--border-secondary); border-radius: 1.5rem; }
-        
-        .offer-card, .kanban-card { background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 1.5rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; box-shadow: var(--shadow-ultra); }
-        .offer-card:hover { transform: var(--transform-ultra); border-color: var(--asset-primary, var(--primary-royal)); box-shadow: var(--shadow-luxury), 0 0 80px var(--asset-glow, var(--glow-azure)); }
-        .asset-header { font-family: 'Orbitron', monospace; font-weight: 800; background: var(--asset-gradient, linear-gradient(135deg, var(--primary-azure), var(--primary-royal))); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: all 0.6s ease; }
-        .offer-card:hover .asset-header { transform: translateZ(40px) scale(1.1); text-shadow: 0 0 30px var(--asset-glow); }
-        .card-content { position: relative; transition: transform 0.6s ease; }
-        .offer-card:hover .card-content { transform: translateZ(20px); }
-        
-        #modal-overlay, #engagement-modal { backdrop-filter: blur(15px); background: rgba(0, 0, 0, 0.85); z-index: 100; transition: opacity 0.3s ease-in-out; }
-        #modal-content-wrapper { background: var(--background-glass-premium); border: 1px solid var(--border-premium); box-shadow: var(--shadow-luxury), 0 0 100px var(--glow-azure); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease-in-out; }
-        .modal-grid-item { background: var(--background-glass); border: 1px solid var(--border-secondary); transition: all 0.5s ease; }
-        .modal-grid-item:hover { border-color: var(--asset-primary, var(--primary-azure)); background: var(--background-glass-premium); transform: translateY(-8px) rotateX(5deg) scale(1.05); box-shadow: var(--shadow-ultra), 0 0 40px var(--asset-glow, var(--glow-azure)); }
-        .btn-engagement { background: var(--asset-gradient, linear-gradient(135deg, var(--primary-azure), var(--primary-royal))); }
-        .btn-engagement:hover { transform: var(--transform-active); box-shadow: var(--shadow-luxury), 0 0 60px var(--asset-glow, var(--glow-azure)); }
-
-        #mobile-fab { z-index: 90; }
-        #mobile-sidebar { z-index: 110; transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1); }
-        #mobile-sidebar.open { transform: translateX(0); }
-        #mobile-sidebar-overlay { z-index: 109; }
-        .mobile-filter-clone, .mobile-nav-clone { display: flex !important; flex-direction: column; padding: 1rem; gap: 0.5rem; }
-        .mobile-nav-clone .nav-btn { justify-content: flex-start; }
-        .mobile-filter-clone .filter-tabs { flex-direction: column; align-items: stretch; gap: 0.5rem; }
-
-        @keyframes vortex-spin { to { transform: rotate(360deg); } }
-        @keyframes logo-pulse { 50% { text-shadow: 0 0 80px var(--glow-amethyst); } }
-        @keyframes premium-active-glow { 0%, 100% { box-shadow: var(--shadow-premium), 0 0 30px var(--glow-azure); text-shadow: 0 0 7px #fff, 0 0 15px var(--glow-azure); } 50% { box-shadow: var(--shadow-luxury), 0 0 55px var(--glow-royal), 0 0 80px var(--glow-amethyst); text-shadow: 0 0 12px #fff, 0 0 30px var(--glow-royal); } }
-        .fade-in-up { animation: fade-in-up-anim 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
-        @keyframes fade-in-up-anim { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        .asset-color-BITCOIN_BTC { --asset-primary: #f7931a; --asset-glow: rgba(247, 147, 26, 0.7); --asset-gradient: linear-gradient(135deg, #f7931a, #fbbf24); }
-        .asset-color-GOLD_AU { --asset-primary: #ffd700; --asset-glow: rgba(255, 215, 0, 0.7); --asset-gradient: linear-gradient(135deg, #ffd700, #fef08a); }
-        .asset-color-SBLC_BANK_GUARANTEE { --asset-primary: #0891b2; --asset-glow: rgba(8, 145, 178, 0.7); --asset-gradient: linear-gradient(135deg, #0891b2, #06b6d4); }
-        .asset-color-JET_A1_FUEL { --asset-primary: #0ea5e9; --asset-glow: rgba(14, 165, 233, 0.7); --asset-gradient: linear-gradient(135deg, #0ea5e9, #38bdf8); }
-        .asset-color-REAL_ESTATE_DEVELOPMENT { --asset-primary: #9f1239; --asset-glow: rgba(159, 18, 57, 0.7); --asset-gradient: linear-gradient(135deg, #9f1239, #be123c); }
-        .asset-color-FINANCIAL_ADVISORY { --asset-primary: #0369a1; --asset-glow: rgba(3, 105, 161, 0.7); --asset-gradient: linear-gradient(135deg, #0369a1, #0ea5e9); }
-        .asset-color-DEFAULT { --asset-primary: var(--primary-royal); --asset-glow: var(--glow-royal); --asset-gradient: linear-gradient(135deg, var(--primary-royal), var(--primary-amethyst)); }
-
-        .premium-footer { border-top: 1px solid var(--border-premium); background: var(--background-glass-premium); backdrop-filter: blur(40px); box-shadow: 0 -15px 60px rgba(0, 0, 0, 0.8); }
-        .footer-title { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--text-diamond); text-shadow: 0 0 10px var(--glow-azure); }
-        .holo-stream-container { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 40; perspective: 1200px; background: rgba(10, 10, 15, 0.6); backdrop-filter: blur(20px); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 80px var(--glow-amethyst); }
-        .holo-stream-track { display: flex; position: absolute; left: 0; top: 0; bottom: 0; align-items: center; animation: holo-scroll 120s linear infinite; }
-        @keyframes holo-scroll { to { transform: translateX(-50%); } }
-        .holo-item { flex-shrink: 0; margin: 0 1rem; color: var(--text-silver); background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 1rem; transition: all 0.4s ease; cursor: pointer; }
-        #holo-stream-container:hover .holo-item.focused { transform: translateY(-25px) scale(1.1); box-shadow: var(--shadow-premium), 0 0 50px var(--item-glow-color, var(--glow-azure)); border-color: var(--item-glow-color, var(--primary-azure)); }
-        
-        .status-dot-active { background-color: var(--status-active); } .status-dot-pending-review { background-color: var(--status-pending); } .status-dot-withdrawn { background-color: var(--status-withdrawn); } .status-dot-blacklisted { background-color: var(--status-blacklisted); } .status-dot-active-limited-bandwidth { background-color: var(--status-limited); }
-        .status-active { border-left-color: var(--status-active); } .status-pending-review { border-left-color: var(--status-pending); } .status-withdrawn { border-left-color: var(--status-withdrawn); } .status-blacklisted { border-left-color: var(--status-blacklisted); } .status-active-limited-bandwidth { border-left-color: var(--status-limited); }
+        .status-active { color: #22c55e; }
+        .status-pending { color: #f59e0b; }
+        .status-completed { color: #64748b; }
     </style>
 </head>
-<body class="bg-background-primary">
-    
-    <!-- Background Effects -->
-    <div id="interactive-background"><div id="background-vortex"></div></div>
-    <div id="particles-js"></div>
+<body class="p-8">
 
-    <!-- Mobile UI Elements -->
-    <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/70 z-[109] hidden backdrop-blur-sm lg:hidden transition-opacity duration-300"></div>
-    <div id="mobile-sidebar" class="fixed top-0 -left-full w-4/5 max-w-sm h-full bg-background-primary border-r border-border-premium shadow-2xl z-[110] flex flex-col lg:hidden">
-        <div class="p-4 border-b border-border-premium flex justify-between items-center flex-shrink-0">
-            <h2 class="text-xl font-bold text-white">GECAN™ Menu</h2>
-            <button id="mobile-sidebar-close-btn" class="text-2xl text-text-muted hover:text-white">&times;</button>
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold text-center mb-2">GECAN Real-Time Data Test</h1>
+        <p class="text-center text-slate-400 mb-8">This page fetches data directly from your Google Sheet via the Apps Script API.</p>
+
+        <!-- Status Display -->
+        <div id="status-container" class="text-center p-4 mb-8 border border-slate-700 rounded-lg bg-slate-800">
+            <!-- Loading, success, or error message will go here -->
         </div>
-        <div id="mobile-sidebar-content" class="flex-grow overflow-y-auto">
-            <!-- Navigation and filters are dynamically cloned here -->
+
+        <!-- Data Display Table -->
+        <div class="bg-slate-900/50 border border-slate-700 rounded-lg shadow-lg overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-slate-800">
+                    <tr>
+                        <th class="p-4 font-semibold">ID</th>
+                        <th class="p-4 font-semibold">Name</th>
+                        <th class="p-4 font-semibold">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="data-container">
+                    <!-- Data rows will be injected here by JavaScript -->
+                </tbody>
+            </table>
         </div>
+         <p class="text-center text-slate-500 mt-8 text-sm">To test, change a value in the 'RealTime_DB' sheet and refresh this page. The changes should appear instantly.</p>
     </div>
-    <button id="mobile-fab" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-primary-azure to-primary-amethyst rounded-full shadow-2xl z-50 hidden justify-center items-center text-white text-2xl lg:hidden">
-        <i class="fas fa-bars"></i>
-    </button>
 
-    <!-- Premium Header -->
-    <header class="premium-header h-24 p-4 lg:px-6 print-hide">
-        <div class="container mx-auto h-full flex items-center justify-between">
-            <a href="./index.html" class="gecan-logo-container">
-                <div class="gecan-logo-flipper">
-                    <div class="logo-face logo-front">GECAN™</div>
-                    <div class="logo-face logo-back">
-                        <img src="data:image/png;base64,PLACEHOLDER_YOUR_BASE64_HERE" alt="GECAN Official Logo">
-                    </div>
-                </div>
-            </a>
-            <nav id="nav-container" class="hidden lg:flex items-center justify-center gap-3">
-                <!-- Nav buttons populated by JS -->
-            </nav>
-        </div>
-    </header>
+    <script>
+        // =========================================================================
+        // === STEP 1: PASTE YOUR DEPLOYED WEB APP URL HERE ===
+        // =========================================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbwT4BsV9y2niLK_WXEVsqbqOecjMvWI3zLPgKIFxysyxllPO5YtKRSmiWSfhJIk1wKn/exec";
 
-    <!-- Main Layout Container -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <main class="main-content-grid">
-            
-            <!-- Main Feed Column -->
-            <div class="main-feed-column space-y-12">
-                <section>
-                    <details id="command-center-toggle" class="group block mx-auto max-w-md">
-                        <summary class="py-2 text-center text-sm font-semibold tracking-widest uppercase">
-                            <i class="fas fa-chevron-down toggle-icon mr-2"></i>
-                            Toggle Global Command Center
-                            <i class="fas fa-chevron-down toggle-icon ml-2"></i>
-                        </summary>
-                    </details>
-                    <div id="world-clock-command-center" class="flex flex-col xl:flex-row items-center justify-center gap-8 py-8 px-4 bg-background-glass border border-border-secondary rounded-2xl">
-                        <div id="clock-container" class="flex flex-wrap items-center justify-center gap-6"></div>
-                        <div id="market-ticker-container" class="flex flex-wrap items-center justify-center gap-6"></div>
-                    </div>
-                </section>
+        const statusContainer = document.getElementById('status-container');
+        const dataContainer = document.getElementById('data-container');
 
-                <div id="sticky-sentinel"></div>
+        /**
+         * Fetches data from the API and updates the UI.
+         */
+        async function fetchData() {
+            // Show loading state
+            statusContainer.innerHTML = `<p class="text-blue-400 font-semibold animate-pulse">Connecting to GECAN Quantum Link...</p>`;
+            dataContainer.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-500">Fetching data...</td></tr>`;
+
+            try {
+                const response = await fetch(API_URL);
                 
-                <section>
-                    <div id="metrics-bar" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
-                    <div id="content-display" class="mt-8">
-                        <div id="loading-spinner" class="text-center py-20">
-                           <i class="fas fa-spinner fa-spin fa-4x text-primary-azure"></i>
-                           <p class="mt-4 text-xl">Initializing GECAN Quantum Link...</p>
-                        </div>
-                        <div id="card-container" class="hidden grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-6"></div>
-                        <div id="kanban-container" class="hidden"></div>
-                        <div id="placeholder-content" class="hidden"><!-- Placeholder content rendered by JS --></div>
-                        <div id="no-results" class="hidden text-center py-20">
-                            <i class="fas fa-search fa-4x text-text-muted mb-4"></i>
-                            <p class="text-xl font-medium">No results match your criteria.</p>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Desktop Sidebar Column -->
-            <aside id="desktop-sidebar-container" class="hidden lg:block">
-                <div id="sticky-filter-placeholder"></div>
-                <div id="sticky-filter-wrapper">
-                    <!-- Filter controls dynamically injected here by JS -->
-                </div>
-            </aside>
-        </main>
-    </div>
-
-    <!-- HoloStream & Footer Wrapper -->
-    <div id="fixed-bottom-ui-wrapper" class="print-hide">
-      <footer class="premium-footer relative">
-          <div class="container mx-auto p-10 grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left">
-              <div>
-                  <h3 class="footer-title text-xl mb-4">GECAN™</h3>
-                  <p class="text-sm text-text-muted mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
-                  <p class="text-xs text-text-muted/70">© 2025 All Rights Reserved.</p>
-              </div>
-              <div>
-                  <h4 class="footer-title text-lg mb-4">Legal Disclaimer</h4>
-                  <p class="text-xs text-text-muted leading-relaxed">The information presented is for informational purposes only. GECAN™ acts solely as an intermediary. We make no warranties regarding accuracy, completeness, or performance of any offer or counterparty.</p>
-              </div>
-              <div>
-                  <h4 class="footer-title text-lg mb-4">Risk & Compliance</h4>
-                  <p class="text-xs text-text-muted leading-relaxed">All transactions carry inherent risks. Users must conduct independent due diligence and agree to indemnify GECAN™ from any claims or liabilities.</p>
-              </div>
-          </div>
-      </footer>
-      <div id="holo-stream-container" class="h-28 print-hide">
-          <div class="holo-stream-track"></div>
-      </div>
-    </div>
-
-
-    <!-- Modals & Print Container -->
-    <div id="modal-overlay" class="hidden fixed inset-0 items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div id="modal-content-wrapper" class="w-full max-w-6xl max-h-[90vh] flex flex-col scale-95 transition-all duration-300"></div>
-    </div>
-    <div id="engagement-modal" class="hidden fixed inset-0 items-center justify-center p-4"></div>
-    <div id="printable-container" class="hidden"></div>
-
-<script>
-    // =========================================================================
-    // === PINNACLE ENGINE v10.0 - STATIC DECOUPLED ARCHITECTURE ===
-    // =========================================================================
-    
-    // --- API & CONFIGURATION ---
-    const API_URL = "https://script.google.com/macros/s/AKfycbwB0QWyLi-gETPxqZU1S-poc4F3YAPfooXMQRlDJVYDiCr2iwePOSb91-0mnrBxwY16/exec";
-    const DEFAULT_THEME_CONFIG = {"particles":{"number":{"value":120,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.1,"sync":false}},"size":{"value":2.5,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#4a4a5a","opacity":0.2,"width":1},"move":{"enable":true,"speed":1.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"repulse"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.8,"color":"#8b5cf6"}},"repulse":{"distance":350,"duration":0.4}}},"retina_detect":true};
-
-    // --- APPLICATION STATE (Single Source of Truth) ---
-    const AppState = {
-        allData: { offers: [], enquiries: null, crowdfunding: null, services: null },
-        allFeatured: [], allBulletins: [], marketMatrix: [],
-        activeFilters: { type: 'offers', query: '', assetCategory: 'All', statuses: [], settlementProtocol: 'All', coreProcedure: 'All' },
-        activeSort: 'date_desc',
-        currentView: 'card',
-        isDataLoading: true,
-        referralInfo: null,
-        previousMarketPrices: {}
-    };
-
-    // --- UTILITY HELPERS ---
-    const Utils = {
-        debounce: (func, wait) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => func.apply(this, a), wait); }; },
-        formatNumber: (n) => { if(!n) return '0'; if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'; return n.toLocaleString('en-US'); },
-        parseDate: (d) => { if (!d || typeof d !== 'string') return new Date('1970-01-01'); const p = d.split('/'); if (p.length === 3 && String(p[2]).length === 4) { const dt = new Date(p[2], p[1] - 1, p[0]); if (!isNaN(dt.getTime())) return dt; } const dt = new Date(d); return isNaN(dt.getTime()) ? new Date('1970-01-01') : dt; },
-        getAssetClass: (a) => `asset-color-${String(a||'DEFAULT').replace(/[\s\(\)\/&,]+/g, '_').toUpperCase()}`,
-        closeModal: (id = 'modal-overlay') => {
-            const modal = document.getElementById(id);
-            if (!modal) return;
-            const modalContent = modal.querySelector('#modal-content-wrapper') || modal.querySelector('[id^="engagement-suite"]');
-            
-            modal.classList.add('opacity-0');
-            if(modalContent) modalContent.classList.add('scale-95');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('opacity-0');
-                if(modalContent) {
-                    modalContent.classList.remove('scale-95');
-                    if (modalContent.id === 'modal-content-wrapper') modalContent.innerHTML = '';
+                if (!response.ok) {
+                    throw new Error(`Network error: The server responded with status ${response.status}`);
                 }
-            }, 300);
-            document.body.classList.remove('modal-open');
-        },
-        showNotification: (message, type = 'info') => {
-            const toast = document.createElement('div');
-            const styles = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600' };
-            toast.className = `fixed top-28 right-4 p-4 rounded-xl shadow-2xl z-[200] text-white font-medium ${styles[type]} fade-in-up`;
-            toast.innerHTML = `<i class="fas fa-info-circle mr-2"></i><span>${message}</span>`;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+                
+                const result = await response.json();
+                
+                if (result.success === false) {
+                    throw new Error(`API Error: ${result.error}`);
+                }
+                
+                // If successful, render the data
+                renderData(result.data);
+                statusContainer.innerHTML = `<p class="text-green-400 font-semibold">✅ Data synchronized successfully from Google Sheets.</p>`;
+
+            } catch (error) {
+                console.error("Fetch failed:", error);
+                // Show error state
+                statusContainer.innerHTML = `<p class="text-red-400 font-semibold">❌ Connection Failed: ${error.message}</p>`;
+                dataContainer.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-red-400">Could not retrieve data. Check the browser console (F12) for details.</td></tr>`;
+            }
         }
-    };
 
-    // --- UI RENDERING ENGINE ---
-    const UI = {
-        init: () => {
-            UI.renderFilters();
-            UI.setupNavLinks();
-        },
-        initParticles: (config) => {
-            let themeConfig = DEFAULT_THEME_CONFIG;
-            try { if(config) themeConfig = JSON.parse(config); } catch(e) { /* use default */ }
-            if (window.particlesJS) particlesJS('particles-js', themeConfig || DEFAULT_THEME_CONFIG);
-        },
-        renderFilters: () => {
-            const container = document.getElementById('sticky-filter-wrapper');
-            if (!container) return;
-            container.innerHTML = `
-                <div id="sticky-filter-content" class="filter-section p-6 space-y-6">
-                    <div class="filter-tabs flex flex-col gap-2">
-                        <div class="filter-tab active" data-type="offers"><i class="fas fa-handshake"></i><span>Offers</span></div>
-                        <div class="filter-tab" data-type="enquiries"><i class="fas fa-search-dollar"></i><span>Enquiries</span></div>
-                        <div class="filter-tab" data-type="crowdfunding"><i class="fas fa-rocket"></i><span>Projects</span></div>
-                        <div class="filter-tab" data-type="services"><i class="fas fa-cogs"></i><span>Services</span></div>
-                    </div>
-                    <div id="filter-controls-container"></div>
-                </div>`;
-            Logic.setupFilterListeners();
-        },
-        renderFilterControls: (type) => {
-            const container = document.getElementById('filter-controls-container');
-            if (!container) return;
-            let advancedFiltersHTML = '';
-            const data = AppState.allData[type] || [];
-            
-            if (type === 'offers' && data.length > 0) {
-                const createOptions = (items) => ['All', ...new Set(items.filter(Boolean))].map(item => `<option value="${item}">${item}</option>`).join('');
-                advancedFiltersHTML = `
-                    <div class="space-y-4">
-                        <div><label class="text-xs font-bold text-text-muted">Asset Category</label><select id="asset-category-select" class="form-input w-full mt-1 text-sm">${createOptions(data.map(o => o.ASSET_CATEGORY))}</select></div>
-                        <div><label class="text-xs font-bold text-text-muted">Offer Status</label><div id="status-filters-container" class="mt-2 space-y-1"></div></div>
-                        <div><label class="text-xs font-bold text-text-muted">Settlement</label><select id="settlement-select" class="form-input w-full mt-1 text-sm">${createOptions(data.map(o => o.SETTLEMENT_PROTOCOL))}</select></div>
-                        <div><label class="text-xs font-bold text-text-muted">Procedure</label><select id="procedure-select" class="form-input w-full mt-1 text-sm">${createOptions(data.map(o => o.CORE_PROCEDURE_TYPE))}</select></div>
-                    </div>`;
-            } else {
-                advancedFiltersHTML = `<p class="text-text-muted text-center text-xs p-4">No advanced filters for this module.</p>`;
-            }
-
-            container.innerHTML = `
-                <div class="relative w-full group mb-4">
-                    <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary-azure"></i>
-                    <input type="text" id="search-input" placeholder="Search..." class="form-input w-full py-2 pl-9 pr-4 text-sm">
-                </div>
-                ${advancedFiltersHTML}
-                <div class="mt-4 pt-4 border-t border-border-secondary space-y-3">
-                    <div><label class="text-xs font-bold text-text-muted">Sort By</label><select id="sort-select" class="form-input mt-1 text-sm w-full"></select></div>
-                    <div class="flex items-center justify-between gap-2">
-                        <label class="text-xs font-bold text-text-muted">View</label>
-                        <div class="flex items-center gap-1 bg-background-primary p-1 rounded-lg">
-                            <button id="card-view-btn" class="btn-secondary px-3 py-1.5 rounded-md text-sm"><i class="fa fa-th-large"></i></button>
-                            <button id="kanban-view-btn" class="btn-secondary px-3 py-1.5 rounded-md text-sm"><i class="fa fa-columns"></i></button>
-                        </div>
-                    </div>
-                </div>`;
-            
-            if (type === 'offers') UI.populateStatusFilter();
-            Logic.updateSortOptions(type);
-            Logic.setupAdvancedFilterListeners();
-        },
-        populateStatusFilter: () => {
-             const container = document.getElementById('status-filters-container');
-             if (!container) return;
-             const statuses = [{ name: "ACTIVE", dotClass: "bg-status-active" }, { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "bg-status-limited" }, { name: "PENDING REVIEW", dotClass: "bg-status-pending" }, { name: "WITHDRAWN", dotClass: "bg-status-withdrawn" }, { name: "BLACKLISTED", dotClass: "bg-status-blacklisted" }];
-             container.innerHTML = statuses.map(s => `<label class="flex items-center space-x-2 cursor-pointer p-1 rounded-md hover:bg-background-tertiary"><input type="checkbox" class="status-checkbox hidden" value="${s.name.toUpperCase()}"><span class="w-2.5 h-2.5 rounded-full ${s.dotClass} border border-white/20"></span><span class="text-xs text-text-silver">${s.name}</span></label>`).join('');
-        },
-        renderContent: () => {
-            const { type } = AppState.activeFilters;
-            const items = AppState.allData[type];
-            
-            document.getElementById('loading-spinner').classList.add('hidden');
-            ['card-container', 'kanban-container', 'placeholder-content', 'no-results'].forEach(id => document.getElementById(id).classList.add('hidden'));
-
-            if (items === null) {
-                UI.renderPlaceholderContent(type);
-                UI.updateMetrics([]);
+        /**
+         * Renders the fetched data into the HTML table.
+         * @param {Array<Object>} data - The array of data objects from the API.
+         */
+        function renderData(data) {
+            if (!data || data.length === 0) {
+                dataContainer.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-500">No data found in the spreadsheet.</td></tr>`;
                 return;
             }
 
-            const filteredItems = Logic.filterAndSortData(items);
-            UI.updateMetrics(filteredItems);
-
-            if (filteredItems.length === 0) {
-                document.getElementById('no-results').classList.remove('hidden');
-                return;
-            }
-
-            const isCardView = AppState.currentView === 'card';
-            const showKanban = type === 'offers' && !isCardView;
-
-            document.getElementById('card-container').classList.toggle('hidden', !isCardView);
-            document.getElementById('kanban-container').classList.toggle('hidden', !showKanban);
-
-            if (isCardView) UI.renderCards(filteredItems, type);
-            if (showKanban) UI.renderKanban(filteredItems);
-        },
-        renderCards: (items, type) => {
-            const container = document.getElementById('card-container');
-            if (!container) return;
-            let cardHTML = '';
-            switch (type) {
-                case 'enquiries': cardHTML = items.map((item, i) => UI.createEnquiryCardHTML(item, i)).join(''); break;
-                case 'crowdfunding': cardHTML = items.map((item, i) => UI.createProjectCardHTML(item, i)).join(''); break;
-                case 'services': cardHTML = items.map((item, i) => UI.createServiceCardHTML(item, i)).join(''); break;
-                default: cardHTML = items.map((item, i) => UI.createOfferCardHTML(item, i)).join(''); break;
-            }
-            container.innerHTML = cardHTML;
-        },
-        renderKanban: (offers) => {
-            const container = document.getElementById('kanban-container');
-            if(!container) return;
-            const statuses = ["ACTIVE", "ACTIVE-LIMITED BANDWIDTH", "PENDING REVIEW", "WITHDRAWN", "BLACKLISTED"];
-            container.innerHTML = `<div class="kanban-board grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">${statuses.map(UI.createKanbanColumnHTML).join('')}</div>`;
-            offers.forEach(offer => {
-                const statusKey = offer.OFFER_STATUS.toLowerCase().replace(/[\s-]+/g, '');
-                const column = document.getElementById(`col-${statusKey}`);
-                if (column) column.innerHTML += UI.createKanbanCardHTML(offer);
-            });
-            statuses.forEach(status => {
-                const statusKey = status.toLowerCase().replace(/[\s-]+/g, '');
-                const column = document.getElementById(`col-${statusKey}`);
-                if (column) {
-                    const count = column.children.length;
-                    const totalVolume = Array.from(column.children).reduce((acc, card) => acc + (parseFloat(card.dataset.volume) || 0), 0);
-                    document.getElementById(`count-${statusKey}`).innerText = count;
-                    document.getElementById(`volume-${statusKey}`).innerText = `${Utils.formatNumber(totalVolume)} units`;
-                }
-            });
-        },
-        updateMetrics: (items) => {
-            const metrics = Logic.calculateMetrics(items);
-            const container = document.getElementById('metrics-bar');
-            if(!container) return;
-            const metricsData = [
-                { label: 'Total Items', value: metrics.totalItems, icon: 'fa-chart-bar', theme: '--primary-azure' },
-                { label: 'Active Items', value: metrics.activeItems, icon: 'fa-check-circle', theme: '--status-active' },
-                { label: 'Total Volume', value: Utils.formatNumber(metrics.totalVolume), icon: 'fa-cubes', theme: '--primary-amethyst' },
-                { label: 'Avg. Confidence', value: metrics.avgConfidence.toFixed(1), icon: 'fa-star', theme: '--status-pending' }
-            ];
-            container.innerHTML = metricsData.map(m => `<div class="metrics-item" style="--metrics-color: var(${m.theme}); --metrics-glow: var(${m.theme.replace('primary', 'glow').replace('status', 'glow')});"><div class="flex items-center justify-between w-full"><div><p class="font-orbitron font-bold text-3xl text-white">${m.value}</p><p class="text-sm text-text-muted">${m.label}</p></div><div class="metrics-icon-container"><div class="metrics-icon-3d"><div class="icon-face icon-front"><i class="fas ${m.icon}"></i></div><div class="icon-face icon-back"></div><div class="icon-glow-ring"></div></div></div></div></div>`).join('');
-        },
-        renderClocks: () => {
-            const container = document.getElementById('clock-container');
-            if(!container) return;
-            const timezones = [{name: "New York", value: "America/New_York"}, {name: "London", value: "Europe/London"}, {name: "Dubai", value: "Asia/Dubai"}, {name: "Singapore", value: "Asia/Singapore"}];
-            container.innerHTML = timezones.map(tz => `<div class="text-center fade-in-up"><div class="premium-clock" data-timezone="${tz.value}"><div class="hand hour-hand"></div><div class="hand minute-hand"></div><div class="hand second-hand"></div></div><div class="mt-3"><p class="text-sm font-bold text-white">${tz.name}</p><p class="text-xs text-text-muted clock-time" data-timezone="${tz.value}">--:--:--</p></div></div>`).join('');
-            setInterval(UI.updateAllClocks, 1000);
-        },
-        updateAllClocks: () => {
-            const now = new Date();
-            document.querySelectorAll('.premium-clock').forEach(clock => {
-                const timezone = clock.dataset.timezone;
-                try {
-                    const time = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
-                    const secondsDeg = (time.getSeconds() / 60) * 360;
-                    const minutesDeg = (time.getMinutes() / 60) * 360 + (time.getSeconds() / 60) * 6;
-                    const hoursDeg = (time.getHours() % 12 / 12) * 360 + (time.getMinutes() / 60) * 30;
-                    clock.querySelector('.second-hand').style.transform = `translateX(-50%) rotate(${secondsDeg}deg)`;
-                    clock.querySelector('.minute-hand').style.transform = `translateX(-50%) rotate(${minutesDeg}deg)`;
-                    clock.querySelector('.hour-hand').style.transform = `translateX(-50%) rotate(${hoursDeg}deg)`;
-                    document.querySelector(`.clock-time[data-timezone="${timezone}"]`).textContent = time.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'});
-                } catch (e) { console.warn(`Could not update clock for ${timezone}`); }
-            });
-        },
-        renderMarketTickers: (matrix) => {
-            const container = document.getElementById('market-ticker-container');
-            if(!container) return;
-            const assetsToDisplay = ['BTC-USD', 'AU-KG-USD'];
-            container.innerHTML = assetsToDisplay.map(key => {
-                const asset = matrix.find(a => a.key === key) || { baseAsset: key.split('-')[0], quoteAsset: 'USD', name: 'Loading...', price: 0, lastUpdated: new Date().toISOString() };
-                const prevPrice = AppState.previousMarketPrices[asset.key] || asset.price;
-                let changeClass = asset.price > prevPrice ? 'up' : asset.price < prevPrice ? 'down' : 'stale';
-                AppState.previousMarketPrices[asset.key] = asset.price;
-                return `<div class="market-ticker-item fade-in-up" data-asset-key="${asset.key}"><div class="flex items-center justify-between mb-2"><div><p class="font-bold text-white text-lg">${asset.baseAsset}/${asset.quoteAsset}</p><p class="text-xs text-text-muted">${asset.name}</p></div></div><div class="flex items-end gap-3"><p class="price price-${changeClass}">$${asset.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p></div><p class="text-xs text-text-muted font-mono mt-1">Updated: ${new Date(asset.lastUpdated).toLocaleTimeString()}</p></div>`;
+            // Create an HTML string for each row and join them together
+            const rowsHtml = data.map(item => {
+                // Determine status color
+                const statusClass = `status-${String(item.Status).toLowerCase()}`;
+                
+                return `
+                    <tr class="border-t border-slate-800 hover:bg-slate-800/50">
+                        <td class="p-4 font-mono text-slate-400">${item.ID}</td>
+                        <td class="p-4">${item.Name}</td>
+                        <td class="p-4 font-semibold ${statusClass}">${item.Status}</td>
+                    </tr>
+                `;
             }).join('');
-        },
-        renderHoloStream: () => {
-            const track = document.querySelector('.holo-stream-track');
-            if (!track) return;
-            const featured = AppState.allFeatured.map(item => ({ id: item.FEATURE_ID, type: 'opportunity', icon: item.ICON || 'fa-star', color: item.COLOR_HINT || 'var(--primary-gold)', title: item.TITLE, details: item.DETAILS }));
-            const bulletins = AppState.allBulletins.map(item => ({ id: item.BULLETIN_ID, type: 'bulletin', icon: item.ICON, color: item.ICON_COLOR, title: item.TYPE, details: item.MESSAGE }));
-            const allItems = [...featured, ...bulletins];
-            if (allItems.length === 0) { track.innerHTML = `<div class="holo-item"><p class="text-text-muted">No active alerts.</p></div>`; return; }
-            const itemsHtml = allItems.map(item => `<div class="holo-item p-4" data-type="${item.type}" data-id="${item.id}" style="--item-glow-color: ${item.color}"><div class="icon-container text-2xl" style="color: ${item.color};"><i class="fas ${item.icon} fa-fw"></i></div><div class="text-content"><p class="font-bold text-base">${item.title}</p><p class="text-sm text-text-muted">${item.details}</p></div></div>`).join('');
-            track.innerHTML = itemsHtml.repeat(4);
-        },
-        renderPlaceholderContent: (type) => {
-            const placeholders = {
-                enquiries: { icon: 'fa-bullseye', title: 'Buyer Mandate Nexus', text: 'This automated nexus will soon provide a live, curated feed of vetted buyer requirements and mandates from across the GECAN institutional network, enabling unparalleled deal flow origination and direct counterparty engagement.', tag: 'Coming Q4 2025' },
-                crowdfunding: { icon: 'fa-layer-group', title: 'Syndicated Ventures Platform', text: 'A forthcoming capital gateway for sourcing and participating in GECAN-vetted syndicated ventures and high-yield investment projects. This module will redefine institutional access to emerging opportunities.', tag: 'Coming Q1 2026' },
-                services: { icon: 'fa-cogs', title: 'Professional Services Matrix', text: 'Activate a network of elite service providers. This matrix will offer direct access to GECAN-vetted legal, logistical, and financial advisory services, ensuring seamless execution for complex global transactions.', tag: 'Coming Q2 2026' }
-            };
-            const placeholder = placeholders[type];
-            const el = document.getElementById('placeholder-content');
-            if (!placeholder || !el) { if(el) el.classList.add('hidden'); return; }
-            el.innerHTML = `<div class="showcase-icon-wrapper"><div class="showcase-icon-3d"><div class="showcase-icon-base"><i class="fas ${placeholder.icon}"></i></div></div></div><h2 class="showcase-title">${placeholder.title}</h2><p class="showcase-subtitle">${placeholder.text}</p><span class="showcase-tag">${placeholder.tag}</span>`;
-            el.classList.remove('hidden');
-        },
-        createOfferCardHTML: (offer, index) => {
-            const statusClasses = UI.getStatusClass(offer.OFFER_STATUS);
-            const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
-            return `<div class="offer-card ${statusClasses.border} ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms;" data-id="${offer.OFFER_ID}" data-type="offer"><div class="card-content h-full flex flex-col"><div class="flex-grow"><div class="flex justify-between items-start mb-4"><div class="flex-1"><h2 class="asset-header text-xl font-bold">${offer.ASSET_CATEGORY}</h2><p class="text-xs text-text-muted -mt-2">${offer.ASSET_SUBTYPE}</p></div><span class="text-xs font-mono bg-background-primary px-2 py-1 rounded-md">${offer.OFFER_ID}</span></div><h3 class="text-base font-bold text-text-diamond mb-2 line-clamp-2">${offer.OFFER_DESCRIPTION}</h3><p class="text-sm text-text-silver line-clamp-3 mb-4">${offer.EXECUTIVE_SUMMARY_AND_OVERVIEW}</p></div><div class="mt-auto pt-4 border-t border-border-secondary text-xs text-text-muted flex justify-between items-center"><span>${offer.DATE_RECEIVED}</span><span class="text-primary-gold">${'★'.repeat(offer.GECAN_CONFIDENCE)}${'☆'.repeat(5 - offer.GECAN_CONFIDENCE)}</span></div></div></div>`;
-        },
-        createEnquiryCardHTML: (enquiry, index) => {
-            const statusClasses = UI.getStatusClass(enquiry.ENQUIRY_STATUS);
-            const assetClass = Utils.getAssetClass(enquiry.TARGET_ASSET_CATEGORY);
-            return `<div class="offer-card ${statusClasses.border} ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms;" data-id="${enquiry.ENQUIRY_ID}" data-type="enquiry"><div class="card-content h-full flex flex-col"><div class="flex-grow"><div class="flex justify-between items-start mb-4"><div class="flex-1"><h2 class="asset-header text-xl font-bold">${enquiry.TARGET_ASSET_CATEGORY}</h2><p class="text-xs text-text-muted -mt-2">${enquiry.TARGET_ASSET_SUBTYPE}</p></div><span class="text-xs font-mono bg-background-primary px-2 py-1 rounded-md">${enquiry.ENQUIRY_ID}</span></div><h3 class="text-base font-bold text-text-diamond mb-2 line-clamp-2">${enquiry.ENQUIRY_DESCRIPTION}</h3><p class="text-sm text-text-silver line-clamp-3 mb-4">${enquiry.BUYER_REQUIREMENT_SUMMARY}</p></div><div class="mt-auto pt-4 border-t border-border-secondary text-xs text-text-muted flex justify-between items-center"><span>${enquiry.DATE_RECEIVED}</span><span class="text-primary-gold">${'★'.repeat(enquiry.GECAN_CONFIDENCE)}${'☆'.repeat(5 - enquiry.GECAN_CONFIDENCE)}</span></div></div></div>`;
-        },
-        createProjectCardHTML: (project, index) => {
-            const assetClass = Utils.getAssetClass(project.PRIMARY_SECTOR);
-            return `<div class="offer-card border-l-4 ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms; --asset-primary: var(--primary-amethyst);" data-id="${project.PROJECT_ID}" data-type="crowdfunding"><div class="card-content h-full flex flex-col"><div class="flex-grow"><h2 class="asset-header text-xl font-bold">${project.PROJECT_NAME}</h2><p class="text-xs text-text-muted -mt-2">${project.PRIMARY_SECTOR}</p><p class="text-sm text-text-silver line-clamp-3 my-4">${project.EXECUTIVE_SUMMARY}</p></div><div class="mt-auto pt-4 border-t border-border-secondary text-xs text-text-muted flex justify-between items-center"><span>Funding: ${Utils.formatNumber(project.TOTAL_FUNDING_SOUGHT_USD)}</span><span>IRR: ${project.PROJECTED_INTERNAL_RATE_OF_RETURN_IRR}%</span></div></div></div>`;
-        },
-        createServiceCardHTML: (service, index) => {
-            const assetClass = Utils.getAssetClass(service.SERVICE_CATEGORY);
-            return `<div class="offer-card border-l-4 ${assetClass} cursor-pointer fade-in-up" style="animation-delay: ${index * 50}ms; --asset-primary: var(--primary-sapphire);" data-id="${service.SERVICE_ID}" data-type="services"><div class="card-content h-full flex flex-col"><div class="flex-grow"><h2 class="asset-header text-xl font-bold">${service.SERVICE_NAME}</h2><p class="text-xs text-text-muted -mt-2">${service.SERVICE_CATEGORY}</p><p class="text-sm text-text-silver line-clamp-4 my-4">${service.SERVICE_OVERVIEW_AND_VALUE_PROPOSITION}</p></div><div class="mt-auto pt-4 border-t border-border-secondary text-xs text-text-muted flex justify-between items-center"><span>${service.PROVIDER_JURISDICTION}</span><span>Reliability: ${service.SERVICE_RELIABILITY_SCORE}/100</span></div></div></div>`;
-        },
-        createKanbanColumnHTML: (status) => {
-            const statusKey = status.toLowerCase().replace(/[\s-]+/g, '');
-            const statusClasses = UI.getStatusClass(status);
-            return `<div class="kanban-column bg-background-secondary p-4 rounded-xl"><h2 class="text-base font-bold text-white flex items-center gap-2 mb-4"><div class="w-3 h-3 rounded-full ${statusClasses.dot}"></div><span>${status}</span><span id="count-${statusKey}" class="ml-auto text-sm font-normal bg-background-tertiary text-text-muted rounded-full px-2 py-0.5">0</span></h2><div id="col-${statusKey}" class="space-y-3 min-h-[100px]"></div></div>`;
-        },
-        createKanbanCardHTML: (offer) => {
-            const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
-            return `<div class="kanban-card p-3 rounded-lg border-l-4 ${assetClass}" data-id="${offer.OFFER_ID}" data-type="offer" data-volume="${parseFloat(String(offer.TOTAL_VOLUME_AVAILABLE||'0').replace(/,/g,''))}"><p class="font-bold text-sm text-text-platinum line-clamp-2">${offer.OFFER_DESCRIPTION}</p><p class="text-xs text-text-muted mt-1">${offer.OFFER_ID}</p></div>`;
-        },
-        renderEngagementSuiteModal: (offer, referralInfo) => {
-             return `<div class="flex-shrink-0 p-6 md:p-8 border-b border-border-secondary bg-background-secondary/50"><div class="flex justify-between items-start mb-2"><div><h3 class="text-xl md:text-2xl font-bold text-white">Intermediary Deal Submission</h3><p class="text-sm text-text-muted">Enquiry Against Offer: ${offer.OFFER_ID}</p></div><button type="button" onclick="Utils.closeModal('modal-overlay')" class="text-2xl text-text-muted hover:text-white">×</button></div></div><div class="flex-grow overflow-y-auto p-6 md:p-8"><form id="modal-form" class="space-y-6"><!-- Full form HTML --></form></div>`;
-        },
-        setupNavLinks: () => {
-            const navContainer = document.getElementById('nav-container');
-            const path = window.location.pathname;
-            const currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
-            const links = [
-                { page: 'index', icon: 'fa-tachometer-alt', text: 'XDealFlow' },
-                { page: 'aboutus', icon: 'fa-landmark-flag', text: 'About Us' },
-                { page: 'toolkits', icon: 'fa-microchip', text: 'Toolkits' },
-                { page: 'architect', icon: 'fa-drafting-compass', text: 'Architect' },
-                { page: 'intelligence', icon: 'fa-sitemap', text: 'Intelligence' }
-            ];
-            if (navContainer) navContainer.innerHTML = links.map(link => `<a href="./${link.page}.html" class="nav-btn ${currentPageFile === link.page ? 'active' : ''}"><i class="fas ${link.icon}"></i><span>${link.text}</span></a>`).join('');
+
+            dataContainer.innerHTML = rowsHtml;
         }
-    };
 
-    // --- LOGIC & EVENT HANDLING ENGINE ---
-    const Logic = {
-        init: () => {
-            Logic.initInteractiveBackground();
-            UI.init();
-            Logic.fetchInitialData();
-            Logic.setupEventListeners();
-            Logic.initStickySidebar();
-            Logic.initCollapsibleCommandCenter();
-            Logic.initMobileUI();
-        },
-        fetchInitialData: () => {
-            AppState.isDataLoading = true;
-            UI.renderContent([], AppState.activeFilters.type);
-            Promise.all([
-                fetch(`${API_URL}?action=getActiveThemeConfig`).then(res => res.json()),
-                fetch(`${API_URL}?action=getOfferData`).then(res => res.json()),
-                Promise.resolve({success: true, data: null}), // Enquiries
-                Promise.resolve({success: true, data: null}), // Crowdfunding
-                Promise.resolve({success: true, data: null}), // Services
-                fetch(`${API_URL}?action=getFeaturedData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getBulletinData`).then(res => res.json()),
-                fetch(`${API_URL}?action=getMarketMatrixData`).then(res => res.json())
-            ]).then(([themeRes, offersRes, enquiriesRes, crowdfundingRes, servicesRes, featuredRes, bulletinsRes, marketRes]) => {
-                const allResponses = [themeRes, offersRes, enquiriesRes, crowdfundingRes, servicesRes, featuredRes, bulletinsRes, marketRes];
-                if (allResponses.some(r => !r.success)) throw new Error("One or more critical API calls failed.");
-                
-                UI.initParticles(themeRes.data);
-                AppState.allData = { offers: offersRes.data || [], enquiries: enquiriesRes.data, crowdfunding: crowdfundingRes.data, services: servicesRes.data };
-                AppState.allFeatured = featuredRes.data || [];
-                AppState.allBulletins = bulletinsRes.data || [];
-                AppState.marketMatrix = marketRes.data || [];
-                AppState.isDataLoading = false;
-                
-                UI.renderFilterControls('offers');
-                Logic.applyFiltersAndRender();
-                UI.renderMarketTickers(AppState.marketMatrix);
-                UI.renderHoloStream();
-            }).catch(Logic.onDataError);
-        },
-        onDataError: (error) => {
-            console.error("CRITICAL DATA ERROR:", error);
-            const spinner = document.getElementById('loading-spinner');
-            if(spinner) spinner.innerHTML = `<p class="text-red-500 text-center py-20">Platform Initialization Failed: ${error.message}. Please refresh.</p>`;
-        },
-        filterAndSortData: (items) => {
-            const { type, query, assetCategory, statuses, settlementProtocol, coreProcedure } = AppState.activeFilters;
-            if (!items) return [];
-            return items.filter(item => {
-                if (type !== 'offers') return !query || Object.values(item).some(val => String(val).toLowerCase().includes(query));
-                const searchMatch = !query || Object.values(item).some(val => String(val).toLowerCase().includes(query));
-                const assetMatch = assetCategory === 'All' || item.ASSET_CATEGORY === assetCategory;
-                const statusMatch = statuses.length === 0 || statuses.includes(String(item.OFFER_STATUS).toUpperCase());
-                const settlementMatch = settlementProtocol === 'All' || item.SETTLEMENT_PROTOCOL === settlementProtocol;
-                const procedureMatch = coreProcedure === 'All' || item.CORE_PROCEDURE_TYPE === coreProcedure;
-                return searchMatch && assetMatch && statusMatch && settlementMatch && procedureMatch;
-            }).sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
-        },
-        sortItems: (a, b, sortType) => {
-            const parseNum = (item, key) => parseFloat(String(item[key] || '0').replace(/,/g, '')) || 0;
-            const dateKeyA = a.DATE_RECEIVED || a.PROPOSAL_SUBMISSION_DATE || a.DATE_ONBOARDED;
-            const dateKeyB = b.DATE_RECEIVED || b.PROPOSAL_SUBMISSION_DATE || b.DATE_ONBOARDED;
-            switch (sortType) {
-                case 'date_asc': return Utils.parseDate(dateKeyA) - Utils.parseDate(dateKeyB);
-                case 'confidence_desc': return (b.GECAN_CONFIDENCE || 0) - (a.GECAN_CONFIDENCE || 0);
-                case 'volume_desc': return parseNum(b, 'TOTAL_VOLUME_AVAILABLE') - parseNum(a, 'TOTAL_VOLUME_AVAILABLE');
-                default: return Utils.parseDate(dateKeyB) - Utils.parseDate(dateKeyA);
-            }
-        },
-        calculateMetrics: (items) => {
-            if (!items || items.length === 0) return { totalItems: 0, activeItems: 0, totalVolume: 0, avgConfidence: 0 };
-            const totalItems = items.length;
-            const activeItems = items.filter(i => String(i.OFFER_STATUS || '').toLowerCase().includes('active')).length;
-            const totalVolume = items.reduce((acc, i) => acc + (parseFloat(String(i.TOTAL_VOLUME_AVAILABLE || '0').replace(/,/g, '')) || 0), 0);
-            const avgConfidence = totalItems > 0 ? items.reduce((acc, i) => acc + (i.GECAN_CONFIDENCE || 0), 0) / totalItems : 0;
-            return { totalItems, activeItems, totalVolume, avgConfidence };
-        },
-        applyFiltersAndRender: () => { UI.renderContent(AppState.allData[AppState.activeFilters.type], AppState.activeFilters.type); },
-        switchFilterType: (type) => {
-            if (AppState.activeFilters.type === type) return;
-            AppState.activeFilters.type = type;
-            document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
-            Logic.resetFilters(false);
-            UI.renderFilterControls(type);
-            Logic.applyFiltersAndRender();
-        },
-        resetFilters: (showNotif = true) => {
-            const currentType = AppState.activeFilters.type;
-            AppState.activeFilters = { type: currentType, query: '', assetCategory: 'All', statuses: [], settlementProtocol: 'All', coreProcedure: 'All' };
-            AppState.activeSort = 'date_desc';
-            UI.renderFilterControls(currentType); // Re-render to reset inputs
-            Logic.applyFiltersAndRender();
-            if (showNotif) Utils.showNotification('Filters Reset', 'success');
-        },
-        switchView: (view) => {
-            if (AppState.currentView === view || AppState.activeFilters.type !== 'offers') return;
-            AppState.currentView = view;
-            const cardBtn = document.querySelector('#sticky-filter-wrapper #card-view-btn');
-            const kanbanBtn = document.querySelector('#sticky-filter-wrapper #kanban-view-btn');
-            if(cardBtn) cardBtn.classList.toggle('active', view === 'card');
-            if(kanbanBtn) kanbanBtn.classList.toggle('active', view === 'kanban');
-            Logic.applyFiltersAndRender();
-        },
-        initStickySidebar: () => {
-            const sentinel = document.getElementById('sticky-sentinel');
-            const wrapper = document.getElementById('sticky-filter-wrapper');
-            const placeholder = document.getElementById('sticky-filter-placeholder');
-            if (!sentinel || !wrapper || !placeholder) return;
-            const observer = new IntersectionObserver(([entry]) => {
-                const isSticky = !entry.isIntersecting && window.innerWidth >= 1024;
-                wrapper.classList.toggle('is-sticky-sidebar', isSticky);
-                placeholder.style.height = isSticky ? `${wrapper.offsetHeight}px` : '0px';
-            }, { rootMargin: "-120px 0px 0px 0px" });
-            observer.observe(sentinel);
-        },
-        initCollapsibleCommandCenter: () => {
-            const toggle = document.getElementById('command-center-toggle');
-            if(!toggle) return;
-            if (localStorage.getItem('commandCenterState') === 'open') toggle.open = true;
-            toggle.addEventListener('toggle', () => localStorage.setItem('commandCenterState', toggle.open ? 'open' : 'closed'));
-        },
-        initMobileUI: () => {
-            const fab = document.getElementById('mobile-fab');
-            const sidebar = document.getElementById('mobile-sidebar');
-            const overlay = document.getElementById('mobile-sidebar-overlay');
-            const closeBtn = document.getElementById('mobile-sidebar-close-btn');
-            const sidebarContent = document.getElementById('mobile-sidebar-content');
-            if(!fab || !sidebar || !overlay || !closeBtn || !sidebarContent) return;
+        // --- Initalization ---
+        // Fetch data as soon as the page loads.
+        document.addEventListener('DOMContentLoaded', fetchData);
+    </script>
 
-            const openSidebar = () => {
-                sidebar.classList.add('open');
-                overlay.classList.remove('hidden');
-                document.body.classList.add('mobile-sidebar-open');
-                if (!sidebarContent.hasChildNodes()) {
-                    const nav = document.getElementById('nav-container')?.cloneNode(true);
-                    const filters = document.getElementById('sticky-filter-wrapper')?.cloneNode(true);
-                    if (nav) {
-                        nav.id = 'mobile-nav-clone';
-                        nav.classList.add('mobile-nav-clone');
-                        nav.classList.remove('hidden');
-                        sidebarContent.appendChild(nav);
-                    }
-                    if (filters) {
-                        filters.id = 'mobile-filter-clone';
-                        filters.classList.add('mobile-filter-clone');
-                        sidebarContent.appendChild(filters);
-                        Logic.setupFilterListeners(true);
-                    }
-                }
-            };
-            const closeSidebar = () => {
-                sidebar.classList.remove('open');
-                overlay.classList.add('hidden');
-                document.body.classList.remove('mobile-sidebar-open');
-            };
-            
-            fab.addEventListener('click', openSidebar);
-            overlay.addEventListener('click', closeSidebar);
-            closeBtn.addEventListener('click', closeSidebar);
-        },
-        setupEventListeners: () => {
-            document.body.addEventListener('click', e => {
-                const card = e.target.closest('.offer-card, .kanban-card');
-                if (card) Logic.openModal(card.dataset.id || card.dataset.offerId, card.dataset.type || 'offer');
-            });
-            document.getElementById('modal-overlay')?.addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') Utils.closeModal('modal-overlay'); });
-            document.getElementById('engagement-modal')?.addEventListener('click', (e) => { if (e.target.id === 'engagement-modal') Utils.closeModal('engagement-modal'); });
-        },
-        setupFilterListeners: (isMobileClone = false) => {
-            const scope = isMobileClone ? document.getElementById('mobile-sidebar-content') : document;
-            if(!scope) return;
-            scope.querySelectorAll('.filter-tab').forEach(tab => tab.addEventListener('click', () => Logic.switchFilterType(tab.dataset.type)));
-            const searchInput = scope.querySelector('#search-input');
-            if(searchInput) searchInput.addEventListener('keyup', Utils.debounce(() => {
-                AppState.activeFilters.query = searchInput.value.toLowerCase();
-                Logic.applyFiltersAndRender();
-            }, 300));
-            const cardBtn = scope.querySelector('#card-view-btn');
-            const kanbanBtn = scope.querySelector('#kanban-view-btn');
-            if(cardBtn) cardBtn.addEventListener('click', () => Logic.switchView('card'));
-            if(kanbanBtn) kanbanBtn.addEventListener('click', () => Logic.switchView('kanban'));
-            Logic.setupAdvancedFilterListeners(isMobileClone);
-        },
-        setupAdvancedFilterListeners: (isMobileClone = false) => {
-            const scope = isMobileClone ? document.getElementById('mobile-sidebar-content') : document;
-            if(!scope) return;
-            const addListener = (id, key) => {
-                const el = scope.querySelector(`#${id}`);
-                if(el) el.addEventListener('change', e => {
-                    AppState.activeFilters[key] = e.target.value;
-                    Logic.applyFiltersAndRender();
-                });
-            };
-            addListener('asset-category-select', 'assetCategory');
-            addListener('settlement-select', 'settlementProtocol');
-            addListener('procedure-select', 'coreProcedure');
-            addListener('sort-select', 'activeSort');
-            const statusContainer = scope.querySelector('#status-filters-container');
-            if(statusContainer) statusContainer.addEventListener('change', () => {
-                AppState.activeFilters.statuses = Array.from(statusContainer.querySelectorAll('.status-checkbox:checked')).map(cb => cb.value);
-                Logic.applyFiltersAndRender();
-            });
-        },
-        updateSortOptions: (type) => {
-            document.querySelectorAll('#sort-select').forEach(sortSelect => {
-                let options = `<option value="date_desc">Date (Newest)</option><option value="date_asc">Date (Oldest)</option>`;
-                if (type === 'offers') options += `<option value="confidence_desc">Confidence</option><option value="volume_desc">Volume</option>`;
-                sortSelect.innerHTML = options;
-            });
-            AppState.activeSort = 'date_desc';
-        },
-        openModal: (id, type) => {
-            const item = AppState.allData[type].find(d => (d.OFFER_ID || d.ENQUIRY_ID || d.PROJECT_ID || d.SERVICE_ID) === id);
-            if (!item) return;
-            
-            const modalWrapper = document.getElementById('modal-content-wrapper');
-            const modalOverlay = document.getElementById('modal-overlay');
-            
-            const createDetailItem = (label, value, icon) => `<div class="modal-grid-item"><p class="text-xs text-text-silver flex items-center mb-2"><i class="fas ${icon} fa-fw mr-2 text-primary-azure"></i>${label}</p><p class="font-semibold text-sm text-white">${value || 'N/A'}</p></div>`;
-
-            let headerContent = '', bodyContent = '', footerContent = '', pdfFooter = '';
-            
-            if (type === 'offer') {
-                const offer = item;
-                const assetClass = Utils.getAssetClass(offer.ASSET_CATEGORY);
-                headerContent = `<div class="p-6 flex justify-between items-center border-b border-border-secondary"><h2 class="text-xl font-bold text-white">${offer.OFFER_DESCRIPTION}</h2><button onclick="Utils.closeModal()" class="text-2xl text-text-muted hover:text-white">&times;</button></div>`;
-                bodyContent = `<div class="p-6 overflow-y-auto ${assetClass}">...full body HTML for offer...</div>`;
-                footerContent = `<div class="p-6 border-t border-border-secondary flex justify-between items-center"><button onclick="Logic.generateAndDownloadDossier('${offer.OFFER_ID}')" class="btn-primary">Print Summary</button><button onclick="Logic.initiateEngagement('${offer.OFFER_ID}')" class="btn-engagement">Initiate Engagement</button></div>`;
-                pdfFooter = offer.PDF_FOOTER_HTML;
-            }
-            
-            modalWrapper.innerHTML = `<div class="flex-shrink-0">${headerContent}</div><div class="flex-grow overflow-y-auto">${bodyContent}</div><div class="flex-shrink-0">${footerContent}</div>`;
-            document.getElementById('printable-container').innerHTML = `${headerContent}${bodyContent}${pdfFooter}`;
-
-            document.body.classList.add('modal-open');
-            modalOverlay.classList.remove('hidden');
-            setTimeout(() => {
-                modalOverlay.classList.remove('opacity-0');
-                modalWrapper.classList.remove('scale-95');
-            }, 10);
-        },
-        initiateEngagement: (offerId) => {
-            AppState.engagementTargetOfferId = offerId;
-            const modal = document.getElementById('engagement-modal');
-            modal.innerHTML = `<div id="engagement-suite" class="rounded-3xl w-full max-w-2xl p-8 bg-background-tertiary border-2 border-border-premium shadow-2xl"><h2 class="text-3xl font-bold text-white text-center mb-4">Secure Engagement Protocol</h2><p class="text-center text-text-muted mb-6">A valid Partner Referral ID is required.</p><input type="text" id="referral-id-input" placeholder="Enter Referral ID" class="form-input text-center w-full mb-4"><button id="validate-referral-btn" class="btn-primary w-full">Validate & Proceed</button><div id="referral-error" class="hidden text-red-400 text-center mt-2"></div><button onclick="Utils.closeModal('engagement-modal')" class="text-text-muted text-center block mx-auto mt-4">Cancel</button></div>`;
-            modal.classList.remove('hidden');
-            document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateReferralId);
-        },
-        validateReferralId: () => {
-            const input = document.getElementById('referral-id-input');
-            const referralId = input.value.trim();
-            const btn = document.getElementById('validate-referral-btn');
-            const errorDiv = document.getElementById('referral-error');
-            if (!referralId) { errorDiv.textContent = 'ID is required.'; errorDiv.classList.remove('hidden'); return; }
-            
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'validateReferralId', data: { referralId } })
-            }).then(res => res.json()).then(response => {
-                if (response.success && response.message.isValid) {
-                    AppState.referralInfo = response.message;
-                    Utils.closeModal('engagement-modal');
-                    setTimeout(() => Logic.openEngagementSuite(AppState.engagementTargetOfferId, AppState.referralInfo), 350);
-                } else {
-                    errorDiv.textContent = 'Invalid or inactive Referral ID.'; errorDiv.classList.remove('hidden');
-                }
-            }).catch(err => {
-                errorDiv.textContent = 'Server validation error.'; errorDiv.classList.remove('hidden');
-            }).finally(() => {
-                btn.disabled = false; btn.innerHTML = 'Validate & Proceed';
-            });
-        },
-        openEngagementSuite: (offerId, referralInfo) => {
-            const offer = AppState.allData.offers.find(o => o.OFFER_ID === offerId);
-            const modalWrapper = document.getElementById('modal-content-wrapper');
-            const modalOverlay = document.getElementById('modal-overlay');
-            modalWrapper.innerHTML = UI.renderEngagementSuiteModal(offer, referralInfo);
-            modalOverlay.classList.remove('hidden');
-            Logic.setupEngagementFormListeners(offerId);
-        },
-        setupEngagementFormListeners: (offerId) => {
-            document.getElementById('modal-form')?.addEventListener('submit', (e) => {
-                e.preventDefault();
-                Logic.submitEngagementForm(offerId);
-            });
-        },
-        submitEngagementForm: async (offerId) => {
-            const btn = document.querySelector('#modal-form button[type="submit"]');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-            // Gather form data into userInfoPayload
-            const userInfoPayload = {}; /* ... full payload construction ... */
-            
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'sendEngagementRequestEmail', data: { offerId, userInfo: userInfoPayload } })
-            }).then(res => res.json()).then(response => {
-                if (!response.success) throw new Error(response.error);
-                Utils.showNotification(response.message, 'success');
-                Utils.closeModal('modal-overlay');
-            }).catch(err => {
-                Utils.showNotification(err.message, 'error');
-            }).finally(() => {
-                btn.disabled = false; btn.innerHTML = 'Submit Formal Enquiry';
-            });
-        },
-        generateAndDownloadDossier: (offerId) => {
-            const btn = document.getElementById(`print-dossier-btn-${offerId}`);
-            const offer = AppState.allData.offers.find(o => o.OFFER_ID === offerId);
-            if (!offer || !btn) return;
-
-            const originalContent = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-            
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'generateOfferDossierPdf', data: { offerData: offer } })
-            }).then(res => res.json()).then(response => {
-                if (!response.success) throw new Error(response.error);
-                Logic.downloadPdf(response.message);
-            }).catch(err => Utils.showNotification(err.message, 'error'))
-            .finally(() => { btn.disabled = false; btn.innerHTML = originalContent; });
-        },
-        downloadPdf: (response) => {
-            if (!response || !response.success) return;
-            const link = document.createElement('a');
-            link.href = `data:application/pdf;base64,${response.pdfData}`;
-            link.download = response.fileName;
-            link.click();
-            Utils.showNotification('Dossier downloaded!', 'success');
-        },
-        initInteractiveBackground: () => {
-            const vortex = document.getElementById('background-vortex');
-            if (!vortex) return;
-            let pos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-            const animate = () => {
-                const time = Date.now() * 0.0002;
-                let targetX = (window.innerWidth / 2) + Math.sin(time) * (window.innerWidth / 3);
-                let targetY = (window.innerHeight / 2) + Math.cos(time * 0.7) * (window.innerHeight / 3);
-                pos.x += (targetX - pos.x) * 0.01;
-                pos.y += (targetY - pos.y) * 0.01;
-                vortex.style.transform = `translate(-50%, -50%) translate3d(${pos.x}px, ${pos.y}px, 0)`;
-                requestAnimationFrame(animate);
-            };
-            animate();
-        }
-    };
-
-    // --- INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', Logic.init);
-    window.Utils = Utils;
-</script>
 </body>
 </html>
