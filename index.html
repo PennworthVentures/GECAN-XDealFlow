@@ -1173,9 +1173,8 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
                 </div>
                 <!-- This is the container for the sticky side panel on desktop -->
                 <div id="sticky-filter-sidebar"></div>
-            </div>
-            
-            <!-- Advanced Filters Panel -->
+
+                 <!-- Advanced Filters Panel -->
             <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
                 <div class="filter-section rounded-2xl p-6 -mt-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1189,6 +1188,10 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
                     </div>
                 </div>
             </div>
+                
+            </div>
+            
+           
 
             <!-- C. Metrics & Data Display -->
             <div id="metrics-bar" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"></div>
@@ -1718,27 +1721,25 @@ toggleAdvancedFilters: () => {
         btn.classList.remove('active');
     } else {
         // --- OPEN THE PANEL (Corrected Logic) ---
-        // 1. Populate the content first, as you are already doing.
+        // 1. Populate the filter content for the active tab first.
         UI.populateAdvancedFilters(AppState.activeFilters.type);
-        Logic.setupAdvancedFilterListeners();
-
-        // 2. THE FIX: Temporarily remove the height restriction to measure the content.
-        container.style.maxHeight = 'none';
-        const scrollHeight = content.scrollHeight; // Now this will get the correct, full height.
         
-        // 3. Immediately set the height back to 0. This happens in the same execution frame, so there's no visual flicker.
+        // 2. THE CRITICAL FIX: Re-attach listeners to the NEWLY CREATED elements.
+        // This ensures dropdowns and checkboxes work when opened from the sidebar.
+        Logic.setupAdvancedFilterListeners();
+        
+        // 3. Measure and animate open (this logic is correct and remains).
+        container.style.maxHeight = 'none';
+        const scrollHeight = content.scrollHeight;
         container.style.maxHeight = '0px';
 
-        // 4. Force a browser repaint. The minimal timeout ensures the browser has registered the 'max-height: 0px'
-        // state before we ask it to transition to the new height.
         setTimeout(() => {
             container.style.maxHeight = scrollHeight + 'px';
             container.classList.add('open');
             btn.classList.add('active');
-        }, 10); // 10ms is more than enough.
+        }, 10);
     }
 },
-
 /**
  * Gracefully closes the advanced filter panel. Called when clicking outside
  * or when switching main tabs.
