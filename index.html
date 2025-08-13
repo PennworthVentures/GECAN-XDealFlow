@@ -626,11 +626,121 @@ body.modal-open { overflow: hidden; }
 select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.5em; padding-right: 2.5rem; }
         
 /* "Coming Soon" Showcase Placeholder */
-.placeholder-showcase { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2rem; background: var(--background-glass); border-radius: 1.5rem; border: 1px solid var(--border-secondary); }
-.showcase-icon-wrapper { position: relative; width: 120px; height: 120px; margin-bottom: 2.5rem; animation: icon-float 8s ease-in-out infinite; }
-.showcase-icon-3d { width: 100%; height: 100%; transform-style: preserve-3d; animation: icon-spin 25s linear infinite; }
-.showcase-title { font-family: 'Orbitron', monospace; font-size: 2.5rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 30px var(--glow-azure); margin-bottom: 1rem; animation: text-glow-pulse 5s ease-in-out infinite; }
-.showcase-subtitle { font-size: 1.1rem; color: var(--text-silver); max-width: 600px; margin-bottom: 2rem; }
+/* "Coming Soon" Showcase Placeholder */
+.placeholder-showcase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--background-glass);
+    border-radius: 1.5rem;
+    border: 1px solid var(--border-secondary);
+    position: relative;
+    overflow: hidden;
+    /* Enable 3D transformations for child elements */
+    transform-style: preserve-3d;
+    perspective: 1500px;
+}
+
+/* 1. The 3D Floating & Rotating Icon */
+.showcase-icon-wrapper {
+    position: relative;
+    width: 120px; /* Base size */
+    height: 120px;
+    margin-bottom: 2.5rem;
+    /* Gentle floating animation */
+    animation: icon-float 8s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+    0%, 100% { transform: translateY(0) rotateY(0deg); }
+    50% { transform: translateY(-15px) rotateY(15deg); }
+}
+
+.showcase-icon-3d {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    /* Slow, continuous rotation */
+    animation: icon-spin 25s linear infinite;
+}
+
+@keyframes icon-spin {
+    from { transform: rotateY(0deg) rotateX(10deg); }
+    to { transform: rotateY(360deg) rotateX(10deg); }
+}
+
+.showcase-icon-base {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 50px; /* Enlarged icon */
+    color: var(--primary-azure);
+    background: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.15) 0%, transparent 70%);
+    box-shadow: 
+        inset 0 0 40px rgba(14, 165, 233, 0.2),
+        0 0 50px rgba(14, 165, 233, 0.1);
+}
+
+/* 2. Holographic Orbital Rings */
+.orbital-ring {
+    content: '';
+    position: absolute;
+    inset: -20px; /* First ring offset */
+    border: 2px solid var(--border-premium);
+    border-radius: 50%;
+    transform-style: preserve-3d;
+}
+.ring1 { animation: orbit1 15s linear infinite; }
+.ring2 { animation: orbit2 20s linear infinite reverse; inset: -40px; border-style: dashed; } /* Second ring, further out */
+.ring3 { animation: orbit3 25s linear infinite; inset: -60px; } /* Third ring, furthest out */
+
+@keyframes orbit1 { from { transform: rotateY(45deg) rotateX(75deg) rotateZ(0deg); } to { transform: rotateY(45deg) rotateX(75deg) rotateZ(360deg); } }
+@keyframes orbit2 { from { transform: rotateY(-50deg) rotateX(65deg) rotateZ(0deg); } to { transform: rotateY(-50deg) rotateX(65deg) rotateZ(360deg); } }
+@keyframes orbit3 { from { transform: rotateY(30deg) rotateX(-70deg) rotateZ(0deg); } to { transform: rotateY(30deg) rotateX(-70deg) rotateZ(360deg); } }
+
+/* 3. Premium Text Styling */
+.showcase-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem; /* Larger, more impactful title */
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px var(--glow-azure);
+    margin-bottom: 1rem;
+    /* Pulsing glow animation */
+    animation: text-glow-pulse 5s ease-in-out infinite;
+}
+
+@keyframes text-glow-pulse {
+    0%, 100% { text-shadow: 0 0 30px var(--glow-azure); filter: brightness(1); }
+    50% { text-shadow: 0 0 50px var(--glow-royal); filter: brightness(1.2); }
+}
+
+.showcase-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-silver);
+    max-width: 600px;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+}
+
+.showcase-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--primary-azure);
+    background: rgba(14, 165, 233, 0.1);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
 
 /* Asset-Specific Theming System */
 .asset-color-DIGITAL_ASSETS_GENERAL { --asset-primary: #8b5cf6; --asset-glow: rgba(139, 92, 246, 0.7); --asset-gradient: linear-gradient(135deg, #8b5cf6, #c084fc); }
@@ -1122,13 +1232,13 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
         </div>
     </div>
 
-    <!-- This is the standard Legal Footer that now flows at the natural end of the page, OUTSIDE the fixed wrapper -->
+    <!-- This is the standard Legal Footer that flows at the natural end of the page, OUTSIDE the fixed wrapper -->
     <footer class="print-hide">
         <div class="container mx-auto p-6 md:p-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
                 <div>
                     <h3 class="font-bold text-lg mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-600">GECAN™</h3>
-                    <p class="mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Financial.</p>
+                    <p class="mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
                     <p class="text-xs text-gray-500">© 2025 GECAN™. All Rights Reserved.</p>
                 </div>
                 <div>
@@ -2905,22 +3015,25 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
 initFixedBottomUI: () => {
     // Target ONLY the HoloStream container, which is inside the fixed wrapper.
     const holoStream = document.getElementById('holo-stream-container');
-    const mainLayout = document.querySelector('.main-layout');
+    const body = document.body;
 
-    if (!holoStream || !mainLayout) {
-        console.error("Layout Error: HoloStream or main layout not found for padding calculation.");
+    if (!holoStream || !body) {
+        console.error("Layout Error: HoloStream or body element not found for padding calculation.");
         return;
     }
 
+    // A ResizeObserver automatically and efficiently detects any change in height.
     const observer = new ResizeObserver(entries => {
+        // Get the precise height of the fixed HoloStream bar.
         const holoHeight = entries[0].contentRect.height;
         
-        // Apply the measured height plus a comfortable margin as padding-bottom to the MAIN LAYOUT.
-        // This ensures the content area ends cleanly above the fixed bar.
-        mainLayout.style.paddingBottom = `${holoHeight + 40}px`; 
+        // DEFINITIVE FIX: Apply the measured height as padding-bottom to the BODY.
+        // This creates an invisible buffer at the end of the scrollable page,
+        // ensuring the footer is always visible when scrolled to the bottom.
+        body.style.paddingBottom = `${holoHeight}px`; 
     });
 
-    // Tell the observer to start watching the HoloStream for size changes.
+    // Tell the observer to start watching the HoloStream for any size changes.
     observer.observe(holoStream);
 },
             // START: REPLACE OLD FUNCTIONS WITH THIS UPGRADED BLOCK
