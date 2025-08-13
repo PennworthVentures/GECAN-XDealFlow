@@ -198,13 +198,17 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
 /* Sticky Filter Side Panel System */
 #sticky-filter-sidebar {
     position: fixed;
-    /* DEFINITIVE ALIGNMENT FIX: Value now matches the 96px main header height + 24px margin */
-    top: 120px; 
+    /* DEFINITIVE ALIGNMENT FIX: We use calc() to dynamically position the sidebar.
+       96px is the main header height, and 24px is the desired margin. */
+    top: calc(96px + 24px); 
     left: 24px;
+    /* Calculate the bottom constraint to prevent it from overlapping the HoloStream */
+    bottom: calc(112px + 24px); /* 112px is h-28 for HoloStream, 24px is margin */
     z-index: 45;
-    width: 340px; /* Increased width for better content fit */
+    width: 360px; /* Further increased width for robust content fit */
     transform: translateX(calc(-100% - 24px));
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex; /* Use flexbox to manage internal layout */
 }
 #sticky-filter-sidebar.is-stuck {
     transform: translateX(0);
@@ -217,28 +221,36 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
     box-shadow: var(--shadow-luxury);
     border: 1px solid var(--border-premium);
     border-radius: 1.5rem;
-    padding: 1rem;
+    padding: 1.25rem; /* Increased padding */
     margin-top: 0;
-    /* SEVERE STRUCTURE FIX: Use flexbox to organize internal content */
     display: flex;
     flex-direction: column;
-    height: 100%; /* Ensure it fills the parent */
+    width: 100%;
+    overflow-y: auto; /* Allow scrolling within the sidebar if content is too long */
 }
 #sticky-filter-sidebar #sticky-filter-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem; /* Adds consistent spacing between tab groups and filter sections */
+    transition: opacity 0.3s ease-in-out;
 }
 #sticky-filter-sidebar .filter-tabs {
     flex-direction: column;
     align-items: stretch;
+    flex-shrink: 0; /* Prevent tabs from shrinking */
 }
-/* This ensures the advanced filters section takes up remaining space if needed */
+#sticky-filter-sidebar .filter-section {
+    flex-shrink: 0; /* Prevent filter section from shrinking */
+}
+/* SEVERE STRUCTURE FIX: Target search input specifically within the sidebar */
+#sticky-filter-sidebar #search-input {
+    min-height: 48px; /* Ensure input height is sufficient */
+    font-size: 1rem; /* Make text clearly visible */
+    color: var(--text-diamond); /* Ensure text is white */
+}
 #sticky-filter-sidebar #advanced-filters-container {
     flex-grow: 1;
+    min-height: 200px; /* Give it a minimum height to prevent collapse */
 }
 #sticky-filter-sidebar #advanced-filters-container .grid {
-    grid-template-columns: 1fr; /* Stack filters vertically */
+    grid-template-columns: 1fr;
 }
 
 /* Mobile Optimization & Sidebar System */
@@ -443,12 +455,106 @@ body.repulsor-active::before { content: ''; position: fixed; width: 300px; heigh
 .second-hand { width: 3px; height: 60px; background: var(--primary-azure); z-index: 14; filter: drop-shadow(0 0 8px var(--glow-azure)); }
 
 /* Modal & Form System */
-#modal-overlay, #engagement-modal { transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); background: rgba(0, 0, 0, 0.85); z-index: 60; }
-#modal-content-wrapper { transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: var(--background-glass-premium); border: 1px solid var(--border-premium); border-radius: 2rem; box-shadow: var(--shadow-luxury); }
+/* Modal & Form System */
+#modal-overlay, #engagement-modal { transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(15px) saturate(150%); -webkit-backdrop-filter: blur(15px) saturate(150%); background: rgba(0, 0, 0, 0.85); z-index: 60; }
+#modal-content-wrapper { transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: var(--background-glass-premium); border: 1px solid var(--border-premium); border-radius: 2rem; box-shadow: var(--shadow-luxury); transform-style: preserve-3d; overflow: hidden; }
+
+/* DEFINITIVE USABILITY FIX: Prevents background scrolling when modal is open */
+body.modal-open { overflow: hidden; }
+
+/* Enhanced Detail Items (The Grid) */
+.modal-grid-item {
+    background: var(--background-glass);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-secondary);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+.modal-grid-item:hover {
+    border-color: var(--asset-primary, var(--primary-azure));
+    background: var(--background-glass-premium);
+    /* 3D "lift" effect */
+    transform: translateY(-8px) rotateX(5deg) scale(1.05);
+    /* Asset-specific colored glow */
+    box-shadow: var(--shadow-ultra), 0 0 40px var(--asset-glow, var(--glow-azure));
+}
+
+/* Shimmering border effect on hover using the asset color */
+.modal-grid-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem; /* Match the item's border-radius */
+    padding: 1px;
+    background: var(--asset-gradient, var(--gradient-primary));
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: subtract;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: subtract;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+.modal-grid-item:hover::after {
+    opacity: 1;
+}
+
+/* Enhanced Section Headers */
+.modal-section h3 {
+    position: relative;
+    padding-bottom: 0.75rem;
+    display: inline-block;
+}
+
+/* Glowing underline using the asset's primary color */
+.modal-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--asset-primary, var(--primary-azure));
+    box-shadow: 0 0 15px var(--asset-glow, var(--glow-azure));
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+/* The underline expands on hover for an interactive feel */
+.modal-section:hover h3::after {
+    width: 100%;
+}
+
+/* Themed "Initiate Engagement" Button */
+.btn-engagement {
+    font-weight: 700;
+    color: var(--text-diamond);
+    padding: 0.75rem 2rem;
+    border-radius: 1rem;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    position: relative;
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-ultra);
+    /* The KEY: Uses the asset's unique gradient for its background */
+    background: var(--asset-gradient, var(--gradient-primary));
+}
+
+.btn-engagement:hover {
+    transform: var(--transform-active); /* Stronger 3D lift effect */
+    box-shadow: 
+        var(--shadow-luxury),
+        0 0 60px var(--asset-glow, var(--glow-azure)); /* Intense asset-colored glow */
+    filter: brightness(1.1);
+}
+
+/* Standard Form Input Styling */
 .form-input { background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 0.75rem; padding: 0.75rem 1rem; color: var(--text-platinum); transition: all 0.4s ease; }
 .form-input:focus { outline: none; border-color: var(--primary-azure); background: var(--background-glass-premium); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); transform: translateY(-2px); }
 select.form-input { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.5em; padding-right: 2.5rem; }
-
+        
 /* "Coming Soon" Showcase Placeholder */
 .placeholder-showcase { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 2rem; background: var(--background-glass); border-radius: 1.5rem; border: 1px solid var(--border-secondary); }
 .showcase-icon-wrapper { position: relative; width: 120px; height: 120px; margin-bottom: 2.5rem; animation: icon-float 8s ease-in-out infinite; }
@@ -938,17 +1044,15 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
 <!-- ========================================================================= -->
 <!-- This wrapper is FIXED and ONLY contains the HoloStream Ticker -->
     <div id="fixed-bottom-ui-wrapper" class="print-hide">
-    <!-- This wrapper is now fixed and contains BOTH the HoloStream and the Footer -->
-
-    <!-- A. HoloStream Ticker -->
-    <div id="holo-stream-container" class="h-28">
-        <div class="holo-stream-track">
-            <!-- HoloStream items are dynamically injected here by JavaScript -->
+        <div id="holo-stream-container" class="h-28">
+            <div class="holo-stream-track">
+                <!-- HoloStream items are dynamically injected here by JavaScript -->
+            </div>
         </div>
     </div>
 
-    <!-- B. Main Footer (Now correctly placed inside the fixed wrapper) -->
-    <footer>
+    <!-- This is the standard Legal Footer that now flows at the natural end of the page, OUTSIDE the fixed wrapper -->
+    <footer class="print-hide">
         <div class="container mx-auto p-6 md:p-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
                 <div>
@@ -967,7 +1071,6 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
             </div>
         </div>
     </footer>
-</div>
 
 
 
@@ -2677,47 +2780,67 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
     //  DEFINITIVE FIX: Flicker-Free Sticky Header Logic (Sentinel Method)
     // ===================================================================
     initStickyFilters: () => {
-        const sentinel = document.getElementById('sticky-sentinel');
-        const filterElement = document.getElementById('sticky-filter-header');
-        const mainPlaceholder = document.getElementById('desktop-filter-placeholder');
-        const sidebarContainer = document.getElementById('sticky-filter-sidebar');
-        if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer) return;
-        const observer = new IntersectionObserver( ([entry]) => {
+    const sentinel = document.getElementById('sticky-sentinel');
+    const filterElement = document.getElementById('sticky-filter-header');
+    const mainPlaceholder = document.getElementById('desktop-filter-placeholder');
+    const sidebarContainer = document.getElementById('sticky-filter-sidebar');
+    const toggleBtn = document.getElementById('toggle-advanced-filters-btn');
+
+    if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer || !toggleBtn) return;
+
+    // DEFINITIVE BUTTON FIX: Attach the listener here, where we know the button exists.
+    // This listener will work regardless of whether the button is in the main content or the sidebar.
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        UI.toggleAdvancedFilters();
+    });
+
+    const observer = new IntersectionObserver(
+        ([entry]) => {
             const isStuck = !entry.isIntersecting;
             sidebarContainer.classList.toggle('is-stuck', isStuck);
-            if (isStuck && sidebarContainer.firstElementChild !== filterElement) {
-                sidebarContainer.appendChild(filterElement);
-            } else if (!isStuck && mainPlaceholder.firstElementChild !== filterElement) {
-                mainPlaceholder.appendChild(filterElement);
+
+            if (isStuck) {
+                if (sidebarContainer.firstElementChild !== filterElement) {
+                    sidebarContainer.appendChild(filterElement);
+                }
+            } else {
+                if (mainPlaceholder.firstElementChild !== filterElement) {
+                    mainPlaceholder.appendChild(filterElement);
+                }
             }
-        }, { rootMargin: `-96px 0px 0px 0px`, threshold: [0] });
-        observer.observe(sentinel);
-    },
+        },
+        { rootMargin: `-96px 0px 0px 0px`, threshold: [0] }
+    );
+    observer.observe(sentinel);
+},
 
-            initFixedBottomUI: () => {
-    // Target the new, single wrapper that now contains both fixed elements.
-    const fixedUIWrapper = document.getElementById('fixed-bottom-ui-wrapper');
-    const body = document.body;
+/**
+ * DEFINITIVE FIX: Manages the padding for the fixed bottom HoloStream.
+ * This function measures ONLY the height of the HoloStream container and applies
+ * that height as padding to the main content area. This prevents the last row
+ * of cards from being obscured by the fixed HoloStream bar.
+ */
+initFixedBottomUI: () => {
+    // Target ONLY the HoloStream container, which is inside the fixed wrapper.
+    const holoStream = document.getElementById('holo-stream-container');
+    const mainLayout = document.querySelector('.main-layout');
 
-    if (!fixedUIWrapper || !body) {
-        console.error("Layout Error: Fixed UI wrapper or body element not found.");
+    if (!holoStream || !mainLayout) {
+        console.error("Layout Error: HoloStream or main layout not found for padding calculation.");
         return;
     }
 
-    // Use a modern ResizeObserver to automatically and efficiently detect any
-    // change in the height of the fixed UI block (e.g., if the footer's content changes).
     const observer = new ResizeObserver(entries => {
-        // Get the precise height of the fixed wrapper.
-        const uiHeight = entries[0].contentRect.height;
+        const holoHeight = entries[0].contentRect.height;
         
-        // DEFINITIVE FIX: Apply the measured height as padding-bottom to the BODY.
-        // This creates an invisible buffer at the end of the scrollable page,
-        // ensuring the footer is always visible when scrolled to the bottom.
-        body.style.paddingBottom = `${uiHeight}px`; 
+        // Apply the measured height plus a comfortable margin as padding-bottom to the MAIN LAYOUT.
+        // This ensures the content area ends cleanly above the fixed bar.
+        mainLayout.style.paddingBottom = `${holoHeight + 40}px`; 
     });
 
-    // Tell the observer to start watching the wrapper for any size changes.
-    observer.observe(fixedUIWrapper);
+    // Tell the observer to start watching the HoloStream for size changes.
+    observer.observe(holoStream);
 },
             // START: REPLACE OLD FUNCTIONS WITH THIS UPGRADED BLOCK
 
@@ -2838,30 +2961,30 @@ switchFilterType: (type) => {
     if (AppState.activeFilters.type === type) return;
     AppState.activeFilters.type = type;
 
-    // Update the visual state of the main filter tabs.
     document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.type === type);
     });
 
-    // --- DEFINITIVE FLICKER FIX ---
     const isOffersTab = type === 'offers';
     const filterContent = document.getElementById('sticky-filter-content');
-
-    // Instead of hiding the parent '#sticky-filter-header', we hide its CONTENT.
-    // This preserves the sidebar's structure and prevents the layout break.
-    if (filterContent) {
-        filterContent.style.display = isOffersTab ? '' : 'none';
-    }
-    // Also toggle the standalone Kanban button
     const kanbanBtn = document.getElementById('kanban-view-btn');
+
+    // DEFINITIVE FLICKER FIX: Use opacity and pointer-events instead of display:none.
+    // This keeps the element in the layout, preventing the sidebar from collapsing.
+    if (filterContent) {
+        filterContent.style.opacity = isOffersTab ? '1' : '0';
+        filterContent.style.pointerEvents = isOffersTab ? 'auto' : 'none';
+    }
     if (kanbanBtn) {
         kanbanBtn.style.display = isOffersTab ? '' : 'none';
     }
 
-    // If switching away from the offers tab, gracefully switch back to Card View.
     if (!isOffersTab && AppState.currentView === 'kanban') {
         Logic.switchView('card');
     }
+    
+    // Close the advanced panel when switching tabs for a cleaner experience
+    UI.closeAdvancedFilters();
 
     Logic.updateSortOptions(type);
     Logic.resetFilters(false);
@@ -3789,23 +3912,19 @@ submitEngagementForm: async (offerId) => {
             },
 
 // =========================================================================
-// === PINNACLE EVENT LISTENER ENGINE v5.2 - DEFINITIVE & STABLE ===
+// === PINNACLE EVENT LISTENER ENGINE - DEFINITIVE & STABLE ===
 // =========================================================================
+
             /**
-             * PINNACLE EVENT LISTENER ENGINE v7.0 - Definitive & Modular
-             * Sets up all static, persistent event listeners for the application's core shell.
-             * This function is the central nervous system for user interaction, using efficient
-             * event delegation to ensure maximum performance and stability. It runs only once.
-             * Dynamic listeners for regenerated content are handled by a dedicated helper function.
+             * PINNACLE EVENT LISTENER ENGINE - Definitive & Delegated
+             * Sets up all persistent event listeners for the application's core shell.
+             * This function uses efficient event delegation to ensure maximum performance
+             * and stability, guaranteeing that interactions work flawlessly even on
+             * dynamically generated or moved content. It runs only once on initialization.
              */
             setupEventListeners: () => {
-                // --- ROBUST SAFEGUARDS: Verify core elements exist before proceeding ---
-                const coreElements = [
-                    'search-input', 'toggle-advanced-filters-btn', 'search-suggestions', 
-                    'advanced-filters-container', 'card-view-btn', 'kanban-view-btn', 
-                    'card-container', 'kanban-container', 'add-clock-btn', 'modal-overlay', 
-                    'engagement-modal'
-                ];
+                // --- ROBUST SAFEGUARDS ---
+                const coreElements = ['card-container', 'kanban-container', 'modal-overlay', 'engagement-modal'];
                 for (const id of coreElements) {
                     if (!document.getElementById(id)) {
                         console.error(`CRITICAL FAILURE: Core UI element #${id} not found. Aborting event listener setup.`);
@@ -3813,161 +3932,136 @@ submitEngagementForm: async (offerId) => {
                     }
                 }
 
-                // --- Search, Main Tabs, View Toggling, Modals, Clocks (Static Listeners) ---
-                const searchInput = document.getElementById('search-input');
-                const searchSuggestions = document.getElementById('search-suggestions');
-                searchInput.addEventListener('focus', () => {
-                    searchSuggestions.innerHTML = UI.createSearchDropdownHTML();
-                    searchSuggestions.classList.add('show');
-                });
-                searchInput.addEventListener('blur', () => {
-                    setTimeout(() => searchSuggestions.classList.remove('show'), 200);
-                });
-                searchInput.addEventListener('keyup', Utils.debounce(() => Logic.applyFiltersAndRender(), 300));
-                searchSuggestions.addEventListener('mousedown', (e) => {
-                    const item = e.target.closest('.suggestion-item');
-                    if (!item) return;
-                    e.preventDefault();
-                    if (item.dataset.action === 'reset') {
-                        Logic.resetFilters();
-                    } else if (item.dataset.asset) {
-                        AppState.activeFilters.assetCategory = item.dataset.asset;
-                        const assetSelect = document.getElementById('asset-category-select');
-                        if (assetSelect) assetSelect.value = item.dataset.asset;
-                        searchInput.value = '';
-                        Logic.applyFiltersAndRender();
-                    }
-                    searchSuggestions.classList.remove('show');
-                });
-                
-                document.querySelectorAll('.filter-tab').forEach(tab => tab.addEventListener('click', () => Logic.switchFilterType(tab.dataset.type)));
-                document.getElementById('card-view-btn').addEventListener('click', () => Logic.switchView('card'));
-                document.getElementById('kanban-view-btn').addEventListener('click', () => Logic.switchView('kanban'));
+                // --- MASTER DELEGATED EVENT LISTENER FOR DYNAMIC/STATIC CLICKS ---
+                // A single, powerful listener on the document body handles clicks for most components.
+                document.body.addEventListener('click', (e) => {
+                    const target = e.target;
 
-                // --- Advanced Filter Panel Toggling ---
-                const toggleBtn = document.getElementById('toggle-advanced-filters-btn');
-                const advancedFiltersContainer = document.getElementById('advanced-filters-container');
-                toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    UI.toggleAdvancedFilters();
-                });
-
-                // --- Universal Card Click Handler (Data-Aware) ---
-                const handleCardClick = (event) => {
-                    const card = event.target.closest('.offer-card, .kanban-card');
+                    // Universal Card Click Handler (handles cards in both views)
+                    const card = target.closest('.offer-card, .kanban-card');
                     if (card) {
                         const id = card.dataset.id || card.dataset.offerId;
                         const type = card.dataset.type || 'offer';
-                        if (id && type) {
-                            Logic.openModal(id, type);
-                        }
+                        if (id && type) Logic.openModal(id, type);
+                        return;
                     }
-                };
-                document.getElementById('card-container').addEventListener('click', handleCardClick);
-                document.getElementById('kanban-container').addEventListener('click', handleCardClick);
 
-                // --- Miscellaneous UI & Global Listeners ---
-                document.getElementById('add-clock-btn').addEventListener('click', UI.addClock);
-                const refreshBtn = document.getElementById('refresh-now-btn');
-                if (refreshBtn) refreshBtn.addEventListener('click', () => location.reload());
+                    // Main Filter Tabs
+                    const filterTab = target.closest('.filter-tab');
+                    if (filterTab) {
+                        Logic.switchFilterType(filterTab.dataset.type);
+                        return;
+                    }
 
-                // Modals
-                document.getElementById('modal-overlay').addEventListener('click', (e) => { if (e.target.id === 'modal-overlay') Utils.closeModal('modal-overlay'); });
-                document.getElementById('engagement-modal').addEventListener('click', (e) => { if (e.target.id === 'engagement-modal') Utils.closeModal('engagement-modal'); });
+                    // View Switcher Buttons
+                    if (target.closest('#card-view-btn')) { Logic.switchView('card'); return; }
+                    if (target.closest('#kanban-view-btn')) { Logic.switchView('kanban'); return; }
+                    
+                    // Add Clock Button
+                    if (target.closest('#add-clock-btn')) { UI.addClock(); return; }
 
-                // Click-outside-to-close for Advanced Filters
-                document.addEventListener('click', (e) => {
-                    if (advancedFiltersContainer.classList.contains('open') && !advancedFiltersContainer.contains(e.target) && !toggleBtn.contains(e.target)) {
-                        UI.closeAdvancedFilters();
+                    // Live Update Toast Refresh Button
+                    if (target.closest('#refresh-now-btn')) { window.location.reload(); return; }
+                    
+                    // Inline Reset Button (in search bar)
+                    const inlineResetBtn = target.closest('#reset-filters-btn-inline');
+                    if (inlineResetBtn) {
+                        Logic.resetFilters(true);
+                        return;
                     }
                 });
 
-                // =======================================================
-                // === START: INSERT THE NEW CODE BLOCK HERE ===
-                // =======================================================
-                // --- Listener for the new inline reset button ---
-                const inlineResetBtn = document.getElementById('reset-filters-btn-inline');
-                if (inlineResetBtn) {
-                    inlineResetBtn.addEventListener('click', () => Logic.resetFilters(true));
-                }
-                // =======================================================
-                // === END: NEW CODE BLOCK INSERTION ===
-                // =======================================================
-            }, // <-- This is the closing brace of the function. Insert *before* it.
+                // --- DIRECT EVENT LISTENERS FOR UNIQUE COMPONENTS (that need more than just a click) ---
 
+                // Search Input & Suggestions Logic
+                const searchInput = document.getElementById('search-input');
+                const searchSuggestions = document.getElementById('search-suggestions');
+                if (searchInput && searchSuggestions) {
+                    searchInput.addEventListener('focus', () => {
+                        searchSuggestions.innerHTML = UI.createSearchDropdownHTML();
+                        searchSuggestions.classList.add('show');
+                    });
+                    searchInput.addEventListener('blur', () => {
+                        setTimeout(() => searchSuggestions.classList.remove('show'), 200);
+                    });
+                    searchInput.addEventListener('keyup', Utils.debounce(() => Logic.applyFiltersAndRender(), 300));
+                    
+                    searchSuggestions.addEventListener('mousedown', (e) => {
+                        const item = e.target.closest('.suggestion-item');
+                        if (!item) return;
+                        e.preventDefault();
+                        if (item.dataset.action === 'reset') {
+                            Logic.resetFilters();
+                        } else if (item.dataset.asset) {
+                            AppState.activeFilters.assetCategory = item.dataset.asset;
+                            const assetSelect = document.getElementById('asset-category-select');
+                            if (assetSelect) assetSelect.value = item.dataset.asset;
+                            searchInput.value = '';
+                            Logic.applyFiltersAndRender();
+                        }
+                        searchSuggestions.classList.remove('show');
+                    });
+                }
+
+                // Modal Closing Logic (using direct listeners on overlays for reliability)
+                document.getElementById('modal-overlay').addEventListener('click', (e) => { 
+                    if (e.target.id === 'modal-overlay') Utils.closeModal('modal-overlay'); 
+                });
+                document.getElementById('engagement-modal').addEventListener('click', (e) => { 
+                    if (e.target.id === 'engagement-modal') Utils.closeModal('engagement-modal'); 
+                });
+            },
 
             /**
-             * Sets up event listeners for dynamically created advanced filter elements.
-             * This function is called every time the advanced filter panel is rebuilt to ensure
-             * interactivity is maintained across different tab contexts.
+             * Sets up event listeners for dynamically created advanced filter elements
+             * AND restores their visual state to match the current AppState. This is critical for
+             * ensuring UI consistency when the panel is opened.
              */
-            /**
- * SEVERE UPGRADE: Attaches event listeners to dynamically created advanced filter elements
- * AND restores their visual state to match the current AppState. This is critical for
- * ensuring UI consistency when the panel is opened.
- */
-setupAdvancedFilterListeners: () => {
-    // Helper function to add listeners and restore state for <select> dropdowns
-    const addSelectListener = (id, filterKey) => {
-        const selectElement = document.getElementById(id);
-        if (selectElement) {
-            // DEFINITIVE STATE RESTORATION: Set the dropdown's value to match the state.
-            selectElement.value = AppState.activeFilters[filterKey] || 'All';
-            
-            // Attach the event listener for future changes.
-            selectElement.addEventListener('change', (e) => {
-                AppState.activeFilters[filterKey] = e.target.value;
-                Logic.applyFiltersAndRender();
-            });
-        }
-    };
+            setupAdvancedFilterListeners: () => {
+                const addSelectListener = (id, filterKey) => {
+                    const selectElement = document.getElementById(id);
+                    if (selectElement) {
+                        selectElement.value = AppState.activeFilters[filterKey] || 'All';
+                        selectElement.addEventListener('change', (e) => {
+                            AppState.activeFilters[filterKey] = e.target.value;
+                            Logic.applyFiltersAndRender();
+                        });
+                    }
+                };
 
-    // --- Main Sorting Dropdown ---
-    const sortSelect = document.getElementById('sort-select');
-    if (sortSelect) {
-        // DEFINITIVE STATE RESTORATION: Set the sort dropdown's value.
-        sortSelect.value = AppState.activeSort;
-        
-        sortSelect.addEventListener('change', (e) => {
-            AppState.activeSort = e.target.value;
-            Logic.applyFiltersAndRender();
-            // Provide user feedback on sort change.
-            if (e.target.selectedOptions[0]) {
-                Utils.showNotification(`Sorted by ${e.target.selectedOptions[0].text}`, 'info');
-            }
-        });
-    }
-    
-    // --- Reset Button ---
-    const resetBtn = document.getElementById('reset-filters');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', () => Logic.resetFilters(true));
-    }
-    
-    // --- Context-Aware Listeners (only for the 'offers' tab) ---
-    if (AppState.activeFilters.type === 'offers') {
-        addSelectListener('asset-category-select', 'assetCategory');
-        addSelectListener('settlement-select', 'settlementProtocol');
-        addSelectListener('procedure-select', 'coreProcedure');
-        
-        // --- Status Filter Checkboxes ---
-        const statusContainer = document.getElementById('status-filters-container');
-        if (statusContainer) {
-            // DEFINITIVE STATE RESTORATION: Loop through the active statuses in the state
-            // and check the corresponding checkboxes.
-            AppState.activeFilters.statuses.forEach(statusValue => {
-                const checkbox = statusContainer.querySelector(`input.status-checkbox[value="${statusValue}"]`);
-                if (checkbox) {
-                    checkbox.checked = true;
+                const sortSelect = document.getElementById('sort-select');
+                if (sortSelect) {
+                    sortSelect.value = AppState.activeSort;
+                    sortSelect.addEventListener('change', (e) => {
+                        AppState.activeSort = e.target.value;
+                        Logic.applyFiltersAndRender();
+                        if (e.target.selectedOptions[0]) {
+                            Utils.showNotification(`Sorted by ${e.target.selectedOptions[0].text}`, 'info');
+                        }
+                    });
                 }
-            });
-            // The primary 'change' listener is already delegated on the container
-            // in setupEventListeners, so we don't need to re-add it here.
-        }
-    }
-},
-        };
-
+                
+                const resetBtn = document.getElementById('reset-filters');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => Logic.resetFilters(true));
+                }
+                
+                if (AppState.activeFilters.type === 'offers') {
+                    addSelectListener('asset-category-select', 'assetCategory');
+                    addSelectListener('settlement-select', 'settlementProtocol');
+                    addSelectListener('procedure-select', 'coreProcedure');
+                    
+                    const statusContainer = document.getElementById('status-filters-container');
+                    if (statusContainer) {
+                        AppState.activeFilters.statuses.forEach(statusValue => {
+                            const checkbox = statusContainer.querySelector(`input.status-checkbox[value="${statusValue}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                        // The primary 'change' listener is attached in Logic.handleStatusFilterChange's call site
+                        statusContainer.addEventListener('change', Logic.handleStatusFilterChange);
+                    }
+                }
+            },
         // =================================================================================
         //  ULTRA-PREMIUM TESLA FIELD SYSTEM - PINNACLE INTERACTIVE EXPERIENCE
         // =================================================================================
