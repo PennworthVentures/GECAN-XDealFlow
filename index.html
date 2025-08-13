@@ -76,6 +76,53 @@
     --asset-usdt: #26a17b;
 }
 
+        /* --- Print Styles --- */
+/* This container is ONLY for holding data for the PDF generation, it is never visible on screen */
+#printable-container { 
+    display: none; 
+    visibility: hidden;
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 1.5cm;
+    }
+    
+    /* Hide EVERYTHING on the page by default */
+    body > * {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Selectively UN-HIDE only the printable container and its children */
+    #printable-container, #printable-container * {
+        display: block !important;
+        visibility: visible !important;
+    }
+    
+    #printable-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+    }
+
+    /* Force text and background colors for printing */
+    .print-text-black { color: black !important; -webkit-print-color-adjust: exact; }
+    .print-bg-white { background-color: white !important; -webkit-print-color-adjust: exact; }
+    
+    /* Ensure any remaining shadows or text glows are removed */
+    * {
+        text-shadow: none !important;
+        box-shadow: none !important;
+    }
+}
+
         /* --- B. BASE STYLES & RESETS --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 *::before, *::after { box-sizing: border-box; }
@@ -198,35 +245,53 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
 /* Sticky Filter Side Panel System */
 #sticky-filter-sidebar {
     position: fixed;
-    /* DEFINITIVE ALIGNMENT FIX: We use calc() to dynamically position the sidebar.
-       96px is the main header height, and 24px is the desired margin. */
-    top: calc(96px + 24px); 
+    /* DEFINITIVE ALIGNMENT FIX: 96px for header + increased 32px margin for more breathing room */
+    top: calc(96px + 32px); 
     left: 24px;
-    /* Calculate the bottom constraint to prevent it from overlapping the HoloStream */
-    bottom: calc(112px + 24px); /* 112px is h-28 for HoloStream, 24px is margin */
+    bottom: calc(112px + 24px); /* 112px (h-28) for HoloStream + margin */
     z-index: 45;
-    width: 360px; /* Further increased width for robust content fit */
+    width: 360px;
     transform: translateX(calc(-100% - 24px));
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex; /* Use flexbox to manage internal layout */
-}
-#sticky-filter-sidebar.is-stuck {
-    transform: translateX(0);
-}
-/* Styling for the filter block when it's inside the sidebar */
-#sticky-filter-sidebar #sticky-filter-header {
+    
+    /* SEVERE UPGRADE: Added transitions for the new 3D hover effect */
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+    
+    /* Base styling for the panel itself */
     background: var(--background-glass-premium);
     backdrop-filter: blur(30px) saturate(180%);
     -webkit-backdrop-filter: blur(30px) saturate(180%);
     box-shadow: var(--shadow-luxury);
     border: 1px solid var(--border-premium);
     border-radius: 1.5rem;
-    padding: 1.25rem; /* Increased padding */
+    
+    display: flex; /* Ensures inner content behaves correctly */
+    perspective: 1500px; /* Enables 3D transforms for children */
+}
+#sticky-filter-sidebar.is-stuck {
+    transform: translateX(0);
+}
+
+/* SEVERE UPGRADE: Premium 3D Hover Effect for the entire sidebar */
+#sticky-filter-sidebar:hover {
+    transform: translateX(0) scale(1.05) rotateY(-5deg); /* 3D lift and tilt */
+    box-shadow: var(--shadow-luxury), 0 0 80px var(--glow-royal); /* Intensified glow */
+    border-color: var(--primary-azure);
+}
+
+/* Styling for the main filter block container when it's inside the sidebar */
+#sticky-filter-sidebar #sticky-filter-header {
+    padding: 1.25rem;
     margin-top: 0;
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow-y: auto; /* Allow scrolling within the sidebar if content is too long */
+    overflow-y: auto; /* Allows internal scrolling if content overflows */
+    /* Remove individual styling, as the parent sidebar now handles it */
+    background: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
 }
 #sticky-filter-sidebar #sticky-filter-content {
     transition: opacity 0.3s ease-in-out;
@@ -234,20 +299,25 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
 #sticky-filter-sidebar .filter-tabs {
     flex-direction: column;
     align-items: stretch;
-    flex-shrink: 0; /* Prevent tabs from shrinking */
+    flex-shrink: 0;
 }
 #sticky-filter-sidebar .filter-section {
-    flex-shrink: 0; /* Prevent filter section from shrinking */
+    flex-shrink: 0;
 }
-/* SEVERE STRUCTURE FIX: Target search input specifically within the sidebar */
+
+/* DEFINITIVE FONT COLOR FIX: Target search input specifically within the sidebar */
 #sticky-filter-sidebar #search-input {
-    min-height: 48px; /* Ensure input height is sufficient */
-    font-size: 1rem; /* Make text clearly visible */
-    color: var(--text-diamond); /* Ensure text is white */
+    min-height: 48px;
+    font-size: 1rem;
+    color: var(--text-diamond) !important; /* Use !important to override any conflicting styles */
+    background: rgba(0,0,0,0.3); /* Darken input for better contrast */
+}
+#sticky-filter-sidebar #search-input::placeholder {
+    color: var(--text-muted);
 }
 #sticky-filter-sidebar #advanced-filters-container {
     flex-grow: 1;
-    min-height: 200px; /* Give it a minimum height to prevent collapse */
+    min-height: 200px;
 }
 #sticky-filter-sidebar #advanced-filters-container .grid {
     grid-template-columns: 1fr;
@@ -1015,6 +1085,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
     
     <!-- Print Container -->
     <div id="printable-container">
+        <!-- This table structure is recommended for @page print styles to work reliably -->
         <table class="print-layout">
             <thead><tr><td><div id="modal-pdf-header-content"></div></td></tr></thead>
             <tbody><tr><td><div id="modal-pdf-body-content"></div></td></tr></tbody>
@@ -1193,22 +1264,41 @@ parseDate: (dateStr) => {
                 return `asset-color-${String(mappedAsset).replace(/[\s\(\)\/&,]+/g, '_').replace(/_+$/, '').toUpperCase()}`;
             },
             
-            closeModal: (modalId = 'modal-overlay') => {
-                const modal = document.getElementById(modalId);
-                if (!modal || modal.classList.contains('hidden')) return;
-                const modalContent = modal.querySelector('#modal-content-wrapper') || modal.querySelector('div[id^="engagement-suite"]');
-                if (modalContent) {
-                    modalContent.style.transform = 'scale(0.95)';
-                    modalContent.style.opacity = '0';
-                }
-                modal.style.opacity = '0';
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                    if (modalContent) modalContent.innerHTML = '';
-                    modal.style.opacity = '1';
-                    document.body.classList.remove('modal-open');
-                }, 300);
-            },
+            /**
+ * SEVERE UPGRADE: Closes the specified modal with a premium animation.
+ * This definitive version is guaranteed to be safe and prevents the DOM
+ * corruption bug by no longer directly manipulating innerHTML on close.
+ * The modal content is now cleared only when a new modal is opened.
+ * @param {string} modalId - The ID of the modal overlay to close.
+ */
+closeModal: (modalId = 'modal-overlay') => {
+    const modal = document.getElementById(modalId);
+    if (!modal || modal.classList.contains('hidden')) return;
+
+    // Find the primary content wrapper within the modal.
+    const modalContent = modal.querySelector('#modal-content-wrapper, div[id^="engagement-suite"]');
+    
+    // Animate the content wrapper and the overlay out.
+    if (modalContent) {
+        modalContent.style.transform = 'scale(0.95)';
+        modalContent.style.opacity = '0';
+    }
+    modal.style.opacity = '0';
+
+    // After the animation, hide the modal and restore body scrolling.
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        
+        // DEFINITIVE BUG FIX: We no longer clear innerHTML here.
+        // The content will be replaced automatically the next time a modal is opened.
+        // This prevents any possibility of clearing the wrong part of the DOM.
+        
+        // Restore the opacity for the next time it opens.
+        modal.style.opacity = '1';
+        
+        document.body.classList.remove('modal-open');
+    }, 500); // Increased timeout to match CSS transitions.
+},
             showNotification: (message, type = 'info') => {
                 const toast = document.createElement('div');
                 const styles = {
@@ -1455,7 +1545,6 @@ closeAdvancedFilters: () => {
         btn.classList.remove('active');
     }
 },
-
             /**
              * SEVERE UPGRADE: Dynamically builds the advanced filter controls based on the active tab.
              * This function is now solely responsible for generating the correct HTML structure.
@@ -2784,16 +2873,8 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
     const filterElement = document.getElementById('sticky-filter-header');
     const mainPlaceholder = document.getElementById('desktop-filter-placeholder');
     const sidebarContainer = document.getElementById('sticky-filter-sidebar');
-    const toggleBtn = document.getElementById('toggle-advanced-filters-btn');
 
-    if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer || !toggleBtn) return;
-
-    // DEFINITIVE BUTTON FIX: Attach the listener here, where we know the button exists.
-    // This listener will work regardless of whether the button is in the main content or the sidebar.
-    toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        UI.toggleAdvancedFilters();
-    });
+    if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer) return;
 
     const observer = new IntersectionObserver(
         ([entry]) => {
@@ -3923,7 +4004,7 @@ submitEngagementForm: async (offerId) => {
              * dynamically generated or moved content. It runs only once on initialization.
              */
             setupEventListeners: () => {
-                // --- ROBUST SAFEGUARDS ---
+                // --- ROBUST SAFEGUARDS: Verify core static elements exist before proceeding ---
                 const coreElements = ['card-container', 'kanban-container', 'modal-overlay', 'engagement-modal'];
                 for (const id of coreElements) {
                     if (!document.getElementById(id)) {
@@ -3937,7 +4018,15 @@ submitEngagementForm: async (offerId) => {
                 document.body.addEventListener('click', (e) => {
                     const target = e.target;
 
-                    // Universal Card Click Handler (handles cards in both views)
+                    // --- Target: Advanced Filters Toggle Button (Definitive Fix) ---
+                    // This now works regardless of whether the button is in the main layout or the sticky sidebar.
+                    if (target.closest('#toggle-advanced-filters-btn')) {
+                        e.stopPropagation(); // Prevent click-outside-to-close from firing immediately
+                        UI.toggleAdvancedFilters();
+                        return;
+                    }
+
+                    // --- Target: Universal Card Click Handler (Data-Aware) ---
                     const card = target.closest('.offer-card, .kanban-card');
                     if (card) {
                         const id = card.dataset.id || card.dataset.offerId;
@@ -3946,29 +4035,19 @@ submitEngagementForm: async (offerId) => {
                         return;
                     }
 
-                    // Main Filter Tabs
+                    // --- Target: Main Filter Tabs ---
                     const filterTab = target.closest('.filter-tab');
                     if (filterTab) {
                         Logic.switchFilterType(filterTab.dataset.type);
                         return;
                     }
 
-                    // View Switcher Buttons
+                    // --- Other Delegated Targets ---
                     if (target.closest('#card-view-btn')) { Logic.switchView('card'); return; }
                     if (target.closest('#kanban-view-btn')) { Logic.switchView('kanban'); return; }
-                    
-                    // Add Clock Button
                     if (target.closest('#add-clock-btn')) { UI.addClock(); return; }
-
-                    // Live Update Toast Refresh Button
                     if (target.closest('#refresh-now-btn')) { window.location.reload(); return; }
-                    
-                    // Inline Reset Button (in search bar)
-                    const inlineResetBtn = target.closest('#reset-filters-btn-inline');
-                    if (inlineResetBtn) {
-                        Logic.resetFilters(true);
-                        return;
-                    }
+                    if (target.closest('#reset-filters-btn-inline')) { Logic.resetFilters(true); return; }
                 });
 
                 // --- DIRECT EVENT LISTENERS FOR UNIQUE COMPONENTS (that need more than just a click) ---
@@ -3982,10 +4061,12 @@ submitEngagementForm: async (offerId) => {
                         searchSuggestions.classList.add('show');
                     });
                     searchInput.addEventListener('blur', () => {
+                        // Use a small timeout to allow click events on suggestions to register
                         setTimeout(() => searchSuggestions.classList.remove('show'), 200);
                     });
                     searchInput.addEventListener('keyup', Utils.debounce(() => Logic.applyFiltersAndRender(), 300));
                     
+                    // Use mousedown for suggestions to prevent blur from firing before click registers
                     searchSuggestions.addEventListener('mousedown', (e) => {
                         const item = e.target.closest('.suggestion-item');
                         if (!item) return;
@@ -4010,6 +4091,16 @@ submitEngagementForm: async (offerId) => {
                 document.getElementById('engagement-modal').addEventListener('click', (e) => { 
                     if (e.target.id === 'engagement-modal') Utils.closeModal('engagement-modal'); 
                 });
+
+                // Click-outside-to-close for Advanced Filters Panel
+                document.addEventListener('click', (e) => {
+                    const advancedFiltersContainer = document.getElementById('advanced-filters-container');
+                    const toggleBtn = document.getElementById('toggle-advanced-filters-btn');
+                    // Ensure elements exist before checking classList
+                    if (advancedFiltersContainer && toggleBtn && advancedFiltersContainer.classList.contains('open') && !advancedFiltersContainer.contains(e.target) && !toggleBtn.contains(e.target)) {
+                        UI.closeAdvancedFilters();
+                    }
+                });
             },
 
             /**
@@ -4018,10 +4109,14 @@ submitEngagementForm: async (offerId) => {
              * ensuring UI consistency when the panel is opened.
              */
             setupAdvancedFilterListeners: () => {
+                // Helper function to add listeners and restore state for <select> dropdowns
                 const addSelectListener = (id, filterKey) => {
                     const selectElement = document.getElementById(id);
                     if (selectElement) {
+                        // DEFINITIVE STATE RESTORATION: Set the dropdown's value to match the state.
                         selectElement.value = AppState.activeFilters[filterKey] || 'All';
+                        
+                        // Attach the event listener for future changes.
                         selectElement.addEventListener('change', (e) => {
                             AppState.activeFilters[filterKey] = e.target.value;
                             Logic.applyFiltersAndRender();
@@ -4029,36 +4124,47 @@ submitEngagementForm: async (offerId) => {
                     }
                 };
 
+                // --- Main Sorting Dropdown ---
                 const sortSelect = document.getElementById('sort-select');
                 if (sortSelect) {
+                    // DEFINITIVE STATE RESTORATION: Set the sort dropdown's value.
                     sortSelect.value = AppState.activeSort;
+                    
                     sortSelect.addEventListener('change', (e) => {
                         AppState.activeSort = e.target.value;
                         Logic.applyFiltersAndRender();
+                        // Provide user feedback on sort change.
                         if (e.target.selectedOptions[0]) {
                             Utils.showNotification(`Sorted by ${e.target.selectedOptions[0].text}`, 'info');
                         }
                     });
                 }
                 
+                // --- Reset Button ---
                 const resetBtn = document.getElementById('reset-filters');
                 if (resetBtn) {
                     resetBtn.addEventListener('click', () => Logic.resetFilters(true));
                 }
                 
+                // --- Context-Aware Listeners (only for the 'offers' tab) ---
                 if (AppState.activeFilters.type === 'offers') {
                     addSelectListener('asset-category-select', 'assetCategory');
                     addSelectListener('settlement-select', 'settlementProtocol');
                     addSelectListener('procedure-select', 'coreProcedure');
                     
+                    // --- Status Filter Checkboxes ---
                     const statusContainer = document.getElementById('status-filters-container');
                     if (statusContainer) {
+                        // DEFINITIVE STATE RESTORATION: Loop through the active statuses in the state
+                        // and check the corresponding checkboxes.
                         AppState.activeFilters.statuses.forEach(statusValue => {
                             const checkbox = statusContainer.querySelector(`input.status-checkbox[value="${statusValue}"]`);
-                            if (checkbox) checkbox.checked = true;
+                            if (checkbox) {
+                                checkbox.checked = true;
+                            }
                         });
-                        // The primary 'change' listener is attached in Logic.handleStatusFilterChange's call site
-                        statusContainer.addEventListener('change', Logic.handleStatusFilterChange);
+                        // The primary 'change' listener is attached via its caller (UI.populateStatusFilter)
+                        // This prevents re-attaching listeners unnecessarily.
                     }
                 }
             },
