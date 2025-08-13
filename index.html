@@ -7097,8 +7097,8 @@ renderPlaceholderContent: (type) => {
                 console.error('Data loading error:', error);
             },
 
-            /**
-             * [DEFINITIVE LIVE UPDATE ENGINE v4.0 - Static Architecture]
+                        /**
+             * [DEFINITIVE LIVE UPDATE ENGINE v4.1 - Corrected Handler]
              * Initializes periodic checks for new data from the API endpoints.
              */
             startLiveUpdates: () => {
@@ -7120,9 +7120,8 @@ renderPlaceholderContent: (type) => {
 
                 // --- TIMER 1: Dashboard Data - Runs every 30 seconds ---
                 AppState.liveUpdateInterval = setInterval(() => {
-                    // For brevity, we are combining these checks for now. 
-                    // This could be split if different update frequencies are needed.
-                    fetchData('getOfferData', Logic.onOfferDataLoaded, Logic.onDataError, 'offers');
+                    // This now correctly calls onDataLoaded for the main offer data.
+                    fetchData('getOfferData', Logic.onDataLoaded, Logic.onDataError, 'offers');
                     fetchData('getFeaturedData', Logic.onFeaturedDataLoaded, Logic.onDataError, 'featured');
                     fetchData('getBulletinData', Logic.onBulletinDataLoaded, Logic.onDataError, 'bulletins');
                 }, 30000);
