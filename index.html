@@ -530,58 +530,70 @@ body.repulsor-active::before { content: ''; position: fixed; width: 300px; heigh
 .market-ticker-item[data-asset-key="XAU-OZ-USD"] { --asset-color: var(--asset-gold); --asset-glow: rgba(255, 215, 0, 0.7); }
 
 /* HoloStream Asteroid Surface & Ticker */
-/* HoloStream Ticker */
 #holo-stream-container {
     perspective: 1200px;
-    overflow: visible;
+    overflow: visible; /* CRITICAL: Must be visible to show elements outside its bounds */
     position: relative;
     background: rgba(10, 10, 15, 0.6);
     backdrop-filter: blur(20px) saturate(150%);
     -webkit-backdrop-filter: blur(20px) saturate(150%);
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), 
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    /* The border-top is now handled by the glowing pseudo-element */
-    border-top: none;
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 80px var(--glow-amethyst);
+    transition: all 0.5s ease;
 }
 
-/* SEVERE AESTHETIC UPGRADE: The new Holographic Glow Border */
+/* Layer 1: The jagged, dark asteroid rock base */
 #holo-stream-container::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0; /* Positioned at the top edge */
     width: 100%;
-    height: 4px; /* Height of the glow effect */
-    background: var(--primary-azure);
-    box-shadow: 0 0 15px 2px var(--glow-azure),
-                0 0 30px 5px var(--glow-royal),
-                0 0 60px 10px var(--glow-amethyst);
-    filter: blur(2px);
-    animation: holo-glow-pulse 4s ease-in-out infinite alternate;
-    
-        
-        #holo-stream-container::after { content: ''; position: absolute; width: 100%; height: 20px; left: 0; bottom: 100%; pointer-events: none; z-index: 42; background: repeating-linear-gradient(75deg, transparent, transparent 15px, rgba(14, 165, 233, 0.2) 15.5px, rgba(139, 92, 246, 0.1) 16px); opacity: 0.8; }
+    height: 18px; /* Height of the rock surface */
+    left: 0;
+    bottom: 100%; /* Positions it perfectly ON TOP of the main container */
+    z-index: 41;
+    /* The "Uneven Surface" effect using multiple gradients */
+    background-image:
+        linear-gradient(135deg, var(--background-secondary) 45%, transparent 45%),
+        linear-gradient(225deg, var(--background-secondary) 45%, transparent 45%),
+        radial-gradient(ellipse at 20% 80%, #151520 50%, transparent 50%),
+        radial-gradient(ellipse at 80% 30%, #0a0a0f 40%, transparent 40%);
+    background-size: 16px 16px, 16px 16px, 100px 40px, 120px 40px;
+    background-color: var(--background-primary);
+    box-shadow: 
+        inset 0 -4px 8px rgba(0, 0, 0, 0.7),
+        0 -2px 5px rgba(139, 92, 246, 0.3);
+}
+
+/* Layer 2: Glowing crystalline veins and highlights */
+#holo-stream-container::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 20px;
+    left: 0;
+    bottom: 100%;
+    pointer-events: none;
+    z-index: 42;
+    /* Crystalline Veins effect */
+    background:
+        repeating-linear-gradient(
+            75deg,
+            transparent,
+            transparent 15px,
+            rgba(14, 165, 233, 0.2) 15.5px,
+            rgba(139, 92, 246, 0.1) 16px
+        );
+    filter: brightness(1.5) blur(0.5px);
+    opacity: 0.8;
+}
+
 .holo-stream-track { display: flex; position: absolute; left: 0; top: 0; bottom: 0; align-items: center; animation: holo-scroll 120s linear infinite; }
-    #holo-stream-container:hover .holo-stream-track { animation-play-state: paused; }
+#holo-stream-container:hover .holo-stream-track { animation-play-state: paused; }
 .holo-item { flex-shrink: 0; display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1.5rem; margin: 0 1rem; color: var(--text-silver); background: var(--background-glass); border: 1px solid var(--border-secondary); border-radius: 1rem; transition: all 0.4s ease; transform: rotateX(15deg) scale(0.9); cursor: pointer; }
 #holo-stream-container:hover .holo-item.focused { transform: rotateX(0deg) translateY(-25px) scale(1.1); background: var(--background-glass-premium); color: var(--text-diamond); box-shadow: var(--shadow-premium), 0 0 50px var(--item-glow-color, var(--glow-azure)); border-color: var(--item-glow-color, var(--primary-azure)); }
 .holo-item[data-type="opportunity"] { --item-glow-color: var(--glow-gold); }
 .holo-item[data-type="bulletin"] { --item-glow-color: var(--glow-azure); }
-    @keyframes header-shimmer {
-    0% { transform: translateX(-50%) skewX(-25deg); }
-    100% { transform: translateX(250%) skewX(-25deg); }
-}
-
-@keyframes holo-glow-pulse {
-    from {
-        opacity: 0.7;
-        filter: blur(3px) brightness(1);
-    }
-    to {
-        opacity: 1;
-        filter: blur(1.5px) brightness(1.5);
-    }
-}
     
 
 /* Kanban System */
