@@ -4,69 +4,23 @@
     <base target="_top">
     <title>GECAN™ Commodities Exchange | XDealFlow Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- ========================================================================= -->
-    <!-- === CUSTOM TAILWIND CONFIG FOR ULTRA-WIDE MONITORS === -->
-    <!-- ========================================================================= -->
-    <script>
-// =================================================================================
-// === PINNACLE API ENGINE - DEFINITIVE GITHUB PAGES INTEGRATION v2.0 ===
-// =================================================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbxhC2bk6LMz2muF5TY8TdIt3tiAl6ozBAvgi1TG91v9WX2x2mH2M3SvpHu0nn8XgyN4/exec";
-
-// Add this new, critical function to your 'Logic' object
-/**
- * Master API request handler for communicating with the Google Apps Script backend.
- * Uses the standard fetch API, making it compatible with any static hosting (GitHub Pages).
- * @param {string} action - The 'action' parameter for the doGet or doPost router in code.gs.
- * @param {string} method - 'GET' or 'POST'.
- * @param {Object} [params={}] - An object of key-value pairs for the request.
- * @returns {Promise<Object>} A promise that resolves with the JSON response from the server.
- */
-Logic.createApiRequest = async (action, method = 'GET', params = {}) => {
-    method = method.toUpperCase();
-    let url = `${API_URL}?action=${action}`;
-    const options = {
-        method: method,
-        redirect: 'follow',
-        muteHttpExceptions: true
-    };
-
-    if (method === 'GET') {
-        Object.keys(params).forEach(key => url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`);
-    } else if (method === 'POST') {
-        options.body = JSON.stringify({ action: action, data: params });
-        options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
-    }
-
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error(`API Network Error: Status ${response.status}`);
-        }
-        const result = await response.json();
-        if (result.success === false) {
-             throw new Error(result.error || 'The server reported an unspecified error.');
-        }
-        return result.data || result.message || result;
-    } catch (error) {
-        console.error(`API request failed for action '${action}':`, error);
-        throw error; // Re-throw to be caught by the caller's .catch()
-    }
-};
-
-        tailwind.config = {
-            theme: {
-                screens: {
-                    'sm': '640px',
-                    'md': '768px',
-                    'lg': '1024px',
-                    'xl': '1280px',
-                    '2xl': '1536px',
-                    '3xl': '1920px', // Defines the new breakpoint for 5 columns
-                }
+<!-- ========================================================================= -->
+<!-- === CUSTOM TAILWIND CONFIG FOR ULTRA-WIDE MONITORS === -->
+<!-- ========================================================================= -->
+<script>
+    tailwind.config = {
+        theme: {
+            screens: {
+                'sm': '640px',
+                'md': '768px',
+                'lg': '1024px',
+                'xl': '1280px',
+                '2xl': '1536px',
+                '3xl': '1920px', // Defines the new breakpoint for 5 columns
             }
         }
-    </script>
+    }
+</script>
     <!-- ========================================================================= -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -918,6 +872,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
       // =================================================================================
     // INSTRUCTION: ADD THIS CONSTANT AT THE TOP OF YOUR SCRIPT BLOCK
     // =================================================================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbxhC2bk6LMz2muF5TY8TdIt3tiAl6ozBAvgi1TG91v9WX2x2mH2M3SvpHu0nn8XgyN4/exec";
     const DEFAULT_THEME_CONFIG = {"particles":{"number":{"value":120,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.1,"sync":false}},"size":{"value":2.5,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#4a4a5a","opacity":0.2,"width":1},"move":{"enable":true,"speed":1.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"repulse"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.8,"color":"#8b5cf6"}},"repulse":{"distance":350,"duration":0.4}}},"retina_detect":true};
 
 
@@ -2439,51 +2394,36 @@ renderPlaceholderContent: (type) => {
  * @returns {Promise<Object>} A promise that resolves with the JSON response from the server.
  */
 createApiRequest: async (action, method = 'GET', params = {}) => {
-    method = method.toUpperCase();
-    let url = `${API_URL}?action=${action}`;
-    const options = {
-        method: method,
-        redirect: 'follow',
-        muteHttpExceptions: true // Important for handling errors gracefully
-    };
-
-    if (method === 'GET') {
-        // For GET requests, append additional params to the URL
-        for (const key in params) {
-            url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
-        }
-    } else if (method === 'POST') {
-        // For POST requests, the action and data go in the body
-        options.body = JSON.stringify({
-            action: action,
-            data: params
-        });
-        options.headers = {
-            'Content-Type': 'text/plain;charset=utf-t8', // Required by Apps Script doPost
+        method = method.toUpperCase();
+        let url = `${API_URL}?action=${action}`;
+        const options = {
+            method: method,
+            redirect: 'follow',
+            muteHttpExceptions: true
         };
-    }
 
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error(`Network response was not ok. Status: ${response.status}`);
+        if (method === 'GET') {
+            Object.keys(params).forEach(key => url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`);
+        } else if (method === 'POST') {
+            options.body = JSON.stringify({ action: action, data: params });
+            options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
         }
-        const result = await response.json();
-        
-        // The backend wraps responses. We need to check the internal success flag.
-        if (result.success === false) {
-             throw new Error(result.error || 'The server reported an unspecified error.');
-        }
-        
-        // Return the core data or message from the response
-        return result.data || result.message || result;
 
-    } catch (error) {
-        console.error(`API request failed for action '${action}':`, error);
-        // Re-throw the error so it can be caught by the calling function's .catch() block
-        throw error;
-    }
-},
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`API Network Error: Status ${response.status}`);
+            }
+            const result = await response.json();
+            if (result.success === false) {
+                throw new Error(result.error || 'The server reported an unspecified error.');
+            }
+            return result.data || result.message || result;
+        } catch (error) {
+            console.error(`API request failed for action '${action}':`, error);
+            throw error; // Re-throw to be caught by the caller's .catch()
+        }
+    },
 
                       /**
              * Checks if any filters are currently active.
