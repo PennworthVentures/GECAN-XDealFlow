@@ -195,18 +195,19 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
     pointer-events: auto; /* Re-enables pointer events for its direct children (the HoloStream) */
 }
 
-/* Sticky Filter Side Panel System (SEVERE UPGRADE) */
+/* Sticky Filter Side Panel System */
 #sticky-filter-sidebar {
     position: fixed;
-    top: 120px; /* Sits below the main header */
+    /* DEFINITIVE ALIGNMENT FIX: Value now matches the 96px main header height + 24px margin */
+    top: 120px; 
     left: 24px;
     z-index: 45;
-    width: 320px;
-    transform: translateX(calc(-100% - 24px)); /* Starts fully off-screen */
+    width: 340px; /* Increased width for better content fit */
+    transform: translateX(calc(-100% - 24px));
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 #sticky-filter-sidebar.is-stuck {
-    transform: translateX(0); /* Slides into view when active */
+    transform: translateX(0);
 }
 /* Styling for the filter block when it's inside the sidebar */
 #sticky-filter-sidebar #sticky-filter-header {
@@ -218,13 +219,26 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
     border-radius: 1.5rem;
     padding: 1rem;
     margin-top: 0;
+    /* SEVERE STRUCTURE FIX: Use flexbox to organize internal content */
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Ensure it fills the parent */
+}
+#sticky-filter-sidebar #sticky-filter-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Adds consistent spacing between tab groups and filter sections */
 }
 #sticky-filter-sidebar .filter-tabs {
     flex-direction: column;
     align-items: stretch;
 }
+/* This ensures the advanced filters section takes up remaining space if needed */
+#sticky-filter-sidebar #advanced-filters-container {
+    flex-grow: 1;
+}
 #sticky-filter-sidebar #advanced-filters-container .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack filters vertically */
 }
 
 /* Mobile Optimization & Sidebar System */
@@ -261,17 +275,104 @@ body.repulsor-active::before { content: ''; position: fixed; width: 300px; heigh
         /* --- E. CORE COMPONENT STYLING --- */
 
 /* 3D Card System */
-.offer-card { background: var(--background-glass); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border: 1px solid var(--border-secondary); border-radius: 1.5rem; padding: 2rem; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; transform-style: preserve-3d; box-shadow: var(--shadow-standard); }
-.offer-card:hover { transform: var(--transform-ultra); border-color: var(--asset-primary, var(--primary-royal)); box-shadow: var(--shadow-luxury), 0 0 60px var(--asset-glow, var(--glow-azure)); }
-.offer-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 40%), radial-gradient(circle at 30% 20%, var(--asset-glow, var(--glow-azure)), transparent 70%); opacity: 0; transition: all 0.8s ease; border-radius: 1.5rem; pointer-events: none; }
-.offer-card:hover::before { opacity: 0.2; transform: scale(1.5); }
-.offer-card::after { content: ''; position: absolute; inset: 0; border-radius: 1.5rem; padding: 1px; background: var(--asset-gradient, var(--gradient-primary)); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask-composite: subtract; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: subtract; opacity: 0; transition: opacity 0.8s ease; }
-.offer-card:hover::after { opacity: 0.3; }
-.card-content { position: relative; transform-style: preserve-3d; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.offer-card:hover .card-content { transform: translateZ(30px); }
-.asset-header { font-family: 'Orbitron', monospace; font-weight: 800; font-size: 1.5rem; background: var(--asset-gradient, var(--gradient-primary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; margin-bottom: 1rem; }
-.offer-card:hover .asset-header { transform: translateZ(50px) scale(1.15) rotateY(5deg); text-shadow: 0 0 30px var(--asset-glow), 0 0 60px var(--asset-glow); filter: brightness(1.3); }
+.offer-card {
+    /* SEVERE UPGRADE: Increased transparency for a deeper glass effect */
+    background: rgba(15, 23, 42, 0.75); 
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--border-secondary);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    box-shadow: var(--shadow-standard);
+}
 
+.offer-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
+    pointer-events: none;
+
+    /* SEVERE UPGRADE: Multi-layered gradient for the at-rest premium glass look */
+    background: 
+        /* Layer 2 (Top): A subtle, sweeping white sheen for the glass glare */
+        linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, transparent 35%),
+        /* Layer 1 (Bottom): The asset-specific colored radial glow */
+        radial-gradient(circle at 10% 10%, var(--asset-glow, var(--glow-azure)), transparent 70%);
+    
+    /* DEFINITIVE FIX: The pseudo-element is now permanently visible at low opacity */
+    opacity: 0.25; 
+    transition: all 0.8s ease;
+}
+
+.offer-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
+    padding: 1px;
+    background: var(--asset-gradient, var(--gradient-primary));
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: subtract;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: subtract;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.offer-card:hover {
+    /* On hover, the background becomes slightly more opaque for better contrast */
+    background: var(--background-glass-premium); 
+    transform: var(--transform-ultra);
+    border-color: var(--asset-primary, var(--primary-royal));
+    box-shadow: 
+        var(--shadow-luxury),
+        0 0 80px var(--asset-glow, var(--glow-azure)); /* More intense glow */
+}
+
+.offer-card:hover::before {
+    /* On hover, the glow intensifies and expands for a dynamic effect */
+    opacity: 0.5; 
+    transform: scale(1.5) translate(-10%, -10%);
+}
+
+.offer-card:hover::after {
+    /* The shimmering border becomes more visible on hover */
+    opacity: 0.5;
+}
+
+/* The 3D effect on the card's content remains the same */
+.card-content { 
+    position: relative; 
+    transform-style: preserve-3d; 
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
+.offer-card:hover .card-content { 
+    transform: translateZ(30px); 
+}
+.asset-header { 
+    font-family: 'Orbitron', monospace; 
+    font-weight: 800; 
+    font-size: 1.5rem; 
+    background: var(--asset-gradient, var(--gradient-primary)); 
+    -webkit-background-clip: text; 
+    background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    transform-style: preserve-3d; 
+    margin-bottom: 1rem; 
+}
+.offer-card:hover .asset-header { 
+    transform: translateZ(50px) scale(1.15) rotateY(5deg); 
+    text-shadow: 0 0 30px var(--asset-glow), 0 0 60px var(--asset-glow); 
+    filter: brightness(1.3); 
+}
+        
 /* 3D Navigation & Filter Tabs */
 .nav-btn, .filter-tab { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
 .nav-btn:hover:not(.active), .filter-tab:hover:not(.active) { background: var(--background-glass-premium); color: var(--text-diamond); transform: var(--transform-ultra); box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure); border-color: var(--border-premium); }
@@ -837,15 +938,17 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
 <!-- ========================================================================= -->
 <!-- This wrapper is FIXED and ONLY contains the HoloStream Ticker -->
     <div id="fixed-bottom-ui-wrapper" class="print-hide">
-        <div id="holo-stream-container" class="h-28">
-            <div class="holo-stream-track">
-                <!-- HoloStream items are dynamically injected here by JavaScript -->
-            </div>
+    <!-- This wrapper is now fixed and contains BOTH the HoloStream and the Footer -->
+
+    <!-- A. HoloStream Ticker -->
+    <div id="holo-stream-container" class="h-28">
+        <div class="holo-stream-track">
+            <!-- HoloStream items are dynamically injected here by JavaScript -->
         </div>
     </div>
 
-    <!-- This is the standard Legal Footer that flows at the natural end of the page -->
-    <footer class="print-hide">
+    <!-- B. Main Footer (Now correctly placed inside the fixed wrapper) -->
+    <footer>
         <div class="container mx-auto p-6 md:p-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
                 <div>
@@ -864,6 +967,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
             </div>
         </div>
     </footer>
+</div>
 
 
 
@@ -1203,58 +1307,79 @@ init: () => {
 //  guaranteed to be free of CSS conflicts.
 // ===================================================================
 toggleAdvancedFilters: () => {
-        const container = document.getElementById('advanced-filters-container');
-        const btn = document.getElementById('toggle-advanced-filters-btn');
-        const content = container.querySelector('.filter-section');
-        if (!container || !btn || !content) return;
+    const container = document.getElementById('advanced-filters-container');
+    const btn = document.getElementById('toggle-advanced-filters-btn');
+    const content = container.querySelector('.filter-section');
 
-        const isOpen = container.style.maxHeight && container.style.maxHeight !== '0px';
-        btn.classList.toggle('active', !isOpen);
+    if (!container || !btn || !content) {
+        console.error("Advanced filter components not found. Cannot toggle.");
+        return;
+    }
+    
+    // Check if the panel is currently open by looking for the '.open' class
+    const isOpen = container.classList.contains('open');
 
-        container.style.maxHeight = isOpen ? '0px' : `${content.scrollHeight}px`;
-    },
+    if (isOpen) {
+        // --- CLOSE THE PANEL ---
+        container.style.maxHeight = '0px';
+        container.classList.remove('open');
+        btn.classList.remove('active');
+    } else {
+        // --- OPEN THE PANEL ---
+        // 1. Ensure the filter content is correctly populated for the active tab first.
+        UI.populateAdvancedFilters(AppState.activeFilters.type);
+        // 2. Set up listeners for the newly created elements inside.
+        Logic.setupAdvancedFilterListeners();
+        // 3. Set max-height to its content's scroll height to animate open.
+        container.style.maxHeight = content.scrollHeight + 'px';
+        container.classList.add('open');
+        btn.classList.add('active');
+    }
+},
 
-            closeAdvancedFilters: () => {
-        const container = document.getElementById('advanced-filters-container');
-        const btn = document.getElementById('toggle-advanced-filters-btn');
-        if (container) container.style.maxHeight = '0px';
-        if (btn) btn.classList.remove('active');
-    },
-
+/**
+ * Gracefully closes the advanced filter panel. Called when clicking outside
+ * or when switching main tabs.
+ */
+closeAdvancedFilters: () => {
+    const container = document.getElementById('advanced-filters-container');
+    const btn = document.getElementById('toggle-advanced-filters-btn');
+    if (container) {
+        container.style.maxHeight = '0px';
+        container.classList.remove('open');
+    }
+    if (btn) {
+        btn.classList.remove('active');
+    }
+},
 
             /**
              * SEVERE UPGRADE: Dynamically builds the advanced filter controls based on the active tab.
              * This function is now solely responsible for generating the correct HTML structure.
              */
             populateAdvancedFilters: (type) => {
-                const container = document.getElementById('advanced-filters-container').querySelector('.grid');
-                const createOptions = (items) => ['All', ...new Set(items.filter(Boolean))].map(item => `<option value="${item}">${item}</option>`).join('');
-                let html = '';
+    const container = document.getElementById('advanced-filters-container').querySelector('.grid');
+    const createOptions = (items) => ['All', ...new Set(items.filter(Boolean))].map(item => `<option value="${item}">${item}</option>`).join('');
+    let html = '';
 
-                switch (type) {
-                    case 'offers':
-                        // Generates the full set of filters for the Offers tab.
-                        html = `
-                            <div class="flex flex-col gap-2"><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm">${createOptions(AppState.allOffers.map(o => o.ASSET_CATEGORY))}</select></div>
-                            <div class="flex flex-col gap-2"><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
-                            <div class="flex flex-col gap-2"><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm">${createOptions(AppState.allOffers.map(o => o.SETTLEMENT_PROTOCOL))}</select></div>
-                            <div class="flex flex-col gap-2"><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm">${createOptions(AppState.allOffers.map(o => o.CORE_PROCEDURE_TYPE))}</select></div>
-                        `;
-                        container.innerHTML = html;
-                        UI.populateStatusFilter(); // Checkboxes need their own population step.
-                        break;
-                    // --- Future-Proofing: Placeholders for other tabs ---
-                    case 'enquiries':
-                        container.innerHTML = `<p class="text-gray-500 col-span-4 text-center py-4">Advanced filters for Enquiries are in development.</p>`;
-                        break;
-                    case 'crowdfunding':
-                        container.innerHTML = `<p class="text-gray-500 col-span-4 text-center py-4">Advanced filters for Investment Projects are in development.</p>`;
-                        break;
-                    case 'services':
-                        container.innerHTML = `<p class="text-gray-500 col-span-4 text-center py-4">Advanced filters for Professional Services are in development.</p>`;
-                        break;
-                }
-            },
+    switch (type) {
+        case 'offers':
+            html = `
+                <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm"></select></div>
+                <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
+                <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm"></select></div>
+                <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm"></select></div>
+            `;
+            container.innerHTML = html;
+            // Now populate the dynamic parts
+            UI.populateAdvancedFilterDropdowns();
+            UI.populateStatusFilter();
+            break;
+        default:
+            container.innerHTML = `<p class="text-gray-500 col-span-4 text-center py-4">Advanced filters for this module are in development.</p>`;
+            break;
+    }
+},
         
 // INSTRUCTION: ADD these TWO NEW functions inside the UI object.
 createSearchDropdownHTML: () => {
@@ -2570,14 +2695,30 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
     },
 
             initFixedBottomUI: () => {
-        const holoStream = document.getElementById('holo-stream-container');
-        const mainLayout = document.querySelector('.main-layout');
-        if (!holoStream || !mainLayout) return;
-        const observer = new ResizeObserver(entries => {
-            mainLayout.style.paddingBottom = `${entries[0].contentRect.height + 40}px`;
-        });
-        observer.observe(holoStream);
-    },
+    // Target the new, single wrapper that now contains both fixed elements.
+    const fixedUIWrapper = document.getElementById('fixed-bottom-ui-wrapper');
+    const body = document.body;
+
+    if (!fixedUIWrapper || !body) {
+        console.error("Layout Error: Fixed UI wrapper or body element not found.");
+        return;
+    }
+
+    // Use a modern ResizeObserver to automatically and efficiently detect any
+    // change in the height of the fixed UI block (e.g., if the footer's content changes).
+    const observer = new ResizeObserver(entries => {
+        // Get the precise height of the fixed wrapper.
+        const uiHeight = entries[0].contentRect.height;
+        
+        // DEFINITIVE FIX: Apply the measured height as padding-bottom to the BODY.
+        // This creates an invisible buffer at the end of the scrollable page,
+        // ensuring the footer is always visible when scrolled to the bottom.
+        body.style.paddingBottom = `${uiHeight}px`; 
+    });
+
+    // Tell the observer to start watching the wrapper for any size changes.
+    observer.observe(fixedUIWrapper);
+},
             // START: REPLACE OLD FUNCTIONS WITH THIS UPGRADED BLOCK
 
                         updateStatusFilterState: () => {
@@ -2688,38 +2829,45 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
             },
 
             /**
-             * SEVERE UPGRADE: Manages the UI state when switching between main data tabs.
-             * This function is the master controller for tab navigation.
-             * @param {string} type - The data type of the tab being switched to.
-             */
-            switchFilterType: (type) => {
-                if (AppState.activeFilters.type === type) return;
-                AppState.activeFilters.type = type;
-                
-                // Update the visual state of the main filter tabs.
-                document.querySelectorAll('.filter-tab').forEach(tab => {
-                    tab.classList.toggle('active', tab.dataset.type === type);
-                });
-                
-                const isOffersTab = type === 'offers';
-                
-                // --- Intelligent UI Management ---
-                // Show/hide the entire advanced filter header and Kanban button based on tab type.
-                document.getElementById('sticky-filter-header').style.display = isOffersTab ? '' : 'none';
-                document.getElementById('kanban-view-btn').style.display = isOffersTab ? '' : 'none';
-                // Adjust placeholder height to prevent content jumping when filters are hidden.
-                document.getElementById('sticky-placeholder').style.height = isOffersTab ? document.getElementById('sticky-placeholder').style.height : '0px';
+ * SEVERE UPGRADE: Manages the UI state when switching between main data tabs.
+ * This version prevents the "flicker/break" bug by toggling internal content
+ * visibility instead of hiding the entire container.
+ * @param {string} type - The data type of the tab being switched to.
+ */
+switchFilterType: (type) => {
+    if (AppState.activeFilters.type === type) return;
+    AppState.activeFilters.type = type;
 
-                // If switching away from the offers tab, gracefully switch back to Card View.
-                if (!isOffersTab && AppState.currentView === 'kanban') {
-                    Logic.switchView('card');
-                }
+    // Update the visual state of the main filter tabs.
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.type === type);
+    });
 
-                Logic.updateSortOptions(type); // Dynamically update sorting options.
-                Logic.resetFilters(false); // Reset filters for a clean slate, without notification.
-                Logic.applyFiltersAndRender(); // Re-render the entire view for the new data type.
-                Utils.showNotification(`Viewing ${type.charAt(0).toUpperCase() + type.slice(1)}`, 'info');
-            },
+    // --- DEFINITIVE FLICKER FIX ---
+    const isOffersTab = type === 'offers';
+    const filterContent = document.getElementById('sticky-filter-content');
+
+    // Instead of hiding the parent '#sticky-filter-header', we hide its CONTENT.
+    // This preserves the sidebar's structure and prevents the layout break.
+    if (filterContent) {
+        filterContent.style.display = isOffersTab ? '' : 'none';
+    }
+    // Also toggle the standalone Kanban button
+    const kanbanBtn = document.getElementById('kanban-view-btn');
+    if (kanbanBtn) {
+        kanbanBtn.style.display = isOffersTab ? '' : 'none';
+    }
+
+    // If switching away from the offers tab, gracefully switch back to Card View.
+    if (!isOffersTab && AppState.currentView === 'kanban') {
+        Logic.switchView('card');
+    }
+
+    Logic.updateSortOptions(type);
+    Logic.resetFilters(false);
+    Logic.applyFiltersAndRender();
+    Utils.showNotification(`Viewing ${type.charAt(0).toUpperCase() + type.slice(1)}`, 'info');
+},
 
             /**
              * Dynamically populates the sorting dropdown with options relevant to the active data type.
@@ -3753,50 +3901,71 @@ submitEngagementForm: async (offerId) => {
              * This function is called every time the advanced filter panel is rebuilt to ensure
              * interactivity is maintained across different tab contexts.
              */
-            setupAdvancedFilterListeners: () => {
-                const addSelectListener = (id, key) => {
-                    const select = document.getElementById(id);
-                    if (select) {
-                        select.value = AppState.activeFilters[key] || 'All';
-                        select.addEventListener('change', (e) => {
-                            AppState.activeFilters[key] = e.target.value;
-                            Logic.applyFiltersAndRender();
-                        });
-                    }
-                };
+            /**
+ * SEVERE UPGRADE: Attaches event listeners to dynamically created advanced filter elements
+ * AND restores their visual state to match the current AppState. This is critical for
+ * ensuring UI consistency when the panel is opened.
+ */
+setupAdvancedFilterListeners: () => {
+    // Helper function to add listeners and restore state for <select> dropdowns
+    const addSelectListener = (id, filterKey) => {
+        const selectElement = document.getElementById(id);
+        if (selectElement) {
+            // DEFINITIVE STATE RESTORATION: Set the dropdown's value to match the state.
+            selectElement.value = AppState.activeFilters[filterKey] || 'All';
+            
+            // Attach the event listener for future changes.
+            selectElement.addEventListener('change', (e) => {
+                AppState.activeFilters[filterKey] = e.target.value;
+                Logic.applyFiltersAndRender();
+            });
+        }
+    };
 
-                const sortSelect = document.getElementById('sort-select');
-                if (sortSelect) {
-                    sortSelect.value = AppState.activeSort;
-                    sortSelect.addEventListener('change', (e) => {
-                        AppState.activeSort = e.target.value;
-                        Logic.applyFiltersAndRender();
-                        Utils.showNotification(`Sorted by ${e.target.selectedOptions[0].text}`, 'info');
-                    });
+    // --- Main Sorting Dropdown ---
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+        // DEFINITIVE STATE RESTORATION: Set the sort dropdown's value.
+        sortSelect.value = AppState.activeSort;
+        
+        sortSelect.addEventListener('change', (e) => {
+            AppState.activeSort = e.target.value;
+            Logic.applyFiltersAndRender();
+            // Provide user feedback on sort change.
+            if (e.target.selectedOptions[0]) {
+                Utils.showNotification(`Sorted by ${e.target.selectedOptions[0].text}`, 'info');
+            }
+        });
+    }
+    
+    // --- Reset Button ---
+    const resetBtn = document.getElementById('reset-filters');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => Logic.resetFilters(true));
+    }
+    
+    // --- Context-Aware Listeners (only for the 'offers' tab) ---
+    if (AppState.activeFilters.type === 'offers') {
+        addSelectListener('asset-category-select', 'assetCategory');
+        addSelectListener('settlement-select', 'settlementProtocol');
+        addSelectListener('procedure-select', 'coreProcedure');
+        
+        // --- Status Filter Checkboxes ---
+        const statusContainer = document.getElementById('status-filters-container');
+        if (statusContainer) {
+            // DEFINITIVE STATE RESTORATION: Loop through the active statuses in the state
+            // and check the corresponding checkboxes.
+            AppState.activeFilters.statuses.forEach(statusValue => {
+                const checkbox = statusContainer.querySelector(`input.status-checkbox[value="${statusValue}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
                 }
-                
-                // PINNACLE FIX: Event listener for the dynamically created reset button.
-                const resetBtn = document.getElementById('reset-filters');
-                if (resetBtn) {
-                    resetBtn.addEventListener('click', () => Logic.resetFilters(true));
-                }
-                
-                const type = AppState.activeFilters.type;
-                if (type === 'offers') {
-                    addSelectListener('asset-category-select', 'assetCategory');
-                    addSelectListener('settlement-select', 'settlementProtocol');
-                    addSelectListener('procedure-select', 'coreProcedure');
-                    
-                    const statusContainer = document.getElementById('status-filters-container');
-                    if (statusContainer) {
-                        AppState.activeFilters.statuses.forEach(status => {
-                            const cb = statusContainer.querySelector(`input[value="${status}"]`);
-                            if (cb) cb.checked = true;
-                        });
-                        statusContainer.addEventListener('change', Logic.handleStatusFilterChange);
-                    }
-                }
-            },
+            });
+            // The primary 'change' listener is already delegated on the container
+            // in setupEventListeners, so we don't need to re-add it here.
+        }
+    }
+},
         };
 
         // =================================================================================
