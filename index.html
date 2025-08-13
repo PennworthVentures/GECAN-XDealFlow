@@ -3198,7 +3198,7 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                 }
             },
             
-    initStickyFilters: () => {
+initStickyFilters: () => {
     const sentinel = document.getElementById('sticky-sentinel');
     const filterElement = document.getElementById('sticky-filter-header');
     const mainPlaceholder = document.getElementById('desktop-filter-placeholder');
@@ -3214,10 +3214,28 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
             if (isStuck) {
                 if (sidebarContainer.firstElementChild !== filterElement) {
                     sidebarContainer.appendChild(filterElement);
+                    
+                    // =================== NEW JAVASCRIPT FIX START ===================
+                    // This forces the browser to re-apply our new CSS rules.
+                    const searchInput = filterElement.querySelector('#search-input');
+                    if (document.activeElement === searchInput) {
+                        searchInput.blur();
+                        searchInput.focus();
+                    }
+                    // ==================== NEW JAVASCRIPT FIX END ====================
                 }
             } else {
                 if (mainPlaceholder.firstElementChild !== filterElement) {
                     mainPlaceholder.appendChild(filterElement);
+                    
+                    // =================== NEW JAVASCRIPT FIX START ===================
+                    // Also apply the fix when moving it back out of the sidebar.
+                    const searchInput = filterElement.querySelector('#search-input');
+                    if (document.activeElement === searchInput) {
+                        searchInput.blur();
+                        searchInput.focus();
+                    }
+                    // ==================== NEW JAVASCRIPT FIX END ====================
                 }
             }
         },
