@@ -674,178 +674,116 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
     <!-- === MAIN CONTENT AREA - DEFINITIVE FLICKER-FREE & INTERACTIVE VERSION === -->
     <!-- ========================================================================= -->
     <div class="container mx-auto main-layout px-4 md:px-6">
-        <!-- Main Content Area -->
         <main>
-
-          <!-- ADD THIS NEW EMPTY PLACEHOLDER DIV -->
-    <div id="desktop-filter-placeholder"></div>
-
-                    <!-- ========================================================================= -->
-        <!-- === WORLD CLOCK & MARKET COMMAND BAR - DEFINITIVE HORIZONTAL LAYOUT v4.0 === -->
-        <!-- ========================================================================= -->
-        <div id="world-clock-command-center" class="flex flex-wrap items-center justify-center gap-6 mt-12 mb-12">
-            
-            <!-- Controls Container -->
-            <div id="add-clock-controls" class="flex items-center gap-2 bg-black/20 backdrop-blur-sm border border-[var(--border-color)] p-2 rounded-xl">
-                <select id="add-clock-select" class="form-input text-xs p-2 rounded-lg appearance-none focus:outline-none min-w-[160px]"></select>
-                <button id="add-clock-btn" class="btn-primary w-10 h-10 rounded-full text-white font-bold text-lg hover:scale-110 transition-all duration-300">+</button>
-            </div>
-            
-            
-            <!-- Clock Container -->
-            <div id="clock-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6">
-                <!-- Clocks will be injected here by JavaScript -->
-            </div>
-
-           
-
-            <!-- This separator will now appear between tickers and controls -->
-            <div id="clock-separator" class="hidden md:block h-12 w-px bg-white/20"></div>
-
-            
-
-             <!-- NEW: Market Ticker Container -->
-            <div id="market-ticker-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6">
-                <!-- Live market tickers will be injected here -->
-            </div>
-
-<!-- ===================================================================================== -->
-<!-- === PINNACLE STICKY FILTER SYSTEM v5.3 - DEFINITIVE RESTORATION & INTEGRATION === -->
-<!-- ===================================================================================== -->
-<div style="position: relative;">
-    <!-- 1. The Sentinel (Unchanged): The invisible trigger for the sticky state. -->
-    <div id="sticky-sentinel" style="position: absolute; top: 0; height: 1px;"></div>
-
-    <!-- 2. The Sticky Wrapper: This is the ONLY element that becomes 'fixed'. -->
-    <div id="sticky-filter-header" class="z-40 transition-all duration-300 -mt-4">
-        <div id="sticky-filter-content" class="pt-4 space-y-6">
-
-            <!-- 1. RESTORED: Main Navigation Tabs with full 3D animations -->
-            <div class="filter-tabs flex flex-wrap justify-center gap-2 md:gap-3">
-                <div class="filter-tab active" data-type="offers">
-                    <div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-handshake"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-handshake"></i></div></div></div>
-                    <span class="tab-text">Offers</span>
+            <!-- A. Command & Control Center (Upgraded & Collapsible) -->
+            <div id="command-center-wrapper" class="relative mt-12 mb-12">
+                <div class="command-center-header flex justify-between items-center mb-4 px-2">
+                    <h2 class="text-lg font-bold text-white tracking-wider flex items-center gap-3">
+                        <i class="fas fa-globe-americas text-[var(--primary-azure)]"></i>
+                        <span>Global Command Center</span>
+                    </h2>
+                    <button id="toggle-command-center-btn" class="text-sm text-gray-400 hover:text-white transition-colors duration-300" title="Toggle View">
+                        <span class="expand-text">Minimize</span><i class="fas fa-chevron-up ml-2 expand-icon transition-transform duration-300"></i>
+                    </button>
                 </div>
-                <div class="filter-tab" data-type="enquiries">
-                    <div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-search-dollar"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-search-dollar"></i></div></div></div>
-                    <span class="tab-text">Buyer Enquiries</span>
-                </div>
-                <div class="filter-tab" data-type="crowdfunding">
-                    <div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-rocket"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-rocket"></i></div></div></div>
-                    <span class="tab-text">Investment Projects</span>
-                </div>
-                <div class="filter-tab" data-type="services">
-                    <div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-cogs"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-cogs"></i></div></div></div>
-                    <span class="tab-text">Professional Services</span>
-                </div>
-            </div>
-
-            <!-- 2. Interactive Filter Controls -->
-            <div class="filter-section rounded-2xl p-4 md:p-6">
-                <!-- Main, always-visible filter controls -->
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <!-- Search Bar with Dropdown -->
-                    <div class="relative w-full md:flex-1 group" id="search-container">
-                        <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[var(--primary-azure)] transition-colors duration-300 text-lg pointer-events-none z-10"></i>
-                        <input type="text" id="search-input" placeholder="Search by Offer ID, Asset, Venue, Procedure..." class="form-input w-full py-3 pl-12 pr-28 text-white rounded-xl focus:outline-none text-sm shadow-inner-dark relative z-0">
-
-                         <!-- ======================================================= -->
-    <!-- === START: NEW INLINE RESET BUTTON === -->
-    <!-- ======================================================= -->
-    <button id="reset-filters-btn-inline" class="hidden absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg text-xs hover:bg-sky-500/40 hover:text-white transition-all duration-300">
-        <i class="fas fa-undo"></i>
-        <span>Reset</span>
-    </button>
-    <!-- ======================================================= -->
-    <!-- === END: NEW INLINE RESET BUTTON === -->
-    <!-- ======================================================= -->
-
-
-                        <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div>
-                    </div>
-                    <!-- Right-side Controls -->
-                    <div class="flex items-center gap-2 md:gap-4 flex-wrap justify-center">
-                        <button id="toggle-advanced-filters-btn" class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 relative overflow-hidden group">
-                            <span class="absolute inset-0 bg-gradient-to-r from-[var(--primary-azure)] to-[var(--primary-amethyst)] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
-                            <i class="fas fa-sliders-h z-10"></i><span class="z-10">Advanced Filters</span>
-                            <span id="active-filter-count" class="hidden bg-[var(--primary-azure)] text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center z-10 ring-2 ring-[var(--background-light)]">0</span>
-                        </button>
-
-                         <!-- PASTE THE BUTTON HERE AND MODIFY ITS CLASSES -->
-    <button id="reset-filters" class="btn-secondary hidden px-4 py-2.5 rounded-xl text-sm font-medium items-center gap-2 relative overflow-hidden group">
-        <i class="fas fa-undo"></i>Reset All
-    </button>
-
-
-                        <div class="flex items-center gap-1 bg-[var(--background-dark)] border border-[var(--border-color)] p-1 rounded-xl">
-                            <button id="card-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300" title="Card View"><i class="fa fa-th-large"></i></button>
-                            <button id="kanban-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300" title="Kanban View"><i class="fa fa-columns"></i></button>
+                <div id="world-clock-command-center" class="transition-all duration-500 ease-in-out max-h-[1000px] overflow-hidden">
+                    <div class="flex flex-col xl:flex-row flex-wrap items-center justify-center gap-6">
+                        <div id="clock-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6"></div>
+                        <div id="clock-separator" class="hidden xl:block h-24 w-px bg-white/10 self-center"></div>
+                        <div id="market-ticker-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6"></div>
+                        <div class="flex-grow hidden xl:block"></div>
+                        <div id="add-clock-controls" class="flex items-center gap-2 bg-black/20 backdrop-blur-sm border border-[var(--border-secondary)] p-2 rounded-xl self-center">
+                            <select id="add-clock-select" class="form-input text-xs p-2 rounded-lg"></select>
+                            <button id="add-clock-btn" class="btn-primary flex-shrink-0 w-10 h-10 rounded-full text-white font-bold text-lg hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center">+</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- 3. The Advanced Panel (remains separate for z-index correction) -->
-    <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden px-4 md:px-6 relative z-30">
-        <div class="filter-section rounded-2xl p-6 -mt-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Columns for Asset, Status, Settlement, Procedure -->
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label>
-                    <select id="asset-category-select" class="form-input w-full p-3 text-sm text-white rounded-xl focus:outline-none transition-all duration-300 hover:border-[var(--border-premium)]"></select>
+
+            <!-- B. Sticky Filter System (Upgraded Architecture) -->
+            <div class="relative">
+                <!-- This invisible element triggers the sticky state change -->
+                <div id="sticky-sentinel" class="absolute -top-24 h-px w-full"></div>
+
+                <!-- This is the placeholder where the filters live in the normal document flow -->
+                <div id="desktop-filter-placeholder">
+                    <div id="sticky-filter-header" class="z-40 transition-all duration-300 -mt-4">
+                        <div id="sticky-filter-content" class="pt-4 space-y-6">
+                             <!-- Filter Tabs (3D Animated) -->
+                            <div class="filter-tabs flex flex-wrap justify-center gap-2 md:gap-3">
+                                <div class="filter-tab active" data-type="offers"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-handshake"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-handshake"></i></div></div></div><span class="tab-text">Offers</span></div>
+                                <div class="filter-tab" data-type="enquiries"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-search-dollar"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-search-dollar"></i></div></div></div><span class="tab-text">Buyer Enquiries</span></div>
+                                <div class="filter-tab" data-type="crowdfunding"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-rocket"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-rocket"></i></div></div></div><span class="tab-text">Investment Projects</span></div>
+                                <div class="filter-tab" data-type="services"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-cogs"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-cogs"></i></div></div></div><span class="tab-text">Professional Services</span></div>
+                            </div>
+                            <!-- Main Filter Controls -->
+                            <div class="filter-section rounded-2xl p-4 md:p-6">
+                                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                                    <div class="relative w-full md:flex-1 group" id="search-container">
+                                        <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[var(--primary-azure)] transition-colors duration-300"></i>
+                                        <input type="text" id="search-input" placeholder="Search by ID, Asset, Venue, Procedure..." class="form-input w-full py-3 pl-12 pr-28 text-sm">
+                                        <button id="reset-filters-btn-inline" class="hidden absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg text-xs hover:bg-sky-500/40 hover:text-white transition-all">
+                                            <i class="fas fa-undo"></i><span>Reset</span>
+                                        </button>
+                                        <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 md:gap-4 flex-wrap justify-center">
+                                        <button id="toggle-advanced-filters-btn" class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-sliders-h"></i><span>Advanced Filters</span><span id="active-filter-count" class="hidden bg-[var(--primary-azure)] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span></button>
+                                        <button id="reset-filters" class="btn-secondary hidden px-4 py-2.5 rounded-xl text-sm"><i class="fas fa-undo"></i>Reset All</button>
+                                        <div class="flex items-center gap-1 bg-[var(--background-dark)] border border-[var(--border-color)] p-1 rounded-xl">
+                                            <button id="card-view-btn" class="btn-secondary active px-4 py-2 rounded-lg text-sm" title="Card View"><i class="fa fa-th-large"></i></button>
+                                            <button id="kanban-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm" title="Kanban View"><i class="fa fa-columns"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label>
-                    <div id="status-filters-container" class="space-y-2"></div>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label>
-                    <select id="settlement-select" class="form-input w-full p-3 text-sm text-white rounded-xl focus:outline-none transition-all duration-300 hover:border-[var(--border-premium)]"></select>
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label>
-                    <select id="procedure-select" class="form-input w-full p-3 text-sm text-white rounded-xl focus:outline-none transition-all duration-300 hover:border-[var(--border-premium)]"></select>
+                <!-- This is the container for the sticky side panel on desktop -->
+                <div id="sticky-filter-sidebar"></div>
+            </div>
+            
+            <!-- Advanced Filters Panel -->
+            <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
+                <div class="filter-section rounded-2xl p-6 -mt-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm"></select></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm"></select></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm"></select></div>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
+                        <select id="sort-select" class="form-input p-3 text-sm"></select>
+                    </div>
                 </div>
             </div>
-            <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
-                <!-- Sorting dropdown now populates dynamically -->
-                <select id="sort-select" class="form-input p-3 text-sm text-white rounded-xl focus:outline-none transition-all duration-300 hover:border-[var(--border-premium)] w-auto"></select>
-                
-            </div>
-        </div>
-    </div>
 
-    <!-- 4. The Placeholder (Unchanged) -->
-    <div id="sticky-placeholder" style="height: 0px; transition: height 0.3s ease-in-out;"></div>
-</div>
-<!-- === END OF PINNACLE FILTER SYSTEM v5.3 === -->
-
-        </div>
-
-
-
-            <!-- Enhanced Metrics Bar -->
+            <!-- C. Metrics & Data Display -->
             <div id="metrics-bar" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"></div>
-
-            <!-- Content Display Area -->
+            
             <div id="content-display">
                 <div id="loading-spinner" class="text-center py-20">
-                    <div class="relative inline-block">
-                        <i class="fas fa-spinner fa-spin fa-4x text-[var(--primary-color)] drop-shadow-lg"></i>
-                        <div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-color)] opacity-20"></div>
-                    </div>
-                    <p class="mt-6 text-xl font-medium">Loading Enhanced Institutional Offers...</p>
-                    <div class="mt-4 w-64 mx-auto bg-[var(--background-light)] rounded-full h-2">
-                        <div class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] h-2 rounded-full animate-pulse" style="width: 100%"></div>
-                    </div>
+                    <div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-4x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div>
+                    <p class="mt-6 text-xl">Loading Enhanced Institutional Offers...</p>
                 </div>
-                
-                <div id="card-container" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div id="card-container" class="hidden grid grid-cols-1 md:grid-cols-2 3xl:grid-cols-5 gap-8"></div>
                 <div id="kanban-container" class="hidden"></div>
-                
-                <!-- =================================================================== -->
+                <div id="placeholder-content" class="hidden placeholder-showcase fade-in-up">
+                    <div class="showcase-icon-wrapper"><div class="showcase-icon-3d"><div class="showcase-icon-base"><i id="placeholder-icon" class="fas fa-search-dollar"></i></div></div></div>
+                    <h2 id="placeholder-title" class="showcase-title"></h2>
+                    <p id="placeholder-text" class="showcase-subtitle"></p>
+                    <span id="placeholder-tag" class="showcase-tag"></span>
+                </div>
+                <div id="no-results" class="hidden text-center py-20">
+                    <i class="fas fa-search fa-4x text-gray-600 mb-6"></i>
+                    <p class="text-xl font-medium text-gray-400">No offers found matching your criteria</p>
+                    <p class="text-sm text-gray-500">Try adjusting your search terms or filters</p>
+                </div>
+            </div>
+        </main>
+    </div>
+<!-- =================================================================== -->
 <!-- === DEFINITIVE REPLACEMENT: Pinnacle "Coming Soon" Showcase === -->
 <!-- =================================================================== -->
 <div id="placeholder-content" class="hidden placeholder-showcase fade-in-up">
@@ -943,40 +881,35 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
 <!-- This single wrapper uses Flexbox to perfectly stack the HoloStream and Footer with zero gaps. -->
 <!-- All game-related HTML has been removed as requested. -->
 <!-- ========================================================================= -->
-<div id="fixed-bottom-ui-wrapper" class="print-hide">
-
-    <!-- HOLOSTREAM IS NOW THE FIRST CHILD (renders on top) -->
-    <div id="holo-stream-container" class="h-28 print-hide">
-        <!-- The asteroid surface styles are applied via CSS to this container -->
-        <div class="holo-stream-track">
-            <!-- HoloStream items will be dynamically injected here by JavaScript -->
+<!-- This wrapper is FIXED and ONLY contains the HoloStream Ticker -->
+    <div id="fixed-bottom-ui-wrapper" class="print-hide">
+        <div id="holo-stream-container" class="h-28">
+            <div class="holo-stream-track">
+                <!-- HoloStream items are dynamically injected here by JavaScript -->
+            </div>
         </div>
     </div>
 
-        
-    <!-- FOOTER IS NOW THE SECOND CHILD -->
-    <footer class="border-t border-[var(--border-color)]">
+    <!-- This is the standard Legal Footer that flows at the natural end of the page -->
+    <footer class="print-hide">
         <div class="container mx-auto p-6 md:p-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-secondary)]">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
                 <div>
-                    <h3 class="font-bold text-lg text-white mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-600">GECAN™</h3>
-                    <p class="mb-2">Global Energy & Commodities Alliance Network (GECAN). Powered by Pennworth Ventures </p>
-                    <p class="text-xs">© 2025 GECAN™. All Rights Reserved.</p>
+                    <h3 class="font-bold text-lg mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-600">GECAN™</h3>
+                    <p class="mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Financial.</p>
+                    <p class="text-xs text-gray-500">© 2025 GECAN™. All Rights Reserved.</p>
                 </div>
                 <div>
                     <h4 class="font-semibold text-white mb-3">Legal Disclaimer</h4>
-                    <p class="text-xs leading-relaxed">The information presented on this platform is for informational purposes only. GECAN™ acts solely as an intermediary and facilitator. We make no warranties regarding accuracy, completeness, or performance of any offer or counterparty.</p>
+                    <p class="text-xs leading-relaxed">The information on this platform is for informational purposes only. GECAN™ acts solely as an intermediary. We make no warranties regarding the accuracy, completeness, or performance of any offer or counterparty.</p>
                 </div>
                 <div>
                     <h4 class="font-semibold text-white mb-3">Risk & Compliance</h4>
-                    <p class="text-xs leading-relaxed">All transactions carry inherent financial, operational, and regulatory risks. Users must conduct independent due diligence and agree to indemnify GECAN™ from any claims or liabilities.</p>
+                    <p class="text-xs leading-relaxed">All transactions carry inherent financial, operational, and regulatory risks. Users must conduct independent due diligence and agree to indemnify GECAN™ from any and all claims or liabilities arising from platform use.</p>
                 </div>
             </div>
         </div>
     </footer>
-    
-</div>
-<!-- End of Definitive Fixed UI Wrapper -->
 
 
 
@@ -1150,25 +1083,19 @@ parseDate: (dateStr) => {
     updateMainResetButtonVisibility: () => {
         const btn = document.getElementById('reset-filters');
         if (!btn) return;
-        const isActive = Logic.areFiltersActive();
-        btn.classList.toggle('hidden', !isActive);
+        btn.classList.toggle('hidden', !Logic.areFiltersActive());
     },
 
                       /**
              * Updates the visibility and glow state of the inline reset button.
              */
             updateInlineResetButton: () => {
-                const btn = document.getElementById('reset-filters-btn-inline');
-                if (!btn) return;
-
-                const isActive = Logic.areFiltersActive();
-                
-                // Toggle visibility
-                btn.classList.toggle('hidden', !isActive);
-
-                // Toggle the glow animation class
-                btn.classList.toggle('glow-active', isActive);
-            },
+        const btn = document.getElementById('reset-filters-btn-inline');
+        if (!btn) return;
+        const isActive = Logic.areFiltersActive();
+        btn.classList.toggle('hidden', !isActive);
+        btn.classList.toggle('glow-active', isActive);
+    },
 
 init: () => {
     // --- STAGE 1: IMMEDIATE UI SETUP (Does not require backend data) ---
@@ -1333,24 +1260,23 @@ init: () => {
 //  guaranteed to be free of CSS conflicts.
 // ===================================================================
 toggleAdvancedFilters: () => {
-                const container = document.getElementById('advanced-filters-container');
-                const btn = document.getElementById('toggle-advanced-filters-btn');
-                const content = container.querySelector('.filter-section');
+        const container = document.getElementById('advanced-filters-container');
+        const btn = document.getElementById('toggle-advanced-filters-btn');
+        const content = container.querySelector('.filter-section');
+        if (!container || !btn || !content) return;
 
-                const isOpen = container.classList.toggle('open');
-                btn.classList.toggle('active', isOpen);
+        const isOpen = container.style.maxHeight && container.style.maxHeight !== '0px';
+        btn.classList.toggle('active', !isOpen);
 
-                if (isOpen) {
-                    // CRITICAL: First, build the correct HTML for the current tab.
-                    UI.populateAdvancedFilters(AppState.activeFilters.type);
-                    // Then, make the new HTML interactive.
-                    Logic.setupAdvancedFilterListeners();
-                    // Finally, animate the panel open.
-                    container.style.maxHeight = content.scrollHeight + 'px';
-                } else {
-                    container.style.maxHeight = '0px';
-                }
-            },
+        container.style.maxHeight = isOpen ? '0px' : `${content.scrollHeight}px`;
+    },
+
+            closeAdvancedFilters: () => {
+        const container = document.getElementById('advanced-filters-container');
+        const btn = document.getElementById('toggle-advanced-filters-btn');
+        if (container) container.style.maxHeight = '0px';
+        if (btn) btn.classList.remove('active');
+    },
 
 
             /**
@@ -2240,13 +2166,50 @@ populateAdvancedFilterDropdowns: () => {
 
             // Enhanced Clock System
             initClocks: (initialTimezones = []) => {
-                const container = document.getElementById('clock-container');
-                container.innerHTML = '';
-                initialTimezones.forEach(tz => UI.createClock(tz));
-                if (AppState.clockInterval) clearInterval(AppState.clockInterval);
-                AppState.clockInterval = setInterval(UI.updateAllClocks, 1000);
-                UI.updateAllClocks();
-            },
+        const container = document.getElementById('clock-container');
+        const toggleBtn = document.getElementById('toggle-command-center-btn');
+        const commandCenter = document.getElementById('world-clock-command-center');
+        
+        if (!container || !toggleBtn || !commandCenter) {
+            console.error("Command Center UI elements not found. Aborting clock initialization.");
+            return;
+        }
+
+        container.innerHTML = '';
+        if (AppState.clockInterval) clearInterval(AppState.clockInterval);
+
+        initialTimezones.forEach(tz => UI.createClock(tz));
+        
+        AppState.clockInterval = setInterval(UI.updateAllClocks, 1000);
+        UI.updateAllClocks();
+
+        const isMinimized = localStorage.getItem('commandCenterMinimized') === 'true';
+        if (isMinimized) {
+            commandCenter.style.maxHeight = '0px';
+            commandCenter.classList.add('minimized');
+            toggleBtn.querySelector('.expand-text').textContent = 'Expand';
+            toggleBtn.querySelector('.expand-icon').style.transform = 'rotate(180deg)';
+        } else {
+             // Set max-height on load to ensure it's not null for the animation
+             commandCenter.style.maxHeight = commandCenter.scrollHeight + 'px';
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const isCurrentlyMinimized = commandCenter.classList.toggle('minimized');
+            if (isCurrentlyMinimized) {
+                commandCenter.style.maxHeight = '0px';
+                toggleBtn.querySelector('.expand-text').textContent = 'Expand';
+                toggleBtn.querySelector('.expand-icon').style.transform = 'rotate(180deg)';
+                localStorage.setItem('commandCenterMinimized', 'true');
+            } else {
+                commandCenter.style.maxHeight = commandCenter.scrollHeight + 'px';
+                toggleBtn.querySelector('.expand-text').textContent = 'Minimize';
+                toggleBtn.querySelector('.expand-icon').style.transform = 'rotate(0deg)';
+                localStorage.setItem('commandCenterMinimized', 'false');
+            }
+        });
+    },
+
 
             createClock: (timezone) => {
                 const container = document.getElementById('clock-container');
@@ -2600,55 +2563,21 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
             //  conflicts and ensure content is always visible and functional.
             // ===================================================================
             initMobileUI: () => {
-                const fab = document.getElementById('mobile-fab');
-                const sidebar = document.getElementById('mobile-sidebar');
-                const overlay = document.getElementById('mobile-sidebar-overlay');
-                const closeBtn = document.getElementById('mobile-sidebar-close-btn');
-                const sidebarContent = document.getElementById('mobile-sidebar-content');
-
-                const openSidebar = () => {
-                    sidebar.classList.add('open');
-                    overlay.classList.remove('hidden');
-                    document.body.classList.add('mobile-sidebar-open');
-                };
-
-                const closeSidebar = () => {
-                    sidebar.classList.remove('open');
-                    overlay.classList.add('hidden');
-                    document.body.classList.remove('mobile-sidebar-open');
-                };
-                
-                // Event listeners for opening and closing
-                fab.addEventListener('click', openSidebar);
-                overlay.addEventListener('click', closeSidebar);
-                closeBtn.addEventListener('click', closeSidebar);
-
-                // This function clones the necessary desktop elements into the sidebar
-                const populateSidebar = () => {
-                    if (sidebarContent.hasChildNodes()) return; // Only populate once
-
-                    const navContainer = document.getElementById('nav-container');
-                    const filterWrapper = document.querySelector('#sticky-sentinel')?.parentElement;
-
-                    if (navContainer) {
-                        const navClone = navContainer.cloneNode(true);
-                        navClone.id = 'mobile-nav-clone'; // Give it a new ID
-                        navClone.classList.add('mobile-nav-clone'); // Add a class for styling
-                        navClone.classList.remove('hidden'); // Ensure it's visible
-                        sidebarContent.appendChild(navClone);
-                    }
-
-                    if (filterWrapper) {
-                        const filterClone = filterWrapper.cloneNode(true);
-                        filterClone.id = 'mobile-filter-clone';
-                        filterClone.classList.add('mobile-filter-clone');
-                        sidebarContent.appendChild(filterClone);
-                    }
-                };
-                
-                // Populate the sidebar on the first click for maximum performance
-                fab.addEventListener('click', populateSidebar, { once: true });
-            },
+        const fab = document.getElementById('mobile-fab'), sidebar = document.getElementById('mobile-sidebar'), overlay = document.getElementById('mobile-sidebar-overlay'), closeBtn = document.getElementById('mobile-sidebar-close-btn');
+        const openSidebar = () => { sidebar.classList.add('open'); overlay.classList.remove('hidden'); document.body.classList.add('mobile-sidebar-open'); };
+        const closeSidebar = () => { sidebar.classList.remove('open'); overlay.classList.add('hidden'); document.body.classList.remove('mobile-sidebar-open'); };
+        fab.addEventListener('click', openSidebar);
+        overlay.addEventListener('click', closeSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        fab.addEventListener('click', () => {
+            const content = document.getElementById('mobile-sidebar-content');
+            if (content.hasChildNodes()) return;
+            const nav = document.getElementById('nav-container')?.cloneNode(true);
+            const filters = document.querySelector('#sticky-sentinel')?.parentElement.cloneNode(true);
+            if (nav) { nav.id='m-nav'; nav.classList.add('mobile-nav-clone'); nav.classList.remove('hidden'); content.appendChild(nav); }
+            if (filters) { filters.id='m-filters'; filters.classList.add('mobile-filter-clone'); content.appendChild(filters); }
+        }, { once: true });
+    },
 
             init: () => {
                 // Activate mouse-driven visual effects & backgrounds
@@ -2696,38 +2625,30 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
     // ===================================================================
     initStickyFilters: () => {
         const sentinel = document.getElementById('sticky-sentinel');
-        const header = document.getElementById('sticky-filter-header');
-        const placeholder = document.getElementById('sticky-placeholder');
-
-        if (!sentinel || !header || !placeholder) {
-            console.error("Sticky header elements not found. Aborting.");
-            return;
-        }
-
-        const mainHeaderHeight = 96; // The height of your top GECAN logo header
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                const isStuck = !entry.isIntersecting;
-                
-                // Toggle the class that makes the header position: fixed
-                header.classList.toggle('is-stuck', isStuck);
-
-                // If stuck, make the placeholder take up the space the header just vacated.
-                // If not stuck, shrink the placeholder back to zero.
-                // This is the key to preventing the content jump without flickering.
-                placeholder.style.height = isStuck ? `${header.offsetHeight}px` : '0px';
-            },
-            {
-                // This creates an invisible "trigger line" just below the main header.
-                // When the sentinel scrolls past this line, the observer fires.
-                rootMargin: `-${mainHeaderHeight}px 0px 0px 0px`,
-                threshold: [0]
+        const filterElement = document.getElementById('sticky-filter-header');
+        const mainPlaceholder = document.getElementById('desktop-filter-placeholder');
+        const sidebarContainer = document.getElementById('sticky-filter-sidebar');
+        if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer) return;
+        const observer = new IntersectionObserver( ([entry]) => {
+            const isStuck = !entry.isIntersecting;
+            sidebarContainer.classList.toggle('is-stuck', isStuck);
+            if (isStuck && sidebarContainer.firstElementChild !== filterElement) {
+                sidebarContainer.appendChild(filterElement);
+            } else if (!isStuck && mainPlaceholder.firstElementChild !== filterElement) {
+                mainPlaceholder.appendChild(filterElement);
             }
-        );
-
-        // Tell the observer to start watching the static sentinel element.
+        }, { rootMargin: `-96px 0px 0px 0px`, threshold: [0] });
         observer.observe(sentinel);
+    },
+
+            initFixedBottomUI: () => {
+        const holoStream = document.getElementById('holo-stream-container');
+        const mainLayout = document.querySelector('.main-layout');
+        if (!holoStream || !mainLayout) return;
+        const observer = new ResizeObserver(entries => {
+            mainLayout.style.paddingBottom = `${entries[0].contentRect.height + 40}px`;
+        });
+        observer.observe(holoStream);
     },
             // START: REPLACE OLD FUNCTIONS WITH THIS UPGRADED BLOCK
 
