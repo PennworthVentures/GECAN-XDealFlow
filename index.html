@@ -372,10 +372,7 @@ footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-dia
 @media (max-width: 1280px) { /* Tablet and smaller desktop */
     #sticky-filter-sidebar { display: none; } /* Disable sticky side panel on smaller screens */
     #sticky-filter-header { position: static !important; transform: none !important; }
-    #desktop-filter-placeholder {
-    display: block; /* Ensure it's a block-level element */
-    position: relative; /* Good practice for placeholders */
-}
+    #desktop-filter-placeholder { display: block !important; }
     #desktop-filter-placeholder > * { margin-top: 0 !important; }
 }
 @media (max-width: 1024px) {
@@ -1199,145 +1196,119 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
     <!-- ========================================================================= -->
     <!-- === MAIN CONTENT AREA - DEFINITIVE FLICKER-FREE & INTERACTIVE VERSION === -->
     <!-- ========================================================================= -->
-<div class="container mx-auto main-layout px-4 md:px-6">
-    <main>
-        <!-- A. Command & Control Center (Unchanged) -->
-        <div id="command-center-wrapper" class="relative mt-12 mb-12">
-            <div class="command-center-header flex justify-between items-center mb-4 px-2">
-                <h2 class="text-lg font-bold text-white tracking-wider flex items-center gap-3">
-                    <i class="fas fa-globe-americas text-[var(--primary-azure)]"></i>
-                    <span>Global Command Center</span>
-                </h2>
-                <button id="toggle-command-center-btn" class="text-sm text-gray-400 hover:text-white transition-colors duration-300" title="Toggle View">
-                    <span class="expand-text">Minimize</span><i class="fas fa-chevron-up ml-2 expand-icon transition-transform duration-300"></i>
-                </button>
-            </div>
-            <div id="world-clock-command-center" class="transition-all duration-500 ease-in-out max-h-[1000px] overflow-hidden">
-                <div class="flex flex-col xl:flex-row flex-wrap items-center justify-center gap-6">
-                    <div id="clock-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6"></div>
-                    <div id="clock-separator" class="hidden xl:block h-24 w-px bg-white/10 self-center"></div>
-                    <div id="market-ticker-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6"></div>
-                    <div class="flex-grow hidden xl:block"></div>
-                    <div id="add-clock-controls" class="flex items-center gap-2 bg-black/20 backdrop-blur-sm border border-[var(--border-secondary)] p-2 rounded-xl self-center">
-                        <select id="add-clock-select" class="form-input text-xs p-2 rounded-lg"></select>
-                        <button id="add-clock-btn" class="btn-primary flex-shrink-0 w-10 h-10 rounded-full text-white font-bold text-lg hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center">+</button>
+    <div class="container mx-auto main-layout px-4 md:px-6">
+        <main>
+            <!-- A. Command & Control Center (Upgraded & Collapsible) -->
+            <div id="command-center-wrapper" class="relative mt-12 mb-12">
+                <div class="command-center-header flex justify-between items-center mb-4 px-2">
+                    <h2 class="text-lg font-bold text-white tracking-wider flex items-center gap-3">
+                        <i class="fas fa-globe-americas text-[var(--primary-azure)]"></i>
+                        <span>Global Command Center</span>
+                    </h2>
+                    <button id="toggle-command-center-btn" class="text-sm text-gray-400 hover:text-white transition-colors duration-300" title="Toggle View">
+                        <span class="expand-text">Minimize</span><i class="fas fa-chevron-up ml-2 expand-icon transition-transform duration-300"></i>
+                    </button>
+                </div>
+                <div id="world-clock-command-center" class="transition-all duration-500 ease-in-out max-h-[1000px] overflow-hidden">
+                    <div class="flex flex-col xl:flex-row flex-wrap items-center justify-center gap-6">
+                        <div id="clock-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6"></div>
+                        <div id="clock-separator" class="hidden xl:block h-24 w-px bg-white/10 self-center"></div>
+                        <div id="market-ticker-container" class="flex flex-wrap items-center justify-center gap-x-6 gap-y-6"></div>
+                        <div class="flex-grow hidden xl:block"></div>
+                        <div id="add-clock-controls" class="flex items-center gap-2 bg-black/20 backdrop-blur-sm border border-[var(--border-secondary)] p-2 rounded-xl self-center">
+                            <select id="add-clock-select" class="form-input text-xs p-2 rounded-lg"></select>
+                            <button id="add-clock-btn" class="btn-primary flex-shrink-0 w-10 h-10 rounded-full text-white font-bold text-lg hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center">+</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-<!-- B. Sticky Filter System (STABLE ARCHITECTURE) -->
-<div class="relative">
-    <!-- This invisible element triggers the sticky state change -->
-    <div id="sticky-sentinel" class="absolute -top-24 h-px w-full"></div>
+            <!-- B. Sticky Filter System (Upgraded Architecture) -->
+            <div class="relative">
+                <!-- This invisible element triggers the sticky state change -->
+                <div id="sticky-sentinel" class="absolute -top-24 h-px w-full"></div>
 
-    <!-- This placeholder holds the filter component in the normal document flow and maintains layout stability -->
-    <div id="desktop-filter-placeholder">
-        <div id="sticky-filter-header" class="z-40 transition-all duration-300 -mt-4">
-            <div id="sticky-filter-content" class="pt-4 space-y-6">
-                 <!-- Filter Tabs (3D Animated) -->
-                <div class="filter-tabs flex flex-wrap justify-center gap-2 md:gap-3">
-                    <div class="filter-tab active" data-type="offers"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-handshake"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-handshake"></i></div></div></div><span class="tab-text">Offers</span></div>
-                    <div class="filter-tab" data-type="enquiries"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-search-dollar"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-search-dollar"></i></div></div></div><span class="tab-text">Buyer Enquiries</span></div>
-                    <div class="filter-tab" data-type="crowdfunding"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-rocket"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-rocket"></i></div></div></div><span class="tab-text">Investment Projects</span></div>
-                    <div class="filter-tab" data-type="services"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-cogs"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-cogs"></i></div></div></div><span class="tab-text">Professional Services</span></div>
-                </div>
-                <!-- Main Filter Controls -->
-                <div class="filter-section rounded-2xl p-4 md:p-6">
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div class="relative w-full md:flex-1 group" id="search-container">
-                            <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[var(--primary-azure)] transition-colors duration-300"></i>
-                            <input type="text" id="search-input" placeholder="Search by ID, Asset, Venue, Procedure..." class="form-input w-full py-3 pl-12 pr-28 text-sm">
-                            <button id="reset-filters-btn-inline" class="hidden absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg text-xs hover:bg-sky-500/40 hover:text-white transition-all">
-                                <i class="fas fa-undo"></i><span>Reset</span>
-                            </button>
-                            <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div>
-                        </div>
-                        <div class="flex items-center gap-2 md:gap-4 flex-wrap justify-center">
-                            <button id="toggle-advanced-filters-btn" class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-sliders-h"></i><span>Advanced Filters</span><span id="active-filter-count" class="hidden bg-[var(--primary-azure)] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span></button>
-                            <button id="reset-filters" class="btn-secondary hidden px-4 py-2.5 rounded-xl text-sm"><i class="fas fa-undo"></i>Reset All</button>
-                            <div class="flex items-center gap-1 bg-[var(--background-dark)] border border-[var(--border-color)] p-1 rounded-xl">
-                                <button id="card-view-btn" class="btn-primary px-4 py-2 rounded-lg text-sm" title="Card View"><i class="fa fa-th-large"></i></button>
-                                <button id="kanban-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm" title="Kanban View"><i class="fa fa-columns"></i></button>
+                <!-- This is the placeholder where the filters live in the normal document flow -->
+                <div id="desktop-filter-placeholder">
+                    <div id="sticky-filter-header" class="z-40 transition-all duration-300 -mt-4">
+                        <div id="sticky-filter-content" class="pt-4 space-y-6">
+                             <!-- Filter Tabs (3D Animated) -->
+                            <div class="filter-tabs flex flex-wrap justify-center gap-2 md:gap-3">
+                                <div class="filter-tab active" data-type="offers"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-handshake"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-handshake"></i></div></div></div><span class="tab-text">Offers</span></div>
+                                <div class="filter-tab" data-type="enquiries"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-search-dollar"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-search-dollar"></i></div></div></div><span class="tab-text">Buyer Enquiries</span></div>
+                                <div class="filter-tab" data-type="crowdfunding"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-rocket"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-rocket"></i></div></div></div><span class="tab-text">Investment Projects</span></div>
+                                <div class="filter-tab" data-type="services"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-cogs"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-cogs"></i></div></div></div><span class="tab-text">Professional Services</span></div>
+                            </div>
+                            <!-- Main Filter Controls -->
+                            <div class="filter-section rounded-2xl p-4 md:p-6">
+                                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                                    <div class="relative w-full md:flex-1 group" id="search-container">
+                                        <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[var(--primary-azure)] transition-colors duration-300"></i>
+                                        <input type="text" id="search-input" placeholder="Search by ID, Asset, Venue, Procedure..." class="form-input w-full py-3 pl-12 pr-28 text-sm">
+                                        <button id="reset-filters-btn-inline" class="hidden absolute right-4 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2 px-3 py-1.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded-lg text-xs hover:bg-sky-500/40 hover:text-white transition-all">
+                                            <i class="fas fa-undo"></i><span>Reset</span>
+                                        </button>
+                                        <div id="search-suggestions" class="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 opacity-0 transform scale-95 pointer-events-none"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 md:gap-4 flex-wrap justify-center">
+                                        <button id="toggle-advanced-filters-btn" class="btn-secondary px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-sliders-h"></i><span>Advanced Filters</span><span id="active-filter-count" class="hidden bg-[var(--primary-azure)] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span></button>
+                                        <button id="reset-filters" class="btn-secondary hidden px-4 py-2.5 rounded-xl text-sm"><i class="fas fa-undo"></i>Reset All</button>
+                                        <div class="flex items-center gap-1 bg-[var(--background-dark)] border border-[var(--border-color)] p-1 rounded-xl">
+                                            <button id="card-view-btn" class="btn-secondary active px-4 py-2 rounded-lg text-sm" title="Card View"><i class="fa fa-th-large"></i></button>
+                                            <button id="kanban-view-btn" class="btn-secondary px-4 py-2 rounded-lg text-sm" title="Kanban View"><i class="fa fa-columns"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <!-- This is the container for the sticky side panel on desktop -->
-    <div id="sticky-filter-sidebar"></div>
-</div>
+                <!-- This is the container for the sticky side panel on desktop -->
+                <div id="sticky-filter-sidebar"></div>
 
-<!-- Advanced Filters Panel (Separate from the above component for stability) -->
-<div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
-    <div class="filter-section rounded-2xl p-6 -mt-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm"></select></div>
-            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
-            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm"></select></div>
-            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm"></select></div>
-        </div>
-        <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
-            <select id="sort-select" class="form-input p-3 text-sm"></select>
-        </div>
-    </div>
-</div>
-                </div> <!-- End of the unified #sticky-filter-header component -->
-
-            </div> <!-- End of #desktop-filter-placeholder -->
-            
-            <!-- This is the container for the sticky side panel on desktop. It will receive the component above. -->
-            <div id="sticky-filter-sidebar"></div>
-        </div>
-
-        <!-- C. Metrics & Data Display (Unchanged) -->
-        <div id="metrics-bar" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"></div>
-        
-        <!-- D. Main Content Display Area (Consolidated & Cleaned) -->
-        <div id="content-display">
-            <!-- Loading Spinner -->
-            <div id="loading-spinner" class="text-center py-20">
-                <div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-4x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div>
-                <p class="mt-6 text-xl">Loading Enhanced Institutional Offers...</p>
-            </div>
-
-            <!-- Card & Kanban Containers -->
-            <div id="card-container" class="hidden grid grid-cols-1 md:grid-cols-2 3xl:grid-cols-5 gap-8"></div>
-            <div id="kanban-container" class="hidden"></div>
-            
-            <!-- Pinnacle "Coming Soon" Showcase (Consolidated Version) -->
-            <div id="placeholder-content" class="hidden placeholder-showcase fade-in-up">
-                <div class="showcase-icon-wrapper">
-                    <div class="showcase-icon-3d">
-                        <div class="showcase-icon-base">
-                            <i id="placeholder-icon" class="fas fa-search-dollar"></i>
-                        </div>
-                        <div class="orbital-ring ring1"></div>
-                        <div class="orbital-ring ring2"></div>
-                        <div class="orbital-ring ring3"></div>
+                 <!-- Advanced Filters Panel -->
+            <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
+                <div class="filter-section rounded-2xl p-6 -mt-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm"></select></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm"></select></div>
+                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm"></select></div>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
+                        <select id="sort-select" class="form-input p-3 text-sm"></select>
                     </div>
                 </div>
-                <h2 id="placeholder-title" class="showcase-title"></h2>
-                <p id="placeholder-text" class="showcase-subtitle"></p>
-                <span id="placeholder-tag" class="showcase-tag"></span>
             </div>
+                
+            </div>
+            
+           
 
-            <!-- No Results Message (Consolidated Version) -->
-            <div id="no-results" class="hidden text-center py-20">
-                <div class="relative inline-block mb-6">
-                    <i class="fas fa-search fa-4x text-gray-600 opacity-50"></i>
-                    <div class="absolute -top-1 -right-1 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center ring-4 ring-[var(--background-primary)]">
-                        <i class="fas fa-times text-white text-sm"></i>
-                    </div>
+            <!-- C. Metrics & Data Display -->
+            <div id="metrics-bar" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"></div>
+            
+            <div id="content-display">
+                <div id="loading-spinner" class="text-center py-20">
+                    <div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-4x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div>
+                    <p class="mt-6 text-xl">Loading Enhanced Institutional Offers...</p>
                 </div>
-                <p class="text-xl font-medium text-gray-400 mb-2">No offers found matching your criteria</p>
-                <p class="text-sm text-gray-500">Try adjusting your search terms or filters</p>
+                <div id="card-container" class="hidden grid grid-cols-1 md:grid-cols-2 3xl:grid-cols-5 gap-8"></div>
+                <div id="kanban-container" class="hidden"></div>
+                <div id="placeholder-content" class="hidden placeholder-showcase fade-in-up">
+                    <div class="showcase-icon-wrapper"><div class="showcase-icon-3d"><div class="showcase-icon-base"><i id="placeholder-icon" class="fas fa-search-dollar"></i></div></div></div>
+                    <h2 id="placeholder-title" class="showcase-title"></h2>
+                    <p id="placeholder-text" class="showcase-subtitle"></p>
+                    <span id="placeholder-tag" class="showcase-tag"></span>
+                </div>
+                <div id="no-results" class="hidden text-center py-20">
+                    <i class="fas fa-search fa-4x text-gray-600 mb-6"></i>
+                    <p class="text-xl font-medium text-gray-400">No offers found matching your criteria</p>
+                    <p class="text-sm text-gray-500">Try adjusting your search terms or filters</p>
+                </div>
             </div>
-        </div>
-    </main>
-</div>
+        </main>
+    </div>
 <!-- =================================================================== -->
 <!-- === DEFINITIVE REPLACEMENT: Pinnacle "Coming Soon" Showcase === -->
 <!-- =================================================================== -->
@@ -1824,11 +1795,11 @@ init: () => {
 //  guaranteed to be free of CSS conflicts.
 // ===================================================================
 toggleAdvancedFilters: () => {
-    // The container is now INSIDE the main filter header
     const container = document.getElementById('advanced-filters-container');
     const btn = document.getElementById('toggle-advanced-filters-btn');
+    const content = container.querySelector('.filter-section');
 
-    if (!container || !btn) {
+    if (!container || !btn || !content) {
         console.error("Advanced filter components not found. Cannot toggle.");
         return;
     }
@@ -1848,14 +1819,16 @@ toggleAdvancedFilters: () => {
         // 2. Attach listeners to the newly created elements.
         Logic.setupAdvancedFilterListeners();
         
-        // 3. Animate the panel open using its own content height.
-        // We now target the direct child of the container for measurement.
-        const contentToMeasure = container.querySelector('.filter-section');
-        if (contentToMeasure) {
-            container.style.maxHeight = contentToMeasure.scrollHeight + 'px';
+        // 3. Animate the panel open.
+        container.style.maxHeight = 'none';
+        const scrollHeight = content.scrollHeight;
+        container.style.maxHeight = '0px';
+
+        setTimeout(() => {
+            container.style.maxHeight = scrollHeight + 'px';
             container.classList.add('open');
             btn.classList.add('active');
-        }
+        }, 10);
     }
 },
 /**
@@ -1926,48 +1899,47 @@ populateAdvancedFilterDropdowns: () => {
         return uniqueItems.map(item => `<option value="${item}">${item}</option>`).join('');
     };
 
-    const assetSelect = document.getElementById('asset-category-select');
-    const settlementSelect = document.getElementById('settlement-select');
-    const procedureSelect = document.getElementById('procedure-select');
-
-    if (!assetSelect || !settlementSelect || !procedureSelect) {
-        return;
-    }
-
     const assetCategories = AppState.allOffers.map(o => o.ASSET_CATEGORY);
-    assetSelect.innerHTML = createOptions(assetCategories);
+    document.getElementById('asset-category-select').innerHTML = createOptions(assetCategories);
 
     const settlementProtocols = AppState.allOffers.map(o => o.SETTLEMENT_PROTOCOL);
-    settlementSelect.innerHTML = createOptions(settlementProtocols);
+    document.getElementById('settlement-select').innerHTML = createOptions(settlementProtocols);
 
     const coreProcedures = AppState.allOffers.map(o => o.CORE_PROCEDURE_TYPE);
-    procedureSelect.innerHTML = createOptions(coreProcedures);
+    document.getElementById('procedure-select').innerHTML = createOptions(coreProcedures);
 },
-populateStatusFilter: () => {
-                const statuses = [
-                    { name: "ACTIVE", dotClass: "status-dot-active" },
-                    { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "status-dot-active-limited-bandwidth" },
-                    { name: "PENDING REVIEW", dotClass: "status-dot-pending-review" },
-                    { name: "WITHDRAWN", dotClass: "status-dot-withdrawn" },
-                    { name: "BLACKLISTED", dotClass: "status-dot-blacklisted" }
-                ];
-                const container = document.getElementById('status-filters-container');
-                if (!container) return; 
+            // ===================================================================
+            //  DEFINITIVE FIX v2: Rock-Solid Checkbox HTML Structure
+            // ===================================================================
+            populateStatusFilter: () => {
+    const statuses = [
+        { name: "ACTIVE", dotClass: "status-dot-active" },
+        { name: "ACTIVE-LIMITED BANDWIDTH", dotClass: "status-dot-active-limited-bandwidth" },
+        { name: "PENDING REVIEW", dotClass: "status-dot-pending-review" },
+        { name: "WITHDRAWN", dotClass: "status-dot-withdrawn" },
+        { name: "BLACKLISTED", dotClass: "status-dot-blacklisted" }
+    ];
+    const container = document.getElementById('status-filters-container');
+    if (!container) return; // Safeguard if the element doesn't exist
 
-                container.innerHTML = statuses.map(status => `
-                    <label class="status-checkbox-item">
-                        <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
-                        <span class="custom-checkbox"><i class="fas fa-check"></i></span>
-                        <span class="flex items-center gap-3 text-gray-400">
-                            <span class="w-2.5 h-2.5 rounded-full ${status.dotClass}"></span>
-                            <span class="text-sm">${status.name}</span>
-                        </span>
-                    </label>
-                `).join('');
-                
-                container.addEventListener('change', Logic.handleStatusFilterChange);
-            },
-            
+    // THE UPGRADED HTML STRUCTURE:
+    // - The <label> now wraps everything for better accessibility and click handling.
+    // - A custom <span> is used for the checkmark box.
+    // - The status text is now grouped with its colored dot.
+    container.innerHTML = statuses.map(status => `
+        <label class="status-checkbox-item">
+            <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
+            <span class="custom-checkbox"><i class="fas fa-check"></i></span>
+            <span class="flex items-center gap-3 text-gray-400">
+                <span class="w-2.5 h-2.5 rounded-full ${status.dotClass}"></span>
+                <span class="text-sm">${status.name}</span>
+            </span>
+        </label>
+    `).join('');
+    
+    // The event listener is attached once to the container for maximum efficiency.
+    container.addEventListener('change', Logic.handleStatusFilterChange);
+},
             // SEVERE UPGRADE: Replaces the old slider function
             updateConfidenceStars: (hoverRating = 0) => {
                 const stars = document.querySelectorAll('.confidence-star');
@@ -3232,36 +3204,41 @@ initStickyFilters: () => {
     const mainPlaceholder = document.getElementById('desktop-filter-placeholder');
     const sidebarContainer = document.getElementById('sticky-filter-sidebar');
 
-    if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer) {
-        console.error("Sticky filter components not found. Aborting initialization.");
-        return;
-    }
-
-    // --- THE FLICKER FIX ---
-    // 1. Measure the natural height of the filter element.
-    const filterHeight = filterElement.offsetHeight;
-    
-    // 2. Apply this height to the placeholder to prevent it from collapsing.
-    // This stops the layout shift that causes the infinite loop.
-    mainPlaceholder.style.minHeight = `${filterHeight}px`;
+    if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer) return;
 
     const observer = new IntersectionObserver(
         ([entry]) => {
             const isStuck = !entry.isIntersecting;
             sidebarContainer.classList.toggle('is-stuck', isStuck);
 
-            // This logic is now safe because the layout doesn't shift.
             if (isStuck) {
                 if (sidebarContainer.firstElementChild !== filterElement) {
                     sidebarContainer.appendChild(filterElement);
+                    
+                    // =================== NEW JAVASCRIPT FIX START ===================
+                    // This forces the browser to re-apply our new CSS rules.
+                    const searchInput = filterElement.querySelector('#search-input');
+                    if (document.activeElement === searchInput) {
+                        searchInput.blur();
+                        searchInput.focus();
+                    }
+                    // ==================== NEW JAVASCRIPT FIX END ====================
                 }
             } else {
                 if (mainPlaceholder.firstElementChild !== filterElement) {
                     mainPlaceholder.appendChild(filterElement);
+                    
+                    // =================== NEW JAVASCRIPT FIX START ===================
+                    // Also apply the fix when moving it back out of the sidebar.
+                    const searchInput = filterElement.querySelector('#search-input');
+                    if (document.activeElement === searchInput) {
+                        searchInput.blur();
+                        searchInput.focus();
+                    }
+                    // ==================== NEW JAVASCRIPT FIX END ====================
                 }
             }
         },
-        // Adjust rootMargin top value to be the negative of your header's height (approx 96px is good)
         { rootMargin: `-96px 0px 0px 0px`, threshold: [0] }
     );
     observer.observe(sentinel);
