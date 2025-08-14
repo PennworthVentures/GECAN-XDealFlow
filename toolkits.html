@@ -515,6 +515,12 @@ label.form-label,
     <dialog id="notification-modal" class="p-0 bg-transparent max-w-lg w-full print-hide"></dialog>
     <dialog id="finalization-modal" class="p-0 bg-transparent max-w-xl w-full print-hide"></dialog>
 
+    <!-- ========================================================================= -->
+    <!-- === DEFINITIVE FIX: RESTORE THE SUBMISSION MODAL CONTAINER === -->
+    <!-- This is the container the JavaScript is trying to open. -->
+    <!-- ========================================================================= -->
+    <dialog id="submission-modal"></dialog>
+    
     <!-- PREMIUM FOOTER (BENCHMARKED) -->
     <footer class="mt-auto pt-16 print-hide">
         <div class="container mx-auto p-6 md:p-10">
@@ -934,16 +940,27 @@ generateExecutiveSummary: (report) => {
      * [NEW & BENCHMARKED] Initiates the first step of the official submission process: the referral ID modal.
      */
     initiateWalletSubmission: () => {
+    // Target the correct modal ID. This ID must exist in your HTML body.
     const modal = document.getElementById('submission-modal');
-    if (!modal) return console.error("CRITICAL: Submission modal container not found.");
+    if (!modal) {
+        console.error("CRITICAL FAILURE: The #submission-modal container is missing from the HTML body.");
+        Utils.showNotification("UI Error: Cannot open submission suite.", "error");
+        return;
+    }
     
+    // Render the first step (Referral Validation) into the modal.
     modal.innerHTML = UI.renderReferralValidationSuite(
         'Secure Submission Protocol', 
         'A valid Partner Referral ID is required to submit this wallet to the GECAN ledger for official review.'
     );
+    
+    // Show the modal.
     modal.showModal();
+    
+    // Attach the event listener to the "Validate" button inside the newly rendered modal.
     document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateSubmissionReferralId);
 },
+
 
     /**
      * [NEW & BENCHMARKED] Validates the entered referral ID. On success, transitions to the full engagement suite.
@@ -970,6 +987,7 @@ generateExecutiveSummary: (report) => {
             if (validationResult.isValid) {
                 Utils.showNotification('Referral ID Validated Successfully!', 'success');
                 const modal = document.getElementById('submission-modal');
+                // On success, render the full submission suite inside the same modal.
                 modal.innerHTML = UI.renderWalletSubmissionSuite(validationResult);
                 Logic.populateOfferIdDropdown();
                 document.getElementById('wallet-submission-form').addEventListener('submit', (e) => {
@@ -2120,7 +2138,9 @@ const UI = {
                     </div>
                     <div class="flex-shrink-0 flex items-center gap-3">
                         <button id="pdf-export-btn" onclick="Logic.generateAndDownloadForensicsPDF()" class="btn-secondary px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button>
-                        <button id="submit-review-btn" onclick="Logic.initiateWalletSubmission()" class="btn-primary font-semibold px-4 py-2 rounded-lg text-sm"><i class="fas fa-paper-plane mr-2"></i>Submit for Official Review</button>
+                        <button id="submit-review-btn" onclick="Logic.initiateWalletSubmission()" class="btn-primary font-semibold px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit for Official Review
+                        </button>
                     </div>
                 </div>
             </div>
