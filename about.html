@@ -274,7 +274,7 @@
                 UI.renderParticles(DEFAULT_THEME_CONFIG);
                 
                 Promise.all([
-                    Logic.createApiRequest('getCompanyProfileData'),
+                    Logic.createApiRequest('getCompanyProfile'),
                     Logic.createApiRequest('getActiveThemeConfig').catch(e => { console.warn("Could not fetch theme, using default."); return null; })
                 ]).then(([profileData, themeJson]) => {
                     if (themeJson) {
@@ -419,4 +419,5 @@
 </script>
 </body>
 </html>
+
 
