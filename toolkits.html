@@ -1705,20 +1705,17 @@ togglePricingConfig: () => {
     Logic.updateModelerUI(true);
 },
             
-// =========================================================================================================
-// === PINNACLE NCNDA/IMFPA & DOCUMENT EXECUTION SUITE (v6.0 - SEVERE OVERHAUL) ===
-// This is the definitive, unabridged, and military-grade replacement for the entire contract workflow.
-// =========================================================================================================
+// ========================================================================================
+// === PINNACLE NCNDA/IMFPA & DOCUMENT EXECUTION SUITE ENGINE (v10.0 - FINAL & UNABRIDGED) ===
+// This is the definitive, military-grade logic and UI for the entire contract workflow.
+// ========================================================================================
 
 // --- A. SEVERELY OVERHAULED LOGIC ---
             openImfpaModal: () => {
                 const modal = document.getElementById('imfpa-modal');
                 if (!modal) return console.error("CRITICAL: IMFPA modal container not found.");
-                
-                // Set default state for the new intelligent features if they don't exist
                 if (AppState.modeler.legal.agreementType === undefined) AppState.modeler.legal.agreementType = 'IMFPA';
                 if (AppState.modeler.legal.autoBalance === undefined) AppState.modeler.legal.autoBalance = true;
-
                 modal.innerHTML = UI.renderImfpaModal();
                 Logic.refreshImfpaModalUI();
                 modal.showModal();
@@ -1727,13 +1724,11 @@ togglePricingConfig: () => {
                 const { legal } = AppState.modeler;
                 const groupsContainer = document.getElementById('imfpa-groups-container');
                 const legalPartiesContainer = document.getElementById('imfpa-legal-parties');
-                
                 if (groupsContainer) groupsContainer.innerHTML = UI.renderImfpaGroups();
                 if (legalPartiesContainer) {
                     const allParties = legal.groups.flatMap(g => g.parties);
                     legalPartiesContainer.innerHTML = allParties.length > 0 ? allParties.map(p => `<div><i class="fas fa-user-check text-premium-gold mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('') : '<p class="text-xs text-premium-text-secondary">No signatory parties defined.</p>';
                 }
-
                 const modalContent = document.getElementById('imfpa-modal');
                 if (modalContent) {
                     modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
@@ -1742,15 +1737,13 @@ togglePricingConfig: () => {
                     modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
                 }
                 Logic.updateImfpaCalculations();
-                Logic.updateContractPreview(); // RESTORED: Update live preview on every refresh
+                Logic.updateContractPreview();
             },
-
             handleModelerInputChangeInModal: (e) => {
                 Logic.handleModelerInputChange(e);
                 Logic.updateImfpaCalculations();
-                Logic.updateContractPreview(); // RESTORED: Update live preview on every input
+                Logic.updateContractPreview();
             },
-
             toggleAgreementType: (isImfpa) => {
                 AppState.modeler.legal.agreementType = isImfpa ? 'IMFPA' : 'NCNDA';
                 const commissionSection = document.getElementById('commission-allocation-section');
@@ -1758,24 +1751,21 @@ togglePricingConfig: () => {
                 const labels = document.querySelectorAll('.agreement-toggle .toggle-label');
                 labels[0].classList.toggle('active', !isImfpa); labels[0].classList.toggle('text-gray-500', isImfpa);
                 labels[1].classList.toggle('active', isImfpa); labels[1].classList.toggle('text-gray-500', !isImfpa);
-                Logic.updateContractPreview(); // RESTORED: Update live preview when type changes
+                Logic.updateContractPreview();
             },
-
             updateImfpaCalculations: () => {
                 const { legal } = AppState.modeler;
                 const { groups, totalCommission, autoBalance } = legal;
-                
                 const totalPoolEl = document.getElementById('imfpa-total-commission-pool');
                 if (totalPoolEl) totalPoolEl.textContent = Utils.formatPrice(totalCommission);
                 
-                // Intelligent Auto-Balancing for Groups
-                if (autoBalance) {
+                if (autoBalance && legal.agreementType === 'IMFPA') {
+                    // Auto-Balance Groups
                     let totalSetGroupPct = 0;
                     const zeroGroups = [];
                     groups.forEach((g, index) => {
                         const pct = parseFloat(g.percentage) || 0;
-                        if (pct > 0) totalSetGroupPct += pct;
-                        else zeroGroups.push(index);
+                        if (pct > 0) totalSetGroupPct += pct; else zeroGroups.push(index);
                     });
                     if (zeroGroups.length > 0 && totalSetGroupPct < 100) {
                         const remainingPct = 100 - totalSetGroupPct;
@@ -1792,23 +1782,20 @@ togglePricingConfig: () => {
                 const totalAllocatedEl = document.getElementById('imfpa-total-allocated');
                 if (totalAllocatedEl) {
                     totalAllocatedEl.textContent = `Total Allocated: ${totalGroupPct.toFixed(2)}%`;
-                    const isBalanced = Math.abs(totalGroupPct - 100) < 0.01;
-                    totalAllocatedEl.className = `text-right font-mono text-sm ${isBalanced ? 'text-success-color' : 'text-error-color'}`;
+                    totalAllocatedEl.className = `text-right font-mono text-sm ${Math.abs(totalGroupPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
                 }
 
                 groups.forEach((g, groupIndex) => {
                     const groupValueEl = document.getElementById(`imfpa-group-value-${groupIndex}`);
-                    const groupPercentage = parseFloat(g.percentage) || 0;
-                    if(groupValueEl) groupValueEl.textContent = Utils.formatPrice(totalCommission * (groupPercentage / 100));
-
-                    // Intelligent Auto-Balancing for Parties within a Group
-                    if (autoBalance) {
+                    if(groupValueEl) groupValueEl.textContent = Utils.formatPrice(totalCommission * ((parseFloat(g.percentage) || 0) / 100));
+                    
+                    if (autoBalance && legal.agreementType === 'IMFPA') {
+                        // Auto-Balance Parties
                         let totalSetPartyPct = 0;
                         const zeroParties = [];
                         g.parties.forEach((p, partyIndex) => {
                             const pct = parseFloat(p.percentage) || 0;
-                            if (pct > 0) totalSetPartyPct += pct;
-                            else zeroParties.push(partyIndex);
+                            if (pct > 0) totalSetPartyPct += pct; else zeroParties.push(partyIndex);
                         });
                         if (zeroParties.length > 0 && totalSetPartyPct < 100) {
                             const remainingPct = 100 - totalSetPartyPct;
@@ -1825,8 +1812,7 @@ togglePricingConfig: () => {
                     const groupTotalEl = document.getElementById(`imfpa-group-total-${groupIndex}`);
                     if (groupTotalEl) {
                         groupTotalEl.textContent = `Group Total: ${totalPartyPct.toFixed(2)}%`;
-                        const isGroupBalanced = Math.abs(totalPartyPct - 100) < 0.01;
-                        groupTotalEl.className = `text-right font-mono text-xs ${isGroupBalanced ? 'text-success-color' : 'text-error-color'}`;
+                        groupTotalEl.className = `text-right font-mono text-xs ${Math.abs(totalPartyPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
                     }
                 });
             },
@@ -1836,35 +1822,29 @@ togglePricingConfig: () => {
                 const calc = Logic.calculateModel();
                 previewContainer.innerHTML = UI.renderContractPreview(AppState.modeler.legal, calc);
             },
-
             addImfpaGroup: () => { AppState.modeler.legal.groups.push({ name: `Group ${AppState.modeler.legal.groups.length + 1}`, percentage: 0, parties: [] }); Logic.refreshImfpaModalUI(); },
             removeImfpaGroup: (groupIndex) => { AppState.modeler.legal.groups.splice(groupIndex, 1); Logic.refreshImfpaModalUI(); },
             addImfpaParty: (groupIndex) => { if (!AppState.modeler.legal.groups[groupIndex]) return; AppState.modeler.legal.groups[groupIndex].parties.push({ legalName: `New Party`, role: 'Intermediary', percentage: 0, detailsVisible: true, email: '', contactNumber: '', passport: { number: '', issueDate: '', expiryDate: '', authority: '' }, payment: { method: 'Bank Wire', currency: 'USD', details: '' } }); Logic.refreshImfpaModalUI(); },
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
             togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
-            
             generateContract: () => {
                 const { legal } = AppState.modeler;
                 const calc = Logic.calculateModel();
                 if (!calc) return Utils.showNotification("Define core deal parameters first.", 'error');
-                
                 const allParties = legal.groups.flatMap(g => g.parties);
                 const isImfpa = legal.agreementType === 'IMFPA';
-                
-                // Context-Aware Validation Engine
                 if (isImfpa) {
+                    if (legal.groups.length === 0) return Utils.showNotification("IMFPA requires at least one allocation group.", 'error');
                     const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-                    if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("IMFPA requires group allocation to equal exactly 100%.", 'error');
+                    if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("IMFPA requires group allocation to equal 100%. Disable Auto-Balance to set manually.", 'error');
                     for (const group of legal.groups) {
                         const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-                        if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation in "${group.name}" must equal 100%.`, 'error');
+                        if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation in "${group.name}" must equal 100%. Disable Auto-Balance to set manually.`, 'error');
                     }
                     if (allParties.length === 0) return Utils.showNotification("IMFPA requires at least one beneficiary party.", 'error');
-                } else {
-                    // For NCNDA, we need at least two parties to agree, even if no groups are defined.
-                    const signatoryParties = legal.ncndaParties || []; // Assumes a state structure for NCNDA-only parties if needed, or defaults to empty
-                    if (signatoryParties.length < 2 && allParties.length < 2) return Utils.showNotification("An NCNDA requires at least two signatory parties. Add parties via the 'Add Group' workflow.", 'error');
                 }
+                if (allParties.length < 2) return Utils.showNotification("An agreement requires at least two signatory parties.", 'error');
+                if (allParties.some(p => !p.legalName || !p.role || !p.email)) return Utils.showNotification("All parties must have a Legal Name, Role, and Email defined.", 'error');
                 
                 const agreementReference = `GECAN-${legal.agreementType}-${new Date().getTime()}`;
                 document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
@@ -1984,28 +1964,90 @@ setupFileUpload: (type) => { // 'upload' for signature, 'seal' for seal
     };
 },
 
-processImageForTransparency: (imageDataUrl, threshold = 240) => {
+processImageForTransparency: (imageDataUrl) => {
     return new Promise((resolve, reject) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
         img.crossOrigin = "Anonymous";
+
         img.onload = () => {
-            canvas.width = img.width; canvas.height = img.height;
+            canvas.width = img.width;
+            canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
+
             try {
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
+
+                // --- SUPREME INTELLIGENCE: DYNAMIC BACKGROUND DETECTION ---
+                // Sample the corner pixel color to intelligently determine the background.
+                const cornerPixel = [data[0], data[1], data[2]];
+                const isLightBg = (cornerPixel[0] + cornerPixel[1] + cornerPixel[2]) / 3 > 128;
+
+                if (!isLightBg) {
+                    // If the background is not light, we assume it's a pre-processed transparent PNG.
+                    // No processing needed, just resolve.
+                    resolve(canvas.toDataURL('image/png'));
+                    return;
+                }
+
+                const bgR = cornerPixel[0];
+                const bgG = cornerPixel[1];
+                const bgB = cornerPixel[2];
+                // Dynamic threshold adapts to the detected background color.
+                const threshold = 30; 
+
+                // --- PINNACLE-GRADE PROCESSING: PIXEL-BY-PIXEL ANALYSIS ---
                 for (let i = 0; i < data.length; i += 4) {
-                    if (data[i] > threshold && data[i + 1] > threshold && data[i + 2] > threshold) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+
+                    // Calculate color distance from the detected background color.
+                    const distance = Math.sqrt(
+                        Math.pow(r - bgR, 2) +
+                        Math.pow(g - bgG, 2) +
+                        Math.pow(b - bgB, 2)
+                    );
+
+                    if (distance < threshold) {
+                        // Pixel is part of the background, make it transparent.
                         data[i + 3] = 0;
+                    } else {
+                        // --- SEVERE UPGRADE: RE-TONE TO LEGAL NAVY BLUE & ENHANCE CONTRAST ---
+                        // This pixel is part of the signature.
+                        // Convert to grayscale to neutralize original color.
+                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                        
+                        // Re-tone to a legally profound navy blue (#1A237E).
+                        // The darker the original pixel, the closer to pure navy it becomes.
+                        const intensity = 1 - (gray / 255);
+                        data[i] = 26 * intensity;   // R channel for #1A237E
+                        data[i + 1] = 35 * intensity; // G channel for #1A237E
+                        data[i + 2] = 126 * intensity;// B channel for #1A237E
+
+                        // Enhance alpha based on intensity for smoother edges.
+                        data[i + 3] = 255 * Math.pow(intensity, 0.8);
                     }
                 }
+
+                // Put the modified, optimized, and re-toned image data back onto the canvas.
                 ctx.putImageData(imageData, 0, 0);
+                
+                // Resolve the Promise with the new, pinnacle-grade PNG data URL.
                 resolve(canvas.toDataURL('image/png'));
-            } catch (e) { reject(new Error("Cannot process image due to security restrictions.")); }
+            } catch (e) {
+                console.error("Could not process image data due to security restrictions:", e);
+                reject(new Error("Image is from a different origin or is security-protected. Please use the 'Draw Signature' method or a different image file."));
+            }
         };
-        img.onerror = () => reject(new Error("Failed to load image."));
+
+        img.onerror = () => {
+            reject(new Error("Failed to load the signature image for processing. The file may be corrupt or inaccessible."));
+        };
+
+        // Start loading the image
         img.src = imageDataUrl;
     });
 },
@@ -2067,8 +2109,11 @@ resetSignatureInputs: () => {
 },
 
 sendForSignature: () => {
-    document.getElementById('finalization-modal').showModal();
-},
+                const modal = document.getElementById('finalization-modal');
+                if(!modal) return;
+                modal.innerHTML = UI.renderFinalizationModal();
+                modal.showModal();
+            },
 
 simpleHash: async (str) => {
     const buffer = new TextEncoder().encode(str);
@@ -2642,41 +2687,86 @@ renderYieldGraph: (calc) => {
 
     // --- IMFPA & DOCUMENT EXECUTION SUITE RENDERERS (v6.0 Pinnacle Overhaul) ---
     renderImfpaModal: () => {
-                const { legal } = AppState.modeler;
-                const isImfpa = legal.agreementType === 'IMFPA';
-                return `<div class="dialog-content-wrapper"><div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-start mb-6 imfpa-header"><div><h2 class="text-3xl font-bold">Commission & Contract Suite</h2><p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p></div><button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button></div><div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6"><span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span><label class="toggle-switch"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}><span class="toggle-slider"></span></label><span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span></div><div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2"><div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4"><div id="commission-allocation-section" class="space-y-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}"><div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-premium-text-secondary">Total Pool</p><p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p></div></div><div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container"></div></div><div class="space-y-6"><h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework & Parties</h3><div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Governing Law</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div><div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Cross-Referenced SPA</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div><div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Signatory Parties</label><div id="imfpa-legal-parties" class="space-y-2 text-sm text-premium-text-secondary min-h-[50px]"></div></div></div></div><div class="lg:col-span-2"><h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3><div id="contract-live-preview"></div></div></div><div class="pt-6 border-t border-premium-border mt-auto print-hide"><button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Full Document</button><div id="contract-preview-container" class="mt-4 hidden"></div></div></div></div>`;
-    },
-    renderImfpaGroups: () => {
+    const { legal } = AppState.modeler;
+    const isImfpa = legal.agreementType === 'IMFPA';
+
+    return `
+        <div class="dialog-content-wrapper">
+            <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
+                <div class="flex justify-between items-start mb-6 imfpa-header">
+                    <div>
+                        <h2 class="text-3xl font-bold">Commission & Contract Suite</h2>
+                        <p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p>
+                    </div>
+                    <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button>
+                </div>
+
+                <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
+                    <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2">
+                    <div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4">
+                        <div id="commission-allocation-section" class="space-y-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}">
+                            <div class="flex justify-between items-center">
+                                <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3>
+                                <div class="text-right">
+                                    <p class="text-xs text-premium-text-secondary">Total Pool</p>
+                                    <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button>
+                                <div class="flex items-center gap-2 text-xs">
+                                    <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold">
+                                    <label for="auto-balance-toggle">Auto-Balance</label>
+                                </div>
+                                <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
+                            </div>
+                            <div class="space-y-4" id="imfpa-groups-container"></div>
+                        </div>
+                        <div class="space-y-6">
+                            <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework & Parties</h3>
+                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Governing Law</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
+                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Cross-Referenced SPA</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
+                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Signatory Parties</label><div id="imfpa-legal-parties" class="space-y-2 text-sm text-premium-text-secondary min-h-[50px]"></div></div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
+                        <div id="contract-live-preview"></div>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-premium-border mt-auto print-hide">
+                    <button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Full Document</button>
+                    <div id="contract-preview-container" class="mt-4 hidden"></div>
+                </div>
+            </div>
+        </div>
+    `;
+},
+renderImfpaGroups: () => {
     const { groups } = AppState.modeler.legal;
     if (!groups || groups.length === 0) return `<p class="text-center text-premium-text-secondary py-4">No allocation groups defined. Click 'Add Group' to begin.</p>`;
     return groups.map((g, groupIndex) => `<div class="allocation-group-card p-4"><div class="flex items-center gap-2 mb-3"><input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-premium-text-primary" placeholder="Group Name"><div class="relative w-32"><input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div><button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex items-center justify-center transition">×</button></div><p id="imfpa-group-value-${groupIndex}" class="text-right text-premium-gold font-mono text-lg mb-4"></p><div class="space-y-2 pl-4 border-l-2 border-premium-border">${g.parties.map((p, partyIndex) => UI.renderImfpaParty(groupIndex, partyIndex)).join('')}<div class="flex justify-between items-center pt-2"><button onclick="Logic.addImfpaParty(${groupIndex})" class="text-premium-gold hover:text-yellow-300 text-xs font-semibold"><i class="fas fa-user-plus mr-1"></i>Add Party</button><div id="imfpa-group-total-${groupIndex}" class="text-right font-mono text-xs"></div></div></div></div>`).join('');
 },
-    renderImfpaParty: (groupIndex, partyIndex) => {
+
+renderImfpaParty: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
     return `<div class="allocation-party-card p-3"><div class="flex items-center gap-2"><input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-premium-text-primary" placeholder="Full Legal Name"><div class="relative w-24"><input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div><button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex items-center justify-center transition">×</button></div><div class="mt-2"><a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1 w-full"><i class="fas fa-user-cog"></i> Manage Details <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i></a></div><div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}"><div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div></div></div>`;
 },
-    renderImfpaPartyDetails: (groupIndex, partyIndex) => {
+
+renderImfpaPartyDetails: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
     const paymentDetailsPlaceholder = { 'Bank Wire': 'IBAN, SWIFT, Bank Info...', 'USDT TRC-20': 'TRC-20 Wallet Address', 'USDT ERC-20': 'ERC-20 Wallet Address' }[party.payment.method] || 'Details...';
-    
-    // This HTML structure is the definitive, high-prestige, and fully functional version.
-    return `
-        <div class="party-details-grid">
-            <div><span class="party-detail-label">Role</span><input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate"></div>
-            <div><span class="party-detail-label">Email</span><input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="contact@email.com"></div>
-            <div><span class="party-detail-label">Contact Number</span><input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567"></div>
-            <div><span class="party-detail-label">Passport No.</span><input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="P12345678"></div>
-            <div><span class="party-detail-label">Passport Issue Date</span><input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate"></div>
-            <div><span class="party-detail-label">Passport Expiry Date</span><input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate"></div>
-            <div class="col-span-2"><span class="party-detail-label">Passport Issuing Authority</span><input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="USA"></div>
-            <div class="col-span-2 pt-2 mt-2 border-t border-premium-border"><span class="party-detail-label font-bold">Payment Method</span></div>
-            <div><select class="form-select !text-xs" data-path="${base}.payment.method"><option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option><option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option><option value="USDT ERC-20" ${party.payment.method === 'USDT ERC-20' ? 'selected':''}>USDT (ERC-20)</option></select></div>
-            <div><select class="form-select !text-xs" data-path="${base}.payment.currency"><option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option><option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option><option value="EUR" ${party.payment.currency === 'EUR' ? 'selected':''}>EUR</option></select></div>
-            <div class="col-span-2"><span class="party-detail-label">Payment Coordinates</span><textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea></div>
-        </div>
-    `;
+    return `<div class="party-details-grid"><div><span class="party-detail-label">Role</span><input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate"></div><div><span class="party-detail-label">Email</span><input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="contact@email.com"></div><div><span class="party-detail-label">Contact Number</span><input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567"></div><div><span class="party-detail-label">Passport No.</span><input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="P12345678"></div><div><span class="party-detail-label">Passport Issue Date</span><input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate"></div><div><span class="party-detail-label">Passport Expiry Date</span><input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate"></div><div class="col-span-2"><span class="party-detail-label">Passport Issuing Authority</span><input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="USA"></div><div class="col-span-2 pt-2 mt-2 border-t border-premium-border"><span class="party-detail-label font-bold">Payment Method</span></div><div><select class="form-select !text-xs" data-path="${base}.payment.method"><option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option><option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option><option value="USDT ERC-20" ${party.payment.method === 'USDT ERC-20' ? 'selected':''}>USDT (ERC-20)</option></select></div><div><select class="form-select !text-xs" data-path="${base}.payment.currency"><option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option><option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option><option value="EUR" ${party.payment.currency === 'EUR' ? 'selected':''}>EUR</option></select></div><div class="col-span-2"><span class="party-detail-label">Payment Coordinates</span><textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea></div></div>`;
 },
 renderExecutionSuite: (contractHTML) => `
     <div id="execution-suite"><div class="step-panel step-1"><h4>Step 1: Sign & Prepare Document</h4><p class="text-sm mt-2 mb-4">Apply all known signatures and corporate seals. This prepares the document for the final, binding workflow.</p><button id="launch-signing-btn" class="execution-btn" onclick="Logic.initiateSigningProcess()"><i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite</button></div><div id="finalization-step-panel" class="step-panel step-2 opacity-50 pointer-events-none"><h4>Step 2: Finalize & Dispatch</h4><p class="text-sm mt-2 mb-4">This will lock the document and dispatch the finalized PDF to all parties.</p><button id="send-for-signature-btn" class="execution-btn" onclick="Logic.sendForSignature()"><i class="fas fa-paper-plane mr-2"></i>Lock & Send to Parties</button></div></div><div id="contract-document-wrapper">${contractHTML}</div>`,
