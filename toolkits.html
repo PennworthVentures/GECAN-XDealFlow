@@ -290,6 +290,78 @@ dialog::backdrop {
     from { opacity: 0; transform: scale(0.95); } 
     to { opacity: 1; transform: scale(1); } 
 }
+
+        /* ========================================================================= */
+/* === DEFINITIVE FORM TEXT & LEGEND STYLES (PINNACLE STANDARD v5.4) === */
+/* This block specifically targets form labels and legends for perfect text color. */
+/* ========================================================================= */
+
+/* --- A. Fieldset & Legend Enhancement --- */
+fieldset {
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    position: relative; /* Required for legend positioning */
+    margin-top: 1rem; /* Add space for the legend */
+}
+
+legend {
+    /* Styling for "Transaction Context", "Your Details", etc. */
+    padding: 0 0.5rem; /* Horizontal padding */
+    margin-left: 0.5rem; /* Indent from the left edge */
+    font-size: 1.125rem; /* 18px for better hierarchy */
+    font-weight: 600; /* Semibold */
+    
+    /* DEFINITIVE TEXT COLOR FIX */
+    color: var(--primary-azure);
+    
+    /* Ensures it sits correctly on top of the fieldset border */
+    position: relative;
+    top: -0.5rem;
+    display: inline-block;
+    width: auto;
+}
+
+/* --- B. Label Enhancement --- */
+label.form-label,
+/* Target labels within the submission form specifically for robustness */
+#wallet-submission-form label {
+    display: block;
+    margin-bottom: 0.25rem; /* 4px space below the label */
+    font-size: 0.875rem; /* 14px */
+    font-weight: 500; /* Medium weight */
+    
+    /* DEFINITIVE TEXT COLOR FIX */
+    color: var(--text-platinum); /* Use a slightly softer white for labels for better contrast against pure white input text */
+}
+
+/* --- C. Recommendation Box Text Enhancement --- */
+.recommendation-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: rgba(245, 158, 11, 0.05); /* --warning-color with low opacity */
+    border-left: 4px solid var(--warning-color);
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.recommendation-box h4 {
+    font-weight: 600;
+    color: var(--warning-color);
+}
+
+.recommendation-box p {
+    font-size: 0.875rem;
+    
+    /* DEFINITIVE TEXT COLOR FIX */
+    color: var(--text-secondary); /* A clear, readable grey */
+    margin-top: 0.25rem;
+}
+
+.recommendation-box strong {
+    /* DEFINITIVE TEXT COLOR FIX */
+    color: var(--text-diamond); /* Pure white for emphasis */
+    font-weight: 600;
+}
     </style>
 </head>
 <body class="min-h-screen">
@@ -2040,56 +2112,56 @@ const UI = {
                 <!-- Scrollable Content -->
                 <div class="p-6 space-y-6 overflow-y-auto">
                     <!-- Section 1: Wallet & Offer Details -->
-                    <fieldset class="space-y-4 p-4 border border-border-color rounded-lg">
-                        <legend class="text-lg font-semibold text-primary-azure px-2">Transaction Context</legend>
+                    <fieldset class="space-y-4">
+                        <legend>Transaction Context</legend>
                         <div>
-                            <label class="block text-sm font-medium text-text-muted mb-1">Wallet Address to be Submitted</label>
+                            <label class="form-label">Wallet Address to be Submitted</label>
                             <input type="text" class="form-input" value="${report.wallet.address}" readonly>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-text-muted mb-1">Target Offer ID (If Applicable)</label>
+                            <label class="form-label">Target Offer ID (If Applicable)</label>
                             <select id="submission-offer-id" class="form-select"></select>
                         </div>
                     </fieldset>
 
                     <!-- Section 2: Your Details -->
-                    <fieldset class="space-y-4 p-4 border border-border-color rounded-lg">
-                        <legend class="text-lg font-semibold text-primary-azure px-2">Your Details (Submitter)</legend>
+                    <fieldset class="space-y-4">
+                        <legend>Your Details (Submitter)</legend>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Your Full Name*</label>
+                                <label class="form-label">Your Full Name*</label>
                                 <input type="text" id="submitter-name" class="form-input" placeholder="e.g., Jane Smith" required>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Your Role*</label>
+                                <label class="form-label">Your Role*</label>
                                 <input type="text" id="submitter-role" class="form-input" placeholder="e.g., Mandate, Broker" required>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Your Contact Email*</label>
+                                <label class="form-label">Your Contact Email*</label>
                                 <input type="email" id="submitter-email" class="form-input" placeholder="you@example.com" required>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-text-muted mb-1">Your Contact Phone*</label>
+                                <label class="form-label">Your Contact Phone*</label>
                                 <input type="tel" id="submitter-phone" class="form-input" placeholder="+1 555 123 4567" required>
                             </div>
                         </div>
                     </fieldset>
 
                     <!-- Section 3: Controller Details -->
-                    <fieldset class="space-y-4 p-4 border border-border-color rounded-lg">
-                        <legend class="text-lg font-semibold text-primary-azure px-2">Alleged Wallet Controller</legend>
+                    <fieldset class="space-y-4">
+                        <legend>Alleged Wallet Controller</legend>
                         <div>
-                            <label class="block text-sm font-medium text-text-muted mb-1">Principal / Entity Name*</label>
+                            <label class="form-label">Principal / Entity Name*</label>
                             <input type="text" id="controller-name" class="form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required>
                         </div>
-                        <div class="mt-4 p-4 bg-amber-500/10 border-l-4 border-amber-500 rounded-r-lg">
-                            <h4 class="font-semibold text-amber-400">Recommendation</h4>
-                            <p class="text-sm text-text-secondary mt-1">For expedited review, it is highly recommended to provide the alleged controller's Customer Information Sheet (CIS) and Proof of Funds (POF) via secure email to <strong class="text-white">compliance@gecan.co</strong> after submission.</p>
+                        <div class="recommendation-box">
+                            <h4>Recommendation</h4>
+                            <p>For expedited review, it is highly recommended to provide the alleged controller's Customer Information Sheet (CIS) and Proof of Funds (POF) via secure email to <strong>compliance@gecan.co</strong> after submission.</p>
                         </div>
                     </fieldset>
                     
                     <div>
-                        <label class="block text-sm font-medium text-text-muted mb-1">Referring Partner</label>
+                        <label class="form-label">Referring Partner</label>
                         <input type="text" class="form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly>
                     </div>
                 </div>
