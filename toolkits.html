@@ -1594,49 +1594,134 @@ const UI = {
      * @returns {string} The complete HTML string for the report.
      */
     buildWalletReportHTML: (report) => {
-        const { wallet, analysis, provenance, transactions } = report;
-        const { walletClassification, redFlags, riskLevel, integrityScore, scoreBreakdown } = analysis;
-        const riskClass = `risk-${riskLevel}`;
-        const uniqueControllers = [...new Set((provenance.records || []).map(r => r.controller).filter(c => c && c.toUpperCase() !== 'UNKNOWN'))];
-        
-        const createScoreGauge = (score, label, size = 'w-40 h-40', isMain = false) => {
-            let scoreClass = 'gauge-low'; if (score < 40) scoreClass = 'gauge-critical'; else if (score < 65) scoreClass = 'gauge-high'; else if (score < 80) scoreClass = 'gauge-medium';
-            return `<div class="text-center animate-scale-in"><div class="relative ${size} mx-auto mb-3 transition-transform duration-300 hover:scale-105"><svg viewBox="0 0 36 36" class="w-full h-full"><defs><linearGradient id="scoreGradient" x1="0%" y1="0%" x2="0%" y2="100%" gradientTransform="rotate(90)"><stop offset="0%" stop-color="var(--critical-color)"/><stop offset="65%" stop-color="var(--warning-color)"/><stop offset="100%" stop-color="var(--success-color)"/></linearGradient></defs><circle cx="18" cy="18" r="15.9155" class="score-gauge-bg"></circle><circle cx="18" cy="18" r="15.9155" class="score-gauge-fg" stroke="url(#scoreGradient)" data-score="${score}"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="score-display ${isMain ? 'text-5xl' : 'text-3xl'} font-black transition-colors duration-500 ${scoreClass}">${Math.round(score)}</span>${isMain ? `<span class="text-xs font-bold -mt-1 ${scoreClass}">/ 100</span>` : ''}</div></div><p class="text-sm font-semibold text-white">${label}</p></div>`;
-        };
+    const { wallet, analysis, provenance, transactions } = report;
+    const { walletClassification, redFlags, riskLevel, integrityScore, scoreBreakdown } = analysis;
+    const riskClass = `risk-${riskLevel}`;
 
-        const headerTags = [];
-        if (provenance.records.length > 0) headerTags.push({ text: 'GECAN LEDGER MATCH', class: 'bg-success-color/20 text-success-color' }); else headerTags.push({ text: 'UNVERIFIED IN LEDGER', class: 'bg-warning-color/20 text-warning-color' });
-        headerTags.push({ text: `${riskLevel} RISK`, class: `bg-${riskClass.replace('risk-','')} text-${riskClass.replace('risk-','')}` });
-        if (uniqueControllers.length > 1) headerTags.push({ text: 'OWNERSHIP CONFLICT', class: 'bg-critical-color/20 text-critical-color' });
-        
-        return `<div class="animate-fade-in-up"><div class="mb-8"><div class="glass p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center flex-wrap gap-4"><div class="flex-1 min-w-0"><div class="flex items-center gap-3"><i class="fas fa-wallet text-2xl text-primary-azure"></i><a href="${Logic.getExplorerUrl(wallet)}" target="_blank" class="font-mono text-lg text-white truncate hover:underline">${wallet.address}</a><button onclick="Utils.copyToClipboard('${wallet.address}', this)" class="text-text-muted hover:text-white relative group"><i class="fas fa-copy"></i><span class="copied-feedback absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-success-color text-white px-2 py-1 rounded-md opacity-0 pointer-events-none">Copied!</span></button></div><div class="flex flex-wrap items-center gap-2 mt-2">${headerTags.map(tag => `<span class="text-xs font-bold px-3 py-1 rounded-full ${tag.class}">${tag.text}</span>`).join('')}</div></div><div class="flex-shrink-0"><button id="pdf-print-btn" onclick="Logic.generateAndDownloadForensicsPDF()" class="btn-primary px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-2 space-y-8"><div class="report-section p-6 animate-fade-in-up stagger-1"><h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3"><i class="fas fa-file-invoice text-primary-azure"></i>Executive Summary</h3><p class="text-text-secondary leading-relaxed">${Logic.generateExecutiveSummary(report)}</p></div><div class="report-section p-6 animate-fade-in-up stagger-3"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-flag text-warning-color"></i>Risk Assessment</h3>${redFlags.length > 0 ? `<div class="space-y-4 max-h-[28rem] overflow-y-auto pr-2">${redFlags.map(flag => `<div class="glass p-4 rounded-xl border-l-4 ${'risk-' + flag.level} border-risk-color"><div class="flex items-start gap-4"><i class="fas ${Utils.getRiskIcon(flag.level)} text-risk-color text-xl mt-1"></i><div><p class="font-bold text-risk-color">${flag.title}</p><p class="text-sm text-text-secondary mt-1">${flag.details}</p></div></div></div>`).join('')}</div>` : `<div class="text-center text-text-muted py-12"><i class="fas fa-check-circle text-success-color fa-3x mb-4"></i><p class="font-semibold text-text-secondary">No Significant Compliance Flags Detected</p></div>`}</div></div><div class="lg:col-span-1 space-y-8"><div class="report-section p-6 animate-fade-in-up stagger-1"><h3 class="text-xl font-bold text-white mb-6 text-center">Scoring Dashboard</h3>${createScoreGauge(integrityScore, 'Overall Integrity Score', 'w-40 h-40', true)}<div class="mt-8 border-t border-border-color pt-6 grid grid-cols-2 gap-6">${createScoreGauge(scoreBreakdown.provenance.score, 'Provenance', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.behavioral.score, 'Behavioral', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.temporal.score, 'Temporal', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.compliance.score, 'Compliance', 'w-28 h-28')}</div></div><div class="report-section p-6 animate-fade-in-up stagger-2"><h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3"><i class="fas fa-microchip text-primary-royal"></i>Wallet Classification</h3><div class="text-center p-4 glass rounded-xl"><i class="fas ${walletClassification.icon} fa-3x mb-3 text-primary-azure"></i><p class="text-2xl font-bold text-white">${walletClassification.type}</p><div class="mt-2 text-xs text-text-muted">Confidence: <span class="font-semibold text-text-secondary">${walletClassification.confidence}</span> | Source: <span class="font-semibold text-text-secondary">${walletClassification.source}</span></div></div></div><div class="report-section p-6 animate-fade-in-up stagger-4"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-history text-primary-amethyst"></i>GECAN Provenance Timeline</h3><div class="relative">${provenance.records.length > 0 ? provenance.records.map((rec) => `<div class="timeline-item"><div class="timeline-dot"><div class="timeline-dot-inner ${uniqueControllers.length > 1 ? 'bg-critical-color' : 'bg-primary-azure'}"></div></div><p class="text-xs font-mono text-text-muted mb-1">${rec.date}</p><p class="font-semibold text-white">Controller: <span class="text-primary-azure">${rec.controller}</span></p></div>`).join('') : `<div class="text-center text-text-muted py-8"><i class="fas fa-question-circle text-warning-color fa-2x mb-3"></i><p class="font-semibold text-text-secondary text-sm">No GECAN Ledger Records</p></div>`}</div></div></div></div></div>`;
-    },
+    // --- DERIVED METRICS: Calculated once for efficiency and consistency ---
+    const reliableTransactionCount = Array.isArray(transactions) ? transactions.length : (wallet.transactionCount || 0);
+    const inboundCount = reliableTransactionCount > 0 ? transactions.filter(tx => tx.type === 'Receive').length : 0;
+    const outboundCount = reliableTransactionCount > 0 ? transactions.filter(tx => tx.type === 'Send').length : 0;
+    const lastActivityDate = reliableTransactionCount > 0 && transactions?.[0]?.time ? new Date(transactions[0].time) : new Date(wallet.firstTransaction);
+    const daysSinceLastTx = lastActivityDate ? Math.floor((new Date() - lastActivityDate) / (1000 * 60 * 60 * 24)) : 'N/A';
+    const transactionVelocity = wallet.ageInDays > 0 ? (reliableTransactionCount / wallet.ageInDays).toFixed(2) : '0.00';
+    const uniqueControllers = [...new Set((provenance.records || []).map(r => r.controller).filter(c => c && c.toUpperCase() !== 'UNKNOWN'))];
 
+    // --- Dynamic Header Tags ---
+    const headerTags = [];
+    if (provenance.records.length > 0) headerTags.push({ text: 'GECAN LEDGER MATCH', class: 'bg-success-color/20 text-success-color' });
+    else headerTags.push({ text: 'UNVERIFIED IN LEDGER', class: 'bg-warning-color/20 text-warning-color' });
+    headerTags.push({ text: `${riskLevel} RISK`, class: `bg-${riskClass.replace('risk-','')}-color/20 text-${riskClass.replace('risk-','')}-color` });
+    if (uniqueControllers.length > 1) headerTags.push({ text: 'OWNERSHIP CONFLICT', class: 'bg-critical-color/20 text-critical-color' });
+    if (walletClassification.type === 'BLACKLISTED') headerTags.push({ text: 'BLACKLISTED', class: 'bg-critical-color/20 text-critical-color font-bold' });
+
+    // --- Severely Upgraded Score Gauge Helper v8.1 ---
+    const createScoreGauge = (score, label, size = 'w-40 h-40', isMain = false) => {
+        let scoreClass = 'gauge-low';
+        if (score < 40) scoreClass = 'gauge-critical'; else if (score < 65) scoreClass = 'gauge-high'; else if (score < 80) scoreClass = 'gauge-medium';
+        return `
+        <div class="text-center animate-scale-in"><div class="relative ${size} mx-auto mb-3 transition-transform duration-300 hover:scale-105"><svg viewBox="0 0 36 36" class="w-full h-full"><defs><linearGradient id="scoreGradient" x1="0%" y1="0%" x2="0%" y2="100%" gradientTransform="rotate(90)"><stop offset="0%" stop-color="var(--critical-color)" /><stop offset="65%" stop-color="var(--warning-color)" /><stop offset="100%" stop-color="var(--success-color)" /></linearGradient></defs><circle cx="18" cy="18" r="15.9155" class="score-gauge-bg"></circle><circle cx="18" cy="18" r="15.9155" class="score-gauge-fg" stroke="url(#scoreGradient)" data-score="${score}"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="score-display ${isMain ? 'text-5xl' : 'text-3xl'} font-black transition-colors duration-500 ${scoreClass}">${Math.round(score)}</span>${isMain ? `<span class="text-xs font-bold -mt-1 ${scoreClass}">/ 100</span>` : ''}</div></div><p class="text-sm font-semibold text-white">${label}</p></div>`;
+    };
+
+    // --- Severely Upgraded Transaction Ledger Helper ---
+    const createTransactionLedgerHTML = (transactions, walletType, walletAddress) => {
+        if (reliableTransactionCount === 0) return `<div class="text-center text-text-muted py-12"><i class="fas fa-exchange-alt fa-3x mb-4"></i><p class="font-semibold text-text-secondary">No On-Chain Transactions Found</p></div>`;
+        const currency = walletType === 'BITCOIN' ? 'BTC' : 'USDT';
+        return `
+            <div class="grid grid-cols-3 gap-4 mb-6 text-center">
+                <div class="glass p-3 rounded-lg"><p class="text-xs text-text-muted">Total Txs</p><p class="text-xl font-bold text-white">${reliableTransactionCount.toLocaleString()}</p></div>
+                <div class="glass p-3 rounded-lg"><p class="text-xs text-text-muted">Inbound</p><p class="text-xl font-bold text-success-color">${inboundCount.toLocaleString()}</p></div>
+                <div class="glass p-3 rounded-lg"><p class="text-xs text-text-muted">Outbound</p><p class="text-xl font-bold text-error-color">${outboundCount.toLocaleString()}</p></div>
+            </div>
+            <div id="transaction-ledger" class="space-y-3 max-h-[28rem] overflow-y-auto pr-2">
+                ${transactions.map((tx, index) => {
+                    const isInbound = tx.type === 'Receive';
+                    return `
+                    <div class="glass p-3 rounded-lg flex items-center justify-between gap-4 animate-fade-in-up" style="animation-delay: ${index * 30}ms">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${isInbound ? 'bg-success-color/10 text-success-color' : 'bg-error-color/10 text-error-color'}">
+                                <i class="fas ${isInbound ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <a href="${Logic.getExplorerUrl({type: walletType, address: walletAddress}, tx.hash)}" target="_blank" class="font-mono text-sm text-white truncate block hover:underline" title="View Transaction: ${tx.hash}">${tx.hash.substring(0, 10)}...${tx.hash.substring(tx.hash.length - 6)}</a>
+                                <p class="text-xs text-text-muted">${Utils.calculateTimeAgo(tx.time)}</p>
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="font-mono font-semibold text-base ${isInbound ? 'text-success-color' : 'text-error-color'}">${isInbound ? '+' : '-'}${Utils.formatNumber(tx.amount, 6)} <span class="text-xs text-text-muted">${currency}</span></p>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>`;
+    };
+
+    return `
+        <div class="animate-fade-in-up">
+            <div class="mb-8">
+                <div class="glass p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center flex-wrap gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-wallet text-2xl text-primary-azure"></i>
+                            <a href="${Logic.getExplorerUrl(wallet)}" target="_blank" class="font-mono text-lg text-white truncate hover:underline">${wallet.address}</a>
+                            <button onclick="Utils.copyToClipboard('${wallet.address}', this)" class="text-text-muted hover:text-white relative group"><i class="fas fa-copy"></i><span class="copied-feedback absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-success-color text-white px-2 py-1 rounded-md opacity-0 pointer-events-none">Copied!</span></button>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 mt-2">${headerTags.map(tag => `<span class="text-xs font-bold px-3 py-1 rounded-full ${tag.class}">${tag.text}</span>`).join('')}</div>
+                    </div>
+                    <div class="flex-shrink-0 flex items-center gap-3">
+                        <button id="pdf-export-btn" onclick="Logic.generateAndDownloadForensicsPDF()" class="btn-secondary px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button>
+                        <button id="submit-review-btn" onclick="Logic.initiateWalletSubmission()" class="btn-primary font-semibold px-4 py-2 rounded-lg text-sm"><i class="fas fa-paper-plane mr-2"></i>Submit for Official Review</button>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="report-section p-6 animate-fade-in-up stagger-1"><h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3"><i class="fas fa-file-invoice text-primary-azure"></i>Executive Summary</h3><p class="text-text-secondary leading-relaxed">${Logic.generateExecutiveSummary(report)}</p></div>
+                    <div class="report-section p-6 animate-fade-in-up stagger-3"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-flag text-warning-color"></i>Compliance Risk Assessment</h3>${redFlags.length > 0 ? `<div class="space-y-4 max-h-[28rem] overflow-y-auto pr-2">${redFlags.map(flag => `<div class="glass p-4 rounded-xl border-l-4 ${'border-' + flag.level.toLowerCase()}-color"><div class="flex items-start gap-4"><i class="fas ${Utils.getRiskIcon(flag.level)} text-${flag.level.toLowerCase()}-color text-xl mt-1"></i><div><p class="font-bold text-${flag.level.toLowerCase()}-color">${flag.title}</p><p class="text-sm text-text-secondary mt-1">${flag.details}</p></div></div></div>`).join('')}</div>` : `<div class="text-center text-text-muted py-12"><i class="fas fa-check-circle text-success-color fa-3x mb-4"></i><p class="font-semibold text-text-secondary">No Significant Compliance Flags Detected</p></div>`}</div>
+                    <div class="report-section p-6 animate-fade-in-up stagger-4"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-exchange-alt text-primary-sapphire"></i>On-Chain Transaction Ledger</h3>${createTransactionLedgerHTML(transactions, wallet.type, wallet.address)}</div>
+                </div>
+                <div class="lg:col-span-1 space-y-8">
+                    <div class="report-section p-6 animate-fade-in-up stagger-1"><h3 class="text-xl font-bold text-white mb-6 text-center">Scoring Dashboard</h3>${createScoreGauge(integrityScore, 'Overall Integrity Score', 'w-40 h-40', true)}<div class="mt-8 border-t border-border-color pt-6 grid grid-cols-2 gap-6">${createScoreGauge(scoreBreakdown.provenance.score, 'Provenance', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.behavioral.score, 'Behavioral', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.temporal.score, 'Temporal', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.compliance.score, 'Compliance', 'w-28 h-28')}</div></div>
+                    <div class="report-section p-6 animate-fade-in-up stagger-2">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3"><i class="fas fa-microchip text-primary-royal"></i>Wallet Snapshot</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between items-center"><dt class="text-text-muted">Balance (USD Eq.)</dt><dd class="font-semibold text-white bg-background-dark/50 px-2 py-1 rounded font-mono">${Utils.formatPrice(wallet.balance)}</dd></div>
+                            <div class="flex justify-between items-center"><dt class="text-text-muted">Classification</dt><dd class="font-semibold text-white">${walletClassification.type}</dd></div>
+                            <div class="flex justify-between items-center"><dt class="text-text-muted">Wallet Age</dt><dd class="font-semibold text-white bg-background-dark/50 px-2 py-1 rounded font-mono">${wallet.ageInDays} Days</dd></div>
+                            <div class="flex justify-between items-center"><dt class="text-text-muted">Last Activity</dt><dd class="font-semibold text-white">${daysSinceLastTx} days ago</dd></div>
+                            <div class="flex justify-between items-center"><dt class="text-text-muted">Tx Velocity</dt><dd class="font-semibold text-white">${transactionVelocity} tx/day</dd></div>
+                        </div>
+                    </div>
+                    <div class="report-section p-6 animate-fade-in-up stagger-4"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-history text-primary-amethyst"></i>GECAN Provenance Timeline</h3><div class="relative">${provenance.records.length > 0 ? provenance.records.map((rec) => `<div class="timeline-item"><div class="timeline-dot"><div class="timeline-dot-inner ${uniqueControllers.length > 1 ? 'bg-critical-color' : 'bg-primary-azure'}"></div></div><p class="text-xs font-mono text-text-muted mb-1">${rec.date}</p><p class="font-semibold text-white">Controller: <span class="text-primary-azure">${rec.controller}</span></p><p class="text-xs text-text-secondary mt-1">Purpose: ${rec.purpose || 'Not specified'}</p></div>`).join('') : `<div class="text-center text-text-muted py-8"><i class="fas fa-question-circle text-warning-color fa-2x mb-3"></i><p class="font-semibold text-text-secondary text-sm">No GECAN Ledger Records</p></div>`}</div></div>
+                </div>
+            </div>
+        </div>
+    `;
+},
     /**
      * Renders the main container for the Institutional Modeler toolkit, including the deal type selection.
      * @returns {string} The HTML structure for the modeler interface.
      */
     renderInstitutionalModelerUI: () => {
-        const dealTypes = [
-            { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct conversions between assets in the GECAN matrix.', gradient: 'from-blue-500 to-cyan-500' },
-            { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades, including fuels and precious metals.', gradient: 'from-yellow-500 to-orange-500' },
-            { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized credit facilities with flexible terms.', gradient: 'from-green-500 to-emerald-500' },
-            { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit to unlock institutional capital.', gradient: 'from-purple-500 to-violet-500' },
-        ];
-        return `<div class="flex flex-col gap-8 animate-fade-in-up"><div class="report-section p-6"><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h2 class="text-2xl font-bold text-white"><i class="fas fa-sitemap text-primary-azure mr-3"></i>Select Institutional Deal Type</h2><button onclick="Logic.resetModelerState()" class="btn-secondary px-4 py-2 text-sm rounded-lg hover:bg-error-color/20 hover:border-error-color/50 hover:text-error-color whitespace-nowrap"><i class="fas fa-undo mr-2"></i>Reset All Parameters</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${dealTypes.map((deal, index) => `<div class="deal-type-card glass p-6 text-center ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.gradient} flex items-center justify-center mb-4 text-2xl deal-type-icon mx-auto"><i class="fas ${deal.icon}"></i></div><h3 class="text-lg font-bold text-white mb-1">${deal.name}</h3><p class="text-sm text-text-muted leading-relaxed">${deal.desc}</p></div>`).join('')}</div></div><div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative"><div id="modeler-input-container" class="lg:col-span-3 glass p-6 md:p-8 rounded-2xl flex flex-col"></div><div id="modeler-output-container" class="lg:col-span-2 glass p-6 md:p-8 rounded-2xl flex flex-col"></div></div></div>`;
-    },
+    const dealTypes = [
+        { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct conversions between assets in the GECAN matrix.', gradient: 'from-blue-500 to-cyan-500' },
+        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades, including fuels and precious metals.', gradient: 'from-yellow-500 to-orange-500' },
+        { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized credit facilities with flexible terms.', gradient: 'from-green-500 to-emerald-500' },
+        { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit to unlock institutional capital.', gradient: 'from-purple-500 to-violet-500' },
+    ];
+    return `<div class="flex flex-col gap-8 animate-fade-in-up"><div class="report-section p-6"><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h2 class="text-2xl font-bold text-white"><i class="fas fa-sitemap text-primary-azure mr-3"></i>Select Institutional Deal Type</h2><button onclick="Logic.resetModelerState()" class="btn-secondary px-4 py-2 text-sm rounded-lg hover:bg-error-color/20 hover:border-error-color/50 hover:text-error-color whitespace-nowrap"><i class="fas fa-undo mr-2"></i>Reset All Parameters</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${dealTypes.map((deal, index) => `<div class="deal-type-card glass p-6 text-center ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.gradient} flex items-center justify-center mb-4 text-2xl deal-type-icon mx-auto"><i class="fas ${deal.icon}"></i></div><h3 class="text-lg font-bold text-white mb-1">${deal.name}</h3><p class="text-sm text-text-muted leading-relaxed">${deal.desc}</p></div>`).join('')}</div></div><div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative"><div id="modeler-input-container" class="lg:col-span-3 glass p-6 md:p-8 rounded-2xl flex flex-col"></div><div id="modeler-output-container" class="lg:col-span-2 glass p-6 md:p-8 rounded-2xl flex flex-col"></div></div></div>`;
+},
 
     /**
      * Renders the main input panel for the Modeler, including the collapsible pricing configuration.
      * @returns {string} The HTML for the input panel.
      */
     renderModelerInputPanel: () => {
-        const { activeDealType, pricingConfig } = AppState.modeler;
-        const dealPanelRenderer = UI[`render${activeDealType}Panel`];
-        const dealPanelHTML = dealPanelRenderer ? dealPanelRenderer() : `<p class="text-error-color">Error: Input panel for ${activeDealType} not found.</p>`;
-        const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['discount','premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, '%'], [false, '$']].map(([v,l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div></div></div>`;
-        return `<h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-sliders-h text-primary-azure"></i>Deal Parameters</h2><div class="space-y-6"><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-file-contract text-primary-azure"></i>Transaction Core</h4><div class="space-y-4 mt-4">${dealPanelHTML}</div></div><div class="p-4 rounded-lg bg-background-dark border border-border-color"><div class="flex justify-between items-center cursor-pointer" onclick="Logic.togglePricingConfig()"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-percent text-primary-azure"></i>Pricing & Configuration</h4><i class="fas fa-chevron-down transition-transform ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i></div>${pricingConfigHTML}</div></div>`;
-    },
+    const { activeDealType, pricingConfig } = AppState.modeler;
+    const dealPanelRenderer = UI[`render${activeDealType}Panel`];
+    const dealPanelHTML = dealPanelRenderer ? dealPanelRenderer() : `<p class="text-error-color">Error: Input panel for ${activeDealType} not found.</p>`;
+    const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['discount','premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, '%'], [false, '$']].map(([v,l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div></div></div>`;
+    return `<h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-sliders-h text-primary-azure"></i>Deal Parameters</h2><div class="space-y-6"><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-file-contract text-primary-azure"></i>Transaction Core</h4><div class="space-y-4 mt-4">${dealPanelHTML}</div></div><div class="p-4 rounded-lg bg-background-dark border border-border-color"><div class="flex justify-between items-center cursor-pointer" onclick="Logic.togglePricingConfig()"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-percent text-primary-azure"></i>Pricing & Configuration</h4><i class="fas fa-chevron-down transition-transform ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i></div>${pricingConfigHTML}</div></div>`;
+},
 
     /**
  * Renders the specific input fields for the Asset Swap deal type.
@@ -1646,30 +1731,10 @@ renderAssetSwapPanel: () => {
     const state = AppState.modeler.assetSwap;
     const assetOptions = (selectedKey) => AppState.marketData
         .filter(a => a.type !== 'Cross-Rate' && a.price > 0)
-        .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset)) // Alphabetical sort for better UX
+        .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
         .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-    
     const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
-    return `
-        <div class="flex items-center gap-4">
-            <div class="flex-1">
-                <label class="block text-sm font-medium text-text-muted mb-2">From Asset</label>
-                <select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select>
-            </div>
-            <div class="pt-8">
-                <button onclick="Logic.swapAssets()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-azure/20 text-primary-azure hover:bg-primary-azure/30 transition-all duration-300" title="Swap Assets">
-                    <i id="swap-icon" class="fas fa-exchange-alt"></i>
-                </button>
-            </div>
-            <div class="flex-1">
-                <label class="block text-sm font-medium text-text-muted mb-2">To Asset</label>
-                <select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select>
-            </div>
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-text-muted mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label>
-            <input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold">
-        </div>`;
+    return `<div class="flex items-center gap-4"><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">From Asset</label><select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select></div><div class="pt-8"><button onclick="Logic.swapAssets()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-azure/20 text-primary-azure hover:bg-primary-azure/30 transition-all duration-300" title="Swap Assets"><i id="swap-icon" class="fas fa-exchange-alt"></i></button></div><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">To Asset</label><select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select></div></div><div><label class="block text-sm font-medium text-text-muted mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label><input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div>`;
 },
 
 /**
