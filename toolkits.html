@@ -1711,158 +1711,1348 @@ togglePricingConfig: () => {
 // ========================================================================================
 
 // --- A. SEVERELY OVERHAULED LOGIC ---
-            openImfpaModal: () => {
-                const modal = document.getElementById('imfpa-modal');
-                if (!modal) return console.error("CRITICAL: IMFPA modal container not found.");
-                if (AppState.modeler.legal.agreementType === undefined) AppState.modeler.legal.agreementType = 'IMFPA';
-                if (AppState.modeler.legal.autoBalance === undefined) AppState.modeler.legal.autoBalance = true;
-                modal.innerHTML = UI.renderImfpaModal();
-                Logic.refreshImfpaModalUI();
-                modal.showModal();
-            },
+            openImfpaModal: () => { document.getElementById('imfpa-modal-content').innerHTML = UI.renderImfpaModal(); Logic.refreshImfpaModalUI(); document.getElementById('imfpa-modal').showModal(); },
             refreshImfpaModalUI: () => {
                 const { legal } = AppState.modeler;
-                const groupsContainer = document.getElementById('imfpa-groups-container');
-                const legalPartiesContainer = document.getElementById('imfpa-legal-parties');
-                if (groupsContainer) groupsContainer.innerHTML = UI.renderImfpaGroups();
-                if (legalPartiesContainer) {
-                    const allParties = legal.groups.flatMap(g => g.parties);
-                    legalPartiesContainer.innerHTML = allParties.length > 0 ? allParties.map(p => `<div><i class="fas fa-user-check text-premium-gold mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('') : '<p class="text-xs text-premium-text-secondary">No signatory parties defined.</p>';
-                }
-                const modalContent = document.getElementById('imfpa-modal');
-                if (modalContent) {
-                    modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
-                    modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
-                    modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
-                    modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
-                }
-                Logic.updateImfpaCalculations();
-                Logic.updateContractPreview();
+                document.getElementById('imfpa-groups-container').innerHTML = UI.renderImfpaGroups();
+                document.getElementById('imfpa-legal-parties').innerHTML = legal.groups.flatMap(g => g.parties).map(p => `<div><i class="fas fa-user-check text-success-color mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('') || '<p class="text-xs text-text-muted">No parties defined in allocation groups.</p>';
+                document.querySelectorAll('#imfpa-modal-content [data-path]').forEach(el => {
+                    const eventType = el.tagName === 'SELECT' || el.type === 'range' ? 'change' : 'input';
+                    el.addEventListener(eventType, Utils.debounce(Logic.handleModelerInputChangeInModal, 250));
+                });
             },
+                        // ----- In the Logic Controller Object -----
+
+            // SEVERE FIX: This function is now surgically targeted. It NO LONGER performs a full, disruptive re-render.
+            // Instead, it calls the new `updateImfpaCalculations` function for a smooth user experience while typing.
             handleModelerInputChangeInModal: (e) => {
                 Logic.handleModelerInputChange(e);
                 Logic.updateImfpaCalculations();
-                Logic.updateContractPreview();
             },
-            toggleAgreementType: (isImfpa) => {
-                AppState.modeler.legal.agreementType = isImfpa ? 'IMFPA' : 'NCNDA';
-                const commissionSection = document.getElementById('commission-allocation-section');
-                if (commissionSection) commissionSection.classList.toggle('hidden', !isImfpa);
-                const labels = document.querySelectorAll('.agreement-toggle .toggle-label');
-                labels[0].classList.toggle('active', !isImfpa); labels[0].classList.toggle('text-gray-500', isImfpa);
-                labels[1].classList.toggle('active', isImfpa); labels[1].classList.toggle('text-gray-500', !isImfpa);
-                Logic.updateContractPreview();
-            },
+
+            // SEVERE FIX (NEW FUNCTION): This new function is the heart of the fix.
+            // It updates ONLY the calculated values in the DOM without rebuilding the form inputs,
+            // thus preserving focus and providing an instantaneous, non-disruptive update.
             updateImfpaCalculations: () => {
                 const { legal } = AppState.modeler;
-                const { groups, totalCommission, autoBalance } = legal;
-                const totalPoolEl = document.getElementById('imfpa-total-commission-pool');
-                if (totalPoolEl) totalPoolEl.textContent = Utils.formatPrice(totalCommission);
-                
-                if (autoBalance && legal.agreementType === 'IMFPA') {
-                    // Auto-Balance Groups
-                    let totalSetGroupPct = 0;
-                    const zeroGroups = [];
-                    groups.forEach((g, index) => {
-                        const pct = parseFloat(g.percentage) || 0;
-                        if (pct > 0) totalSetGroupPct += pct; else zeroGroups.push(index);
-                    });
-                    if (zeroGroups.length > 0 && totalSetGroupPct < 100) {
-                        const remainingPct = 100 - totalSetGroupPct;
-                        const share = remainingPct / zeroGroups.length;
-                        zeroGroups.forEach(index => {
-                            groups[index].percentage = share;
-                            const input = document.querySelector(`[data-path="legal.groups[${index}].percentage"]`);
-                            if (input) input.value = share.toFixed(2);
-                        });
-                    }
-                }
+                const { groups, totalCommission } = legal;
 
+                // 1. Update overall total allocation percentage
                 const totalGroupPct = groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
                 const totalAllocatedEl = document.getElementById('imfpa-total-allocated');
                 if (totalAllocatedEl) {
                     totalAllocatedEl.textContent = `Total Allocated: ${totalGroupPct.toFixed(2)}%`;
-                    totalAllocatedEl.className = `text-right font-mono text-sm ${Math.abs(totalGroupPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
+                    totalAllocatedEl.className = `text-right font-mono text-sm ${totalGroupPct.toFixed(2) != 100 ? 'text-error-color' : 'text-success-color'}`;
                 }
 
+                // 2. Update individual group values and their internal party percentages
                 groups.forEach((g, groupIndex) => {
+                    const groupValue = totalCommission * (g.percentage / 100);
                     const groupValueEl = document.getElementById(`imfpa-group-value-${groupIndex}`);
-                    if(groupValueEl) groupValueEl.textContent = Utils.formatPrice(totalCommission * ((parseFloat(g.percentage) || 0) / 100));
-                    
-                    if (autoBalance && legal.agreementType === 'IMFPA') {
-                        // Auto-Balance Parties
-                        let totalSetPartyPct = 0;
-                        const zeroParties = [];
-                        g.parties.forEach((p, partyIndex) => {
-                            const pct = parseFloat(p.percentage) || 0;
-                            if (pct > 0) totalSetPartyPct += pct; else zeroParties.push(partyIndex);
-                        });
-                        if (zeroParties.length > 0 && totalSetPartyPct < 100) {
-                            const remainingPct = 100 - totalSetPartyPct;
-                            const share = remainingPct / zeroParties.length;
-                            zeroParties.forEach(index => {
-                                g.parties[index].percentage = share;
-                                const input = document.querySelector(`[data-path="legal.groups[${groupIndex}].parties[${index}].percentage"]`);
-                                if (input) input.value = share.toFixed(2);
-                            });
-                        }
+                    if (groupValueEl) {
+                        groupValueEl.textContent = Utils.formatPrice(groupValue);
                     }
 
                     const totalPartyPct = g.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
                     const groupTotalEl = document.getElementById(`imfpa-group-total-${groupIndex}`);
                     if (groupTotalEl) {
                         groupTotalEl.textContent = `Group Total: ${totalPartyPct.toFixed(2)}%`;
-                        groupTotalEl.className = `text-right font-mono text-xs ${Math.abs(totalPartyPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
+                        groupTotalEl.className = `text-right font-mono text-xs ${totalPartyPct.toFixed(2) != 100 ? 'text-error-color' : 'text-success-color'}`;
                     }
                 });
+
+                // 3. Update the list of signatory parties (their names)
+                const legalPartiesEl = document.getElementById('imfpa-legal-parties');
+                if (legalPartiesEl) {
+                    legalPartiesEl.innerHTML = legal.groups.flatMap(g => g.parties).map(p => `<div><i class="fas fa-user-check text-success-color mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('') || '<p class="text-xs text-text-muted">No parties defined in allocation groups.</p>';
+                }
             },
-            updateContractPreview: () => {
-                const previewContainer = document.getElementById('contract-live-preview');
-                if (!previewContainer) return;
-                const calc = Logic.calculateModel();
-                previewContainer.innerHTML = UI.renderContractPreview(AppState.modeler.legal, calc);
-            },
+
+            // NOTE: These functions correctly continue to use `refreshImfpaModalUI` because they
+            // perform structural changes (adding/removing elements) which require a full DOM rebuild of the list.
             addImfpaGroup: () => { AppState.modeler.legal.groups.push({ name: `Group ${AppState.modeler.legal.groups.length + 1}`, percentage: 0, parties: [] }); Logic.refreshImfpaModalUI(); },
-            removeImfpaGroup: (groupIndex) => { AppState.modeler.legal.groups.splice(groupIndex, 1); Logic.refreshImfpaModalUI(); },
-            addImfpaParty: (groupIndex) => { if (!AppState.modeler.legal.groups[groupIndex]) return; AppState.modeler.legal.groups[groupIndex].parties.push({ legalName: `New Party`, role: 'Intermediary', percentage: 0, detailsVisible: true, email: '', contactNumber: '', passport: { number: '', issueDate: '', expiryDate: '', authority: '' }, payment: { method: 'Bank Wire', currency: 'USD', details: '' } }); Logic.refreshImfpaModalUI(); },
-            removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
-            togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
-            generateContract: () => {
-                const { legal } = AppState.modeler;
-                const calc = Logic.calculateModel();
-                if (!calc) return Utils.showNotification("Define core deal parameters first.", 'error');
-                const allParties = legal.groups.flatMap(g => g.parties);
-                const isImfpa = legal.agreementType === 'IMFPA';
-                if (isImfpa) {
-                    if (legal.groups.length === 0) return Utils.showNotification("IMFPA requires at least one allocation group.", 'error');
-                    const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-                    if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("IMFPA requires group allocation to equal 100%. Disable Auto-Balance to set manually.", 'error');
-                    for (const group of legal.groups) {
-                        const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-                        if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation in "${group.name}" must equal 100%. Disable Auto-Balance to set manually.`, 'error');
-                    }
-                    if (allParties.length === 0) return Utils.showNotification("IMFPA requires at least one beneficiary party.", 'error');
-                }
-                if (allParties.length < 2) return Utils.showNotification("An agreement requires at least two signatory parties.", 'error');
-                if (allParties.some(p => !p.legalName || !p.role || !p.email)) return Utils.showNotification("All parties must have a Legal Name, Role, and Email defined.", 'error');
-                
-                const agreementReference = `GECAN-${legal.agreementType}-${new Date().getTime()}`;
-                document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
-                const contractHTML = UI.renderContractDocument(agreementReference);
+            removeImfpaGroup: (i) => { AppState.modeler.legal.groups.splice(i, 1); Logic.refreshImfpaModalUI(); },
+            addImfpaParty: (groupIndex) => { AppState.modeler.legal.groups[groupIndex].parties.push({ legalName: `New Party`, role: 'Intermediary', percentage: 0, detailsVisible: true, email: '', contactNumber: '', passport: { number: '', issueDate: '', expiryDate: '', authority: '' }, payment: {method: 'Bank Wire', currency: 'USD', details: ''} }); Logic.refreshImfpaModalUI(); },
+            removeImfpaParty: (groupIndex, partyIndex) => { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); },
+            togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex]; party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); },
+            
+                        generateContract: () => {
+    const { legal } = AppState.modeler;
+    const calc = Logic.calculateModel();
+    if (!calc) { 
+        Logic.showNotification("Cannot generate contract. Please define the core deal parameters first.", 'error');
+        return; 
+    }
 
-                const previewContainer = document.getElementById('contract-preview-container');
-                const printContainer = document.getElementById('print-area');
-                if (previewContainer && printContainer) {
-                    previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
-                    printContainer.innerHTML = contractHTML;
-                    previewContainer.classList.remove('hidden');
-                    previewContainer.scrollIntoView({ behavior: 'smooth' });
-                    Utils.showNotification(`${legal.agreementType} document synthesized successfully.`, 'success');
+    // Enhanced recitals with elevated legal language
+    let recitalsText = '';
+    switch(AppState.modeler.activeDealType) {
+        case 'AssetSwap':
+            recitalsText = `WHEREAS, the Contracting Parties have entered into preliminary negotiations concerning a sophisticated digital and/or physical asset exchange transaction contemplating the bilateral swap of approximately ${Utils.formatNumber(AppState.modeler.assetSwap.amount)} units of ${calc.fromAsset.baseAsset} in consideration for equivalent value in ${calc.toAsset.baseAsset}, subject to market valuations and regulatory compliance;`;
+            break;
+        case 'CommodityTrade':
+            const ct = AppState.modeler.commodityTrade;
+            recitalsText = `WHEREAS, the Contracting Parties are engaged in commercial negotiations for the procurement, sale, and delivery of physical commodities, specifically ${Utils.formatNumber(ct.quantity)} ${ct.unitOfMeasure} of premium-grade ${Utils.getAssetByKey(ct.assetKey).baseAsset}, in accordance with international trade conventions and applicable commodity exchange regulations;`;
+            break;
+        case 'CryptoLoan':
+            const cl = AppState.modeler.cryptoLoan;
+            recitalsText = `WHEREAS, the Contracting Parties seek to establish a sophisticated credit facility secured by digital asset collateral, encompassing a principal loan amount of ${Utils.formatPrice(calc.loanPrincipal, cl.loanCurrency)} against pledged collateral consisting of ${Utils.formatNumber(cl.collateralAmount)} units of ${Utils.getAssetByKey(cl.collateralAssetKey).baseAsset}, subject to regulatory compliance and risk management protocols;`;
+            break;
+        case 'SBLCMonetization':
+            const sblc = AppState.modeler.sblcMonetization;
+            recitalsText = `WHEREAS, the Contracting Parties are collaborating on the monetization and financial optimization of a Standby Letter of Credit (SBLC) instrument bearing a face value of ${Utils.formatPrice(sblc.faceValue)}, issued by a prime banking institution and compliant with ICC UCP 600 standards;`;
+            break;
+        default:
+            recitalsText = `WHEREAS, the Contracting Parties have established a framework for cooperation in connection with a substantial international financial transaction of significant commercial value and strategic importance;`;
+    }
+
+        // --- SEVERELY UPGRADED FEE DISTRIBUTION SCHEDULE (PREMIUM TABLE FORMAT) ---
+    const feeClauses = legal.groups.map((g) => {
+        const groupPayout = legal.totalCommission * (g.percentage / 100);
+
+        const partiesRows = g.parties.map((p) => {
+            const partyValue = groupPayout * (p.percentage / 100);
+            const settlementDetailsText = p.payment.details || 'To be furnished through separate, encrypted KYC/KYB documentation exchange pursuant to regulatory requirements';
+
+            return `
+            <tr>
+                <td>
+                    <div class="beneficiary-name">${p.legalName || '[LEGAL ENTITY NAME REQUIRED]'}</div>
+                    <div class="beneficiary-role">${p.role || '[ROLE NOT DESIGNATED]'}</div>
+                </td>
+                <td>
+                    <div class="allocation-value">${p.percentage}%</div>
+                    <div class="text-muted">${Utils.formatPrice(partyValue, 'USD')}</div>
+                </td>
+                <td>
+                    <div class="settlement-method">${p.payment.method?.toUpperCase() || '[METHOD]'} (${p.payment.currency || 'N/A'})</div>
+                    <div class="settlement-details">${settlementDetailsText}</div>
+                </td>
+            </tr>`;
+        }).join('');
+
+        const tableBody = g.parties.length > 0
+            ? partiesRows
+            : `<tr class="no-parties-row"><td colspan="3">(No designated beneficiaries specified for this distribution group)</td></tr>`;
+
+        return `
+        <div class="fee-group-container">
+            <div class="fee-group-header">
+                <span class="fee-group-header-title">Distribution Group: "${g.name.toUpperCase()}"</span>
+                <span class="fee-group-header-value">${g.percentage}% (${Utils.formatPrice(groupPayout, 'USD')})</span>
+            </div>
+            <table class="fee-distribution-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Beneficiary & Role</th>
+                        <th style="width: 20%;">Allocation</th>
+                        <th style="width: 40%;">Remittance Instructions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableBody}
+                </tbody>
+            </table>
+        </div>`;
+    }).join('');
+
+    // Enhanced party signature blocks
+    // --- UPGRADED: ENHANCED PARTY SIGNATURE BLOCKS WITH UNIQUE IDENTIFIERS ---
+const signatureBlocks = legal.groups.flatMap(g => g.parties).map((p, i) => `
+<div class="signature-block" data-signature-id="party-${i}">
+    <div class="signature-line">
+        <strong>CONTRACTING PARTY ${i+1}:</strong> ${p.legalName || '[LEGAL ENTITY NAME REQUIRED]'}
+    </div>
+    <div class="signature-details">
+        <div class="signature-field">
+            <span class="field-label">Authorized Signature:</span>
+            <span class="signature-line-border">_________________________________________________</span>
+        </div>
+        <div class="signature-field">
+            <span class="field-label">Printed Name & Title:</span>
+            <span class="signature-line-border">_________________________________________________</span>
+        </div>
+        <div class="signature-field">
+            <span class="field-label">Date of Execution:</span>
+            <span class="signature-line-border">_________________________________________________</span>
+        </div>
+        <div class="signature-field">
+            <span class="field-label">Corporate Seal (if applicable):</span>
+            <span class="signature-line-border">_________________________________________________</span>
+        </div>
+    </div>
+</div>`).join('\n');
+
+    // Enhanced party details table
+    const partyDetailsTable = legal.groups.flatMap(g => g.parties).map((p, i) => `
+<div class="party-details-section">
+    <h4>CONTRACTING PARTY ${i+1} - COMPREHENSIVE DETAILS</h4>
+    <table class="party-details-table">
+        <tbody>
+            <tr>
+                <td class="detail-label">Legal Entity Name:</td>
+                <td class="detail-value">${p.legalName || '[REQUIRED - NOT SPECIFIED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Functional Role & Capacity:</td>
+                <td class="detail-value">${p.role || '[ROLE NOT DESIGNATED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Primary Contact Email:</td>
+                <td class="detail-value">${p.email || '[EMAIL ADDRESS REQUIRED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Direct Contact Number:</td>
+                <td class="detail-value">${p.contactNumber || '[CONTACT NUMBER REQUIRED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Passport/ID Number:</td>
+                <td class="detail-value">${p.passport.number || '[IDENTIFICATION REQUIRED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Document Issue Date:</td>
+                <td class="detail-value">${p.passport.issueDate || '[DATE REQUIRED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Document Expiry Date:</td>
+                <td class="detail-value">${p.passport.expiryDate || '[DATE REQUIRED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Issuing Authority:</td>
+                <td class="detail-value">${p.passport.authority || '[AUTHORITY REQUIRED]'}</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h5>REMITTANCE & SETTLEMENT COORDINATES</h5>
+    <table class="payment-details-table">
+        <tbody>
+            <tr>
+                <td class="detail-label">Fee Allocation Percentage:</td>
+                <td class="detail-value">(As specified in Article 3 - Fee Distribution Schedule)</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Preferred Payment Method:</td>
+                <td class="detail-value">${p.payment.method || '[METHOD NOT SPECIFIED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Settlement Currency:</td>
+                <td class="detail-value">${p.payment.currency || '[CURRENCY NOT SPECIFIED]'}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Banking/Payment Details:</td>
+                <td class="detail-value">${p.payment.details || 'To be furnished through separate, secure KYC/KYB documentation exchange in compliance with AML/CTF regulations'}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>`).join('\n\n');
+
+    const agreementReference = `GECAN-IMFPA-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const effectiveDate = new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+
+    // Add this line right before `const contractHTML`
+const generatedDateTime = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+
+    const contractHTML = `
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+        /* =========================================================
+   === PREMIUM FEE DISTRIBUTION TABLE STYLES (v2.0) ===
+   ========================================================= */
+.fee-group-container {
+    margin-top: 25px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+}
+
+.fee-group-header {
+    background: #f7fafc;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fee-group-header-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d3748;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fee-group-header-value {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c5282;
+}
+
+.fee-distribution-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.fee-distribution-table th, 
+.fee-distribution-table td {
+    padding: 12px 16px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.fee-distribution-table th {
+    font-weight: 600;
+    font-size: 10px;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #f8f9ff;
+}
+
+.fee-distribution-table tr:last-child td {
+    border-bottom: none;
+}
+
+.beneficiary-name {
+    font-weight: 600;
+    font-size: 12px;
+    color: #1a202c;
+}
+
+.beneficiary-role {
+    font-style: italic;
+    color: #4a5568;
+}
+
+.allocation-value {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #2c5282;
+}
+
+.settlement-method {
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.settlement-details {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #4a5568;
+    word-break: break-all;
+}
+
+.no-parties-row td {
+    text-align: center;
+    font-style: italic;
+    color: #718096;
+    padding: 20px;
+}
+        
+        .contract-document {
+            font-family: 'Crimson Text', 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 1in;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .document-header {
+            text-align: center;
+            border-bottom: 3px solid #2c5282;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .classification-banner {
+            background: linear-gradient(135deg, #2c5282, #3182ce);
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+        
+        .document-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c5282;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 15px 0;
+        }
+        
+        .agreement-metadata {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .metadata-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 11px;
+        }
+        
+        .metadata-label {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .metadata-value {
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .section-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c5282;
+            text-transform: uppercase;
+            border-bottom: 2px solid #2c5282;
+            padding-bottom: 5px;
+            margin: 30px 0 20px 0;
+            letter-spacing: 0.5px;
+        }
+        
+        .article-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 25px 0 15px 0;
+            text-transform: uppercase;
+        }
+        
+        .clause-text {
+            text-align: justify;
+            margin: 12px 0;
+            text-indent: 0.5in;
+        }
+        
+        .whereas-clause {
+            margin: 15px 0;
+            padding-left: 20px;
+            text-align: justify;
+            font-style: italic;
+        }
+        
+        .fee-distribution {
+            background: #f8f9ff;
+            border-left: 4px solid #2c5282;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 11px;
+        }
+        
+        .party-details-section {
+            margin: 25px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .party-details-section h4 {
+            background: #2c5282;
+            color: white;
+            padding: 12px;
+            margin: 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .party-details-section h5 {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 8px 12px;
+            margin: 0;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .party-details-table, .payment-details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .party-details-table td, .payment-details-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 11px;
+        }
+        
+        .detail-label {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+            width: 35%;
+            vertical-align: top;
+        }
+        
+        .detail-value {
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .signature-block {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #2c5282;
+            border-radius: 5px;
+            background: #f8f9ff;
+        }
+        
+        .signature-line {
+            font-weight: 600;
+            color: #2c5282;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        
+        .signature-field {
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .field-label {
+            font-weight: 600;
+            color: #2d3748;
+            width: 200px;
+            font-size: 11px;
+        }
+        
+        .signature-line-border {
+            flex: 1;
+            border-bottom: 1px solid #2d3748;
+            margin-left: 10px;
+            height: 20px;
+        }
+        
+
+        
+        .page-break {
+            page-break-before: always;
+        }
+
+                /* This rule styles the re-instated legal footer */
+.legal-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #2c5282;
+    font-size: 9px;
+    color: #4a5568;
+    text-align: center;
+    page-break-inside: avoid; /* Prevents the footer from being split across pages */
+}
+        
+        @media print {
+
+          /* --- CORE PRINT ISOLATION (THE FIX) --- */
+    /* 1. Hide all application UI elements that have the 'print-hide' class. */
+    .print-hide {
+        display: none !important;
+    }
+    
+    /* 2. Make the master print container visible. */
+    #print-area {
+        display: block !important;
+    }
+            .contract-document {
+                box-shadow: none;
+                border: none;
+                padding: 0.75in;
+            }
+            
+            @page {
+                margin: 0.75in;
+                @top-left {
+                    content: "${agreementReference}";
+                    font-size: 9px;
+                    color: #666;
+                }
+                @top-right {
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-size: 9px;
+                    color: #666;
+                }
+                @bottom-center {
+                    content: "CONFIDENTIAL & PROPRIETARY - This document contains legally privileged and confidential information";
+                    font-size: 8px;
+                    color: #666;
+                }
+            }
+            
+            .page-break {
+                page-break-before: always;
+            }
+        }
+    </style>
+    
+    <div class="contract-document">
+        <div class="classification-banner">
+            CONFIDENTIAL & PROPRIETARY - FOR AUTHORIZED CONTRACTING PARTIES EXCLUSIVELY
+        </div>
+        
+        <div class="document-header">
+            <div class="document-title">
+                IRREVOCABLE MASTER FEE PROTECTION AGREEMENT<br>
+                & NON-CIRCUMVENTION NON-DISCLOSURE COVENANT<br>
+                (IMFPA-NCNDA)
+            </div>
+            <div style="height: 2px; background: linear-gradient(to right, #2c5282, #3182ce); margin: 15px 0;"></div>
+        </div>
+        
+        <div class="agreement-metadata">
+            <div class="metadata-row">
+                <span class="metadata-label">AGREEMENT REFERENCE CODE:</span>
+                <span class="metadata-value">${agreementReference}</span>
+            </div>
+            ${legal.spaReferenceCode ? `
+            <div class="metadata-row" style="background-color: #fef3c7;">
+                <span class="metadata-label" style="color: #92400e;">CROSS-REFERENCED SPA:</span>
+                <span class="metadata-value" style="font-weight: bold; color: #92400e;">${legal.spaReferenceCode}</span>
+            </div>
+            ` : ''}
+            <div class="metadata-row">
+                <span class="metadata-label">EFFECTIVE DATE:</span>
+                <span class="metadata-value">${effectiveDate}</span>
+            </div>
+            <div class="metadata-row">
+                <span class="metadata-label">TRANSACTION IDENTIFIER:</span>
+                <span class="metadata-value">[TO BE ASSIGNED UPON DEFINITIVE CLOSING]</span>
+            </div>
+            <div class="metadata-row">
+                <span class="metadata-label">GOVERNING FRAMEWORK:</span>
+                <span class="metadata-value">ICC Pubs. 769, UCP 600, URDG 758, Incoterms® 2020; FATF AML/CTF Standards</span>
+            </div>
+        </div>
+        
+                <div class="clause-text">
+            This <strong>Irrevocable Master Fee Protection Agreement & Non-Circumvention Non-Disclosure Covenant</strong> (hereinafter referred to as this "Agreement") constitutes a legally binding and enforceable contract executed by and among the undersigned Contracting Parties (collectively referred to as "the Parties") acting with full corporate authority, fiduciary responsibility, and legal capacity. This Agreement is structured in accordance with, and shall be interpreted under, the highest standards of international commercial practice. This includes, but is not limited to, principles promulgated by the International Chamber of Commerce (ICC), Paris, France, such as ICC Publication No. 769 (IMFPA), the Uniform Customs and Practice for Documentary Credits (UCP 600), the Uniform Rules for Demand Guarantees (URDG 758), and Incoterms® 2020. Furthermore, all activities and remittances hereunder are subject to strict compliance with international Anti-Money Laundering (AML) and Counter-Terrorist Financing (CTF) regulations, including the standards set forth by the Financial Action Task Force (FATF).
+        </div>
+        
+        <div class="section-header">PRELIMINARY RECITALS & FOUNDATIONAL WHEREAS CLAUSES</div>
+        
+        <div class="whereas-clause">
+            ${recitalsText}
+        </div>
+        
+        <div class="whereas-clause">
+            WHEREAS, the Contracting Parties have entered into comprehensive discussions and negotiations for the purpose of establishing a mutually beneficial commercial relationship and have determined that their collective expertise, resources, and strategic positioning warrant collaborative participation in the aforementioned transaction;
+        </div>
+        
+        <div class="whereas-clause">
+            WHEREAS, in consideration of their respective contributions, efforts, and professional services rendered in connection with the successful negotiation, structuring, and consummation of the contemplated transaction, the Parties have established an aggregate commission fee pool to be distributed in accordance with the terms and conditions set forth herein;
+        </div>
+        
+        <div class="whereas-clause">
+            WHEREAS, all intermediary parties and facilitators are hereby classified and designated as "Professional Consultants" and their compensation shall be characterized as "Consultancy Fees" or "Professional Commissions," which compensation shall be protected under the irrevocable provisions of this Agreement;
+        </div>
+        
+        <div class="whereas-clause">
+            NOW, THEREFORE, in consideration of the mutual covenants, agreements, representations, and warranties contained herein, and for other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged by all Parties, the Contracting Parties hereby agree to be legally bound by the following terms and conditions:
+        </div>
+        
+        <div class="article-header">ARTICLE I: TRANSACTION DEFINITION & SCOPE</div>
+        <div class="clause-text">
+            <strong>1.1 Transaction Description:</strong> The subject matter of this Agreement encompasses a sophisticated financial transaction (hereinafter referred to as the "Principal Transaction" or "Project") with an estimated aggregate base value of ${Utils.formatPrice(calc.baseValueUSD)}, subject to final due diligence, regulatory approvals, and definitive documentation.
+        </div>
+        <div class="clause-text">
+            <strong>1.2 Commission Pool Establishment:</strong> The Principal Transaction is contractually structured to generate an Aggregate Total Commission Pool in the amount of ${Utils.formatPrice(legal.totalCommission)} (the "Fee Pool"). This Fee Pool represents the gross commission spread established within the Principal Transaction's definitive commercial agreements and shall be distributed in accordance with the irrevocable allocation schedule detailed in Article III hereof.
+        </div>
+        <div class="clause-text">
+            <strong>1.3 Legal Characterization:</strong> The Fee Pool constitutes earned professional compensation for consultancy services, transaction facilitation, and commercial intermediation rendered by the Parties in their respective professional capacities.
+        </div>
+        
+        <div class="article-header">ARTICLE II: CONTRACTING PARTIES & BENEFICIAL OWNERSHIP</div>
+        <div class="clause-text">
+            <strong>2.1 Party Identification:</strong> The following natural persons and legal entities constitute the complete universe of Contracting Parties and beneficial recipients under this Agreement. Each Party hereby represents and warrants that they possess full legal authority, corporate capacity, and fiduciary authorization to bind their respective organizations and principals to the terms, conditions, and obligations contained herein.
+        </div>
+        
+        <div class="clause-text">
+            <strong>2.2 Comprehensive Party Registry:</strong>
+            <ul style="padding-left: 30px; margin: 15px 0;">
+                ${legal.groups.flatMap(g => g.parties).map((p, i) => 
+                    `<li><strong>CONTRACTING PARTY ${i+1}:</strong> ${p.legalName || '[LEGAL ENTITY NAME REQUIRED]'} - ${p.role || 'Professional Consultant'}</li>`
+                ).join('')}
+            </ul>
+        </div>
+        
+        <div class="clause-text">
+            <strong>2.3 Detailed Party Information:</strong> Comprehensive identification, contact, and remittance details for each Contracting Party are set forth in Annex A to this Agreement, which Annex forms an integral and binding component of this Agreement.
+        </div>
+        
+        <div class="article-header">ARTICLE III: IRREVOCABLE FEE DISTRIBUTION & PAYMENT OBLIGATIONS</div>
+        <div class="clause-text">
+            <strong>3.1 Irrevocable Distribution Covenant:</strong> The Contracting Parties hereby irrevocably and unconditionally agree that the Aggregate Fee Pool shall be distributed directly, immediately, and without offset, deduction, or withholding (except as required by applicable law) from the designated Payer's transactional settlement account(s) to the respective Beneficiaries' designated receiving accounts as detailed in Annex A hereto.
+        </div>
+        
+        <div class="clause-text">
+            <strong>3.2 Payment Timeline & Method:</strong> Fee distribution shall be executed via authenticated SWIFT wire transfer or alternative internationally recognized electronic funds transfer method within a maximum of three (3) international banking days from the date of closing, settlement, and funds availability for each tranche or installment of the Principal Transaction.
+        </div>
+        
+        <div class="clause-text">
+    <strong>3.3 Detailed Distribution Schedule:</strong> The Aggregate Fee Pool distribution shall be allocated as follows:
+</div>
+        
+        <div class="fee-distribution">
+            ${feeClauses || '<div class="fee-group-container"><p class="p-4 text-center text-text-muted">(No fee distribution schedule has been defined in this draft version)</p></div>'}
+        </div>
+        
+        <div class="page-break"></div>
+        
+        <div class="article-header">ARTICLE IV: NON-CIRCUMVENTION & NON-DISCLOSURE COVENANTS</div>
+        <div class="clause-text">
+            <strong>4.1 Absolute Non-Circumvention:</strong> The Contracting Parties hereby covenant and irrevocably agree not to, whether directly, indirectly, or through any affiliated entity, agent, representative, or third-party intermediary, circumvent, avoid, bypass, or exclude any other Contracting Party from participation in any commercial transaction with any corporation, financial institution, funding source, or individual person introduced by another Party during the term of this Agreement.
+        </div>
+        
+        <div class="clause-text">
+            <strong>4.2 Temporal Scope:</strong> This non-circumvention covenant shall remain in full force and effect for a period of five (5) years from the Effective Date and shall be binding upon the Parties, their principals, agents, affiliates, successors, and assigns.
+        </div>
+        
+        <div class="clause-text">
+            <strong>4.3 Comprehensive Non-Disclosure:</strong> The Contracting Parties acknowledge that they may have access to proprietary, confidential, and sensitive commercial information ("Confidential Information") including, but not limited to, the identity of the Parties, transaction procedures, financial data, commercial terms, and the existence of this Agreement itself.
+        </div>
+        
+        <div class="clause-text">
+            <strong>4.4 Confidentiality Obligations:</strong> All Confidential Information shall be held in absolute and strict confidence. Disclosure is expressly prohibited absent prior, unanimous written consent of all Contracting Parties, except as may be compelled by court order or applicable law, in which case immediate written notification shall be provided to all other Parties.
+        </div>
+        
+        <div class="article-header">ARTICLE V: GOVERNING LAW, JURISDICTION & DISPUTE RESOLUTION</div>
+        <div class="clause-text">
+            <strong>5.1 Governing Law:</strong> This Agreement shall be governed by, construed, and enforced in accordance with the substantive laws of ${legal.jurisdiction || '[JURISDICTION TO BE SPECIFIED]'}, without regard to conflict of law principles.
+        </div>
+        
+        <div class="clause-text">
+            <strong>5.2 Dispute Resolution Mechanism:</strong> Any controversy, claim, or dispute arising out of or relating to this Agreement, or the breach, termination, enforcement, interpretation, or validity thereof, shall be resolved exclusively through binding arbitration administered by the International Chamber of Commerce (ICC) International Court of Arbitration pursuant to the ICC Rules of Arbitration then in effect.
+        </div>
+        
+        <div class="clause-text">
+            <strong>5.3 Arbitration Procedures:</strong> The seat of arbitration shall be [City, Country corresponding to Governing Law Jurisdiction]. The arbitration shall be conducted by a panel of three (3) arbitrators, with each Party selecting one arbitrator and the third arbitrator being selected by mutual agreement or, failing such agreement, by the ICC.
+        </div>
+        
+        <div class="article-header">ARTICLE VI: INDEMNIFICATION & LIMITATION OF LIABILITY</div>
+        <div class="clause-text">
+            <strong>6.1 Mutual Indemnification:</strong> Each Contracting Party agrees to indemnify, defend, and hold harmless all other Parties from and against any and all claims, damages, losses, costs, and expenses (including reasonable attorneys' fees and costs) arising from or related to such Party's material breach of this Agreement or willful misconduct.
+        </div>
+        
+        <div class="clause-text">
+            <strong>6.2 Limitation of Liability:</strong> Except in cases of willful misconduct or fraud, each Party's liability shall be limited to direct damages and shall expressly exclude consequential, punitive, incidental, or special damages.
+        </div>
+        
+        <div class="article-header">ARTICLE VII: GENERAL PROVISIONS & MISCELLANEOUS TERMS</div>
+        <div class="clause-text">
+            <strong>7.1 Binding Authority & Legal Effect:</strong> This Agreement constitutes a full recourse, legally binding, and enforceable contract. Any unauthorized circumvention, breach of confidentiality, or material default shall entitle the aggrieved Party(ies) to monetary damages equal to the maximum fee such Party would have realized from the Principal Transaction, plus all associated legal expenses and costs.
+        </div>
+        
+        <div class="clause-text">
+            <strong>7.2 Force Majeure:</strong> No Contracting Party shall be held liable for any failure or delay in performance under this Agreement if such failure or delay results from causes beyond such Party's reasonable control, including but not limited to acts of God, war, terrorism, pandemic, government action, or regulatory changes.
+        </div>
+        
+        <div class="clause-text">
+            <strong>7.3 Entire Agreement & Modification:</strong> This Agreement, together with all Annexes attached hereto, constitutes the entire understanding and agreement between the Parties and supersedes all prior negotiations, discussions, representations, and agreements relating to the subject matter hereof. This Agreement may only be modified by written amendment executed by all Contracting Parties.
+        </div>
+        
+        <div class="clause-text">
+            <strong>7.4 Execution & Delivery:</strong> This Agreement may be executed in multiple counterparts, each of which shall be deemed an original, and all of which together shall constitute one and the same instrument. Transmission of an executed signature page by electronic means (including PDF) shall be deemed equivalent to delivery of a manually executed original.
+        </div>
+        
+        <div class="clause-text">
+            <strong>7.5 Severability:</strong> If any provision of this Agreement is held to be invalid, illegal, or unenforceable, the validity, legality, and enforceability of the remaining provisions shall not be affected or impaired thereby.
+        </div>
+        
+        <div class="section-header">EXECUTION & AUTHENTICATION</div>
+        
+        <div class="clause-text">
+            <strong>IN WITNESS WHEREOF,</strong> the Contracting Parties have caused this Agreement to be executed by their respective duly authorized representatives as of the Effective Date first written above.
+        </div>
+        
+        ${signatureBlocks}
+        
+        <div class="page-break"></div>
+        
+        <div class="section-header">ANNEX A: COMPREHENSIVE PARTY IDENTIFICATION & REMITTANCE DETAILS</div>
+        
+        <div class="clause-text">
+            This Annex A forms an integral, binding, and enforceable component of the foregoing Agreement and contains comprehensive identification and payment coordination details for all Contracting Parties.
+        </div>
+        
+        ${partyDetailsTable}
+        
+        <div class="legal-footer">
+            <strong>CONFIDENTIAL & PROPRIETARY DOCUMENT</strong><br>
+            This document contains legally privileged and confidential commercial information protected by attorney-client privilege and work product doctrine. Unauthorized disclosure,
+            reproduction, or distribution is strictly prohibited and may result in civil and criminal penalties.
+            <br><br>
+            Document Reference: ${agreementReference} | Generated: ${generatedDateTime}
+        </div>
+        </div>
+    </div>`;
+
+    // Enhanced container setup with premium styling
+    const container = document.getElementById('contract-preview-container');
+    const printContainerContent = document.getElementById('print-content');
+    
+    if (container && printContainerContent) {
+        container.innerHTML = `
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: white; font-size: 18px; font-weight: 600; margin: 0 0 10px 0; text-align: center;">
+                    <i class="fas fa-file-contract" style="margin-right: 10px;"></i>Premium Legal Contract Generated
+                </h3>
+                <p style="color: rgba(255,255,255,0.9); margin: 0; text-align: center; font-size: 14px;">
+                    Professional-grade IMFPA-NCNDA document ready for legal review and execution
+                </p>
+            </div>
+            
+            
+<!-- UPGRADED: DOCUMENT EXECUTION SUITE v3 (AUDIT-READY) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="contract-execution-suite">
+    <!-- Action Buttons -->
+    <div class="md:col-span-2 flex gap-4">
+         <button onclick="window.print()" class="btn-secondary flex-1 py-2 text-sm"><i class="fas fa-print mr-2"></i>Print / Save PDF Draft</button>
+         <button onclick="navigator.clipboard.writeText(document.querySelector('.contract-document').outerHTML)" class="btn-secondary flex-1 py-2 text-sm"><i class="fas fa-copy mr-2"></i>Copy HTML</button>
+         <button onclick="const container = document.getElementById('contract-preview-container'); container.classList.add('hidden'); container.innerHTML = '';" class="btn-secondary flex-1 py-2 text-sm"><i class="fas fa-times mr-2"></i>Close Preview</button>
+    </div>
+
+    <!-- Signing Initiation Panel -->
+    <div id="signing-initiation-panel" class="md:col-span-2 mt-4 p-4 border-t-2 border-blue-500/50 bg-blue-500/10 rounded-lg text-center">
+        <p class="font-bold text-white mb-2">Step 1: Prepare Document & Apply Signatures</p>
+        <p class="text-sm text-text-secondary mb-4">Apply all known signatures and corporate seals on behalf of the parties. This prepares the document for the final, binding workflow.</p>
+        <button id="initiate-signing-btn" onclick="Logic.initiateSigningProcess()" class="btn-primary bg-gradient-to-r from-blue-500 to-indigo-600 border-blue-500 w-full md:w-auto px-8 py-3 font-bold">
+            <i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite
+        </button>
+    </div>
+
+    <!-- UPGRADED: Finalization & Workflow Panel -->
+    <div id="signature-workflow-panel" class="md:col-span-2 mt-4 p-4 border-t-2 border-purple-500/50 bg-purple-500/10 rounded-lg text-center hidden">
+         <p class="font-bold text-white mb-2">Step 2: Finalize & Initiate Secure Workflow</p>
+         <p class="text-sm text-text-secondary mb-4">The document is prepared. This will lock the current version, generate a cryptographic fingerprint, and dispatch secure signing links to all remaining parties.</p>
+         <button id="send-for-signature-btn" onclick="Logic.sendForSignature()" class="btn-primary bg-gradient-to-r from-purple-500 to-indigo-600 border-purple-500 w-full md:w-auto px-8 py-3 font-bold">
+            <i class="fas fa-paper-plane mr-2"></i>Lock Document & Send to Parties
+         </button>
+    </div>
+</div>
+            
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <i class="fas fa-info-circle" style="color: #3b82f6; margin-right: 10px; font-size: 18px;"></i>
+                    <h4 style="margin: 0; color: #1e40af; font-size: 16px; font-weight: 600;">Legal Notice & Professional Review Required</h4>
+                </div>
+                <p style="margin: 8px 0; color: #4b5563; line-height: 1.6;">
+                    This document has been generated using premium legal templates and industry-standard language. However, 
+                    <strong>professional legal counsel review is mandatory</strong> before execution. This contract contains 
+                    binding obligations and should be customized to reflect specific jurisdictional requirements and 
+                    transaction particulars.
+                </p>
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin-top: 15px; border-radius: 0 6px 6px 0;">
+                    <p style="margin: 0; color: #92400e; font-size: 14px;">
+                        <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                        <strong>Disclaimer:</strong> This generated contract is for reference purposes and requires professional 
+                        legal review, jurisdictional customization, and regulatory compliance verification prior to execution.
+                    </p>
+                </div>
+            </div>
+            
+            <div style="max-height: 800px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 10px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                ${contractHTML}
+            </div>`;
+        
+        container.classList.remove('hidden');
+        printContainerContent.innerHTML = contractHTML;
+        
+        // Add smooth scroll to contract after generation
+        setTimeout(() => {
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+        
+        // Add notification for successful generation
+        if (typeof showNotification === 'function') {
+            showNotification('Premium legal contract generated successfully! Please review with legal counsel before execution.', 'success');
+        }
+    } else {
+        console.error('Contract preview containers not found in DOM');
+        alert('Error: Contract preview containers not found. Please ensure the page is properly loaded.');
+    }
+},
+
+// ============================================================================================
+// === SEVERE UPGRADE: PROPRIETARY DOCUMENT EXECUTION & MULTI-SIGNATURE SUITE v3.0 ===
+// ============================================================================================
+            // DEFINITIVE FIX v4.2 - This function now lists ALL parties to allow for modification.
+            initiateSigningProcess: () => {
+                const sigBlocks = document.querySelectorAll('#contract-preview-container .signature-block');
+                const selectEl = document.getElementById('signature-target-select');
+                
+                selectEl.innerHTML = ''; // Always clear the list first
+
+                if (sigBlocks.length === 0) {
+                    return alert("Error: No signature blocks found in the contract. Please define at least one party and generate the contract.");
+                }
+
+                // THE FIX: Loop through ALL signature blocks and add them to the dropdown.
+                // This removes the filter that prevented modification of already-signed parties.
+                sigBlocks.forEach((block, index) => {
+                    const partyName = block.querySelector('.signature-line strong').nextSibling.textContent.trim();
+                    const option = new Option(`${index + 1}: ${partyName}`, index);
+                    selectEl.add(option);
+                });
+
+                document.getElementById('signature-modal').showModal();
+                Logic.switchSignatureMode('draw'); 
+                
+                document.getElementById('signature-timestamp').textContent = new Date().toISOString();
+                document.getElementById('signature-location').textContent = 'Fetching...';
+                fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
+                    document.getElementById('signature-location').textContent = `${data.city}, ${data.country_name} (IP: ${data.ip})`;
+                }).catch(() => { document.getElementById('signature-location').textContent = 'Location Not Available'; });
+            },
+
+// UPGRADED FUNCTION (v3.7) - Manages visibility of Draw, Upload, and Seal panels.
+            switchSignatureMode: (mode) => {
+                const panels = { draw: 'draw-mode-panel', upload: 'upload-mode-panel', seal: 'seal-mode-panel' };
+                const tabs = { draw: 'draw-tab-btn', upload: 'upload-tab-btn', seal: 'seal-tab-btn' };
+
+                Object.keys(panels).forEach(key => {
+                    document.getElementById(panels[key]).classList.add('hidden');
+                    document.getElementById(tabs[key]).classList.remove('border-green-500', 'text-white');
+                });
+
+                document.getElementById(panels[mode]).classList.remove('hidden');
+                document.getElementById(tabs[mode]).classList.add('border-green-500', 'text-white');
+                
+                document.getElementById('signature-modal').dataset.activeMode = mode;
+
+                if (mode === 'draw') Logic.setupSignaturePad();
+                if (mode === 'upload') Logic.setupSignatureUpload('signature');
+                if (mode === 'seal') Logic.setupSignatureUpload('seal');
+            },
+
+            // UPGRADED FUNCTION (v3.7) - Resets all signature/seal inputs for a clean state.
+            resetSignatureInputs: () => {
+                if (window.signaturePad) window.signaturePad.clear();
+                ['signature-upload', 'seal-upload'].forEach(id => {
+                    const input = document.getElementById(`${id}-input`);
+                    const preview = document.getElementById(`${id}-preview`);
+                    const promptEl = document.getElementById(id.replace('upload', 'prompt'));
+                    if(input) input.value = '';
+                    if(preview) { preview.src = ''; preview.classList.add('hidden'); }
+                    if(promptEl) promptEl.classList.remove('hidden');
+                });
+            },
+
+                        // DEFINITIVE FIX v4.1 - This function now uses a premium dark blue pen color for a realistic signature.
+            setupSignaturePad: () => {
+                const canvas = document.getElementById('signature-canvas');
+                
+                const resizeCanvas = () => {
+                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) {
+                        console.warn("Canvas dimensions are zero, resize delayed or failed.");
+                        return;
+                    }
+                    canvas.width = canvas.offsetWidth * ratio;
+                    canvas.height = canvas.offsetHeight * ratio;
+                    const context = canvas.getContext("2d");
+                    context.scale(ratio, ratio);
+                    if (window.signaturePad) {
+                        window.signaturePad.clear();
+                    }
+                };
+                
+                // Use a premium, deep navy blue color that matches the document's header styles.
+                const premiumBlueColor = "#1A237E";
+
+                if (!window.signaturePad) {
+                    // THE FIX: The penColor is changed to the premium dark blue.
+                    window.signaturePad = new SignaturePad(canvas, {
+                        backgroundColor: 'rgba(0, 0, 0, 0)',
+                        penColor: premiumBlueColor 
+                    });
+                } else {
+                    // Also update the color if the pad already exists.
+                    window.signaturePad.penColor = premiumBlueColor;
+                }
+                
+                // Use a minimal delay to ensure the modal is fully rendered before sizing the canvas.
+                setTimeout(resizeCanvas, 50);
+            },
+
+clearSignaturePad: () => { window.signaturePad.clear(); },
+
+            // UPGRADED FUNCTION (v3.8) - This function was missing and is now correctly implemented.
+            setupSignatureUpload: (type) => { // type is 'signature' or 'seal'
+                // Define the correct element IDs based on the provided type
+                const inputId = (type === 'signature') ? 'signature-upload-input' : 'seal-upload-input';
+                const previewId = (type === 'signature') ? 'signature-upload-preview' : 'seal-upload-preview';
+                const promptId = (type === 'signature') ? 'upload-prompt' : 'seal-prompt';
+
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+                const prompt = document.getElementById(promptId);
+                
+                // A crucial safety check to prevent silent errors if the HTML is ever changed.
+                if (!input || !preview || !prompt) {
+                    console.error(`CRITICAL ERROR: Could not find all necessary elements for upload type: '${type}'. Check HTML IDs.`);
+                    return;
+                }
+
+                // This attaches the event handler that opens the file dialog and shows the preview.
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            preview.src = event.target.result;
+                            preview.classList.remove('hidden');
+                            prompt.classList.add('hidden');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+            },
+
+
+
+             // DEFINITIVE FIX v4.2 - This function contains corrected counting logic and allows re-selection.
+            applySignature: async () => {
+                const modal = document.getElementById('signature-modal');
+                const mode = modal.dataset.activeMode;
+                const targetSelect = document.getElementById('signature-target-select');
+                const selectedPartyIndex = targetSelect.value;
+                const applyBtn = modal.querySelector('.btn-primary');
+                
+                if (selectedPartyIndex === null || selectedPartyIndex === '') {
+                    return Logic.showNotification("No signatory selected. Please choose a party to apply the signature/seal for.", 'error', 'Selection Required');
+                }
+
+                let dataUrl = '';
+                
+                if (applyBtn) {
+                    applyBtn.disabled = true;
+                    applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                }
+
+                try {
+                    if (mode === 'draw') {
+                        if (window.signaturePad.isEmpty()) throw new Error("Please provide a signature by drawing it on the canvas.");
+                        dataUrl = window.signaturePad.toDataURL('image/png');
+                    } else {
+                        const previewImg = document.getElementById(mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview');
+                        if (!previewImg || !previewImg.src || previewImg.src.startsWith('http') || previewImg.classList.contains('hidden')) {
+                            const item = mode === 'upload' ? 'signature image' : 'corporate seal';
+                            throw new Error(`Please upload a ${item} before applying.`);
+                        }
+                        dataUrl = await Logic.processImageForTransparency(previewImg.src);
+                    }
+                    
+                    const containersToUpdate = [
+                        document.getElementById('contract-preview-container'),
+                        document.getElementById('print-content')
+                    ];
+                    let itemAppliedSuccessfully = false;
+                    const dateOfExecution = new Date(document.getElementById('signature-timestamp').textContent).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                    containersToUpdate.forEach(container => {
+                        if (!container) return;
+                        
+                        const signatureBlocksInContainer = container.querySelectorAll('.signature-block');
+                        const targetBlock = signatureBlocksInContainer[selectedPartyIndex];
+
+                        if (targetBlock) {
+                            if (mode === 'draw' || mode === 'upload') {
+                                const signatureLine = targetBlock.querySelector('.signature-field .signature-line-border');
+                                const dateLine = targetBlock.querySelectorAll('.signature-field .signature-line-border')[2];
+                                if (signatureLine) signatureLine.innerHTML = `<img src="${dataUrl}" alt="Digital Signature" style="height: 50px; object-fit: contain; margin-top: -15px; margin-left: 5px;">`;
+                                if (dateLine) dateLine.innerHTML = `<span style="font-family: 'Courier New', monospace; font-size: 11pt; padding-left: 5px;">${dateOfExecution}</span>`;
+                                itemAppliedSuccessfully = true;
+                            } else if (mode === 'seal') {
+                                const targetField = targetBlock.querySelectorAll('.signature-field .signature-line-border')[3];
+                                if (targetField) {
+                                    targetField.innerHTML = `<img src="${dataUrl}" alt="Corporate Seal" style="height: 60px; width: 60px; object-fit: contain; margin-left: 5px; opacity: 0.8;">`;
+                                    itemAppliedSuccessfully = true;
+                                }
+                            }
+
+                            if (container.id === 'contract-preview-container') {
+                                targetBlock.style.borderColor = 'var(--success-color)';
+                                targetBlock.style.backgroundColor = 'rgba(34, 197, 94, 0.05)';
+                            }
+                        }
+                    });
+                    
+                    if (!itemAppliedSuccessfully) {
+                        throw new Error("Critical Error: Could not find the target signature/seal block in the document.");
+                    }
+
+                    modal.close();
+                    Logic.resetSignatureInputs(); 
+                    document.getElementById('signature-workflow-panel').classList.remove('hidden');
+                    
+                    // THE FIX for the incorrect count.
+                    let remainingUnsignedParties = 0;
+                    const allPartyBlocks = document.querySelectorAll('#contract-preview-container .signature-block');
+                    allPartyBlocks.forEach(block => {
+                        // A party is considered "unsigned" if their primary signature line (the first one) is empty.
+                        const mainSignatureField = block.querySelector('.signature-field .signature-line-border');
+                        if (mainSignatureField && !mainSignatureField.querySelector('img')) {
+                            remainingUnsignedParties++;
+                        }
+                    });
+
+                    const launchBtn = document.getElementById('initiate-signing-btn');
+                    if (launchBtn) {
+                        // THE FIX: The button is no longer disabled, allowing for re-selection and modification.
+                        launchBtn.disabled = false;
+                        if (remainingUnsignedParties > 0) {
+                            launchBtn.innerHTML = `<i class="fas fa-pen-fancy mr-2"></i>Sign for Another Party (${remainingUnsignedParties} remaining)`;
+                        } else {
+                            launchBtn.innerHTML = `<i class="fas fa-check-double mr-2"></i>All Parties Signed (Ready to Finalize)`;
+                        }
+                    }
+
+                    const partyName = targetSelect.options[targetSelect.selectedIndex].text;
+                    const action = (mode === 'seal') ? 'Corporate Seal' : 'Signature';
+                    Logic.showNotification(`${action} successfully applied for ${partyName}. The document preview has been updated.`, 'success', 'Application Successful');
+
+                } catch (error) {
+                    console.error("Application failed:", error);
+                    Logic.showNotification(error.message, 'error', 'Application Failed');
+                } finally {
+                    if (applyBtn) {
+                        applyBtn.disabled = false;
+                        applyBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Apply to Document';
+                    }
                 }
             },
 
 
-            // 2. ADD this missing function inside your `Logic` object, after `generatePremiumEmailTemplate`.
+// This function simulates the "military-grade" hashing on the client for demonstration
+simpleHash: async (str) => {
+                const buffer = new TextEncoder().encode(str);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            },
+
+                        // DEFINITIVE UPGRADE v4.4 - This function has been refactored.
+            // Its ONLY responsibility now is to display the premium confirmation modal.
+            sendForSignature: () => {
+                document.getElementById('finalization-modal').showModal();
+            },
+
+          // REPLACE the existing `executeFinalizationWorkflow` function with this upgraded version.
+
+            // RE-ENGINEERED FUNCTION v5.1 - Client-centric PDF generation with embedded styles.
+            // This version has NO Google Drive or Sheets dependency and ensures high-quality PDF output.
+            executeFinalizationWorkflow: async () => {
+                document.getElementById('finalization-modal').close();
+                const btn = document.getElementById('send-for-signature-btn');
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>Generating PDF & Dispatching...`;
+
+                try {
+                    // --- STEP 1: GATHER FINAL DOCUMENT DATA & STYLES ---
+                    const contractElement = document.getElementById('print-content');
+                    if (!contractElement || !contractElement.innerHTML) {
+                        throw new Error("Could not find the printable contract content. Please generate the contract first.");
+                    }
+                    
+                    // NEW: Call our helper to get all the high-quality print CSS rules as a string.
+                    const premiumPrintStyles = Logic.getPrintStyles();
+                    if (!premiumPrintStyles) {
+                        console.warn("No print styles were extracted. The final PDF may not be styled correctly.");
+                    }
+
+                    const finalDocumentHTML = contractElement.innerHTML;
+                    const documentFingerprint = await Logic.simpleHash(finalDocumentHTML);
+                    const agreementReferenceMatch = finalDocumentHTML.match(/AGREEMENT REFERENCE CODE:<\/span>\s*<span class="metadata-value">([^<]+)<\/span>/);
+                    const agreementReference = agreementReferenceMatch ? agreementReferenceMatch[1].trim() : `GECAN-DOC-${Date.now()}`;
+                    
+                    const allPartiesFromState = AppState.modeler.legal.groups.flatMap(g => g.parties);
+                    const recipientEmails = allPartiesFromState
+                        .map(p => p.email)
+                        .filter(email => email && email.includes('@'));
+
+                    if (recipientEmails.length === 0) {
+                        throw new Error("No valid recipient email addresses found in the IMFPA party details. Please add them before finalizing.");
+                    }
+
+                    // --- STEP 2: BUILD THE FULLY-STYLED, SELF-CONTAINED HTML FOR PDF CONVERSION ---
+                    // This is the crucial new step.
+                    const fullyStyledHtmlForPdf = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <title>${agreementReference}</title>
+                            <style>
+                                /* 
+                                 * All premium print styles are injected here, ensuring the back-end
+                                 * PDF generator renders the document perfectly.
+                                 */
+                                ${premiumPrintStyles}
+                            </style>
+                        </head>
+                        <body>
+                            <!-- The exact, cleaned contract HTML is placed here. -->
+                            ${finalDocumentHTML}
+                        </body>
+                        </html>
+                    `;
+
+                    // --- STEP 3: BUILD THE PREMIUM PAYLOAD & EMAIL ---
+                    const payload = {
+                        agreementReference,
+                        documentFingerprint,
+                        parties: allPartiesFromState,
+                        recipientEmails: recipientEmails.join(','),
+                        bccEmails: 'pennworthventures@gmail.com,punchisum@gmail.com',
+                        emailSubject: `FULLY EXECUTED: GECAN™ Agreement Ref: ${agreementReference}`,
+                        fileName: `${agreementReference}_EXECUTED.pdf`
+                    };
+                    
+                    payload.emailBody = Logic.generatePremiumEmailTemplate(payload);
+
+                    // --- STEP 4: CALL BACK-END TO GENERATE PDF AND SEND EMAIL ---
+                    // MODIFIED: We now pass the 'fullyStyledHtmlForPdf' string to the back-end.
+                    console.log("SENDING DISPATCH PAYLOAD TO BACK-END...");
+                    const response = await GAS.run('generatePdfAndDispatchEmail', payload, fullyStyledHtmlForPdf);
+
+                    if (!response.success) {
+                        throw new Error(response.message || "The server failed to generate the PDF or dispatch the email.");
+                    }
+                    
+                    btn.innerHTML = `<i class="fas fa-check-circle mr-2"></i>Dispatched Successfully`;
+                    Logic.showNotification(
+                        `The finalized PDF has been generated and dispatched to all ${recipientEmails.length} parties. Please check your email.`,
+                        'success',
+                        'Document Dispatched'
+                    );
+
+                } catch (err) {
+                    console.error("Dispatch Failed:", err);
+                    Logic.showNotification(err.message, 'error', 'Dispatch Failed');
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-paper-plane mr-2"></i>Lock Document & Send to Parties`;
+                }
+            },
+             // =======================================================================
+            // === NEW FUNCTION: PREMIUM EMAIL TEMPLATE GENERATOR (v1.0) ===
+            // This is the missing function that generates the final email body.
+            // =======================================================================
+            generatePremiumEmailTemplate: (payload) => {
+                const nowSGT = new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore", dateStyle: 'full', timeStyle: 'long' });
+                const partyListHTML = payload.parties.map(p => `<li><strong>${p.legalName || 'N/A'}</strong> (${p.role || 'N/A'})</li>`).join('');
+
+                return `
+                <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px;">
+                    <div style="max-width: 750px; margin: auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+                        <div style="background-color: #0369a1; color: white; padding: 25px; text-align: center;">
+                            <h1 style="margin: 0; font-size: 24px;">GECAN™ | Executed Agreement Attached</h1>
+                        </div>
+                        <div style="padding: 30px;">
+                            <p>Dear Contracting Parties,</p>
+                            <p>Please find attached the fully executed legal document pertaining to the referenced transaction. This document has been finalized and its state has been cryptographically recorded for audit purposes.</p>
+                            
+                            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 5px solid #0ea5e9; margin: 25px 0;">
+                                <h3 style="margin-top: 0; color: #0369a1;">Agreement Details</h3>
+                                <p style="margin: 5px 0;"><strong>Agreement Reference:</strong> ${payload.agreementReference}</p>
+                                <p style="margin: 5px 0;"><strong>Document Fingerprint (SHA-256):</strong> <code style="font-size: 12px; color: #555;">${payload.documentFingerprint}</code></p>
+                                <p style="margin: 5px 0;"><strong>Finalization Timestamp:</strong> ${nowSGT}</p>
+                            </div>
+
+                            <h3 style="color: #0369a1;">Parties to this Agreement:</h3>
+                            <ul style="padding-left: 20px;">
+                                ${partyListHTML}
+                            </ul>
+
+                            <p>All parties should retain a copy of the attached PDF for their records. No further action is required unless otherwise specified within the document's terms.</p>
+                            <p>Thank you for your cooperation.</p>
+                            <p style="margin-top: 25px;"><strong>Sincerely,<br>The GECAN™ Transactional Systems</strong></p>
+                        </div>
+                        <div style="background-color: #e2e8f0; color: #4a5568; padding: 20px; font-size: 12px; text-align: center;">
+                            <p style="margin: 0;"><strong>CONFIDENTIALITY NOTICE (ICC Pub. No. 769 E):</strong> This electronic communication and any attachments are strictly confidential, legally privileged, and intended solely for the authorized recipients. Any unauthorized review, use, disclosure, or distribution is strictly prohibited.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                `;
+            },
+
+            // =======================================================================
+            // === NEW FUNCTION: PREMIUM EMAIL TEMPLATE GENERATOR (v1.0) ===
+            // This is the missing function that generates the final email body.
+            // =======================================================================
+            generatePremiumEmailTemplate: (payload) => {
+                const nowSGT = new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore", dateStyle: 'full', timeStyle: 'long' });
+                const partyListHTML = payload.parties.map(p => `<li><strong>${p.legalName || 'N/A'}</strong> (${p.role || 'N/A'})</li>`).join('');
+
+                return `
+                <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px;">
+                    <div style="max-width: 750px; margin: auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+                        <div style="background-color: #0369a1; color: white; padding: 25px; text-align: center;">
+                            <h1 style="margin: 0; font-size: 24px;">GECAN™ | Executed Agreement Attached</h1>
+                        </div>
+                        <div style="padding: 30px;">
+                            <p>Dear Contracting Parties,</p>
+                            <p>Please find attached the fully executed legal document pertaining to the referenced transaction. This document has been finalized and its state has been cryptographically recorded for audit purposes.</p>
+                            
+                            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 5px solid #0ea5e9; margin: 25px 0;">
+                                <h3 style="margin-top: 0; color: #0369a1;">Agreement Details</h3>
+                                <p style="margin: 5px 0;"><strong>Agreement Reference:</strong> ${payload.agreementReference}</p>
+                                <p style="margin: 5px 0;"><strong>Document Fingerprint (SHA-256):</strong> <code style="font-size: 12px; color: #555;">${payload.documentFingerprint}</code></p>
+                                <p style="margin: 5px 0;"><strong>Finalization Timestamp:</strong> ${nowSGT}</p>
+                            </div>
+
+                            <h3 style="color: #0369a1;">Parties to this Agreement:</h3>
+                            <ul style="padding-left: 20px;">
+                                ${partyListHTML}
+                            </ul>
+
+                            <p>All parties should retain a copy of the attached PDF for their records. No further action is required unless otherwise specified within the document's terms.</p>
+                            <p>Thank you for your cooperation.</p>
+                            <p style="margin-top: 25px;"><strong>Sincerely,<br>The GECAN™ Transactional Systems</strong></p>
+                        </div>
+                        <div style="background-color: #e2e8f0; color: #4a5568; padding: 20px; font-size: 12px; text-align: center;">
+                            <p style="margin: 0;"><strong>CONFIDENTIALITY NOTICE (ICC Pub. No. 769 E):</strong> This electronic communication and any attachments are strictly confidential, legally privileged, and intended solely for the authorized recipients. Any unauthorized review, use, disclosure, or distribution is strictly prohibited.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                `;
+            },
+
+// ======================= START: INSERT THE NEW CODE HERE =======================
+            // =======================================================================
+            // === NEW FUNCTION: PRINT STYLE EXTRACTOR (v1.0) ===
+            // This function captures the high-quality print CSS for back-end PDF generation.
+            // =======================================================================
             getPrintStyles: () => {
                 let printCss = '';
                 // Iterate through all stylesheets loaded on the page
@@ -1884,945 +3074,19 @@ togglePricingConfig: () => {
                         console.warn("Could not access stylesheet for print styles:", sheet.href, e);
                     }
                 }
+                // Return the complete block of CSS text
                 return printCss;
             },
-            // --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
+// ======================== END: INSERT THE NEW CODE HERE ========================
 
-            initiateSigningProcess: () => {
-    const sigBlocks = document.querySelectorAll('#contract-document-wrapper .p-signature-block');
-    const selectEl = document.getElementById('signature-target-select');
-    if (!selectEl) return;
-    
-    selectEl.innerHTML = '<option value="">-- Select a Signatory --</option>';
-    sigBlocks.forEach((block, index) => {
-        const partyName = block.dataset.partyName;
-        const option = new Option(`${index + 1}: ${partyName}`, block.dataset.partyId);
-        selectEl.add(option);
-    });
 
-    const modal = document.getElementById('signature-modal');
-    modal.showModal();
-    Logic.switchSignatureMode('draw');
-    
-    document.getElementById('signature-timestamp').textContent = new Date().toISOString();
-    document.getElementById('signature-location').textContent = 'Fetching...';
-    fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
-        document.getElementById('signature-location').textContent = `${data.city}, ${data.country_name} (IP: ${data.ip})`;
-    }).catch(() => { document.getElementById('signature-location').textContent = 'Location Not Available'; });
-},
 
-switchSignatureMode: (mode) => {
-    const panels = { draw: 'draw-mode-panel', upload: 'upload-mode-panel', seal: 'seal-mode-panel' };
-    const tabs = { draw: 'draw-tab-btn', upload: 'upload-tab-btn', seal: 'seal-tab-btn' };
 
-    Object.values(panels).forEach(id => document.getElementById(id).classList.add('hidden'));
-    Object.values(tabs).forEach(id => document.getElementById(id).classList.remove('active'));
-
-    document.getElementById(panels[mode]).classList.remove('hidden');
-    document.getElementById(tabs[mode]).classList.add('active');
-    document.getElementById('signature-modal').dataset.activeMode = mode;
-    
-    if (mode === 'draw') Logic.setupSignaturePad();
-    if (mode === 'upload' || mode === 'seal') Logic.setupFileUpload(mode);
-},
-
-setupSignaturePad: () => {
-    const canvas = document.getElementById('signature-canvas');
-    if (!canvas) return;
-    const resizeCanvas = () => {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext("2d").scale(ratio, ratio);
-        if (window.signaturePad) window.signaturePad.clear();
-    };
-    if (!window.signaturePad) window.signaturePad = new SignaturePad(canvas, { penColor: "#1A237E" });
-    setTimeout(resizeCanvas, 50);
-},
-
-clearSignaturePad: () => window.signaturePad?.clear(),
-
-setupFileUpload: (type) => { // 'upload' for signature, 'seal' for seal
-    const inputId = type === 'upload' ? 'signature-upload-input' : 'seal-upload-input';
-    const previewId = type === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
-    const promptId = type === 'upload' ? 'upload-prompt' : 'seal-prompt';
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    const prompt = document.getElementById(promptId);
-    if (!input || !preview || !prompt) return;
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                preview.src = event.target.result;
-                preview.classList.remove('hidden');
-                prompt.classList.add('hidden');
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-},
-
-processImageForTransparency: (imageDataUrl) => {
-    return new Promise((resolve, reject) => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-
-            try {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-
-                // --- SUPREME INTELLIGENCE: DYNAMIC BACKGROUND DETECTION ---
-                // Sample the corner pixel color to intelligently determine the background.
-                const cornerPixel = [data[0], data[1], data[2]];
-                const isLightBg = (cornerPixel[0] + cornerPixel[1] + cornerPixel[2]) / 3 > 128;
-
-                if (!isLightBg) {
-                    // If the background is not light, we assume it's a pre-processed transparent PNG.
-                    // No processing needed, just resolve.
-                    resolve(canvas.toDataURL('image/png'));
-                    return;
-                }
-
-                const bgR = cornerPixel[0];
-                const bgG = cornerPixel[1];
-                const bgB = cornerPixel[2];
-                // Dynamic threshold adapts to the detected background color.
-                const threshold = 30; 
-
-                // --- PINNACLE-GRADE PROCESSING: PIXEL-BY-PIXEL ANALYSIS ---
-                for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-
-                    // Calculate color distance from the detected background color.
-                    const distance = Math.sqrt(
-                        Math.pow(r - bgR, 2) +
-                        Math.pow(g - bgG, 2) +
-                        Math.pow(b - bgB, 2)
-                    );
-
-                    if (distance < threshold) {
-                        // Pixel is part of the background, make it transparent.
-                        data[i + 3] = 0;
-                    } else {
-                        // --- SEVERE UPGRADE: RE-TONE TO LEGAL NAVY BLUE & ENHANCE CONTRAST ---
-                        // This pixel is part of the signature.
-                        // Convert to grayscale to neutralize original color.
-                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                        
-                        // Re-tone to a legally profound navy blue (#1A237E).
-                        // The darker the original pixel, the closer to pure navy it becomes.
-                        const intensity = 1 - (gray / 255);
-                        data[i] = 26 * intensity;   // R channel for #1A237E
-                        data[i + 1] = 35 * intensity; // G channel for #1A237E
-                        data[i + 2] = 126 * intensity;// B channel for #1A237E
-
-                        // Enhance alpha based on intensity for smoother edges.
-                        data[i + 3] = 255 * Math.pow(intensity, 0.8);
-                    }
-                }
-
-                // Put the modified, optimized, and re-toned image data back onto the canvas.
-                ctx.putImageData(imageData, 0, 0);
-                
-                // Resolve the Promise with the new, pinnacle-grade PNG data URL.
-                resolve(canvas.toDataURL('image/png'));
-            } catch (e) {
-                console.error("Could not process image data due to security restrictions:", e);
-                reject(new Error("Image is from a different origin or is security-protected. Please use the 'Draw Signature' method or a different image file."));
-            }
+            // ===== END: UPGRADED INSTITUTIONAL MODELER LOGIC =====
         };
 
-        img.onerror = () => {
-            reject(new Error("Failed to load the signature image for processing. The file may be corrupt or inaccessible."));
-        };
-
-        // Start loading the image
-        img.src = imageDataUrl;
-    });
-},
-
-applySignature: async () => {
-    const modal = document.getElementById('signature-modal');
-    const mode = modal.dataset.activeMode;
-    const targetPartyId = document.getElementById('signature-target-select').value;
-    if (!targetPartyId) return Utils.showNotification("Please select a signatory.", 'error');
-
-    let dataUrl = '';
-    try {
-        if (mode === 'draw') {
-            if (window.signaturePad.isEmpty()) throw new Error("Please draw a signature.");
-            dataUrl = window.signaturePad.toDataURL('image/png');
-        } else {
-            const previewId = mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
-            const previewImg = document.getElementById(previewId);
-            if (!previewImg.src || previewImg.classList.contains('hidden')) throw new Error(`Please upload a ${mode === 'upload' ? 'signature' : 'seal'}.`);
-            dataUrl = await Logic.processImageForTransparency(previewImg.src);
-        }
-
-        const dateOfExecution = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        const containersToUpdate = ['#contract-document-wrapper', '#print-area'];
-
-        containersToUpdate.forEach(containerSelector => {
-            const container = document.querySelector(containerSelector);
-            if (!container) return;
-            const targetBlock = container.querySelector(`.p-signature-block[data-party-id="${targetPartyId}"]`);
-            if (!targetBlock) return;
-
-            if (mode === 'draw' || mode === 'upload') {
-                targetBlock.querySelector('[data-sig-type="signature"]').innerHTML = `<img src="${dataUrl}" class="p-signature-img" alt="Digital Signature">`;
-                targetBlock.querySelector('[data-sig-type="date"]').textContent = dateOfExecution;
-            } else if (mode === 'seal') {
-                targetBlock.querySelector('[data-sig-type="seal"]').innerHTML = `<img src="${dataUrl}" class="p-seal-img" alt="Corporate Seal">`;
-            }
-        });
-
-        modal.close();
-        Logic.resetSignatureInputs();
-        document.querySelector('#finalization-step-panel').classList.remove('opacity-50', 'pointer-events-none');
-        Utils.showNotification("Signature/seal applied successfully.", 'success');
-    } catch (error) {
-        Utils.showNotification(error.message, 'error', 'Application Failed');
-    }
-},
-
-resetSignatureInputs: () => {
-    window.signaturePad?.clear();
-    ['signature-upload', 'seal-upload'].forEach(id => {
-        const input = document.getElementById(`${id}-input`);
-        const preview = document.getElementById(`${id}-preview`);
-        const promptEl = document.getElementById(id.replace('upload', 'prompt'));
-        if(input) input.value = '';
-        if(preview) { preview.src = ''; preview.classList.add('hidden'); }
-        if(promptEl) promptEl.classList.remove('hidden');
-    });
-},
-
-sendForSignature: () => {
-                const modal = document.getElementById('finalization-modal');
-                if(!modal) return;
-                modal.innerHTML = UI.renderFinalizationModal();
-                modal.showModal();
-            },
-
-simpleHash: async (str) => {
-    const buffer = new TextEncoder().encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-},
-
-executeFinalizationWorkflow: async () => {
-    document.getElementById('finalization-modal').close();
-    Utils.showNotification("Finalizing document and dispatching...", 'info', 'Processing');
-
-    try {
-        const finalHtml = document.getElementById('print-area').innerHTML;
-        const documentFingerprint = await Logic.simpleHash(finalHtml);
-        const agreementReference = finalHtml.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'GECAN-DOC-FINAL';
-        const recipientEmails = AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => p.email).filter(Boolean);
-
-        const payload = {
-            agreementReference,
-            documentFingerprint,
-            recipientEmails: recipientEmails.join(','),
-            emailBody: Logic.generatePremiumEmailTemplate({ agreementReference, documentFingerprint, parties: AppState.modeler.legal.groups.flatMap(g => g.parties) }),
-            fileName: `${agreementReference}_EXECUTED.pdf`,
-            htmlContent: `<!DOCTYPE html><html><head><style>${Array.from(document.styleSheets).map(s => Array.from(s.rules || []).map(r => r.cssText).join('')).join('')}</style></head><body>${finalHtml}</body></html>`
-        };
-
-        const response = await Logic.createApiRequest('generatePdfAndDispatchEmail', 'POST', payload);
-        Utils.showNotification(response, 'success', 'Document Dispatched');
-    } catch (error) {
-        Utils.showNotification(error.message, 'error', 'Dispatch Failed');
-    }
-},
-
-generatePremiumEmailTemplate: (payload) => {
-    const partyListHTML = payload.parties.map(p => `<li><strong>${p.legalName || 'N/A'}</strong> (${p.role || 'N/A'})</li>`).join('');
-    return `
-    <body style="font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; padding: 20px;">
-        <div style="max-width: 750px; margin: auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px;">
-            <div style="background-color: #0369a1; color: white; padding: 25px; text-align: center;"><h1>GECAN™ | Executed Agreement Attached</h1></div>
-            <div style="padding: 30px;">
-                <p>Dear Contracting Parties,</p>
-                <p>Please find attached the fully executed legal document. This document has been finalized and its state cryptographically recorded.</p>
-                <div style="background-color: #f9f9f9; padding: 20px; border-left: 5px solid #0ea5e9; margin: 25px 0;">
-                    <h3 style="color: #0369a1;">Agreement Details</h3>
-                    <p><strong>Reference:</strong> ${payload.agreementReference}</p>
-                    <p><strong>Document Fingerprint (SHA-256):</strong> <code style="font-size: 12px;">${payload.documentFingerprint}</code></p>
-                </div>
-                <h3>Parties to this Agreement:</h3><ul>${partyListHTML}</ul>
-                <p>Thank you for your cooperation.<br><strong>The GECAN™ Transactional Systems</strong></p>
-            </div>
-            <div style="background-color: #e2e8f0; color: #4a5568; padding: 20px; font-size: 12px; text-align: center;">
-                <p><strong>CONFIDENTIALITY NOTICE (ICC Pub. No. 769 E):</strong> This electronic communication is strictly confidential and intended solely for the authorized recipients.</p>
-            </div>
-        </div>
-    </body>`;
-},
-
-
-        };
-
-// ====================================================================================
-// === SECTION 4: UI RENDERERS (v4.0 - DEFINITIVE, UNABRIDGED & CORRECTED) ===
-// This block contains the pinnacle-grade, word-for-word logic for rendering
-// every component and state of the Toolkits page UI.
-// ====================================================================================
-const UI = {
-    /**
-     * Initializes the particle background with a default or fetched theme.
-     * This function is the benchmark standard for dynamic background effects.
-     */
-    init: () => {
-        const defaultConfig = {
-            "particles": {
-                "number": { "value": 50, "density": { "enable": true, "value_area": 800 } },
-                "color": { "value": ["#0ea5e9", "#6366f1", "#8b5cf6"] },
-                "shape": { "type": "circle" },
-                "opacity": { "value": 0.6, "random": true, "anim": { "enable": true, "speed": 0.5, "opacity_min": 0.1 } },
-                "size": { "value": 3, "random": true },
-                "line_linked": { "enable": true, "distance": 150, "color": "#475569", "opacity": 0.4, "width": 1 },
-                "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "out_mode": "out" }
-            },
-            "interactivity": {
-                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } },
-                "modes": { "grab": { "distance": 200, "line_linked": { "opacity": 0.6 } }, "push": { "particles_nb": 4 } }
-            }
-        };
-        if (typeof particlesJS !== 'undefined') {
-            particlesJS('particles-js', defaultConfig);
-        }
-    },
-
-    /**
-     * Dynamically renders the particle.js background using a provided configuration.
-     * @param {object} config - A valid particle.js configuration object.
-     */
-    renderParticles: (config) => {
-        if (typeof particlesJS !== 'undefined') {
-            particlesJS('particles-js', config);
-        } else {
-            console.warn("particles.js library not found, skipping background rendering.");
-        }
-    },
-
-    /**
-     * Populates the main and mobile navigation menus from a central source of truth.
-     * This function is benchmarked against index.html for perfect platform-wide consistency.
-     */
-    populateNavLinks: () => {
-    const navPlaceholder = document.getElementById('desktop-nav-placeholder');
-    const mobileMenuContent = document.getElementById('mobile-sidebar-content');
-    if (!navPlaceholder || !mobileMenuContent) return;
-
-    const path = window.location.pathname;
-    const currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
-
-    const links = [
-        { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
-        { page: 'about', icon: 'fas fa-landmark', text: 'About The Alliance' },
-        { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
-        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
-        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' }
-    ];
-
-    const navHtml = (isMobile = false) => links.map(link => {
-        const isActive = currentPageFile === link.page;
-        const btnClass = isMobile ? 'nav-btn w-full justify-start' : 'nav-btn';
-        // This HTML structure is the benchmark standard for all navigation buttons.
-        return `
-            <a href="./${link.page}.html" class="${btnClass} ${isActive ? 'active' : ''}">
-                <div class="nav-icon-wrapper">
-                    <div class="nav-icon-flipper">
-                        <div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div>
-                        <div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div>
-                    </div>
-                </div>
-                <span class="nav-text">${link.text}</span>
-            </a>`;
-    }).join(isMobile ? '' : '');
-
-    navPlaceholder.innerHTML = `<div id="nav-container" class="hidden xl:flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">${navHtml(false)}</div>`;
-    // For mobile, we create a fresh clone every time to ensure event listeners are clean.
-    mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
-},
-
-    /**
-     * Renders the menu of available toolkits in the left sidebar, highlighting the active one.
-     */
-    renderToolkitMenu: () => {
-        const menuContainer = document.getElementById('toolkit-menu');
-        if (!menuContainer) return;
-        menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
-            const isActive = AppState.activeToolkit === t.id;
-            return `
-                <button onclick="Logic.setActiveToolkit('${t.id}')" 
-                        class="w-full text-left p-4 rounded-xl flex items-center gap-4 transition-all duration-300 group ${isActive ? 'bg-gradient-to-r from-primary-azure to-primary-dark text-white shadow-lg shadow-primary-azure/20' : 'text-text-secondary hover:bg-background-secondary hover:text-white'}">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <i class="fas ${t.icon} text-white"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-semibold truncate">${t.name}</div>
-                        <div class="text-xs opacity-75 mt-1 truncate">${t.description.split('.')[0]}</div>
-                    </div>
-                    <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-opacity ml-auto"></i>
-                </button>`;
-        }).join('');
-    },
-
-    /**
-     * Master UI renderer. It acts as a router, calling the specific UI function 
-     * for the currently active toolkit and binding its necessary event listeners.
-     */
-    renderActiveToolkit: () => {
-        const container = document.getElementById('active-toolkit-container');
-        if (!container) return console.error("CRITICAL: Active toolkit container not found.");
-        
-        const renderFunc = UI[`render${AppState.activeToolkit}UI`];
-        if (typeof renderFunc === 'function') {
-            container.innerHTML = renderFunc();
-            container.classList.remove('hidden');
-            Logic.bindActiveToolkitEvents();
-        } else {
-            Utils.showNotification(`UI for '${AppState.activeToolkit}' not implemented.`, 'error');
-            container.innerHTML = `<p class="text-center text-error-color">UI Error: Component '${AppState.activeToolkit}' failed to load.</p>`;
-        }
-        UI.renderToolkitMenu();
-    },
-
-    /**
-     * Renders the main dashboard/welcome view for the toolkits page.
-     * DEFINITIVE FIX: The trailing comma that caused the syntax error has been removed.
-     */
-    renderDashboardUI: () => `
-        <div class="glass rounded-2xl p-8 h-full flex flex-col animate-fade-in-up">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold gradient-text mb-4">GECAN™ Intelligent Toolkits</h2>
-                <p class="text-text-secondary text-lg max-w-2xl mx-auto leading-relaxed">Select a proprietary tool from the sidebar to begin your institutional-grade analysis. Each toolkit is powered by advanced algorithms and real-time data intelligence.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
-                ${Object.values(AppState.toolkits)
-                    .filter(t => t.id !== 'Dashboard')
-                    .map((t, index) => `
-                        <div class="report-section p-8 cursor-pointer group animate-scale-in stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}')">
-                            <div class="flex items-start gap-6">
-                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl group-hover:scale-110 transition-transform duration-300 ease-in-out">
-                                    <i class="fas ${t.icon}"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-primary-azure transition-colors">${t.name}</h3>
-                                    <p class="text-text-secondary leading-relaxed">${t.description}</p>
-                                    <div class="mt-4 flex items-center text-primary-azure opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <span class="text-sm font-medium">Launch Toolkit</span>
-                                        <i class="fas fa-arrow-right ml-2"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`).join('')
-                }
-            </div>
-        </div>`,
-
-    /**
-     * Renders the main container and logic for the Wallet Forensics toolkit.
-     * It intelligently displays the initial prompt, the premium loading state, or the full, detailed report.
-     * @returns {string} The complete HTML for the Wallet Forensics toolkit interface.
-     */
-    renderWalletForensicsUI: () => {
-        const { address, isLoading, report } = AppState.walletAnalysis;
-        let contentHTML = '';
-
-        if (isLoading) {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center animate-fade-in-up"><div class="relative mb-8"><div class="w-24 h-24 border-4 border-primary-azure border-t-transparent rounded-full animate-spin"></div><div class="absolute inset-0 rounded-full animate-ping bg-primary-azure opacity-20"></div></div><h3 class="text-2xl font-bold text-white mb-4">Analyzing Wallet On-Chain...</h3><p id="spinner-text" class="text-text-secondary mb-6 transition-opacity duration-300">Initializing GECAN Heuristic Engine v5.0...</p><div class="w-64 h-2 bg-background-secondary rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-primary-azure to-primary-royal" style="width: 100%; animation: shimmer 2s infinite linear; background-size: 400% 100%;"></div></div></div>`;
-        } else if (report?.error || report?.success === false) {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-scale-in"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold text-white mb-4">Analysis Failed</h3><p class="text-text-secondary max-w-md leading-relaxed">${report.error?.message || 'An unknown server error occurred. Please try again.'}</p><button onclick="Logic.runWalletForensics()" class="btn-primary mt-6 px-6 py-3 rounded-lg"><i class="fas fa-redo mr-2"></i>Retry Analysis</button></div>`;
-        } else if (report) {
-            contentHTML = UI.buildWalletReportHTML(report);
-        } else {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center glass rounded-2xl border-2 border-dashed border-border-color animate-fade-in-up"><div class="w-24 h-24 rounded-full bg-primary-azure/10 flex items-center justify-center mb-8 animate-float"><i class="fas fa-search-dollar fa-3x text-primary-azure"></i></div><h3 class="text-2xl font-bold text-white mb-4">Ready for Analysis</h3><p class="text-text-secondary max-w-md leading-relaxed mb-2">Enter a wallet address to begin comprehensive due diligence and provenance analysis.</p><p class="text-xs text-text-muted">Powered by GECAN Proprietary Heuristic Engine v5.0</p></div>`;
-        }
-
-        return `<div class="glass rounded-2xl p-0 h-full flex flex-col animate-fade-in-up"><div class="p-8 border-b border-border-color"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center flex-shrink-0"><i class="fas fa-shield-alt text-white fa-lg"></i></div><div><h2 class="text-3xl font-bold text-white">Wallet Due Diligence & Provenance</h2><p class="text-text-secondary">Advanced blockchain forensics and risk assessment</p></div></div><div class="flex flex-col sm:flex-row items-center gap-4"><input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm"><button id="check-wallet-btn" class="btn-primary font-bold py-4 px-8 rounded-xl whitespace-nowrap w-full sm:w-auto"><i class="fas fa-microscope mr-2"></i>Analyze</button></div></div><div class="flex-grow p-8 overflow-y-auto">${contentHTML}</div></div>`;
-    },
-
-    /**
-     * Builds the complete HTML for a generated Wallet Forensics report.
-     * @param {object} report - The full report data object from the backend.
-     * @returns {string} The complete HTML string for the report.
-     */
-    buildWalletReportHTML: (report) => {
-    const { wallet, analysis, provenance, transactions } = report;
-    const { walletClassification, redFlags, riskLevel, integrityScore, scoreBreakdown } = analysis;
-    const riskClass = `risk-${riskLevel}`;
-
-    // --- DERIVED METRICS: Calculated once for efficiency and consistency ---
-    const reliableTransactionCount = Array.isArray(transactions) ? transactions.length : (wallet.transactionCount || 0);
-    const inboundCount = reliableTransactionCount > 0 ? transactions.filter(tx => tx.type === 'Receive').length : 0;
-    const outboundCount = reliableTransactionCount > 0 ? transactions.filter(tx => tx.type === 'Send').length : 0;
-    const lastActivityDate = reliableTransactionCount > 0 && transactions?.[0]?.time ? new Date(transactions[0].time) : new Date(wallet.firstTransaction);
-    const daysSinceLastTx = lastActivityDate ? Math.floor((new Date() - lastActivityDate) / (1000 * 60 * 60 * 24)) : 'N/A';
-    const transactionVelocity = wallet.ageInDays > 0 ? (reliableTransactionCount / wallet.ageInDays).toFixed(2) : '0.00';
-    const uniqueControllers = [...new Set((provenance.records || []).map(r => r.controller).filter(c => c && c.toUpperCase() !== 'UNKNOWN'))];
-
-    // --- Dynamic Header Tags ---
-    const headerTags = [];
-    if (provenance.records.length > 0) headerTags.push({ text: 'GECAN LEDGER MATCH', class: 'bg-success-color/20 text-success-color' });
-    else headerTags.push({ text: 'UNVERIFIED IN LEDGER', class: 'bg-warning-color/20 text-warning-color' });
-    headerTags.push({ text: `${riskLevel} RISK`, class: `bg-${riskClass.replace('risk-','')}-color/20 text-${riskClass.replace('risk-','')}-color` });
-    if (uniqueControllers.length > 1) headerTags.push({ text: 'OWNERSHIP CONFLICT', class: 'bg-critical-color/20 text-critical-color' });
-    if (walletClassification.type === 'BLACKLISTED') headerTags.push({ text: 'BLACKLISTED', class: 'bg-critical-color/20 text-critical-color font-bold' });
-
-    // --- Severely Upgraded Score Gauge Helper v8.1 ---
-    const createScoreGauge = (score, label, size = 'w-40 h-40', isMain = false) => {
-        let scoreClass = 'gauge-low';
-        if (score < 40) scoreClass = 'gauge-critical'; else if (score < 65) scoreClass = 'gauge-high'; else if (score < 80) scoreClass = 'gauge-medium';
-        return `
-        <div class="text-center animate-scale-in"><div class="relative ${size} mx-auto mb-3 transition-transform duration-300 hover:scale-105"><svg viewBox="0 0 36 36" class="w-full h-full"><defs><linearGradient id="scoreGradient" x1="0%" y1="0%" x2="0%" y2="100%" gradientTransform="rotate(90)"><stop offset="0%" stop-color="var(--critical-color)" /><stop offset="65%" stop-color="var(--warning-color)" /><stop offset="100%" stop-color="var(--success-color)" /></linearGradient></defs><circle cx="18" cy="18" r="15.9155" class="score-gauge-bg"></circle><circle cx="18" cy="18" r="15.9155" class="score-gauge-fg" stroke="url(#scoreGradient)" data-score="${score}"></circle></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="score-display ${isMain ? 'text-5xl' : 'text-3xl'} font-black transition-colors duration-500 ${scoreClass}">${Math.round(score)}</span>${isMain ? `<span class="text-xs font-bold -mt-1 ${scoreClass}">/ 100</span>` : ''}</div></div><p class="text-sm font-semibold text-white">${label}</p></div>`;
-    };
-
-    // --- Severely Upgraded Transaction Ledger Helper ---
-    const createTransactionLedgerHTML = (transactions, walletType, walletAddress) => {
-        if (reliableTransactionCount === 0) return `<div class="text-center text-text-muted py-12"><i class="fas fa-exchange-alt fa-3x mb-4"></i><p class="font-semibold text-text-secondary">No On-Chain Transactions Found</p></div>`;
-        const currency = walletType === 'BITCOIN' ? 'BTC' : 'USDT';
-        return `
-            <div class="grid grid-cols-3 gap-4 mb-6 text-center">
-                <div class="glass p-3 rounded-lg"><p class="text-xs text-text-muted">Total Txs</p><p class="text-xl font-bold text-white">${reliableTransactionCount.toLocaleString()}</p></div>
-                <div class="glass p-3 rounded-lg"><p class="text-xs text-text-muted">Inbound</p><p class="text-xl font-bold text-success-color">${inboundCount.toLocaleString()}</p></div>
-                <div class="glass p-3 rounded-lg"><p class="text-xs text-text-muted">Outbound</p><p class="text-xl font-bold text-error-color">${outboundCount.toLocaleString()}</p></div>
-            </div>
-            <div id="transaction-ledger" class="space-y-3 max-h-[28rem] overflow-y-auto pr-2">
-                ${transactions.map((tx, index) => {
-                    const isInbound = tx.type === 'Receive';
-                    return `
-                    <div class="glass p-3 rounded-lg flex items-center justify-between gap-4 animate-fade-in-up" style="animation-delay: ${index * 30}ms">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${isInbound ? 'bg-success-color/10 text-success-color' : 'bg-error-color/10 text-error-color'}">
-                                <i class="fas ${isInbound ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <a href="${Logic.getExplorerUrl({type: walletType, address: walletAddress}, tx.hash)}" target="_blank" class="font-mono text-sm text-white truncate block hover:underline" title="View Transaction: ${tx.hash}">${tx.hash.substring(0, 10)}...${tx.hash.substring(tx.hash.length - 6)}</a>
-                                <p class="text-xs text-text-muted">${Utils.calculateTimeAgo(tx.time)}</p>
-                            </div>
-                        </div>
-                        <div class="text-right flex-shrink-0">
-                            <p class="font-mono font-semibold text-base ${isInbound ? 'text-success-color' : 'text-error-color'}">${isInbound ? '+' : '-'}${Utils.formatNumber(tx.amount, 6)} <span class="text-xs text-text-muted">${currency}</span></p>
-                        </div>
-                    </div>`;
-                }).join('')}
-            </div>`;
-    };
-
-    return `
-        <div class="animate-fade-in-up">
-            <div class="mb-8">
-                <div class="glass p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center flex-wrap gap-4">
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-wallet text-2xl text-primary-azure"></i>
-                            <a href="${Logic.getExplorerUrl(wallet)}" target="_blank" class="font-mono text-lg text-white truncate hover:underline">${wallet.address}</a>
-                            <button onclick="Utils.copyToClipboard('${wallet.address}', this)" class="text-text-muted hover:text-white relative group"><i class="fas fa-copy"></i><span class="copied-feedback absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-success-color text-white px-2 py-1 rounded-md opacity-0 pointer-events-none">Copied!</span></button>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2 mt-2">${headerTags.map(tag => `<span class="text-xs font-bold px-3 py-1 rounded-full ${tag.class}">${tag.text}</span>`).join('')}</div>
-                    </div>
-                    <div class="flex-shrink-0 flex items-center gap-3">
-                        <button id="pdf-export-btn" onclick="Logic.generateAndDownloadForensicsPDF()" class="btn-secondary px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button>
-                        <button id="submit-review-btn" onclick="Logic.initiateWalletSubmission()" class="btn-primary font-semibold px-4 py-2 rounded-lg text-sm">
-                            <i class="fas fa-paper-plane mr-2"></i>Submit for Official Review
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-8">
-                    <div class="report-section p-6 animate-fade-in-up stagger-1"><h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3"><i class="fas fa-file-invoice text-primary-azure"></i>Executive Summary</h3><p class="text-text-secondary leading-relaxed">${Logic.generateExecutiveSummary(report)}</p></div>
-                    <div class="report-section p-6 animate-fade-in-up stagger-3"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-flag text-warning-color"></i>Compliance Risk Assessment</h3>${redFlags.length > 0 ? `<div class="space-y-4 max-h-[28rem] overflow-y-auto pr-2">${redFlags.map(flag => `<div class="glass p-4 rounded-xl border-l-4 ${'border-' + flag.level.toLowerCase()}-color"><div class="flex items-start gap-4"><i class="fas ${Utils.getRiskIcon(flag.level)} text-${flag.level.toLowerCase()}-color text-xl mt-1"></i><div><p class="font-bold text-${flag.level.toLowerCase()}-color">${flag.title}</p><p class="text-sm text-text-secondary mt-1">${flag.details}</p></div></div></div>`).join('')}</div>` : `<div class="text-center text-text-muted py-12"><i class="fas fa-check-circle text-success-color fa-3x mb-4"></i><p class="font-semibold text-text-secondary">No Significant Compliance Flags Detected</p></div>`}</div>
-                    <div class="report-section p-6 animate-fade-in-up stagger-4"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-exchange-alt text-primary-sapphire"></i>On-Chain Transaction Ledger</h3>${createTransactionLedgerHTML(transactions, wallet.type, wallet.address)}</div>
-                </div>
-                <div class="lg:col-span-1 space-y-8">
-                    <div class="report-section p-6 animate-fade-in-up stagger-1"><h3 class="text-xl font-bold text-white mb-6 text-center">Scoring Dashboard</h3>${createScoreGauge(integrityScore, 'Overall Integrity Score', 'w-40 h-40', true)}<div class="mt-8 border-t border-border-color pt-6 grid grid-cols-2 gap-6">${createScoreGauge(scoreBreakdown.provenance.score, 'Provenance', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.behavioral.score, 'Behavioral', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.temporal.score, 'Temporal', 'w-28 h-28')}${createScoreGauge(scoreBreakdown.compliance.score, 'Compliance', 'w-28 h-28')}</div></div>
-                    <div class="report-section p-6 animate-fade-in-up stagger-2">
-                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3"><i class="fas fa-microchip text-primary-royal"></i>Wallet Snapshot</h3>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between items-center"><dt class="text-text-muted">Balance (USD Eq.)</dt><dd class="font-semibold text-white bg-background-dark/50 px-2 py-1 rounded font-mono">${Utils.formatPrice(wallet.balance)}</dd></div>
-                            <div class="flex justify-between items-center"><dt class="text-text-muted">Classification</dt><dd class="font-semibold text-white">${walletClassification.type}</dd></div>
-                            <div class="flex justify-between items-center"><dt class="text-text-muted">Wallet Age</dt><dd class="font-semibold text-white bg-background-dark/50 px-2 py-1 rounded font-mono">${wallet.ageInDays} Days</dd></div>
-                            <div class="flex justify-between items-center"><dt class="text-text-muted">Last Activity</dt><dd class="font-semibold text-white">${daysSinceLastTx} days ago</dd></div>
-                            <div class="flex justify-between items-center"><dt class="text-text-muted">Tx Velocity</dt><dd class="font-semibold text-white">${transactionVelocity} tx/day</dd></div>
-                        </div>
-                    </div>
-                    <div class="report-section p-6 animate-fade-in-up stagger-4"><h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-history text-primary-amethyst"></i>GECAN Provenance Timeline</h3><div class="relative">${provenance.records.length > 0 ? provenance.records.map((rec) => `<div class="timeline-item"><div class="timeline-dot"><div class="timeline-dot-inner ${uniqueControllers.length > 1 ? 'bg-critical-color' : 'bg-primary-azure'}"></div></div><p class="text-xs font-mono text-text-muted mb-1">${rec.date}</p><p class="font-semibold text-white">Controller: <span class="text-primary-azure">${rec.controller}</span></p><p class="text-xs text-text-secondary mt-1">Purpose: ${rec.purpose || 'Not specified'}</p></div>`).join('') : `<div class="text-center text-text-muted py-8"><i class="fas fa-question-circle text-warning-color fa-2x mb-3"></i><p class="font-semibold text-text-secondary text-sm">No GECAN Ledger Records</p></div>`}</div></div>
-                </div>
-            </div>
-        </div>
-    `;
-},
-
-        /**
-     * [NEW & BENCHMARKED] Renders the referral ID validation modal, reused from index.html logic.
-     */
-    renderReferralValidationSuite: (title, subtitle) => {
-    return `
-        <div class="submission-dialog-content p-8 space-y-6">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold">${title}</h2>
-                <p class="mt-2">${subtitle}</p>
-            </div>
-            <div>
-                <input type="text" id="referral-id-input" placeholder="Enter Partner Referral ID" class="submission-form-input text-center font-mono tracking-widest p-4">
-            </div>
-            <div id="referral-error" class="text-center bg-red-500/10 p-3 rounded-lg hidden"></div>
-            <div class="flex flex-col sm:flex-row gap-4 pt-2">
-                <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3">Cancel</button>
-                <button id="validate-referral-btn" class="btn-primary w-full py-3 font-semibold">
-                    <i class="fas fa-key mr-2"></i>Validate & Proceed
-                </button>
-            </div>
-        </div>`;
-},
-
-    /**
-     * [NEW & BENCHMARKED] Renders the official wallet submission form after successful validation.
-     */
-    renderWalletSubmissionSuite: (referralInfo) => {
-    const { report } = AppState.walletAnalysis;
-    return `
-        <div class="submission-dialog-content max-w-3xl">
-            <form id="wallet-submission-form">
-                <!-- Header -->
-                <div class="p-6 border-b border-border-color flex justify-between items-start flex-shrink-0">
-                    <div>
-                        <h2 class="text-2xl font-bold">Official Wallet Submission</h2>
-                        <p class="mt-1">Confirm details for official GECAN ledger entry.</p>
-                    </div>
-                    <button type="button" onclick="document.getElementById('submission-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors">×</button>
-                </div>
-
-                <!-- Scrollable Content -->
-                <div class="p-6 space-y-6 overflow-y-auto">
-                    <fieldset>
-                        <legend>Transaction Context</legend>
-                        <div class="space-y-4">
-                            <div><label>Wallet Address to be Submitted</label><input type="text" class="submission-form-input" value="${report.wallet.address}" readonly></div>
-                            <div><label>Target Offer ID (If Applicable)</label><select id="submission-offer-id" class="submission-form-select"></select></div>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Your Details (Submitter)</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label>Your Full Name*</label><input type="text" id="submitter-name" class="submission-form-input" placeholder="e.g., Jane Smith" required></div>
-                            <div><label>Your Role*</label><input type="text" id="submitter-role" class="submission-form-input" placeholder="e.g., Mandate, Broker" required></div>
-                            <div><label>Your Contact Email*</label><input type="email" id="submitter-email" class="submission-form-input" placeholder="you@example.com" required></div>
-                            <div><label>Your Contact Phone*</label><input type="tel" id="submitter-phone" class="submission-form-input" placeholder="+1 555 123 4567" required></div>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Alleged Wallet Controller</legend>
-                        <div class="space-y-4">
-                            <div><label>Principal / Entity Name*</label><input type="text" id="controller-name" class="submission-form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required></div>
-                            <div class="recommendation-box">
-                                <h4>Recommendation</h4>
-                                <p>For expedited review, it is highly recommended to provide the alleged controller's Customer Information Sheet (CIS) and Proof of Funds (POF) via secure email to <strong>compliance@gecan.co</strong> after submission.</p>
-                            </div>
-                        </div>
-                    </fieldset>
-                    
-                    <div><label>Referring Partner</label><input type="text" class="submission-form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly></div>
-                </div>
-
-                <!-- Footer / Actions -->
-                <div class="p-6 border-t border-border-color mt-auto flex flex-col sm:flex-row gap-4 flex-shrink-0">
-                    <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3">Cancel Submission</button>
-                    <button type="submit" id="confirm-submission-btn" class="btn-primary w-full py-3 font-semibold bg-gradient-to-r from-success-color to-emerald-600 border-success-color">
-                        <i class="fas fa-check-circle mr-2"></i>Confirm & Submit to Ledger
-                    </button>
-                </div>
-            </form>
-        </div>`;
-},
-    /**
-     * Renders the main container for the Institutional Modeler toolkit, including the deal type selection.
-     * @returns {string} The HTML structure for the modeler interface.
-     */
-    renderInstitutionalModelerUI: () => {
-    const dealTypes = [
-        { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct conversions between assets in the GECAN matrix.', gradient: 'from-blue-500 to-cyan-500' },
-        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades with institutional-grade parameters.', gradient: 'from-yellow-500 to-orange-500' },
-        { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized credit facilities with flexible terms.', gradient: 'from-green-500 to-emerald-500' },
-        { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit to unlock institutional capital.', gradient: 'from-purple-500 to-violet-500' },
-    ];
-    return `<div class="flex flex-col gap-8 animate-fade-in-up"><div class="report-section p-6"><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h2 class="text-2xl font-bold text-white"><i class="fas fa-sitemap text-primary-azure mr-3"></i>Institutional Deal Modeler</h2><button onclick="Logic.resetModelerState()" class="btn-secondary px-4 py-2 text-sm rounded-lg hover:bg-error-color/20 hover:border-error-color/50 hover:text-error-color whitespace-nowrap"><i class="fas fa-undo mr-2"></i>Reset All Parameters</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${dealTypes.map((deal, index) => `<div class="deal-type-card glass p-6 text-center ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.gradient} flex items-center justify-center mb-4 text-2xl deal-type-icon mx-auto"><i class="fas ${deal.icon}"></i></div><h3 class="text-lg font-bold text-white mb-1">${deal.name}</h3><p class="text-sm text-text-muted leading-relaxed">${deal.desc}</p></div>`).join('')}</div></div><div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative"><div id="modeler-input-container" class="lg:col-span-3 glass p-6 md:p-8 rounded-2xl flex flex-col"></div><div id="modeler-output-container" class="lg:col-span-2 glass p-6 md:p-8 rounded-2xl flex flex-col"></div></div></div>`;
-},
-
-    /**
-     * Renders the main input panel for the Modeler, including the collapsible pricing configuration.
-     * @returns {string} The HTML for the input panel.
-     */
-    renderModelerInputPanel: () => {
-    const { activeDealType, pricingConfig } = AppState.modeler;
-    const dealPanelRenderer = UI[`render${activeDealType}Panel`];
-    const dealPanelHTML = dealPanelRenderer ? dealPanelRenderer() : `<p class="text-error-color">Error: Input panel for ${activeDealType} not found.</p>`;
-    const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['discount','premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, '%'], [false, '$']].map(([v,l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div></div></div>`;
-    return `<h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-sliders-h text-primary-azure"></i>Deal Parameters</h2><div class="space-y-6"><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-file-contract text-primary-azure"></i>Transaction Core</h4><div class="space-y-4 mt-4">${dealPanelHTML}</div></div><div class="p-4 rounded-lg bg-background-dark border border-border-color"><div class="flex justify-between items-center cursor-pointer" onclick="Logic.togglePricingConfig()"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-percent text-primary-azure"></i>Pricing & Configuration</h4><i class="fas fa-chevron-down transition-transform ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i></div>${pricingConfigHTML}</div></div>`;
-},
-
-    /**
- * Renders the specific input fields for the Asset Swap deal type.
- * @returns {string} The HTML for the Asset Swap panel.
- */
-renderAssetSwapPanel: () => {
-    const state = AppState.modeler.assetSwap;
-    const assetOptions = (selectedKey) => AppState.marketData
-        .filter(a => a.type !== 'Cross-Rate' && a.price > 0)
-        .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
-        .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-    const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
-    return `<div class="flex items-center gap-4"><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">From Asset</label><select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select></div><div class="pt-8"><button onclick="Logic.swapAssets()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-azure/20 text-primary-azure hover:bg-primary-azure/30 transition-all duration-300" title="Swap Assets"><i id="swap-icon" class="fas fa-exchange-alt"></i></button></div><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">To Asset</label><select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select></div></div><div><label class="block text-sm font-medium text-text-muted mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label><input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div>`;
-},
-
-/**
- * SEVERELY ENHANCED: Renders the multi-step, interactive UI for structuring a physical commodity trade.
- * @returns {string} The complete HTML for the Commodity Trade panel.
- */
-renderCommodityTradePanel: () => {
-    const state = AppState.modeler.commodityTrade;
-    const commodityAsset = Utils.getAssetByKey(state.assetKey);
-
-    const commodityOptions = (selectedKey) => AppState.marketData.filter(asset => ['Crude Oil', 'Refined Fuel', 'Precious Metal', 'Commodity', 'Energy'].some(term => asset.type?.includes(term))).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.key})</option>`).join('');
-    const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0 && a.key !== state.assetKey).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
-    const selectedIncoterm = commodityData.incoterms.find(i => i.value === state.incoterms) || commodityData.incoterms.find(i => i.value === 'FOB');
-
-    const pricingModelInputs = () => {
-        if (state.pricingModel === 'Fixed') {
-            return `<div><label class="block text-sm font-medium text-text-muted mb-2">Fixed Price per Unit (USD)</label><input type="number" step="0.01" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input"></div>`;
-        }
-        if (state.pricingModel === 'Discount' || state.pricingModel === 'Premium') {
-            return `<div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">${state.pricingModel} Value</label><input type="number" step="0.01" data-path="commodityTrade.discountPremiumValue" value="${state.discountPremiumValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Value Type</label><select data-path="commodityTrade.discountPremiumIsInPercent" class="form-select"><option value="true" ${state.discountPremiumIsInPercent ? 'selected':''}>Percentage (%)</option><option value="false" ${!state.discountPremiumIsInPercent ? 'selected':''}>Fixed Amount ($)</option></select></div></div>`;
-        }
-        return '';
-    };
-
-    return `
-        <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-2"><label class="block text-sm font-medium text-text-muted mb-2">Commodity Asset</label><select data-path="commodityTrade.assetKey" class="form-select">${commodityOptions(state.assetKey)}</select></div>
-                <div><label class="block text-sm font-medium text-text-muted mb-2">Quantity</label><input type="number" data-path="commodityTrade.quantity" value="${state.quantity || ''}" class="form-input font-bold"></div>
-            </div>
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Unit of Measure</label><select data-path="commodityTrade.unitOfMeasure" class="form-select"><option value="">Select unit...</option>${commodityData.unitsOfMeasure.map(u => `<option value="${u}" ${state.unitOfMeasure === u ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="block text-sm font-medium text-text-muted mb-2">Origin Country</label><input list="countries-datalist" value="${state.origin || ''}" data-path="commodityTrade.origin" class="form-input"><datalist id="countries-datalist">${commodityData.countries.map(c => `<option value="${c}">`).join('')}</datalist></div>
-                <div><label class="block text-sm font-medium text-text-muted mb-2">${selectedIncoterm.port}</label><input list="ports-datalist" value="${state.port || ''}" data-path="commodityTrade.port" class="form-input"><datalist id="ports-datalist">${commodityData.ports.map(p => `<option value="${p}">`).join('')}</datalist></div>
-            </div>
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Incoterms® 2020</label><select data-path="commodityTrade.incoterms" class="form-select">${commodityData.incoterms.map(i => `<option value="${i.value}" ${state.incoterms === i.value ? 'selected' : ''}>${i.label}</option>`).join('')}</select><p class="text-xs text-text-muted mt-2">Risk transfers to <strong>${selectedIncoterm.risk}</strong> • Cost responsibility: ${selectedIncoterm.cost}</p></div>
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Pricing Model</label><div class="flex flex-wrap gap-2">${['Market', 'Discount', 'Premium', 'Fixed'].map(p => `<label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer ${state.pricingModel === p ? 'bg-primary-azure/20' : 'bg-background-light'}"><input type="radio" name="pricingModel" value="${p}" ${state.pricingModel === p ? 'checked' : ''} data-path="commodityTrade.pricingModel" class="hidden">${p}</label>`).join('')}</div></div>
-            ${pricingModelInputs()}
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Settlement Asset</label><select data-path="commodityTrade.settlementAssetKey" class="form-select"><option value="USD">USD (Default)</option>${settlementOptions(state.settlementAssetKey)}</select></div>
-        </div>`;
-},
-
-/**
- * Renders the specific input fields for the Crypto Loan deal type.
- * @returns {string} The HTML for the Crypto Loan panel.
- */
-renderCryptoLoanPanel: () => {
-    const state = AppState.modeler.cryptoLoan;
-    const assetOptions = (selectedKey) => AppState.marketData.filter(a => a.type === 'Cryptocurrency').map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-    const currencyOptions = () => ['USD', 'EUR', 'HKD', 'USDT'].sort().map(c => `<option value="${c}" ${state.loanCurrency === c ? 'selected' : ''}>${c}</option>`).join('');
-    return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Collateral Asset</label><select data-path="cryptoLoan.collateralAssetKey" class="form-select">${assetOptions(state.collateralAssetKey)}</select></div><div><label class="block text-sm font-medium text-text-muted mb-2">Collateral Amount</label><input type="text" data-path="cryptoLoan.collateralAmount" value="${state.collateralAmount.toLocaleString()}" class="form-input text-lg font-bold"></div></div><div><label class="block text-sm font-medium text-text-muted mb-2">Loan-to-Value (LTV)</label><div class="flex items-center gap-4"><input type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer"><div class="relative w-28"><input type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Loan Currency</label><select data-path="cryptoLoan.loanCurrency" class="form-select">${currencyOptions()}</select></div><div><label class="block text-sm font-medium text-text-muted mb-2">Tenure (Months)</label><input type="number" data-path="cryptoLoan.tenureMonths" value="${state.tenureMonths}" class="form-input"></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Interest Rate Type</label><select data-path="cryptoLoan.interestRateType" class="form-select"><option value="fixed" ${state.interestRateType === 'fixed' ? 'selected' : ''}>Fixed</option><option value="floating" ${state.interestRateType === 'floating' ? 'selected' : ''}>Floating</option></select></div><div><label class="block text-sm font-medium text-text-muted mb-2">Annual Interest Rate (%)</label><input type="number" step="0.1" data-path="cryptoLoan.interestRateValue" value="${state.interestRateValue}" class="form-input"></div></div>`;
-},
-
-/**
- * Renders the specific input fields for the SBLC Monetization deal type.
- * @returns {string} The HTML for the SBLC Monetization panel.
- */
-renderSBLCMonetizationPanel: () => {
-    const state = AppState.modeler.sblcMonetization;
-    return `<div><label class="block text-sm font-medium text-text-muted mb-2">Instrument Face Value (USD)</label><input type="text" data-path="sblcMonetization.faceValue" value="${state.faceValue.toLocaleString()}" class="form-input text-lg font-bold"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Monetization (LTV)</label><div class="flex items-center gap-4"><input type="range" data-path="sblcMonetization.ltv" min="50" max="95" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer"><div class="relative w-28"><input type="number" data-path="sblcMonetization.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div></div></div>`;
-},
-
-/**
- * Renders the main output panel, dynamically displaying results for the active model.
- * @param {object|null} calc - The full calculation object from Logic.calculateModel().
- * @returns {string} The HTML for the output/analysis panel.
- */
-renderModelerOutputPanel: (calc) => {
-    if (!calc) return `<div class="flex items-center justify-center h-full text-center text-text-muted"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
-    let customOutput = '';
-    if (AppState.modeler.activeDealType === 'AssetSwap') {
-        const { fromAsset, toAsset, rate } = calc; const rateDisplay = rate > 0 ? rate.toFixed(8) : 'N/A';
-        customOutput = `<div class="output-metric-card"><p class="label"><i class="fas fa-sync-alt"></i>Institutional Cross Rate</p><p class="value">${rateDisplay}</p><p class="sub-value">1 ${fromAsset.baseAsset} ≈ ${rateDisplay} ${toAsset.baseAsset}</p></div>`;
-    } else if (AppState.modeler.activeDealType === 'CryptoLoan') {
-        const monthlyPayment = calc.totalRepayment / (calc.tenureMonths || 1);
-        customOutput = `<div class="output-metric-card"><p class="label"><i class="fas fa-hand-holding-usd"></i>Loan Principal</p><p class="value">${Utils.formatPrice(calc.loanPrincipal, calc.loanCurrency)}</p><p class="sub-value">Total Repayment: ${Utils.formatPrice(calc.totalRepayment, calc.loanCurrency)}</p></div><div class="output-metric-card mt-4"><p class="label"><i class="fas fa-calendar-alt"></i>Monthly Repayment</p><p class="value">${Utils.formatPrice(monthlyPayment, calc.loanCurrency)}</p><p class="sub-value">${calc.tenureMonths}-month tenure @ ${calc.interestRateValue}% fixed</p></div><div class="mt-4"><h4 class="text-sm font-semibold text-text-secondary mb-2">Projected Loan Balance Over Time</h4><div class="yield-graph-container h-40">${UI.renderYieldGraph(calc)}</div></div>`;
-    }
-    return `<div class="flex flex-col h-full animate-fade-in-up"><h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2><div class="space-y-4 flex-grow"><div class="output-metric-card base-value"><p class="label"><i class="fas fa-tags"></i>Base/Market Value</p><p class="value">${Utils.formatPrice(calc.baseValueUSD)}</p><p class="sub-value">${calc.dealTitle}</p></div><div class="output-metric-card net"><p class="label"><i class="fas fa-hand-holding-dollar"></i>Net Value to Buyer</p><p class="value">${Utils.formatPrice(calc.finalValueToBuyerUSD)}</p><p class="sub-value">${calc.netValueDescription}</p></div><div class="output-metric-card commission"><p class="label"><i class="fas fa-coins"></i>Total Commission Pool</p><p class="value">${Utils.formatPrice(calc.totalCommissionPool)}</p><p class="sub-value">${calc.grossValueDescription}</p></div>${customOutput}</div><div class="mt-auto pt-6 border-t border-border-color"><button onclick="Logic.openImfpaModal()" class="btn-primary w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Commission Manager</button></div></div>`;
-},
-
-/**
- * Renders a simple SVG yield graph for the Crypto Loan model.
- * @param {object} calc - The calculation object for the Crypto Loan.
- * @returns {string} An SVG string representing the graph.
- */
-renderYieldGraph: (calc) => {
-    const { loanPrincipal, totalRepayment, tenureMonths } = calc;
-    if (tenureMonths <= 0) return '<p class="text-center text-text-muted text-sm">Invalid tenure for graph.</p>';
-    const points = Array.from({length: tenureMonths + 1}, (_, i) => ({ month: i, value: loanPrincipal + ((totalRepayment - loanPrincipal) / tenureMonths * i) }));
-    const width=300, height=120, marginY=20, marginX=30; const yMax = totalRepayment, yMin = loanPrincipal;
-    const xScale = (width - marginX*2) / tenureMonths; const yScale = (yMax > yMin) ? (height - marginY*2) / (yMax - yMin) : 0;
-    const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${(marginX + p.month * xScale).toFixed(2)} ${(height - marginY - ((p.value - yMin) * yScale)).toFixed(2)}`).join(' ');
-    return `<svg viewBox="0 0 ${width} ${height}" class="w-full h-full"><line x1="${marginX}" y1="${height-marginY}" x2="${width-marginX}" y2="${height-marginY}" stroke="var(--border-color)"/><text x="${marginX-5}" y="${marginY+5}" text-anchor="end" font-size="10" fill="var(--text-muted)">${Utils.formatNumber(yMax, 0)}</text><text x="${marginX-5}" y="${height-marginY}" text-anchor="end" font-size="10" fill="var(--text-muted)">${Utils.formatNumber(yMin, 0)}</text><path d="${pathData}" fill="none" stroke="var(--success-color)" stroke-width="2"/></svg>`;
-},
-
-    // --- IMFPA & DOCUMENT EXECUTION SUITE RENDERERS (v6.0 Pinnacle Overhaul) ---
-    renderImfpaModal: () => {
-    const { legal } = AppState.modeler;
-    const isImfpa = legal.agreementType === 'IMFPA';
-
-    return `
-        <div class="dialog-content-wrapper">
-            <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
-                <div class="flex justify-between items-start mb-6 imfpa-header">
-                    <div>
-                        <h2 class="text-3xl font-bold">Commission & Contract Suite</h2>
-                        <p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p>
-                    </div>
-                    <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button>
-                </div>
-
-                <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
-                    <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}>
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2">
-                    <div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4">
-                        <div id="commission-allocation-section" class="space-y-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}">
-                            <div class="flex justify-between items-center">
-                                <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3>
-                                <div class="text-right">
-                                    <p class="text-xs text-premium-text-secondary">Total Pool</p>
-                                    <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button>
-                                <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold">
-                                    <label for="auto-balance-toggle">Auto-Balance</label>
-                                </div>
-                                <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
-                            </div>
-                            <div class="space-y-4" id="imfpa-groups-container"></div>
-                        </div>
-                        <div class="space-y-6">
-                            <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework & Parties</h3>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Governing Law</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Cross-Referenced SPA</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Signatory Parties</label><div id="imfpa-legal-parties" class="space-y-2 text-sm text-premium-text-secondary min-h-[50px]"></div></div>
-                        </div>
-                    </div>
-                    <div class="lg:col-span-2">
-                        <h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
-                        <div id="contract-live-preview"></div>
-                    </div>
-                </div>
-                <div class="pt-6 border-t border-premium-border mt-auto print-hide">
-                    <button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Full Document</button>
-                    <div id="contract-preview-container" class="mt-4 hidden"></div>
-                </div>
-            </div>
-        </div>
-    `;
-},
-renderImfpaGroups: () => {
-    const { groups } = AppState.modeler.legal;
-    if (!groups || groups.length === 0) return `<p class="text-center text-premium-text-secondary py-4">No allocation groups defined. Click 'Add Group' to begin.</p>`;
-    return groups.map((g, groupIndex) => `<div class="allocation-group-card p-4"><div class="flex items-center gap-2 mb-3"><input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-premium-text-primary" placeholder="Group Name"><div class="relative w-32"><input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div><button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex items-center justify-center transition">×</button></div><p id="imfpa-group-value-${groupIndex}" class="text-right text-premium-gold font-mono text-lg mb-4"></p><div class="space-y-2 pl-4 border-l-2 border-premium-border">${g.parties.map((p, partyIndex) => UI.renderImfpaParty(groupIndex, partyIndex)).join('')}<div class="flex justify-between items-center pt-2"><button onclick="Logic.addImfpaParty(${groupIndex})" class="text-premium-gold hover:text-yellow-300 text-xs font-semibold"><i class="fas fa-user-plus mr-1"></i>Add Party</button><div id="imfpa-group-total-${groupIndex}" class="text-right font-mono text-xs"></div></div></div></div>`).join('');
-},
-
-renderImfpaParty: (groupIndex, partyIndex) => {
-    const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
-    const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
-    return `<div class="allocation-party-card p-3"><div class="flex items-center gap-2"><input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-premium-text-primary" placeholder="Full Legal Name"><div class="relative w-24"><input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div><button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex items-center justify-center transition">×</button></div><div class="mt-2"><a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1 w-full"><i class="fas fa-user-cog"></i> Manage Details <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i></a></div><div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}"><div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div></div></div>`;
-},
-
-renderImfpaPartyDetails: (groupIndex, partyIndex) => {
-    const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
-    const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
-    const paymentDetailsPlaceholder = { 'Bank Wire': 'IBAN, SWIFT, Bank Info...', 'USDT TRC-20': 'TRC-20 Wallet Address', 'USDT ERC-20': 'ERC-20 Wallet Address' }[party.payment.method] || 'Details...';
-    return `<div class="party-details-grid"><div><span class="party-detail-label">Role</span><input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate"></div><div><span class="party-detail-label">Email</span><input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="contact@email.com"></div><div><span class="party-detail-label">Contact Number</span><input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567"></div><div><span class="party-detail-label">Passport No.</span><input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="P12345678"></div><div><span class="party-detail-label">Passport Issue Date</span><input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate"></div><div><span class="party-detail-label">Passport Expiry Date</span><input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate"></div><div class="col-span-2"><span class="party-detail-label">Passport Issuing Authority</span><input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="USA"></div><div class="col-span-2 pt-2 mt-2 border-t border-premium-border"><span class="party-detail-label font-bold">Payment Method</span></div><div><select class="form-select !text-xs" data-path="${base}.payment.method"><option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option><option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option><option value="USDT ERC-20" ${party.payment.method === 'USDT ERC-20' ? 'selected':''}>USDT (ERC-20)</option></select></div><div><select class="form-select !text-xs" data-path="${base}.payment.currency"><option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option><option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option><option value="EUR" ${party.payment.currency === 'EUR' ? 'selected':''}>EUR</option></select></div><div class="col-span-2"><span class="party-detail-label">Payment Coordinates</span><textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea></div></div>`;
-},
-renderExecutionSuite: (contractHTML) => `
-    <div id="execution-suite"><div class="step-panel step-1"><h4>Step 1: Sign & Prepare Document</h4><p class="text-sm mt-2 mb-4">Apply all known signatures and corporate seals. This prepares the document for the final, binding workflow.</p><button id="launch-signing-btn" class="execution-btn" onclick="Logic.initiateSigningProcess()"><i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite</button></div><div id="finalization-step-panel" class="step-panel step-2 opacity-50 pointer-events-none"><h4>Step 2: Finalize & Dispatch</h4><p class="text-sm mt-2 mb-4">This will lock the document and dispatch the finalized PDF to all parties.</p><button id="send-for-signature-btn" class="execution-btn" onclick="Logic.sendForSignature()"><i class="fas fa-paper-plane mr-2"></i>Lock & Send to Parties</button></div></div><div id="contract-document-wrapper">${contractHTML}</div>`,
-
-renderContractDocument: (agreementReference) => {
-    const { legal } = AppState.modeler;
-    const allParties = legal.groups.flatMap(g => g.parties);
-    const isImfpa = legal.agreementType === 'IMFPA';
-
-    const feeClauses = isImfpa ? legal.groups.map(g => {
-        const groupPayout = legal.totalCommission * (g.percentage / 100);
-        return `<h2 class="p-h2">Distribution Group: ${g.name} (${g.percentage}%)</h2><p class="p-text">Total value for this group: ${Utils.formatPrice(groupPayout)}</p><table class="p-table"><thead><tr><th>Beneficiary</th><th>Role</th><th>Allocation</th><th>Value</th><th>Payment Details</th></tr></thead><tbody>${g.parties.map(p => { const partyValue = groupPayout * (p.percentage / 100); return `<tr><td>${p.legalName}</td><td>${p.role}</td><td>${p.percentage}%</td><td>${Utils.formatPrice(partyValue)}</td><td>${p.payment.method}: ${p.payment.details || 'To be furnished via secure KYC.'}</td></tr>` }).join('')}</tbody></table>`;
-    }).join('') : '';
-
-    const signatureBlocks = allParties.map((p, i) => `<div class="p-signature-block" data-party-id="party-${i}" data-party-name="${p.legalName}"><p class="p-strong">FOR AND ON BEHALF OF: ${p.legalName.toUpperCase()}</p><div class="p-signature-line" data-sig-type="signature"></div><p class="p-signature-label">By: (Authorized Signature)</p><div class="p-signature-line" data-sig-type="print-name"></div><p class="p-signature-label">Name/Title: ${p.legalName} / ${p.role}</p><div class="p-signature-line" data-sig-type="date"></div><p class="p-signature-label">Date of Execution:</p><div data-sig-type="seal" style="position: relative; height: 100px;"></div></div>`).join('');
-    
-    const title = isImfpa ? "Irrevocable Master Fee Protection & NCND Agreement" : "Non-Circumvention, Non-Disclosure Agreement (NCNDA)";
-    const imfpaArticle = isImfpa ? `<p class="p-text">This agreement concerns a transaction with a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong>.</p><div class="p-annex-start"><h2 class="p-h2">ANNEX A: FEE DISTRIBUTION SCHEDULE</h2>${feeClauses}</div>` : '';
-
-    return `<div class="p-doc"><div class="p-watermark">DRAFT</div><h1 class="p-h1">${title}</h1><p class="p-text"><strong>Reference:</strong> ${agreementReference}</p><p class="p-text"><strong>Effective Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>${imfpaArticle}<div class="p-annex-start"><h2 class="p-h2">SIGNATURE PAGE</h2><p class="p-text">IN WITNESS WHEREOF, the Parties have executed this Agreement by their duly authorized representatives as of the Effective Date.</p>${signatureBlocks}</div></div>`;
-},
-renderContractPreview: (legal, calc) => {
-        const isImfpa = legal.agreementType === 'IMFPA';
-        const allParties = legal.groups.flatMap(g => g.parties);
-        const title = isImfpa ? "IMFPA & NCNDA Summary" : "NCNDA Summary";
-        const commissionSummary = isImfpa ? `<p class="preview-p">The Parties acknowledge a total commission pool of <span class="preview-strong">${Utils.formatPrice(legal.totalCommission)}</span> to be distributed as per the configured allocation schedule.</p>` : '';
-        return `<h1 class="preview-h1">${title}</h1><p class="preview-p"><span class="preview-strong">Reference:</span> GECAN-${legal.agreementType}-... (provisional)</p><p class="preview-p"><span class="preview-strong">Date:</span> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><p class="preview-p"><span class="preview-strong">Signatory Parties (${allParties.length}):</span> ${allParties.length > 0 ? `This agreement is entered into by and between ${allParties.map(p => p.legalName || '[Unnamed Party]').join(', ')}.` : 'Awaiting party details.'}</p>${commissionSummary}<p class="preview-p"><span class="preview-strong">Governing Law:</span> This Agreement shall be governed by the laws of ${legal.jurisdiction || '[Not Specified]'}.</p>`;
-    },
-    
-
-    // --- DYNAMIC MODAL RENDERERS ---
-    renderNotificationModal: (message, type, title) => {
-        const types = { success: { i: 'fa-check-circle', c: 'green', t: 'Success' }, error: { i: 'fa-exclamation-triangle', c: 'red', t: 'Error' }, warning: { i: 'fa-exclamation-circle', c: 'yellow', t: 'Warning' }, info: { i: 'fa-info-circle', c: 'blue', t: 'Information' } };
-        const config = types[type] || types.info;
-        return `<div class="dialog-content-wrapper"><div class="text-white flex flex-col"><div class="p-6 flex items-center gap-4 border-b bg-${config.c}-500/10 border-${config.c}-500/20"><div class="w-16 h-16 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-${config.c}-400 to-${config.c}-600"><i class="fas ${config.i} fa-2x"></i></div><div><h2 class="text-2xl font-bold">${title || config.t}</h2><p class="text-sm text-text-secondary">Please review this message.</p></div></div><div class="p-8 flex-grow"><p class="text-text-secondary leading-relaxed">${message}</p></div><div class="p-6 border-t border-[var(--border-premium)] bg-[var(--background-dark)]/50 flex justify-end"><button id="notification-ok-btn" class="btn-primary px-8 py-2 font-bold shadow-lg bg-gradient-to-r from-${config.c}-500 to-${config.c}-700 border-${config.c}-500">OK</button></div></div></div>`;
-    },
-    renderSignatureModal: () => {
-        return `<div id="signature-modal-content" class="text-white flex-grow flex flex-col"><div class="p-6 border-b border-[var(--border-premium)] flex-shrink-0"><div class="flex justify-between items-start mb-4"><div><h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-300 to-green-500">Document Execution Suite</h2><p class="text-sm text-text-secondary">Apply a legally binding signature and/or corporate seal.</p></div><button onclick="document.getElementById('signature-modal').close()" class="text-3xl text-text-muted hover:text-white">&times;</button></div><div><label for="signature-target-select" class="block text-sm font-semibold mb-2">Apply to:</label><select id="signature-target-select" class="form-select w-full"></select></div></div><div class="p-6 flex-grow overflow-y-auto"><div class="flex border-b border-[var(--border-premium)] mb-4"><button id="draw-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent signature-tab" onclick="Logic.switchSignatureMode('draw')">Draw</button><button id="upload-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent signature-tab" onclick="Logic.switchSignatureMode('upload')">Upload Signature</button><button id="seal-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent signature-tab" onclick="Logic.switchSignatureMode('seal')">Upload Seal</button></div><div id="draw-mode-panel"><canvas id="signature-canvas" class="w-full h-48"></canvas><button onclick="Logic.clearSignaturePad()" class="text-xs text-text-muted hover:text-white mt-2">Clear</button></div><div id="upload-mode-panel" class="hidden"><input type="file" id="signature-upload-input" accept="image/*" class="hidden"><label for="signature-upload-input" class="w-full h-48 border-2 border-dashed border-[var(--border-premium)] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[var(--background-secondary)] transition-colors"><img id="signature-upload-preview" class="hidden max-h-44 object-contain"/><div id="upload-prompt"><i class="fas fa-upload fa-2x text-text-muted mb-2"></i><p>Click to upload signature</p></div></label></div><div id="seal-mode-panel" class="hidden"><input type="file" id="seal-upload-input" accept="image/*" class="hidden"><label for="seal-upload-input" class="w-full h-48 border-2 border-dashed border-[var(--border-premium)] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[var(--background-secondary)] transition-colors"><img id="seal-upload-preview" class="hidden max-h-44 object-contain"/><div id="seal-prompt"><i class="fas fa-stamp fa-2x text-text-muted mb-2"></i><p>Click to import corporate seal</p></div></label></div></div><div class="p-6 border-t border-[var(--border-premium)] bg-[var(--background-dark)]/50 flex-shrink-0"><div class="text-xs text-text-muted mb-4"><p>A secure, tamper-proof record will be generated.</p><p class="font-mono mt-1"><strong>Timestamp:</strong> <span id="signature-timestamp"></span> | <strong>Location:</strong> <span id="signature-location"></span></p></div><button onclick="Logic.applySignature()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-green-500 to-green-700 border-green-500"><i class="fas fa-check-circle mr-2"></i>Apply to Document</button></div></div>`;
-    },
-    renderFinalizationModal: () => {
-        return `<div class="flex flex-col text-white"><div class="p-6 flex items-center gap-4 border-b border-[var(--border-premium)] bg-[var(--background-dark)]/50"><div id="finalization-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"><i class="fas fa-shield-alt fa-2x"></i></div><div><h2 class="text-2xl font-bold">Finalize & Lock Document</h2><p class="text-sm text-text-secondary">Confirm this critical, irreversible action.</p></div><button onclick="document.getElementById('finalization-modal').close()" class="text-3xl text-text-muted hover:text-white ml-auto">&times;</button></div><div class="p-8 flex-grow"><p class="text-text-secondary mb-5">You are about to initiate the final, legally binding workflow. This action will:</p><ul class="space-y-4 text-text-primary"><li class="flex items-start gap-3"><i class="fas fa-lock text-purple-400 mt-1"></i><div><strong>Lock Document State:</strong> The current version will be cryptographically fingerprinted.</div></li><li class="flex items-start gap-3"><i class="fas fa-project-diagram text-purple-400 mt-1"></i><div><strong>Generate Secure Audit Trail:</strong> An immutable record will be created.</div></li><li class="flex items-start gap-3"><i class="fas fa-paper-plane text-purple-400 mt-1"></i><div><strong>Dispatch to All Parties:</strong> A finalized PDF will be emailed to all signatories.</div></li></ul></div><div class="p-6 border-t border-[var(--border-premium)] bg-[var(--background-dark)]/50 flex justify-end gap-4"><button onclick="document.getElementById('finalization-modal').close()" class="btn-secondary px-6 py-2 rounded-lg">Cancel</button><button id="proceed-finalize-btn" onclick="Logic.executeFinalizationWorkflow()" class="btn-primary bg-gradient-to-r from-purple-600 to-red-600 border-purple-500 px-8 py-2 font-bold shadow-lg"><i class="fas fa-gavel mr-2"></i>Proceed with Finalization</button></div></div>`;
-    }
-};
-        // --- SECTION 5: INITIALIZATION ---
-        const initInteractiveBackground = () => {
-            const vortex = document.getElementById('background-vortex');
-            if (!vortex) return;
-            let targetX = window.innerWidth / 2, targetY = window.innerHeight / 2;
-            let currentX = targetX, currentY = targetY;
-            document.addEventListener('mousemove', (e) => { targetX = e.clientX; targetY = e.clientY; });
-            const animate = () => { currentX += (targetX - currentX) * 0.05; currentY += (targetY - currentY) * 0.05; vortex.style.transform = `translate(-50%, -50%) translate3d(${currentX}px, ${currentY}px, 0)`; requestAnimationFrame(animate); };
-            animate();
-        };
-        
+        // --- SECTION 6: BOOTSTRAP ---
         document.addEventListener('DOMContentLoaded', Logic.init);
-
     </script>
 </body>
 </html>
