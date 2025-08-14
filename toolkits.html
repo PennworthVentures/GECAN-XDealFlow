@@ -515,6 +515,12 @@ label.form-label,
     <dialog id="notification-modal" class="p-0 bg-transparent max-w-lg w-full print-hide"></dialog>
     <dialog id="finalization-modal" class="p-0 bg-transparent max-w-xl w-full print-hide"></dialog>
 
+    <!-- ========================================================================= -->
+    <!-- === DEFINITIVE FIX: RESTORE THE SUBMISSION MODAL CONTAINER === -->
+    <!-- This is the container the JavaScript is trying to open. -->
+    <!-- ========================================================================= -->
+    <dialog id="submission-modal"></dialog>
+    
     <!-- PREMIUM FOOTER (BENCHMARKED) -->
     <footer class="mt-auto pt-16 print-hide">
         <div class="container mx-auto p-6 md:p-10">
@@ -934,8 +940,13 @@ generateExecutiveSummary: (report) => {
      * [NEW & BENCHMARKED] Initiates the first step of the official submission process: the referral ID modal.
      */
     initiateWalletSubmission: () => {
+    // DEFINITIVE FIX: Target the correct modal ID
     const modal = document.getElementById('submission-modal');
-    if (!modal) return console.error("CRITICAL: Submission modal container not found.");
+    if (!modal) {
+        console.error("CRITICAL FAILURE: The #submission-modal container is missing from the HTML body.");
+        Utils.showNotification("UI Error: Cannot open submission suite.", "error");
+        return;
+    }
     
     modal.innerHTML = UI.renderReferralValidationSuite(
         'Secure Submission Protocol', 
@@ -944,6 +955,7 @@ generateExecutiveSummary: (report) => {
     modal.showModal();
     document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateSubmissionReferralId);
 },
+
 
     /**
      * [NEW & BENCHMARKED] Validates the entered referral ID. On success, transitions to the full engagement suite.
@@ -969,6 +981,7 @@ generateExecutiveSummary: (report) => {
         .then(validationResult => {
             if (validationResult.isValid) {
                 Utils.showNotification('Referral ID Validated Successfully!', 'success');
+                // DEFINITIVE FIX: Target the correct modal ID
                 const modal = document.getElementById('submission-modal');
                 modal.innerHTML = UI.renderWalletSubmissionSuite(validationResult);
                 Logic.populateOfferIdDropdown();
