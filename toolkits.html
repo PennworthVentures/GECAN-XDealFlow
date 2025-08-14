@@ -2277,9 +2277,9 @@ renderYieldGraph: (calc) => {
  * @returns {string} The complete HTML structure for the modal.
  */
 renderImfpaModal: () => {
-    return `<div id="imfpa-modal-content" class="glass rounded-2xl w-full flex flex-col max-h-[90vh]"><div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-start mb-6 imfpa-header print-hide"><div><h2 class="text-3xl font-bold text-white">Commission & Contract Suite</h2><p class="text-text-secondary">Synthesize the Irrevocable Master Fee Protection Agreement.</p></div><button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-text-muted hover:text-white transition-colors">×</button></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 overflow-y-auto pr-4 -mr-4"><div class="space-y-6"><div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3 text-primary-color"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-text-muted">Total Pool</p><p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-color"></p></div></div><div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container"></div></div><div class="space-y-6"><h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3 text-accent-color"></i>Legal Framework</h3><div class="input-group"><h4 class="input-group-title"><i class="fas fa-landmark text-primary-color"></i>Governing Law & Jurisdiction</h4><input data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales"></div><div class="input-group"><h4 class="input-group-title"><i class="fas fa-users text-primary-color"></i>Signatory Parties</h4><div class="text-xs text-text-muted mb-2">A comprehensive list of all signatories.</div><div id="imfpa-legal-parties" class="space-y-2 text-sm text-text-secondary"></div></div><div class="input-group"><h4 class="input-group-title"><i class="fas fa-link text-primary-color"></i>Cross-Referenced Contract / SPA (Optional)</h4><input data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345"></div></div></div><div class="pt-6 border-t border-border-color mt-auto print-hide"><button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview IMFPA/NCNDA</button><div id="contract-preview-container" class="mt-4 hidden"></div></div></div></div>`;
+    const { legal } = AppState.modeler;
+    return `<div id="imfpa-modal-content" class="bg-background-primary rounded-2xl w-full max-w-7xl max-h-[95vh] flex flex-col"><div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-start mb-6 print-hide"><div><h2 class="text-3xl font-bold text-white">Commission & Contract Suite</h2><p class="text-text-secondary">Synthesize the Irrevocable Master Fee Protection Agreement (IMFPA).</p></div><button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-text-muted hover:text-white transition-colors">×</button></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 overflow-y-auto pr-4 -mr-4"><div class="space-y-6"><div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3 text-primary-azure"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-text-muted">Total Pool</p><p class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p></div></div><div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container"></div></div><div class="space-y-6"><h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3 text-primary-amethyst"></i>Legal Framework</h3><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white">Governing Law</h4><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input mt-2" placeholder="e.g., Singapore, Dubai, England, Wales"></div><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white">Signatory Parties</h4><div id="imfpa-legal-parties" class="mt-2 space-y-2 text-sm text-text-secondary"></div></div></div></div><div class="pt-6 border-t border-border-color mt-auto print-hide"><button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview IMFPA/NCNDA</button><div id="contract-preview-container" class="mt-4 hidden"></div></div></div></div>`;
 },
-
 
 /**
  * Renders the HTML for all allocation groups and their nested parties.
@@ -2287,7 +2287,7 @@ renderImfpaModal: () => {
  */
 renderImfpaGroups: () => {
     const { groups } = AppState.modeler.legal;
-    return groups.map((g, groupIndex) => `<div class="allocation-group-card animate-fade-in-up rounded-xl p-4"><div class="flex items-center gap-2 mb-3"><input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-text-primary"><div class="relative w-32"><input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div><button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex items-center justify-center transition">×</button></div><p id="imfpa-group-value-${groupIndex}" class="text-right text-primary-color font-mono text-lg mb-4"></p><div class="space-y-2 pl-4 border-l-2 border-border-accent">${g.parties.map((p, partyIndex) => UI.renderImfpaParty(groupIndex, partyIndex)).join('')}<div class="flex justify-between items-center pt-2"><button onclick="Logic.addImfpaParty(${groupIndex})" class="text-primary-color hover:text-primary-hover text-xs font-semibold"><i class="fas fa-user-plus mr-1"></i>Add Party</button><div id="imfpa-group-total-${groupIndex}" class="text-right font-mono text-xs"></div></div></div></div>`).join('') || `<p class="text-center text-text-muted py-4">No allocation groups defined.</p>`;
+    return groups.map((g, groupIndex) => `<div class="allocation-group-card animate-fade-in-up"><div class="flex items-center gap-2 mb-3"><input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-text-primary"><div class="relative w-32"><input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div><button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex items-center justify-center transition">×</button></div><p id="imfpa-group-value-${groupIndex}" class="text-right text-primary-azure font-mono text-lg mb-4"></p><div class="space-y-2 pl-4 border-l-2 border-border-accent">${g.parties.map((p, partyIndex) => UI.renderImfpaParty(groupIndex, partyIndex)).join('')}<div class="flex justify-between items-center pt-2"><button onclick="Logic.addImfpaParty(${groupIndex})" class="text-primary-azure hover:text-white text-xs font-semibold"><i class="fas fa-user-plus mr-1"></i>Add Party</button><div id="imfpa-group-total-${groupIndex}" class="text-right font-mono text-xs"></div></div></div></div>`).join('') || `<p class="text-center text-text-muted py-4">No allocation groups defined.</p>`;
 },
 
 /**
@@ -2299,8 +2299,9 @@ renderImfpaGroups: () => {
 renderImfpaParty: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
-    return `<div class="allocation-party-card rounded-lg p-3"><div class="flex items-center gap-2"><input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-text-primary" placeholder="Full Legal Name"><div class="relative w-24"><input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div><button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex items-center justify-center transition">×</button></div><div class="mt-2"><a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-accent-color cursor-pointer hover:underline flex items-center gap-1 w-full"><i class="fas fa-user-cog"></i> Manage Details <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i></a></div><div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}"><div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div></div></div>`
+    return `<div class="allocation-party-card"><div class="flex items-center gap-2"><input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-text-primary" placeholder="Full Legal Name"><div class="relative w-24"><input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div><button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex items-center justify-center transition">×</button></div><div class="mt-2"><a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1 w-full"><i class="fas fa-user-cog"></i> Manage Details <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i></a></div><div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}"><div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div></div></div>`;
 },
+
 /**
  * Renders the detailed input fields for a single party (passport, payment info, etc.).
  * @param {number} groupIndex - The index of the parent group.
@@ -2310,149 +2311,9 @@ renderImfpaParty: (groupIndex, partyIndex) => {
 renderImfpaPartyDetails: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
-    const paymentDetailsPlaceholder = { 
-        'Bank Wire': 'IBAN, SWIFT, Bank Name, Bank Address, Account Name, Account Number...', 
-        'USDT TRC-20': 'TRC-20 Wallet Address', 
-        'USDT ERC-20': 'ERC-20 Wallet Address' 
-    }[party.payment.method] || 'Remittance Details...';
-    
-    return `
-        <div class="party-details-grid">
-            <div>
-                <span class="party-detail-label">Role</span>
-                <input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate">
-            </div>
-            <div>
-                <span class="party-detail-label">Email</span>
-                <input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="contact@email.com">
-            </div>
-            <div>
-                <span class="party-detail-label">Contact Number</span>
-                <input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567">
-            </div>
-            <div>
-                <span class="party-detail-label">Passport No.</span>
-                <input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="P12345678">
-            </div>
-            <div>
-                <span class="party-detail-label">Passport Issue Date</span>
-                <input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate">
-            </div>
-            <div>
-                <span class="party-detail-label">Passport Expiry Date</span>
-                <input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate">
-            </div>
-            <div class="col-span-2">
-                <span class="party-detail-label">Passport Issuing Authority/Country</span>
-                <input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="e.g., United States Department of State">
-            </div>
-
-            <div class="col-span-2 pt-2 mt-2 border-t border-premium-border">
-                <span class="party-detail-label font-bold text-premium-text-primary">Payment Method</span>
-            </div>
-            <div>
-                <select class="form-select !text-xs" data-path="${base}.payment.method">
-                    <option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option>
-                    <option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option>
-                    <option value="USDT ERC-20" ${party.payment.method === 'USDT ERC-20' ? 'selected':''}>USDT (ERC-20)</option>
-                </select>
-            </div>
-            <div>
-                <select class="form-select !text-xs" data-path="${base}.payment.currency">
-                    <option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option>
-                    <option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option>
-                    <option value="EUR" ${party.payment.currency === 'EUR' ? 'selected':''}>EUR</option>
-                </select>
-            </div>
-            <div class="col-span-2">
-                <span class="party-detail-label">Payment Coordinates</span>
-                <textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea>
-            </div>
-        </div>`;
+    const paymentDetailsPlaceholder = { 'Bank Wire': 'IBAN, SWIFT, Bank Info...', 'USDT TRC-20': 'TRC-20 Wallet Address', 'USDT ERC-20': 'ERC-20 Wallet Address' }[party.payment.method] || 'Details...';
+    return `<div class="party-details-grid"><div><span class="party-detail-label">Role</span><input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate"></div><div><span class="party-detail-label">Email</span><input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="contact@email.com"></div><div><span class="party-detail-label">Contact Number</span><input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567"></div><div><span class="party-detail-label">Passport No.</span><input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="P12345678"></div><div><span class="party-detail-label">Passport Issue Date</span><input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate"></div><div><span class="party-detail-label">Passport Expiry Date</span><input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate"></div><div class="col-span-2"><span class="party-detail-label">Passport Issuing Authority</span><input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="USA"></div><div class="col-span-2 pt-2 mt-2 border-t border-border-secondary"><span class="party-detail-label font-bold">Payment Method</span></div><div><select class="form-select !text-xs" data-path="${base}.payment.method"><option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option><option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option><option value="USDT ERC-20" ${party.payment.method === 'USDT ERC-20' ? 'selected':''}>USDT (ERC-20)</option></select></div><div><select class="form-select !text-xs" data-path="${base}.payment.currency"><option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option><option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option><option value="EUR" ${party.payment.currency === 'EUR' ? 'selected':''}>EUR</option></select></div><div class="col-span-2"><span class="party-detail-label">Payment Coordinates</span><textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea></div></div>`;
 }
-    renderContractPreview: (legal, calc, dealDescription, agreementReference) => {
-    const effectiveDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    const generatedDateTime = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
-    const allParties = legal.groups.flatMap(g => g.parties);
-    
-    // --- SEVERELY UPGRADED FEE DISTRIBUTION SCHEDULE (PREMIUM TABLE FORMAT) ---
-    const feeClauses = legal.groups.map((g) => {
-        const groupPayout = legal.totalCommission * (g.percentage / 100);
-        const partiesRows = g.parties.map((p) => {
-            const partyValue = groupPayout * (p.percentage / 100);
-            return `<tr><td><div class="beneficiary-name">${p.legalName}</div><div class="beneficiary-role">${p.role}</div></td><td><div class="allocation-value">${p.percentage}%</div><div class="text-muted">${Utils.formatPrice(partyValue)}</div></td><td><div class="settlement-method">${p.payment.method} (${p.payment.currency})</div><div class="settlement-details">${p.payment.details || 'Details in Annex A'}</div></td></tr>`;
-        }).join('');
-        return `<div class="fee-group-container"><div class="fee-group-header"><span class="fee-group-header-title">Distribution Group: "${g.name.toUpperCase()}"</span><span class="fee-group-header-value">${g.percentage}% (${Utils.formatPrice(groupPayout)})</span></div><table class="fee-distribution-table"><thead><tr><th>Beneficiary & Role</th><th>Allocation</th><th>Remittance Instructions</th></tr></thead><tbody>${partiesRows}</tbody></table></div>`;
-    }).join('');
-    
-    // --- UPGRADED: ENHANCED PARTY SIGNATURE BLOCKS ---
-    const signatureBlocks = allParties.map((p, i) => `
-        <div class="signature-block">
-            <div class="signature-line"><strong>CONTRACTING PARTY ${i+1}:</strong> ${p.legalName}</div>
-            <div class="signature-details"><div class="signature-field"><span class="field-label">Authorized Signature:</span><span class="signature-line-border"></span></div><div class="signature-field"><span class="field-label">Printed Name & Title:</span><span class="signature-line-border"></span></div><div class="signature-field"><span class="field-label">Date of Execution:</span><span class="signature-line-border"></span></div><div class="signature-field"><span class="field-label">Corporate Seal (if applicable):</span><span class="signature-line-border"></span></div></div>
-        </div>`).join('');
-        
-    // --- UPGRADED: COMPREHENSIVE PARTY DETAILS ANNEX ---
-    const partyDetailsTable = allParties.map((p, i) => `
-        <div class="party-details-section"><h4>CONTRACTING PARTY ${i+1} - COMPREHENSIVE DETAILS</h4><table class="party-details-table"><tbody>
-            <tr><td class="detail-label">Legal Entity Name:</td><td class="detail-value">${p.legalName || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Functional Role:</td><td class="detail-value">${p.role || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Primary Email:</td><td class="detail-value">${p.email || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Contact Number:</td><td class="detail-value">${p.contactNumber || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Passport/ID Number:</td><td class="detail-value">${p.passport.number || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Document Issue Date:</td><td class="detail-value">${p.passport.issueDate || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Document Expiry Date:</td><td class="detail-value">${p.passport.expiryDate || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Issuing Authority:</td><td class="detail-value">${p.passport.authority || '[REQUIRED]'}</td></tr>
-        </tbody></table><h5>REMITTANCE & SETTLEMENT COORDINATES</h5><table class="payment-details-table"><tbody>
-            <tr><td class="detail-label">Payment Method:</td><td class="detail-value">${p.payment.method || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Settlement Currency:</td><td class="detail-value">${p.payment.currency || '[REQUIRED]'}</td></tr>
-            <tr><td class="detail-label">Banking/Payment Details:</td><td class="detail-value">${p.payment.details || 'To be furnished via secure KYC/KYB exchange.'}</td></tr>
-        </tbody></table></div>`).join('');
-
-    return `
-        <div class="p-doc">
-            <div class="p-watermark">CONFIDENTIAL</div>
-            <h1 class="p-h1">Irrevocable Master Fee Protection & Non-Circumvention Agreement</h1>
-            <p class="p-text"><strong>Agreement Reference:</strong> <span class="p-code">${agreementReference}</span></p>
-            <p class="p-text"><strong>Effective Date:</strong> ${effectiveDate}</p>
-            ${legal.spaReferenceCode ? `<p class="p-text"><strong>Cross-Referenced SPA:</strong> <span class="p-code">${legal.spaReferenceCode}</span></p>` : ''}
-            
-            <h2 class="p-h2">Recitals</h2>
-            <p class="p-text">This Agreement is made by and between the undersigned parties who mutually agree to collaborate on ${dealDescription} (the "Project").</p>
-
-            <h2 class="p-h2">Article 1: The Parties</h2>
-            ${allParties.map((p, i) => `<p class="p-list-item"><strong>Party ${String.fromCharCode(65 + i)}:</strong> ${p.legalName}, acting as ${p.role}.</p>`).join('')}
-            
-            <h2 class="p-h2">Article 2: Irrevocable Fee Protection</h2>
-            <p class="p-text">2.1. The Parties agree that a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> is established. This Fee Pool shall be irrevocably distributed as per the schedule in Annex A.</p>
-            
-            <h2 class="p-h2">Article 3: Non-Circumvention & Non-Disclosure</h2>
-            <p class="p-text">3.1. The Parties irrevocably agree not to circumvent, avoid, or bypass each other. This covenant shall extend for five (5) years from the Effective Date.</p>
-
-            <h2 class="p-h2">Article 4: Governing Law</h2>
-            <p class="p-text">4.1. This Agreement shall be governed by the laws of: <strong>${legal.jurisdiction}</strong>.</p>
-
-            <h2 class="p-h2">Execution & Signatures</h2>
-            <p class="p-text">IN WITNESS WHEREOF, the Parties have executed this Agreement as of the Effective Date.</p>
-            <div id="signature-area" class="p-signature-area">${signatureBlocks}</div>
-            
-            <div class="p-annex-start">
-                <h2 class="p-h2">Annex A: Commission Allocation Schedule</h2>
-                ${feeClauses}
-            </div>
-            <div class="p-annex-start">
-                <h2 class="p-h2">Annex B: Comprehensive Party Details</h2>
-                ${partyDetailsTable}
-            </div>
-            <div class="legal-footer">
-                <strong>CONFIDENTIAL & PROPRIETARY DOCUMENT</strong><br>
-                Unauthorized disclosure, reproduction, or distribution is strictly prohibited.<br>
-                Document Reference: ${agreementReference} | Generated: ${generatedDateTime}
-            </div>
-        </div>`;
-},
-
-    
 };
 
         // --- SECTION 5: INITIALIZATION ---
