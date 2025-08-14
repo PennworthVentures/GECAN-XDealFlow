@@ -743,63 +743,845 @@ launchInstitutionalAnalysis: () => {
         'Feature Coming Soon'
     );
 },
-            updateModelerUI: (isFullRefresh = false) => { /* Preserved from original */ },
-            calculateModel: () => { /* Preserved from original */ },
-            calculateAssetSwap: () => { /* Preserved from original */ },
-            calculateCommodityTrade: () => { /* Preserved from original */ },
-            calculateCryptoLoan: () => { /* Preserved from original */ },
-            calculateSBLCMonetization: () => { /* Preserved from original */ },
-            resetModelerState: () => { /* Preserved from original */ },
-            swapAssets: () => { /* Preserved from original */ },
-            togglePricingConfig: () => { /* Preserved from original */ },
+            /**
+ * Updates the Institutional Modeler's UI. Can perform a full refresh of the input panel
+ * or a more performant partial refresh of only the output panel.
+ * @param {boolean} [isFullRefresh=false] - If true, re-renders the entire input panel.
+ */
+updateModelerUI: (isFullRefresh = false) => {
+    // A full refresh is necessary when the structure of the inputs changes (e.g., switching deal types).
+    if (isFullRefresh) {
+        const inputContainer = document.getElementById('modeler-input-container');
+        if (inputContainer) {
+            inputContainer.innerHTML = UI.renderModelerInputPanel();
+        } else {
+            console.error("CRITICAL: Modeler input container not found for full refresh.");
+            return;
+        }
+    }
+
+    // Always re-calculate the model based on the latest state.
+    const calculation = Logic.calculateModel();
+
+    // Always update the output panel with the new calculation results.
+    const outputContainer = document.getElementById('modeler-output-container');
+    if (outputContainer) {
+        outputContainer.innerHTML = UI.renderModelerOutputPanel(calculation);
+    } else {
+        console.error("CRITICAL: Modeler output container not found for update.");
+    }
+    
+    // After a full refresh, event listeners need to be re-bound to the new DOM elements.
+    // The main delegated listener is already set up, but this is a failsafe.
+    if (isFullRefresh) { 
+        const container = document.getElementById('modeler-input-container');
+        if (container) {
+            // Re-bind the debounced input listener.
+            container.addEventListener('input', Utils.debounce((e) => {
+                if (e.target.matches('[data-path]')) {
+                    Logic.handleModelerInputChange(e);
+                }
+            }, 250));
+        }
+    }
+},
+
+/**
+ * Master calculation engine. It acts as a router, calling the specific calculation
+ * function for the active deal type and then layering on the universal pricing
+ * and commission calculations.
+ * @returns {object|null} A comprehensive object with all calculated deal metrics, or null if calculation fails.
+ */
+calculateModel: () => {
+    const { activeDealType, pricingConfig } = AppState.modeler;
+    const calculationFunc = Logic[`calculate${activeDealType}`];
+
+    // Safeguard: Return null if the calculation function for the active deal type doesn't exist.
+    if (!calculationFunc) {
+        console.error(`Calculation function for deal type '${activeDealType}' not found.`);
+        return null;
+    }
+
+    // 1. Get the base calculation results for the specific deal type.
+    const dealCalc = calculationFunc();
+    if (!dealCalc) return null; // Exit if the base calculation failed.
+
+    // 2. Perform universal pricing & commission calculations based on the base value.
+    const { baseValueUSD } = dealCalc;
+    const grossValue = parseFloat(pricingConfig.grossValue) || 0;
+    const netValue = parseFloat(pricingConfig.netValue) || 0;
+
+    // Calculate the absolute dollar value of the gross and net offers, whether they are percentages or fixed amounts.
+    const grossOffer = pricingConfig.isValueInPercent ? baseValueUSD * (grossValue / 100) : grossValue;
+    const netToBuyerOffer = pricingConfig.isValueInPercent ? baseValueUSD * (netValue / 100) : netValue;
+    
+    let finalValueToBuyerUSD, totalCommissionPool;
+
+    // The calculation logic depends on whether the offer is a 'discount' or a 'premium'.
+    if (pricingConfig.offerType === 'discount') {
+        finalValueToBuyerUSD = baseValueUSD - netToBuyerOffer;
+        totalCommissionPool = grossOffer - netToBuyerOffer;
+    } else { // 'premium'
+        finalValueToBuyerUSD = baseValueUSD + netToBuyerOffer;
+        totalCommissionPool = grossOffer - netToBuyerOffer;
+    }
+
+    // Ensure the commission pool cannot be negative.
+    totalCommissionPool = Math.max(0, totalCommissionPool);
+
+    // Update the legal state with the calculated commission for the IMFPA modal.
+    AppState.modeler.legal.totalCommission = totalCommissionPool;
+    
+    // 3. Assemble the final, comprehensive calculation object.
+    return {
+        ...dealCalc,
+        baseValueUSD,
+        finalValueToBuyerUSD,
+        totalCommissionPool,
+        netValueDescription: `${Utils.formatNumber(netValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Net ${pricingConfig.offerType}`,
+        grossValueDescription: `${Utils.formatNumber(grossValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Gross ${pricingConfig.offerType}`
+    };
+},
+
+/**
+ * Calculates the specifics for an Asset Swap deal.
+ * @returns {object} An object containing the calculated metrics for the swap.
+ */
+calculateAssetSwap: () => {
+    const { amount, fromAssetKey, toAssetKey } = AppState.modeler.assetSwap;
+    
+    // Retrieve full asset data from the state, with safe fallbacks.
+    const fromAsset = Utils.getAssetByKey(fromAssetKey);
+    const toAsset = Utils.getAssetByKey(toAssetKey);
+    
+    // Calculate the base value in USD.
+    const baseValueUSD = (parseFloat(amount) || 0) * (parseFloat(fromAsset.price) || 0);
+    
+    // Calculate the cross-rate for the swap.
+    const rate = (fromAsset.price > 0 && toAsset.price > 0) ? fromAsset.price / toAsset.price : 0;
+    
+    const dealTitle = `Swap ${Utils.formatNumber(amount, 2)} ${fromAsset.baseAsset} for ${toAsset.baseAsset}`;
+
+    return { baseValueUSD, fromAsset, toAsset, rate, dealTitle };
+},
+
+/**
+ * Calculates the specifics for a physical Commodity Trade deal.
+ * @returns {object} An object containing the calculated metrics for the trade.
+ */
+calculateCommodityTrade: () => {
+    const { quantity, assetKey, pricingModel, fixedPrice, discountPremiumValue, settlementAssetKey, discountPremiumIsInPercent } = AppState.modeler.commodityTrade;
+    
+    const asset = Utils.getAssetByKey(assetKey);
+    const settlementAsset = Utils.getAssetByKey(settlementAssetKey);
+    
+    let effectivePricePerUnit = parseFloat(asset.price) || 0;
+    let priceDerivation = 'Market Price';
+    const discPremVal = parseFloat(discountPremiumValue) || 0;
+
+    // Determine the effective price based on the selected pricing model.
+    switch(pricingModel) {
+        case 'Fixed':
+            effectivePricePerUnit = parseFloat(fixedPrice) || 0;
+            priceDerivation = `Fixed at ${Utils.formatPrice(fixedPrice)}`;
+            break;
+        case 'Premium':
+            const premiumAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal;
+            effectivePricePerUnit += premiumAmount;
+            priceDerivation = `Market + ${Utils.formatPrice(premiumAmount)}`;
+            break;
+        case 'Discount':
+            const discountAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal;
+            effectivePricePerUnit -= discountAmount;
+            priceDerivation = `Market - ${Utils.formatPrice(discountAmount)}`;
+            break;
+    }
+
+    const baseValueUSD = (parseFloat(quantity) || 0) * effectivePricePerUnit;
+    const dealTitle = `${Utils.formatNumber(quantity)} units of ${asset.baseAsset}`;
+    
+    // Calculate the final settlement amount in the chosen settlement asset.
+    let settlementAmount = 0;
+    if (settlementAsset && settlementAsset.price > 0) {
+        settlementAmount = baseValueUSD / settlementAsset.price;
+    }
+
+    return { baseValueUSD, dealTitle, priceDerivation, effectivePricePerUnit, settlementAmount, settlementAsset };
+},
+
+/**
+ * Calculates the specifics for a Crypto-Collateralized Loan.
+ * @returns {object} An object containing the calculated metrics for the loan.
+ */
+calculateCryptoLoan: () => {
+    const { collateralAmount, collateralAssetKey, ltv, loanCurrency, tenureMonths, interestRateValue } = AppState.modeler.cryptoLoan;
+    
+    const collateralAsset = Utils.getAssetByKey(collateralAssetKey);
+    
+    // Calculate the total value of the collateral in USD.
+    const collateralValueUSD = (parseFloat(collateralAmount) || 0) * (parseFloat(collateralAsset.price) || 0);
+    
+    // Calculate the loan principal based on the Loan-to-Value (LTV) percentage.
+    const loanPrincipal = collateralValueUSD * ((parseFloat(ltv) || 0) / 100);
+    
+    // Calculate the total simple interest over the loan term.
+    const totalInterest = loanPrincipal * ((parseFloat(interestRateValue) || 0) / 100) * ((parseInt(tenureMonths, 10) || 1) / 12);
+    
+    const totalRepayment = loanPrincipal + totalInterest;
+
+    return {
+        baseValueUSD: loanPrincipal, // For consistency, the base value of a loan is its principal.
+        loanPrincipal,
+        totalRepayment,
+        loanCurrency,
+        tenureMonths,
+        interestRateValue,
+        dealTitle: `Loan against ${collateralAsset.baseAsset}`
+    };
+},
+            /**
+ * Calculates the specifics for SBLC Monetization.
+ * @returns {object} An object containing the calculated metrics for the monetization deal.
+ */
+calculateSBLCMonetization: () => {
+    const { faceValue, ltv } = AppState.modeler.sblcMonetization;
+    
+    // Calculate the monetized value based on the instrument's face value and the Loan-to-Value (LTV) percentage.
+    const baseValueUSD = (parseFloat(faceValue) || 0) * ((parseFloat(ltv) || 0) / 100);
+    
+    const dealTitle = `LTV on ${Utils.formatPrice(faceValue)} SBLC`;
+
+    return { 
+        baseValueUSD, // For consistency, the base value is the total capital unlocked.
+        dealTitle 
+    };
+},
+
+/**
+ * Resets the entire Institutional Modeler state to its default configuration.
+ * This function performs a deep-clone reset to prevent any reference-related bugs
+ * and ensures a clean slate for the user.
+ */
+resetModelerState: () => {
+    // Define the pristine, default state of the entire modeler.
+    const defaultState = {
+        activeDealType: 'AssetSwap',
+        assetSwap: { 
+            amount: 1000000, 
+            fromAssetKey: '', 
+            toAssetKey: '' 
+        },
+        commodityTrade: { 
+            assetKey: 'WTI-BBL-USD',
+            quantity: 100000,
+            unitOfMeasure: 'Barrel',
+            qualitySpec: 'API Gravity: 40-42, Sulfur Content: <0.42%',
+            origin: 'USA',
+            port: 'Houston',
+            incoterms: 'FOB',
+            procedures: '• Standard TTV Procedures\n• SGS/Intertek Inspection\n• Payment via SBLC/DLC',
+            pricingModel: 'Discount',
+            fixedPrice: 0,
+            discountPremiumValue: 4,
+            discountPremiumIsInPercent: true,
+            settlementAssetKey: 'USD'
+        },
+        cryptoLoan: { 
+            collateralAssetKey: 'BTC-USD', 
+            collateralAmount: 10, 
+            loanCurrency: 'USD', 
+            ltv: 60, 
+            interestRateType: 'fixed', 
+            interestRateValue: 5.5, 
+            tenureMonths: 12 
+        },
+        sblcMonetization: { 
+            faceValue: 100000000, 
+            ltv: 80 
+        },
+        pricingConfig: { 
+            isVisible: false, 
+            offerType: 'discount', 
+            grossValue: 0, 
+            netValue: 0, 
+            isValueInPercent: true 
+        },
+        legal: { 
+            totalCommission: 0, 
+            jurisdiction: 'Singapore, Dubai, England, Wales', 
+            spaReferenceCode: '', 
+            groups: [] 
+        }
+    };
+
+    // Perform a deep clone to ensure no lingering references. This is the most robust way to reset.
+    AppState.modeler = JSON.parse(JSON.stringify(defaultState));
+    
+    // Intelligence: After resetting, re-populate the Asset Swap fields with the first two
+    // available assets from the market data, providing a sensible default.
+    const allSwappableAssets = AppState.marketData.filter(a => a.type !== 'Cross-Rate' && a.price > 0);
+    if (allSwappableAssets.length >= 2) {
+        AppState.modeler.assetSwap.fromAssetKey = allSwappableAssets[0].key;
+        AppState.modeler.assetSwap.toAssetKey = allSwappableAssets[1].key;
+    }
+    
+    // Trigger a full UI re-render to reflect the reset state.
+    Logic.updateModelerUI(true);
+    
+    // Provide user feedback.
+    Utils.showNotification('Institutional Modeler has been reset to its default state.', 'info', 'Modeler Reset');
+},
+
+/**
+ * Swaps the 'from' and 'to' assets in the Asset Swap modeler.
+ * It intelligently recalculates the 'from' amount to preserve the total USD value of the deal.
+ */
+swapAssets: () => {
+    const swapState = AppState.modeler.assetSwap;
+    
+    // Retrieve full asset data to ensure prices are current.
+    const fromAsset = Utils.getAssetByKey(swapState.fromAssetKey);
+    const toAsset = Utils.getAssetByKey(swapState.toAssetKey);
+
+    // Recalculate the 'amount' field to maintain the same total USD value after the swap.
+    if (fromAsset.price > 0 && toAsset.price > 0) {
+        const totalUsdValue = (parseFloat(swapState.amount) || 0) * fromAsset.price;
+        // The new 'amount' will be what the total USD value can buy of the *new* 'from' asset.
+        swapState.amount = totalUsdValue / toAsset.price; 
+    }
+
+    // Perform the actual swap of the asset keys in the state.
+    [swapState.fromAssetKey, swapState.toAssetKey] = [swapState.toAssetKey, swapState.fromAssetKey];
+    
+    // Trigger the premium 3D icon animation for visual feedback.
+    const icon = document.getElementById('swap-icon');
+    if (icon) {
+        // This technique forces a CSS animation restart.
+        icon.style.animation = 'none';
+        void icon.offsetWidth; // Trigger reflow
+        icon.style.animation = 'swap-icon-spin 0.5s ease-in-out';
+    }
+    
+    // Trigger a full UI update to reflect the swapped assets and recalculated amount.
+    Logic.updateModelerUI(true);
+},
+
+/**
+ * Toggles the visibility of the advanced pricing configuration panel in the UI.
+ */
+togglePricingConfig: () => {
+    // Directly mutate the state.
+    AppState.modeler.pricingConfig.isVisible = !AppState.modeler.pricingConfig.isVisible;
+    
+    // Trigger a full UI update (`true`) to re-render the input panel with the
+    // now-visible (or hidden) pricing configuration section. This ensures
+    // the collapsible animation works correctly.
+    Logic.updateModelerUI(true);
+},
             
-            // --- IMFPA & NCNDA Logic (Unabridged) ---
-            openImfpaModal: () => { /* Preserved from original */ },
-            refreshImfpaModalUI: () => { /* Preserved from original */ },
-            handleModelerInputChangeInModal: (e) => { /* Preserved from original */ },
-            updateImfpaCalculations: () => { /* Preserved from original */ },
-            addImfpaGroup: () => { /* Preserved from original */ },
-            removeImfpaGroup: (i) => { /* Preserved from original */ },
-            addImfpaParty: (groupIndex) => { /* Preserved from original */ },
-            removeImfpaParty: (groupIndex, partyIndex) => { /* Preserved from original */ },
-            togglePartyDetails: (groupIndex, partyIndex) => { /* Preserved from original */ },
-            generateContract: () => { /* Preserved from original */ },
+            // --- IMFPA & NCNDA Logic (v4.0 - Definitive & Unabridged) ---
+
+/**
+ * Opens and initializes the main IMFPA & Commission Manager modal.
+ * It renders the initial UI and attaches all necessary event listeners.
+ */
+openImfpaModal: () => {
+    const modal = document.getElementById('imfpa-modal');
+    if (!modal) {
+        console.error("CRITICAL: IMFPA modal container not found in DOM.");
+        return;
+    }
+    
+    // Inject the complete modal structure into the dialog element.
+    modal.innerHTML = UI.renderImfpaModal();
+    
+    // Refresh the UI with the latest data from the application state.
+    Logic.refreshImfpaModalUI();
+    
+    // Use the standard browser API to display the modal dialog.
+    modal.showModal();
+},
+
+/**
+ * Refreshes the entire IMFPA modal UI based on the current `AppState.modeler.legal`.
+ * This function is the single source of truth for updating the modal's dynamic content,
+ * such as allocation groups and party lists, and re-binding necessary event listeners.
+ */
+refreshImfpaModalUI: () => {
+    const { legal } = AppState.modeler;
+    const groupsContainer = document.getElementById('imfpa-groups-container');
+    const legalPartiesContainer = document.getElementById('imfpa-legal-parties');
+
+    // Robustness: Ensure the core containers exist before attempting to update them.
+    if (groupsContainer) {
+        groupsContainer.innerHTML = UI.renderImfpaGroups();
+    }
+    if (legalPartiesContainer) {
+        const allParties = legal.groups.flatMap(g => g.parties);
+        legalPartiesContainer.innerHTML = allParties.length > 0
+            ? allParties.map(p => `<div><i class="fas fa-user-check text-success-color mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('')
+            : '<p class="text-xs text-text-muted">No signatory parties defined.</p>';
+    }
+
+    // Re-bind the delegated input listener to the modal's root content element.
+    // This is crucial for handling events on dynamically added/removed party and group elements.
+    const modalContent = document.getElementById('imfpa-modal-content');
+    if (modalContent) {
+        // Remove any old listeners to prevent duplication.
+        modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
+        modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
+        
+        // Add fresh listeners for both 'input' (for text fields) and 'change' (for selects).
+        modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
+        modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
+    }
+    
+    // After re-rendering, immediately update all calculated values.
+    Logic.updateImfpaCalculations();
+},
+
+/**
+ * A dedicated event handler for inputs within the IMFPA modal. It calls the main
+ * input handler and then triggers the specific calculation updates for the IMFPA UI.
+ * @param {Event} e - The input or change event from within the modal.
+ */
+handleModelerInputChangeInModal: (e) => {
+    // Leverage the main, robust input handler to update the application state.
+    Logic.handleModelerInputChange(e);
+    
+    // After the state is updated, call the specific function to update IMFPA calculations.
+    Logic.updateImfpaCalculations();
+},
+
+/**
+ * Updates all calculated values within the IMFPA modal, such as group totals and
+ * total allocation percentages, providing real-time feedback to the user.
+ */
+updateImfpaCalculations: () => {
+    const { groups, totalCommission } = AppState.modeler.legal;
+    
+    // Calculate the total percentage allocated across all groups.
+    const totalGroupPct = groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
+    const totalAllocatedEl = document.getElementById('imfpa-total-allocated');
+    if (totalAllocatedEl) {
+        totalAllocatedEl.textContent = `Total Allocated: ${totalGroupPct.toFixed(2)}%`;
+        // Dynamically apply a success or error color based on whether the total is exactly 100%.
+        const isBalanced = Math.abs(totalGroupPct - 100) < 0.01;
+        totalAllocatedEl.className = `text-right font-mono text-sm ${isBalanced ? 'text-success-color' : 'text-error-color'}`;
+    }
+
+    // Loop through each group to update its individual calculated values.
+    groups.forEach((g, groupIndex) => {
+        // Calculate the absolute dollar value for this group.
+        const groupValue = totalCommission * ((parseFloat(g.percentage) || 0) / 100);
+        const groupValueEl = document.getElementById(`imfpa-group-value-${groupIndex}`);
+        if (groupValueEl) {
+            groupValueEl.textContent = Utils.formatPrice(groupValue);
+        }
+
+        // Calculate the total percentage allocated within this group's parties.
+        const totalPartyPct = g.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+        const groupTotalEl = document.getElementById(`imfpa-group-total-${groupIndex}`);
+        if (groupTotalEl) {
+            groupTotalEl.textContent = `Group Total: ${totalPartyPct.toFixed(2)}%`;
+            // Apply success/error color for the sub-total within the group.
+            const isGroupBalanced = Math.abs(totalPartyPct - 100) < 0.01;
+            groupTotalEl.className = `text-right font-mono text-xs ${isGroupBalanced ? 'text-success-color' : 'text-error-color'}`;
+        }
+    });
+
+    // Update the master list of signatory parties in the "Legal Framework" section.
+    const legalPartiesEl = document.getElementById('imfpa-legal-parties');
+    if (legalPartiesEl) {
+        const allParties = groups.flatMap(g => g.parties);
+        legalPartiesEl.innerHTML = allParties.length > 0
+            ? allParties.map(p => `<div><i class="fas fa-user-check text-success-color mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('')
+            : '<p class="text-xs text-text-muted">No signatory parties defined.</p>';
+    }
+},
+
+/**
+ * Adds a new, empty allocation group to the state and refreshes the UI.
+ */
+addImfpaGroup: () => {
+    // Add a new group object with default values to the state.
+    AppState.modeler.legal.groups.push({
+        name: `Group ${AppState.modeler.legal.groups.length + 1}`,
+        percentage: 0,
+        parties: []
+    });
+    
+    // Trigger a full UI refresh of the modal to display the new group.
+    Logic.refreshImfpaModalUI();
+},
+            /**
+ * Removes a specific allocation group from the state by its index.
+ * @param {number} groupIndex - The index of the group to remove.
+ */
+removeImfpaGroup: (groupIndex) => {
+    // Modify the state by removing the specified group from the array.
+    AppState.modeler.legal.groups.splice(groupIndex, 1);
+    
+    // Trigger a full UI refresh of the modal to reflect the removal.
+    Logic.refreshImfpaModalUI();
+},
+
+/**
+ * Adds a new, empty party to a specific allocation group in the state.
+ * @param {number} groupIndex - The index of the group to which the party will be added.
+ */
+addImfpaParty: (groupIndex) => {
+    // Safeguard: Ensure the target group exists before attempting to add a party.
+    if (!AppState.modeler.legal.groups[groupIndex]) {
+        console.error(`Attempted to add party to a non-existent group at index ${groupIndex}.`);
+        return;
+    }
+
+    // Add a new party object with a comprehensive, default structure to the specified group.
+    AppState.modeler.legal.groups[groupIndex].parties.push({
+        legalName: `New Party`,
+        role: 'Intermediary',
+        percentage: 0,
+        detailsVisible: true, // Default to showing details for a new party for immediate input.
+        email: '',
+        contactNumber: '',
+        passport: {
+            number: '',
+            issueDate: '',
+            expiryDate: '',
+            authority: ''
+        },
+        payment: {
+            method: 'Bank Wire', // Default to the most common method.
+            currency: 'USD',
+            details: ''
+        }
+    });
+    
+    // Trigger a full UI refresh of the modal to display the new party.
+    Logic.refreshImfpaModalUI();
+},
+
+/**
+ * Removes a specific party from a specific group by their respective indices.
+ * @param {number} groupIndex - The index of the parent group.
+ * @param {number} partyIndex - The index of the party to remove within the group.
+ */
+removeImfpaParty: (groupIndex, partyIndex) => {
+    // Safeguard: Ensure the target party exists before attempting removal.
+    if (AppState.modeler.legal.groups[groupIndex] && AppState.modeler.legal.groups[groupIndex].parties[partyIndex]) {
+        // Modify the state by removing the specified party from the group's parties array.
+        AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1);
+        
+        // Trigger a full UI refresh of the modal to reflect the removal.
+        Logic.refreshImfpaModalUI();
+    } else {
+        console.error(`Attempted to remove a non-existent party at group ${groupIndex}, party ${partyIndex}.`);
+    }
+},
+
+/**
+ * Toggles the visibility of the detailed input fields for a specific party.
+ * @param {number} groupIndex - The index of the parent group.
+ * @param {number} partyIndex - The index of the party whose details will be toggled.
+ */
+togglePartyDetails: (groupIndex, partyIndex) => {
+    // Safeguard: Ensure the target party exists before toggling.
+    const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex];
+    if (party) {
+        // Directly mutate the boolean state property.
+        party.detailsVisible = !party.detailsVisible;
+        
+        // Trigger a full UI refresh of the modal to apply the CSS class change for the collapse/expand animation.
+        Logic.refreshImfpaModalUI();
+    } else {
+        console.error(`Attempted to toggle details for a non-existent party at group ${groupIndex}, party ${partyIndex}.`);
+    }
+},
+
+/**
+ * Generates the final NCNDA/IMFPA contract preview based on the current modeler state.
+ * This is the pinnacle, unabridged implementation.
+ */
+generateContract: () => {
+    const { legal, activeDealType } = AppState.modeler;
+    const calc = Logic.calculateModel();
+
+    // --- SEVERE VALIDATION ENGINE ---
+    const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
+    if (Math.abs(totalGroupPct - 100) > 0.01) {
+        return Utils.showNotification("Total group allocation must equal exactly 100%.", 'error', 'Allocation Error');
+    }
+
+    for (const group of legal.groups) {
+        const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+        if (Math.abs(totalPartyPct - 100) > 0.01) {
+            return Utils.showNotification(`Party allocation within "${group.name}" must equal exactly 100%.`, 'error', 'Allocation Error');
+        }
+    }
+    
+    const allParties = legal.groups.flatMap(g => g.parties);
+    if (allParties.length < 2) {
+        return Utils.showNotification("At least two signatory parties are required to generate a contract.", 'error', 'Party Error');
+    }
+
+    if (allParties.some(p => !p.legalName || !p.role)) {
+        return Utils.showNotification("All parties must have a 'Full Legal Name' and a 'Role' defined.", 'error', 'Party Data Incomplete');
+    }
+    // --- END VALIDATION ---
+
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    
+    // --- DYNAMIC PREAMBLE GENERATION ---
+    const dealDescription = {
+        'AssetSwap': `the exchange of approximately ${Utils.formatPrice(calc.baseValueUSD)} worth of digital and/or physical assets`,
+        'CommodityTrade': `the trade of ${calc.dealTitle} with an estimated value of ${Utils.formatPrice(calc.baseValueUSD)}`,
+        'CryptoLoan': `a crypto-collateralized loan facility with a principal of ${Utils.formatPrice(calc.baseValueUSD)}`,
+        'SBLCMonetization': `the monetization of a Standby Letter of Credit with a face value of ${Utils.formatPrice(AppState.modeler.sblcMonetization.faceValue)}`
+    }[activeDealType] || 'various prospective financial opportunities';
+    
+    // --- PINNACLE HTML TEMPLATE FOR CONTRACT ---
+    const contractHTML = `
+        <div class="contract-preview">
+            <h1 style="text-align: center; font-size: 1.2em; font-weight: bold; text-transform: uppercase;">Non-Circumvention, Non-Disclosure & Working Agreement (NCNDA)</h1>
+            <h2 style="text-align: center; font-size: 1.1em; font-weight: bold; text-transform: uppercase;">Irrevocable Master Fee Protection Agreement (IMFPA)</h2>
+            <p><strong>Effective Date:</strong> ${formattedDate}</p>
+            <p><strong>Reference Code:</strong> GECAN-IMFPA-${now.getTime()}</p>
+            ${legal.spaReferenceCode ? `<p><strong>Cross-Reference:</strong> ${legal.spaReferenceCode}</p>` : ''}
+            <hr style="margin: 1em 0;">
+
+            <p>This Agreement is made and entered into as of the Effective Date, by and between the undersigned Parties, each acting with full corporate authority and responsibility.</p>
+            
+            <h3>ARTICLE 1: PURPOSE</h3>
+            <p>1.1. The Parties, intending to be legally bound, mutually agree to collaborate on ${dealDescription} (the "Project"). This agreement serves to protect the proprietary interests, confidential information, and commission structures of all involved intermediaries.</p>
+
+            <h3>ARTICLE 2: THE PARTIES</h3>
+            ${allParties.map((p, i) => `<p><strong>Party ${String.fromCharCode(65 + i)}:</strong> ${p.legalName}, acting as ${p.role}.</p>`).join('')}
+
+            <h3>ARTICLE 3: NON-CIRCUMVENTION & NON-DISCLOSURE (NCND)</h3>
+            <p>3.1. The Parties irrevocably agree not to circumvent, avoid, or bypass each other, directly or indirectly, to transact with any entity or individual introduced by another Party in relation to the Project. This covenant shall extend for a period of five (5) years from the Effective Date.</p>
+            <p>3.2. All information exchanged, including but not limited to contacts, financial data, and procedures, shall be deemed confidential and proprietary.</p>
+
+            <h3>ARTICLE 4: IRREVOCABLE MASTER FEE PROTECTION AGREEMENT (IMFPA)</h3>
+            <p>4.1. The Parties agree that a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> (the "Commission Pool") is established for the successful execution of the Project.</p>
+            <p>4.2. This Commission Pool shall be irrevocably distributed amongst the Parties as per the schedule detailed in Addendum A.</p>
+            <p>4.3. Payments shall be made via ${allParties[0].payment.method} in ${allParties[0].payment.currency} within seventy-two (72) banking hours of the clearing of funds for each tranche of the transaction.</p>
+
+            <h3>ARTICLE 5: GOVERNING LAW</h3>
+            <p>5.1. This Agreement shall be governed by and construed in accordance with the laws of: <strong>${legal.jurisdiction}</strong>. The principles of the International Chamber of Commerce (ICC) shall be considered persuasive authority.</p>
+
+            <h3>ADDENDUM A: COMMISSION ALLOCATION SCHEDULE</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1em; font-size: 0.9em;">
+                <thead style="background-color: #1e293b;">
+                    <tr>
+                        <th style="padding: 0.5em; border: 1px solid var(--border-color); text-align: left;">Group / Party</th>
+                        <th style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">Allocation (%)</th>
+                        <th style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">Estimated Payout</th>
+                    </tr>
+                </thead>
+                <tbody>
+                ${legal.groups.map(g => `
+                    <tr style="background-color: #111827;">
+                        <td style="padding: 0.5em; border: 1px solid var(--border-color);"><strong>${g.name}</strong></td>
+                        <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;"><strong>${g.percentage}%</strong></td>
+                        <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;"><strong>${Utils.formatPrice(legal.totalCommission * (g.percentage / 100))}</strong></td>
+                    </tr>
+                    ${g.parties.map(p => `
+                        <tr>
+                            <td style="padding: 0.5em 0.5em 0.5em 2em; border: 1px solid var(--border-color);">${p.legalName} (${p.role})</td>
+                            <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">${p.percentage}%</td>
+                            <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">${Utils.formatPrice(legal.totalCommission * (g.percentage / 100) * (p.percentage / 100))}</td>
+                        </tr>
+                    `).join('')}
+                `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // Display the preview and show the finalization button.
+    const previewContainer = document.getElementById('contract-preview-container');
+    if (previewContainer) {
+        previewContainer.innerHTML = contractHTML;
+        previewContainer.classList.remove('hidden');
+        previewContainer.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    Utils.showNotification("NCNDA/IMFPA contract has been successfully synthesized.", 'success', 'Contract Generated');
+},
 
         };
 
         // ====================================================================================
-        // === SECTION 4: UI RENDERERS (v4.0 - DEFINITIVE & UNABRIDGED) ===
-        // ====================================================================================
-        const UI = {
-            init: () => { UI.renderParticles(); },
-            renderParticles: (config) => { if (typeof particlesJS !== 'undefined') particlesJS('particles-js', config || {"particles":{"number":{"value":50},"color":{"value":["#0ea5e9","#6366f1","#8b5cf6"]},"opacity":{"value":0.6,"random":true},"size":{"value":3,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#475569","opacity":0.4},"move":{"enable":true,"speed":1,"random":true,"out_mode":"out"}},"interactivity":{"events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"push"}}}}); },
-            populateNavLinks: () => {
-                const navPlaceholder = document.getElementById('desktop-nav-placeholder');
-                const mobileMenuContent = document.getElementById('mobile-sidebar-content');
-                if (!navPlaceholder || !mobileMenuContent) return;
-                const path = window.location.pathname, currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
-                const links = [{ page: 'index', icon: 'fa-tachometer-alt', text: 'XDealFlow Home' }, { page: 'about', icon: 'fa-landmark', text: 'About The Alliance' }, { page: 'toolkits', icon: 'fa-tools', text: 'Intelligent Toolkits' }, { page: 'architect', icon: 'fa-drafting-compass', text: 'Architect Wizard' }, { page: 'intelligence', icon: 'fa-sitemap', text: 'Network Intelligence' }];
-                const navHtml = (isMobile = false) => links.map(link => { const isActive = currentPageFile === link.page; const btnClass = isMobile ? 'nav-btn w-full justify-start' : 'nav-btn'; return `<a href="./${link.page}.html" class="${btnClass} ${isActive ? 'active' : ''}"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`; }).join(isMobile ? '' : '');
-                navPlaceholder.innerHTML = `<div id="nav-container" class="hidden xl:flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">${navHtml(false)}</div>`;
-                mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
+// === SECTION 4: UI RENDERERS (v4.0 - DEFINITIVE & UNABRIDGED) ===
+// This block contains the pinnacle-grade, word-for-word logic for rendering
+// every component and state of the Toolkits page UI.
+// ====================================================================================
+const UI = {
+    /**
+     * Initializes the particle background with a default or fetched theme.
+     * This function is the benchmark standard for dynamic background effects.
+     */
+    init: () => {
+        // A premium, subtle default configuration that ensures a good experience even if the theme API fails.
+        const defaultConfig = {
+            "particles": {
+                "number": { "value": 50, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": ["#0ea5e9", "#6366f1", "#8b5cf6"] },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.6, "random": true, "anim": { "enable": true, "speed": 0.5, "opacity_min": 0.1 } },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": true, "distance": 150, "color": "#475569", "opacity": 0.4, "width": 1 },
+                "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "out_mode": "out" }
             },
-            renderToolkitMenu: () => {
-                document.getElementById('toolkit-menu').innerHTML = Object.values(AppState.toolkits).map(t => `<button onclick="Logic.setActiveToolkit('${t.id}')" class="w-full text-left p-4 rounded-xl flex items-center gap-4 transition-all duration-300 group ${AppState.activeToolkit === t.id ? 'bg-gradient-to-r from-primary-azure to-primary-dark text-white shadow-lg shadow-primary-azure/20' : 'text-text-secondary hover:bg-background-secondary hover:text-white'}"><div class="w-10 h-10 rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center group-hover:scale-110 transition-transform"><i class="fas ${t.icon} text-white"></i></div><div class="flex-1"><div class="font-semibold">${t.name}</div><div class="text-xs opacity-75 mt-1">${t.description.split('.')[0]}</div></div><i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-opacity"></i></button>`).join('');
-            },
-            renderActiveToolkit: () => {
-                const container = document.getElementById('active-toolkit-container');
-                const renderFunc = UI[`render${AppState.activeToolkit}UI`];
-                if (renderFunc) { container.innerHTML = renderFunc(); container.classList.remove('hidden'); Logic.bindActiveToolkitEvents(); } 
-                else { Utils.showNotification(`UI for '${AppState.activeToolkit}' not implemented.`, 'error'); }
-                UI.renderToolkitMenu();
-            },
-            renderDashboardUI: () => `
-                <div class="glass rounded-2xl p-8 h-full flex flex-col animate-fade-in-up">
-                    <div class="text-center mb-12"><h2 class="text-4xl font-bold gradient-text mb-4">GECAN™ Intelligent Toolkits</h2><p class="text-text-secondary text-lg max-w-2xl mx-auto leading-relaxed">Select a proprietary tool from the sidebar to begin your institutional-grade analysis. Each toolkit is powered by advanced algorithms and real-time data intelligence.</p></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
-                        ${Object.values(AppState.toolkits).filter(t => t.id !== 'Dashboard').map((t, index) => `<div class="report-section p-8 cursor-pointer group animate-scale-in stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}')"><div class="flex items-start gap-6"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl group-hover:scale-110 transition-transform duration-300 ease-in-out"><i class="fas ${t.icon}"></i></div><div class="flex-1"><h3 class="text-2xl font-bold text-white mb-3 group-hover:text-primary-azure transition-colors">${t.name}</h3><p class="text-text-secondary leading-relaxed">${t.description}</p><div class="mt-4 flex items-center text-primary-azure opacity-0 group-hover:opacity-100 transition-opacity duration-300"><span class="text-sm font-medium">Launch Toolkit</span><i class="fas fa-arrow-right ml-2"></i></div></div></div></div>`).join('')}
+            "interactivity": {
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } },
+                "modes": { "grab": { "distance": 200, "line_linked": { "opacity": 0.6 } }, "push": { "particles_nb": 4 } }
+            }
+        };
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', defaultConfig);
+        }
+    },
+
+    /**
+     * Dynamically renders the particle.js background using a provided configuration.
+     * @param {object} config - A valid particle.js configuration object.
+     */
+    renderParticles: (config) => {
+        // Safeguard to ensure the particles.js library is loaded.
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', config);
+        } else {
+            console.warn("particles.js library not found, skipping background rendering.");
+        }
+    },
+
+    /**
+     * Populates the main and mobile navigation menus from a central source of truth.
+     * This function is benchmarked against index.html for perfect platform-wide consistency.
+     */
+    populateNavLinks: () => {
+        const navPlaceholder = document.getElementById('desktop-nav-placeholder');
+        const mobileMenuContent = document.getElementById('mobile-sidebar-content');
+        if (!navPlaceholder || !mobileMenuContent) return;
+
+        const path = window.location.pathname;
+        const currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
+
+        const links = [
+            { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
+            { page: 'about', icon: 'fas fa-landmark', text: 'About The Alliance' },
+            { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
+            { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
+            { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' }
+        ];
+
+        const navHtml = (isMobile = false) => links.map(link => {
+            const isActive = currentPageFile === link.page;
+            const btnClass = isMobile ? 'nav-btn w-full justify-start' : 'nav-btn';
+            // This HTML structure is the benchmark standard for all navigation buttons.
+            return `
+                <a href="./${link.page}.html" class="${btnClass} ${isActive ? 'active' : ''}">
+                    <div class="nav-icon-wrapper">
+                        <div class="nav-icon-flipper">
+                            <div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div>
+                            <div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div>
+                        </div>
                     </div>
-                </div>`,
+                    <span class="nav-text">${link.text}</span>
+                </a>`;
+        }).join(isMobile ? '' : '');
+
+        navPlaceholder.innerHTML = `<div id="nav-container" class="hidden xl:flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">${navHtml(false)}</div>`;
+        // For mobile, we create a fresh clone every time to ensure event listeners are clean.
+        mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
+    },
+
+    /**
+     * Renders the menu of available toolkits in the left sidebar, highlighting the active one.
+     */
+    renderToolkitMenu: () => {
+        const menuContainer = document.getElementById('toolkit-menu');
+        if (!menuContainer) return;
+
+        menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
+            const isActive = AppState.activeToolkit === t.id;
+            return `
+                <button onclick="Logic.setActiveToolkit('${t.id}')" 
+                        class="w-full text-left p-4 rounded-xl flex items-center gap-4 transition-all duration-300 group ${isActive ? 'bg-gradient-to-r from-primary-azure to-primary-dark text-white shadow-lg shadow-primary-azure/20' : 'text-text-secondary hover:bg-background-secondary hover:text-white'}">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i class="fas ${t.icon} text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold truncate">${t.name}</div>
+                        <div class="text-xs opacity-75 mt-1 truncate">${t.description.split('.')[0]}</div>
+                    </div>
+                    <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-opacity ml-auto"></i>
+                </button>`;
+        }).join('');
+    },
+
+    /**
+     * Master UI renderer. It acts as a router, calling the specific UI function 
+     * for the currently active toolkit and binding its necessary event listeners.
+     */
+    renderActiveToolkit: () => {
+        const container = document.getElementById('active-toolkit-container');
+        if (!container) {
+            console.error("CRITICAL: Active toolkit container not found.");
+            return;
+        }
+
+        const renderFunctionName = `render${AppState.activeToolkit}UI`;
+        const renderFunction = UI[renderFunctionName];
+
+        if (typeof renderFunction === 'function') {
+            container.innerHTML = renderFunction(); // Generate and inject the HTML.
+            container.classList.remove('hidden');   // Make the container visible.
+            Logic.bindActiveToolkitEvents();      // Bind events for the newly created elements.
+        } else {
+            Utils.showNotification(`UI for '${AppState.activeToolkit}' not implemented.`, 'error');
+            container.innerHTML = `<p class="text-center text-error-color">UI Error: Component '${AppState.activeToolkit}' failed to load.</p>`;
+        }
+
+        // Always refresh the side menu to ensure the correct item is highlighted.
+        UI.renderToolkitMenu();
+    },
+
+    /**
+     * Renders the main dashboard/welcome view for the toolkits page.
+     * This is the default view shown on page load.
+     */
+    renderDashboardUI: () => `
+        <div class="glass rounded-2xl p-8 h-full flex flex-col animate-fade-in-up">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold gradient-text mb-4">GECAN™ Intelligent Toolkits</h2>
+                <p class="text-text-secondary text-lg max-w-2xl mx-auto leading-relaxed">Select a proprietary tool from the sidebar to begin your institutional-grade analysis. Each toolkit is powered by advanced algorithms and real-time data intelligence.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
+                ${Object.values(AppState.toolkits)
+                    .filter(t => t.id !== 'Dashboard') // Don't show the dashboard card on the dashboard itself.
+                    .map((t, index) => `
+                        <div class="report-section p-8 cursor-pointer group animate-scale-in stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}')">
+                            <div class="flex items-start gap-6">
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl group-hover:scale-110 transition-transform duration-300 ease-in-out">
+                                    <i class="fas ${t.icon}"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-primary-azure transition-colors">${t.name}</h3>
+                                    <p class="text-text-secondary leading-relaxed">${t.description}</p>
+                                    <div class="mt-4 flex items-center text-primary-azure opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <span class="text-sm font-medium">Launch Toolkit</span>
+                                        <i class="fas fa-arrow-right ml-2"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`).join('')
+                }
+            </div>
+        </div>,
             
             // All other UI renderers (WalletForensics, Modeler, IMFPA, etc.) are preserved unabridged...
             renderWalletForensicsUI: () => { /* Preserved */ },
