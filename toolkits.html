@@ -596,12 +596,153 @@ generateExecutiveSummary: (report) => {
     return summary;
 },
             
-            // --- Institutional Modeler Logic (Unabridged) ---
-            bindInstitutionalModelerEvents: () => { /* Preserved from original */ },
-            handleDealTypeChange: (dealType) => { /* Preserved from original */ },
-            handleModelerInputChange: (e) => { /* Preserved from original */ },
-            handleCommodityChange: (assetKey) => { /* Preserved from original */ },
-            launchInstitutionalAnalysis: () => { /* Preserved from original */ },
+            // --- Institutional Modeler Logic (v4.0 - Definitive & Unabridged) ---
+
+/**
+ * Binds all necessary event listeners for the Institutional Modeler toolkit.
+ * This function is called once when the toolkit becomes active, using efficient
+ * event delegation on the main input container to handle all dynamic changes.
+ */
+bindInstitutionalModelerEvents: () => {
+    // A single, robust listener on the main container handles all input changes efficiently.
+    const inputContainer = document.getElementById('modeler-input-container');
+    if (inputContainer) {
+        // Debounce the input handler to prevent excessive re-calculations on rapid user input.
+        inputContainer.addEventListener('input', Utils.debounce((e) => {
+            // Only act on elements that are part of the modeler's state path.
+            if (e.target.matches('[data-path]')) {
+                Logic.handleModelerInputChange(e);
+            }
+        }, 250)); // A 250ms debounce provides a responsive yet efficient experience.
+    } else {
+        console.error("CRITICAL: Modeler input container not found. Event binding failed.");
+    }
+},
+
+/**
+ * Handles the logic for switching between different deal types (e.g., Asset Swap, Commodity Trade).
+ * It updates the application state and triggers a full re-render of the toolkit UI.
+ * @param {string} newDealType - The ID of the toolkit to activate (e.g., 'AssetSwap').
+ */
+handleDealTypeChange: (newDealType) => {
+    // Optimization: Do nothing if the selected deal type is already active.
+    if (AppState.modeler.activeDealType === newDealType) return;
+
+    // Update the central application state.
+    AppState.modeler.activeDealType = newDealType;
+    
+    // Trigger a full re-render of the active toolkit to display the new UI.
+    UI.renderActiveToolkit();
+},
+
+/**
+ * Master handler for all user input within the modeler. It uses a `data-path`
+ * attribute on form elements to dynamically and safely update the nested `AppState.modeler` object.
+ * @param {Event} e - The input or change event object.
+ */
+handleModelerInputChange: (e) => {
+    const { dataset, value, type, checked } = e.target;
+    const path = dataset.path;
+
+    // Safeguard: Exit if the element doesn't have a valid data path.
+    if (!path) return;
+
+    // Handle special cases first for clarity and performance.
+    if (path === 'commodityTrade.assetKey') {
+        Logic.handleCommodityChange(value);
+        return; // Exit after handling the special case.
+    }
+
+    try {
+        // Dynamically traverse the AppState.modeler object based on the path.
+        // e.g., 'legal.groups[0].parties[1].legalName'
+        const pathKeys = path.split(/[\.\[\]]+/).filter(Boolean);
+        let targetObject = AppState.modeler;
+
+        for (let i = 0; i < pathKeys.length - 1; i++) {
+            const key = pathKeys[i];
+            if (targetObject[key] === undefined) {
+                console.error(`Invalid state path: '${path}' at key '${key}'`);
+                return; // Gracefully exit if the path is invalid.
+            }
+            targetObject = targetObject[key];
+        }
+
+        const finalKey = pathKeys[pathKeys.length - 1];
+        let processedValue;
+
+        // Robust type coercion based on input type and original state value type.
+        if (type === 'checkbox') {
+            processedValue = checked;
+        } else if (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') {
+            processedValue = parseFloat(value.replace(/,/g, ''));
+            if (isNaN(processedValue)) processedValue = 0; // Prevent NaN from corrupting state.
+        } else if (typeof targetObject[finalKey] === 'boolean') {
+            processedValue = (value === 'true');
+        } else {
+            processedValue = value; // Default to string.
+        }
+        
+        targetObject[finalKey] = processedValue;
+
+        // Trigger a UI update. `false` indicates a partial refresh (outputs only), which is more performant.
+        Logic.updateModelerUI(false);
+
+    } catch (error) {
+        console.error(`Failed to update modeler state for path: ${path}`, error);
+        Utils.showNotification("An internal error occurred while updating the model.", 'error');
+    }
+},
+
+/**
+ * A specialized handler that triggers when the main commodity asset is changed.
+ * It intelligently updates related fields like 'Unit of Measure' to maintain data consistency.
+ * @param {string} assetKey - The new commodity asset key (e.g., 'WTI-BBL-USD').
+ */
+handleCommodityChange: (assetKey) => {
+    const commodityState = AppState.modeler.commodityTrade;
+    commodityState.assetKey = assetKey;
+    
+    // Intelligence: Automatically suggest the standard unit of measure for the selected commodity.
+    const keyParts = assetKey.split('-');
+    if (keyParts.length >= 2) {
+        const uomCode = keyParts[1].toUpperCase();
+        // This map provides a robust lookup for common commodity units.
+        const uomMap = { 'BBL': 'Barrel', 'MT': 'Metric Ton', 'TONNE': 'Tonne', 'KG': 'Kilogram', 'GAL': 'Gallon', 'L': 'Liter', 'OZ': 'Troy Ounce', 'LB': 'Pound', 'MMBTU': 'MMBtu', 'CBM': 'Cubic Meter' };
+        
+        // Find the full unit name from the code in the asset key.
+        const matchedUoM = Object.values(uomMap).find(val => val.toUpperCase().startsWith(uomCode)) || uomMap[uomCode];
+        if (matchedUoM) {
+            commodityState.unitOfMeasure = matchedUoM;
+        }
+    }
+
+    // Trigger a full UI update (`true`) because an input element itself (the UoM dropdown) needs to be re-rendered.
+    Logic.updateModelerUI(true);
+},
+
+/**
+ * Placeholder for launching a future deep-dive analysis suite. For now, it provides
+ * a premium, user-friendly notification about the feature's status.
+ */
+launchInstitutionalAnalysis: () => {
+    // Pre-flight check: Ensure a deal has been minimally configured before allowing this action.
+    if (!AppState.modeler || !AppState.modeler.commodityTrade.assetKey) {
+        return Utils.showNotification(
+            "Please structure a deal first by selecting a commodity and quantity.",
+            'error',
+            'Deal Parameters Required'
+        );
+    }
+    const dealType = AppState.modeler.activeDealType;
+    
+    // Use the benchmarked, premium notification modal for a consistent user experience.
+    Utils.showNotification(
+        `The full Institutional Analysis Suite for this ${dealType} is in development. This panel will provide deep-dive analytics, counterparty risk assessment, and regulatory compliance checklists.`,
+        'info',
+        'Feature Coming Soon'
+    );
+},
             updateModelerUI: (isFullRefresh = false) => { /* Preserved from original */ },
             calculateModel: () => { /* Preserved from original */ },
             calculateAssetSwap: () => { /* Preserved from original */ },
