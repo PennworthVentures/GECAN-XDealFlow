@@ -586,7 +586,7 @@ label.form-label,
             toolkits: {
                 Dashboard: { id: 'Dashboard', name: 'Dashboard', icon: 'fa-th-large', description: 'Centralized hub for accessing all GECAN™ proprietary institutional tools.', color: 'from-blue-500 to-purple-600' },
                 WalletForensics: { id: 'WalletForensics', name: 'Wallet Forensics', icon: 'fa-shield-alt', description: 'Execute advanced on-chain due diligence, risk assessment, and provenance analysis.', color: 'from-sky-500 to-indigo-600' },
-                InstitutionalModeler: { id: 'InstitutionalModeler', name: 'NCNDA/IMFPA Suite', icon: 'fa-sitemap', description: 'Model, simulate, and generate legal frameworks for complex institutional transactions.', color: 'from-green-500 to-emerald-600' },
+                InstitutionalModeler: { id: 'InstitutionalModeler', name: 'Institutional Modeler Suite', icon: 'fa-sitemap', description: 'Model, simulate, and generate legal frameworks for complex institutional transactions.', color: 'from-green-500 to-emerald-600' },
             },
             walletAnalysis: { address: null, report: null, isLoading: false },
             modeler: {
@@ -1101,18 +1101,15 @@ generateExecutiveSummary: (report) => {
  * event delegation on the main input container to handle all dynamic changes.
  */
 bindInstitutionalModelerEvents: () => {
-    // A single, robust listener on the main container handles all input changes efficiently.
+    Logic.updateModelerUI(true);
     const inputContainer = document.getElementById('modeler-input-container');
     if (inputContainer) {
-        // Debounce the input handler to prevent excessive re-calculations on rapid user input.
         inputContainer.addEventListener('input', Utils.debounce((e) => {
-            // Only act on elements that are part of the modeler's state path.
-            if (e.target.matches('[data-path]')) {
-                Logic.handleModelerInputChange(e);
-            }
-        }, 250)); // A 250ms debounce provides a responsive yet efficient experience.
-    } else {
-        console.error("CRITICAL: Modeler input container not found. Event binding failed.");
+            if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
+        }, 250));
+        inputContainer.addEventListener('change', (e) => { // For selects and radios
+            if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
+        });
     }
 },
 
@@ -1122,13 +1119,8 @@ bindInstitutionalModelerEvents: () => {
  * @param {string} newDealType - The ID of the toolkit to activate (e.g., 'AssetSwap').
  */
 handleDealTypeChange: (newDealType) => {
-    // Optimization: Do nothing if the selected deal type is already active.
     if (AppState.modeler.activeDealType === newDealType) return;
-
-    // Update the central application state.
     AppState.modeler.activeDealType = newDealType;
-    
-    // Trigger a full re-render of the active toolkit to display the new UI.
     UI.renderActiveToolkit();
 },
 
@@ -1140,51 +1132,23 @@ handleDealTypeChange: (newDealType) => {
 handleModelerInputChange: (e) => {
     const { dataset, value, type, checked } = e.target;
     const path = dataset.path;
-
-    // Safeguard: Exit if the element doesn't have a valid data path.
     if (!path) return;
 
-    // Handle special cases first for clarity and performance.
     if (path === 'commodityTrade.assetKey') {
         Logic.handleCommodityChange(value);
-        return; // Exit after handling the special case.
+        return;
     }
 
     try {
-        // Dynamically traverse the AppState.modeler object based on the path.
-        // e.g., 'legal.groups[0].parties[1].legalName'
         const pathKeys = path.split(/[\.\[\]]+/).filter(Boolean);
         let targetObject = AppState.modeler;
-
         for (let i = 0; i < pathKeys.length - 1; i++) {
-            const key = pathKeys[i];
-            if (targetObject[key] === undefined) {
-                console.error(`Invalid state path: '${path}' at key '${key}'`);
-                return; // Gracefully exit if the path is invalid.
-            }
-            targetObject = targetObject[key];
+            targetObject = targetObject[pathKeys[i]];
         }
-
         const finalKey = pathKeys[pathKeys.length - 1];
-        let processedValue;
-
-        // Robust type coercion based on input type and original state value type.
-        if (type === 'checkbox') {
-            processedValue = checked;
-        } else if (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') {
-            processedValue = parseFloat(value.replace(/,/g, ''));
-            if (isNaN(processedValue)) processedValue = 0; // Prevent NaN from corrupting state.
-        } else if (typeof targetObject[finalKey] === 'boolean') {
-            processedValue = (value === 'true');
-        } else {
-            processedValue = value; // Default to string.
-        }
-        
+        let processedValue = (type === 'checkbox') ? checked : (typeof targetObject[finalKey] === 'boolean') ? (value === 'true') : (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') ? parseFloat(value.replace(/,/g, '')) || 0 : value;
         targetObject[finalKey] = processedValue;
-
-        // Trigger a UI update. `false` indicates a partial refresh (outputs only), which is more performant.
         Logic.updateModelerUI(false);
-
     } catch (error) {
         console.error(`Failed to update modeler state for path: ${path}`, error);
         Utils.showNotification("An internal error occurred while updating the model.", 'error');
@@ -1199,22 +1163,13 @@ handleModelerInputChange: (e) => {
 handleCommodityChange: (assetKey) => {
     const commodityState = AppState.modeler.commodityTrade;
     commodityState.assetKey = assetKey;
-    
-    // Intelligence: Automatically suggest the standard unit of measure for the selected commodity.
-    const keyParts = assetKey.split('-');
-    if (keyParts.length >= 2) {
-        const uomCode = keyParts[1].toUpperCase();
-        // This map provides a robust lookup for common commodity units.
-        const uomMap = { 'BBL': 'Barrel', 'MT': 'Metric Ton', 'TONNE': 'Tonne', 'KG': 'Kilogram', 'GAL': 'Gallon', 'L': 'Liter', 'OZ': 'Troy Ounce', 'LB': 'Pound', 'MMBTU': 'MMBtu', 'CBM': 'Cubic Meter' };
-        
-        // Find the full unit name from the code in the asset key.
-        const matchedUoM = Object.values(uomMap).find(val => val.toUpperCase().startsWith(uomCode)) || uomMap[uomCode];
-        if (matchedUoM) {
-            commodityState.unitOfMeasure = matchedUoM;
-        }
+    const spec = commodityData.specifications[assetKey];
+    if (spec) {
+        commodityState.unitOfMeasure = spec.uom;
+        commodityState.qualitySpec = spec.spec;
+        commodityState.incoterms = spec.incoterm;
+        commodityState.origin = spec.origin;
     }
-
-    // Trigger a full UI update (`true`) because an input element itself (the UoM dropdown) needs to be re-rendered.
     Logic.updateModelerUI(true);
 },
 
@@ -1223,19 +1178,8 @@ handleCommodityChange: (assetKey) => {
  * a premium, user-friendly notification about the feature's status.
  */
 launchInstitutionalAnalysis: () => {
-    // Pre-flight check: Ensure a deal has been minimally configured before allowing this action.
-    if (!AppState.modeler || !AppState.modeler.commodityTrade.assetKey) {
-        return Utils.showNotification(
-            "Please structure a deal first by selecting a commodity and quantity.",
-            'error',
-            'Deal Parameters Required'
-        );
-    }
-    const dealType = AppState.modeler.activeDealType;
-    
-    // Use the benchmarked, premium notification modal for a consistent user experience.
     Utils.showNotification(
-        `The full Institutional Analysis Suite for this ${dealType} is in development. This panel will provide deep-dive analytics, counterparty risk assessment, and regulatory compliance checklists.`,
+        `The full Institutional Analysis Suite is in development. This panel will provide deep-dive analytics, counterparty risk assessment, and regulatory compliance checklists for the structured deal.`,
         'info',
         'Feature Coming Soon'
     );
@@ -1246,41 +1190,13 @@ launchInstitutionalAnalysis: () => {
  * @param {boolean} [isFullRefresh=false] - If true, re-renders the entire input panel.
  */
 updateModelerUI: (isFullRefresh = false) => {
-    // A full refresh is necessary when the structure of the inputs changes (e.g., switching deal types).
     if (isFullRefresh) {
         const inputContainer = document.getElementById('modeler-input-container');
-        if (inputContainer) {
-            inputContainer.innerHTML = UI.renderModelerInputPanel();
-        } else {
-            console.error("CRITICAL: Modeler input container not found for full refresh.");
-            return;
-        }
+        if (inputContainer) inputContainer.innerHTML = UI.renderModelerInputPanel();
     }
-
-    // Always re-calculate the model based on the latest state.
     const calculation = Logic.calculateModel();
-
-    // Always update the output panel with the new calculation results.
     const outputContainer = document.getElementById('modeler-output-container');
-    if (outputContainer) {
-        outputContainer.innerHTML = UI.renderModelerOutputPanel(calculation);
-    } else {
-        console.error("CRITICAL: Modeler output container not found for update.");
-    }
-    
-    // After a full refresh, event listeners need to be re-bound to the new DOM elements.
-    // The main delegated listener is already set up, but this is a failsafe.
-    if (isFullRefresh) { 
-        const container = document.getElementById('modeler-input-container');
-        if (container) {
-            // Re-bind the debounced input listener.
-            container.addEventListener('input', Utils.debounce((e) => {
-                if (e.target.matches('[data-path]')) {
-                    Logic.handleModelerInputChange(e);
-                }
-            }, 250));
-        }
-    }
+    if (outputContainer) outputContainer.innerHTML = UI.renderModelerOutputPanel(calculation);
 },
 
 /**
@@ -1292,52 +1208,20 @@ updateModelerUI: (isFullRefresh = false) => {
 calculateModel: () => {
     const { activeDealType, pricingConfig } = AppState.modeler;
     const calculationFunc = Logic[`calculate${activeDealType}`];
-
-    // Safeguard: Return null if the calculation function for the active deal type doesn't exist.
-    if (!calculationFunc) {
-        console.error(`Calculation function for deal type '${activeDealType}' not found.`);
-        return null;
-    }
-
-    // 1. Get the base calculation results for the specific deal type.
+    if (!calculationFunc) return null;
     const dealCalc = calculationFunc();
-    if (!dealCalc) return null; // Exit if the base calculation failed.
-
-    // 2. Perform universal pricing & commission calculations based on the base value.
+    if (!dealCalc) return null;
     const { baseValueUSD } = dealCalc;
     const grossValue = parseFloat(pricingConfig.grossValue) || 0;
     const netValue = parseFloat(pricingConfig.netValue) || 0;
-
-    // Calculate the absolute dollar value of the gross and net offers, whether they are percentages or fixed amounts.
     const grossOffer = pricingConfig.isValueInPercent ? baseValueUSD * (grossValue / 100) : grossValue;
     const netToBuyerOffer = pricingConfig.isValueInPercent ? baseValueUSD * (netValue / 100) : netValue;
-    
     let finalValueToBuyerUSD, totalCommissionPool;
-
-    // The calculation logic depends on whether the offer is a 'discount' or a 'premium'.
-    if (pricingConfig.offerType === 'discount') {
-        finalValueToBuyerUSD = baseValueUSD - netToBuyerOffer;
-        totalCommissionPool = grossOffer - netToBuyerOffer;
-    } else { // 'premium'
-        finalValueToBuyerUSD = baseValueUSD + netToBuyerOffer;
-        totalCommissionPool = grossOffer - netToBuyerOffer;
-    }
-
-    // Ensure the commission pool cannot be negative.
+    if(pricingConfig.offerType === 'discount') { finalValueToBuyerUSD = baseValueUSD - netToBuyerOffer; totalCommissionPool = grossOffer - netToBuyerOffer; } 
+    else { finalValueToBuyerUSD = baseValueUSD + netToBuyerOffer; totalCommissionPool = grossOffer - netToBuyerOffer; }
     totalCommissionPool = Math.max(0, totalCommissionPool);
-
-    // Update the legal state with the calculated commission for the IMFPA modal.
     AppState.modeler.legal.totalCommission = totalCommissionPool;
-    
-    // 3. Assemble the final, comprehensive calculation object.
-    return {
-        ...dealCalc,
-        baseValueUSD,
-        finalValueToBuyerUSD,
-        totalCommissionPool,
-        netValueDescription: `${Utils.formatNumber(netValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Net ${pricingConfig.offerType}`,
-        grossValueDescription: `${Utils.formatNumber(grossValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Gross ${pricingConfig.offerType}`
-    };
+    return { ...dealCalc, baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, netValueDescription: `${Utils.formatNumber(pricingConfig.netValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Net ${pricingConfig.offerType}`, grossValueDescription: `${Utils.formatNumber(pricingConfig.grossValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Gross ${pricingConfig.offerType}` };
 },
 
 /**
@@ -1346,19 +1230,11 @@ calculateModel: () => {
  */
 calculateAssetSwap: () => {
     const { amount, fromAssetKey, toAssetKey } = AppState.modeler.assetSwap;
-    
-    // Retrieve full asset data from the state, with safe fallbacks.
     const fromAsset = Utils.getAssetByKey(fromAssetKey);
     const toAsset = Utils.getAssetByKey(toAssetKey);
-    
-    // Calculate the base value in USD.
-    const baseValueUSD = (parseFloat(amount) || 0) * (parseFloat(fromAsset.price) || 0);
-    
-    // Calculate the cross-rate for the swap.
+    const baseValueUSD = (parseFloat(amount) || 0) * (fromAsset.price || 0);
     const rate = (fromAsset.price > 0 && toAsset.price > 0) ? fromAsset.price / toAsset.price : 0;
-    
     const dealTitle = `Swap ${Utils.formatNumber(amount, 2)} ${fromAsset.baseAsset} for ${toAsset.baseAsset}`;
-
     return { baseValueUSD, fromAsset, toAsset, rate, dealTitle };
 },
 
@@ -1368,41 +1244,16 @@ calculateAssetSwap: () => {
  */
 calculateCommodityTrade: () => {
     const { quantity, assetKey, pricingModel, fixedPrice, discountPremiumValue, settlementAssetKey, discountPremiumIsInPercent } = AppState.modeler.commodityTrade;
-    
     const asset = Utils.getAssetByKey(assetKey);
     const settlementAsset = Utils.getAssetByKey(settlementAssetKey);
-    
-    let effectivePricePerUnit = parseFloat(asset.price) || 0;
-    let priceDerivation = 'Market Price';
+    let effectivePricePerUnit = asset.price || 0, priceDerivation = 'Market Price';
     const discPremVal = parseFloat(discountPremiumValue) || 0;
-
-    // Determine the effective price based on the selected pricing model.
-    switch(pricingModel) {
-        case 'Fixed':
-            effectivePricePerUnit = parseFloat(fixedPrice) || 0;
-            priceDerivation = `Fixed at ${Utils.formatPrice(fixedPrice)}`;
-            break;
-        case 'Premium':
-            const premiumAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal;
-            effectivePricePerUnit += premiumAmount;
-            priceDerivation = `Market + ${Utils.formatPrice(premiumAmount)}`;
-            break;
-        case 'Discount':
-            const discountAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal;
-            effectivePricePerUnit -= discountAmount;
-            priceDerivation = `Market - ${Utils.formatPrice(discountAmount)}`;
-            break;
-    }
-
+    if (pricingModel === 'Fixed') { effectivePricePerUnit = parseFloat(fixedPrice) || 0; priceDerivation = `Fixed at ${Utils.formatPrice(fixedPrice)}`; }
+    else if (pricingModel === 'Premium') { const premiumAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal; effectivePricePerUnit += premiumAmount; priceDerivation = `Market + ${Utils.formatPrice(premiumAmount)}`; }
+    else if (pricingModel === 'Discount') { const discountAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal; effectivePricePerUnit -= discountAmount; priceDerivation = `Market - ${Utils.formatPrice(discountAmount)}`; }
     const baseValueUSD = (parseFloat(quantity) || 0) * effectivePricePerUnit;
     const dealTitle = `${Utils.formatNumber(quantity)} units of ${asset.baseAsset}`;
-    
-    // Calculate the final settlement amount in the chosen settlement asset.
-    let settlementAmount = 0;
-    if (settlementAsset && settlementAsset.price > 0) {
-        settlementAmount = baseValueUSD / settlementAsset.price;
-    }
-
+    let settlementAmount = baseValueUSD / (settlementAsset.price || 1);
     return { baseValueUSD, dealTitle, priceDerivation, effectivePricePerUnit, settlementAmount, settlementAsset };
 },
 
@@ -1469,20 +1320,20 @@ resetModelerState: () => {
             toAssetKey: '' 
         },
         commodityTrade: { 
-            assetKey: 'WTI-BBL-USD',
-            quantity: 100000,
-            unitOfMeasure: 'Barrel',
-            qualitySpec: 'API Gravity: 40-42, Sulfur Content: <0.42%',
-            origin: 'USA',
-            port: 'Houston',
-            incoterms: 'FOB',
-            procedures: '• Standard TTV Procedures\n• SGS/Intertek Inspection\n• Payment via SBLC/DLC',
-            pricingModel: 'Discount',
-            fixedPrice: 0,
-            discountPremiumValue: 4,
-            discountPremiumIsInPercent: true,
-            settlementAssetKey: 'USD'
-        },
+        assetKey: 'WTI-BBL-USD',
+        quantity: 100000,
+        unitOfMeasure: 'Barrel',
+        qualitySpec: 'API Gravity: 40-42, Sulfur Content: <0.42%',
+        origin: 'United States',
+        port: 'Houston',
+        incoterms: 'FOB',
+        procedures: '• Standard TTV Procedures\n• SGS/Intertek Inspection\n• Payment via SBLC/DLC',
+        pricingModel: 'Discount',
+        fixedPrice: 0,
+        discountPremiumValue: 4,
+        discountPremiumIsInPercent: true,
+        settlementAssetKey: 'USD' 
+    },
         cryptoLoan: { 
             collateralAssetKey: 'BTC-USD', 
             collateralAmount: 10, 
@@ -2295,11 +2146,11 @@ const UI = {
     renderInstitutionalModelerUI: () => {
     const dealTypes = [
         { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct conversions between assets in the GECAN matrix.', gradient: 'from-blue-500 to-cyan-500' },
-        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades, including fuels and precious metals.', gradient: 'from-yellow-500 to-orange-500' },
+        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades with institutional-grade parameters.', gradient: 'from-yellow-500 to-orange-500' },
         { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized credit facilities with flexible terms.', gradient: 'from-green-500 to-emerald-500' },
         { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit to unlock institutional capital.', gradient: 'from-purple-500 to-violet-500' },
     ];
-    return `<div class="flex flex-col gap-8 animate-fade-in-up"><div class="report-section p-6"><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h2 class="text-2xl font-bold text-white"><i class="fas fa-sitemap text-primary-azure mr-3"></i>Select Institutional Deal Type</h2><button onclick="Logic.resetModelerState()" class="btn-secondary px-4 py-2 text-sm rounded-lg hover:bg-error-color/20 hover:border-error-color/50 hover:text-error-color whitespace-nowrap"><i class="fas fa-undo mr-2"></i>Reset All Parameters</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${dealTypes.map((deal, index) => `<div class="deal-type-card glass p-6 text-center ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.gradient} flex items-center justify-center mb-4 text-2xl deal-type-icon mx-auto"><i class="fas ${deal.icon}"></i></div><h3 class="text-lg font-bold text-white mb-1">${deal.name}</h3><p class="text-sm text-text-muted leading-relaxed">${deal.desc}</p></div>`).join('')}</div></div><div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative"><div id="modeler-input-container" class="lg:col-span-3 glass p-6 md:p-8 rounded-2xl flex flex-col"></div><div id="modeler-output-container" class="lg:col-span-2 glass p-6 md:p-8 rounded-2xl flex flex-col"></div></div></div>`;
+    return `<div class="flex flex-col gap-8 animate-fade-in-up"><div class="report-section p-6"><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h2 class="text-2xl font-bold text-white"><i class="fas fa-sitemap text-primary-azure mr-3"></i>Institutional Deal Modeler</h2><button onclick="Logic.resetModelerState()" class="btn-secondary px-4 py-2 text-sm rounded-lg hover:bg-error-color/20 hover:border-error-color/50 hover:text-error-color whitespace-nowrap"><i class="fas fa-undo mr-2"></i>Reset All Parameters</button></div><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">${dealTypes.map((deal, index) => `<div class="deal-type-card glass p-6 text-center ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.gradient} flex items-center justify-center mb-4 text-2xl deal-type-icon mx-auto"><i class="fas ${deal.icon}"></i></div><h3 class="text-lg font-bold text-white mb-1">${deal.name}</h3><p class="text-sm text-text-muted leading-relaxed">${deal.desc}</p></div>`).join('')}</div></div><div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative"><div id="modeler-input-container" class="lg:col-span-3 glass p-6 md:p-8 rounded-2xl flex flex-col"></div><div id="modeler-output-container" class="lg:col-span-2 glass p-6 md:p-8 rounded-2xl flex flex-col"></div></div></div>`;
 },
 
     /**
