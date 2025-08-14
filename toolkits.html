@@ -940,7 +940,7 @@ generateExecutiveSummary: (report) => {
      * [NEW & BENCHMARKED] Initiates the first step of the official submission process: the referral ID modal.
      */
     initiateWalletSubmission: () => {
-    // DEFINITIVE FIX: Target the correct modal ID
+    // Target the correct modal ID. This ID must exist in your HTML body.
     const modal = document.getElementById('submission-modal');
     if (!modal) {
         console.error("CRITICAL FAILURE: The #submission-modal container is missing from the HTML body.");
@@ -948,11 +948,16 @@ generateExecutiveSummary: (report) => {
         return;
     }
     
+    // Render the first step (Referral Validation) into the modal.
     modal.innerHTML = UI.renderReferralValidationSuite(
         'Secure Submission Protocol', 
         'A valid Partner Referral ID is required to submit this wallet to the GECAN ledger for official review.'
     );
+    
+    // Show the modal.
     modal.showModal();
+    
+    // Attach the event listener to the "Validate" button inside the newly rendered modal.
     document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateSubmissionReferralId);
 },
 
@@ -981,8 +986,8 @@ generateExecutiveSummary: (report) => {
         .then(validationResult => {
             if (validationResult.isValid) {
                 Utils.showNotification('Referral ID Validated Successfully!', 'success');
-                // DEFINITIVE FIX: Target the correct modal ID
                 const modal = document.getElementById('submission-modal');
+                // On success, render the full submission suite inside the same modal.
                 modal.innerHTML = UI.renderWalletSubmissionSuite(validationResult);
                 Logic.populateOfferIdDropdown();
                 document.getElementById('wallet-submission-form').addEventListener('submit', (e) => {
@@ -2133,7 +2138,9 @@ const UI = {
                     </div>
                     <div class="flex-shrink-0 flex items-center gap-3">
                         <button id="pdf-export-btn" onclick="Logic.generateAndDownloadForensicsPDF()" class="btn-secondary px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button>
-                        <button id="submit-review-btn" onclick="Logic.initiateWalletSubmission()" class="btn-primary font-semibold px-4 py-2 rounded-lg text-sm"><i class="fas fa-paper-plane mr-2"></i>Submit for Official Review</button>
+                        <button id="submit-review-btn" onclick="Logic.initiateWalletSubmission()" class="btn-primary font-semibold px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit for Official Review
+                        </button>
                     </div>
                 </div>
             </div>
