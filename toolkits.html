@@ -222,27 +222,27 @@
 /* --- A. UNIVERSAL DIALOG & BACKDROP STYLES (POSITIONING FIX) --- */
 dialog {
     /* Base styles - Resets browser defaults */
-    max-width: 560px; /* Default max-width, can be overridden */
+    max-width: 560px; /* Default max-width, can be overridden by content wrapper */
     width: 90%;      /* Responsive width */
     padding: 0;
     border: none;
     background: transparent;
     overflow: visible; /* Prevents clipping of animations or shadows */
-    /* REMOVED position, top, left, transform - the [open] state now handles this */
+    /* Position is now handled entirely by the [open] state */
 }
 
-/* The open state now handles the positioning and animation */
+/* The [open] state is the key to perfect centering */
 dialog[open] {
-    /* DEFINITIVE CENTERING FIX: Use flexbox on the dialog itself */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* DEFINITIVE CENTERING FIX: */
+    display: flex;          /* 1. Enable flexbox */
+    align-items: center;    /* 2. Vertically center the content */
+    justify-content: center;/* 3. Horizontally center the content */
     
-    /* Ensure it covers the full viewport */
+    /* Ensure it covers the entire viewport to center within */
     position: fixed; 
     inset: 0; 
     
-    /* Animation for the container */
+    /* Animation for the container fade-in */
     animation: fadeIn 0.4s ease forwards;
 }
 
@@ -260,26 +260,16 @@ dialog::backdrop {
     border: 1px solid var(--border-premium);
     box-shadow: 0 25px 60px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(139, 92, 246, 0.2);
     border-radius: 1.5rem;
-    width: 100%;
-    max-height: 90vh;
+    width: 100%; /* Takes the width from the parent dialog's max-width */
+    max-height: 90vh; /* Ensures it's scrollable on small screens */
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Important for internal scrolling */
+    overflow: hidden; /* Important for internal scrolling of content */
     animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* --- C. UNIVERSAL FORM INPUT STYLES (TEXT COLOR FIX) --- */
-.form-input, .form-select {
-    background-color: var(--background-light);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary); 
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    width: 100%;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    appearance: none;
-}
+
 
 /* --- D. KEYFRAME ANIMATIONS --- */
 @keyframes fadeIn { 
