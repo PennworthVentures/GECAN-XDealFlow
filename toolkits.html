@@ -2704,7 +2704,20 @@ renderContractDocument: (agreementReference) => {
 
     return `<div class="p-doc"><div class="p-watermark">DRAFT</div><h1 class="p-h1">${title}</h1><p class="p-text"><strong>Reference:</strong> ${agreementReference}</p><p class="p-text"><strong>Effective Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>${imfpaArticle}<div class="p-annex-start"><h2 class="p-h2">SIGNATURE PAGE</h2><p class="p-text">IN WITNESS WHEREOF, the Parties have executed this Agreement by their duly authorized representatives as of the Effective Date.</p>${signatureBlocks}</div></div>`;
 },
-
+renderContractPreview: (legal, calc) => {
+        const isImfpa = legal.agreementType === 'IMFPA';
+        const allParties = legal.groups.flatMap(g => g.parties);
+        const title = isImfpa ? "IMFPA & NCNDA Summary" : "NCNDA Summary";
+        const commissionSummary = isImfpa ? `<p class="preview-p">The Parties acknowledge a total commission pool of <span class="preview-strong">${Utils.formatPrice(legal.totalCommission)}</span> to be distributed as per the configured allocation schedule.</p>` : '';
+        return `
+            <h1 class="preview-h1">${title}</h1>
+            <p class="preview-p"><span class="preview-strong">Reference:</span> GECAN-${legal.agreementType}-... (provisional)</p>
+            <p class="preview-p"><span class="preview-strong">Date:</span> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p class="preview-p"><span class="preview-strong">Signatory Parties (${allParties.length}):</span> ${allParties.length > 0 ? `This agreement is entered into by and between ${allParties.map(p => p.legalName || '[Unnamed Party]').join(', ')}.` : 'Awaiting party details.'}</p>
+            ${commissionSummary}
+            <p class="preview-p"><span class="preview-strong">Governing Law:</span> This Agreement shall be governed by the laws of ${legal.jurisdiction || '[Not Specified]'}.</p>
+        `;
+    },
     
 
     // --- DYNAMIC MODAL RENDERERS ---
