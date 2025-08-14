@@ -349,14 +349,36 @@
                 if (typeof particlesJS !== 'undefined') particlesJS('particles-js', config || DEFAULT_THEME_CONFIG);
             },
             renderCompanyInfo: () => {
-                const info = AppState.companyProfile.companyInfo;
-                document.getElementById('company-name').textContent = info.CompanyName || 'GECAN™';
-                document.getElementById('company-tagline').textContent = info.CompanyTagline || 'Architecting Tomorrow\'s Ecosystems.';
-                document.getElementById('founder-maxim-text').textContent = `“${info.FoundersMaxim}”` || '';
-                document.getElementById('mission-statement').textContent = info.MissionStatement || '';
-                document.getElementById('vision-statement').textContent = info.VisionStatement || '';
-                document.getElementById('about-us-full').innerHTML = info.AboutUs_Full ? `<p>${info.AboutUs_Full.replace(/\n/g, '</p><p class="mt-8">')}</p>` : '';
-            },
+    const info = AppState.companyProfile.companyInfo;
+
+    // Safeguard against missing info object
+    if (!info) {
+        console.error("Company Info data is missing from the profile.");
+        return;
+    }
+
+    // --- Standard Information Rendering ---
+    document.getElementById('company-name').textContent = info.CompanyName || 'GECAN™ | The Quantum Alliance';
+    document.getElementById('company-tagline').textContent = info.CompanyTagline || 'Architecting Tomorrow\'s Global Trade Ecosystems.';
+    document.getElementById('mission-statement').textContent = info.MissionStatement || 'Mission statement pending.';
+    document.getElementById('vision-statement').textContent = info.VisionStatement || 'Vision statement pending.';
+    document.getElementById('about-us-full').innerHTML = info.AboutUs_Full 
+        ? `<p>${String(info.AboutUs_Full).replace(/\n/g, '</p><p class="mt-8">')}</p>` 
+        : '<p>The genesis story of the Global Energy & Commodities Alliance Network is currently being documented.</p>';
+
+    // --- THE DEFINITIVE FIX FOR THE "UNDEFINED" QUOTE ---
+    const maximTextElement = document.getElementById('founder-maxim-text');
+    if (maximTextElement) {
+        // 1. Check if the 'FoundersMaxim' property exists and is not empty.
+        const maxim = info.FoundersMaxim;
+        
+        // 2. Define a reliable, premium fallback quote.
+        const fallbackMaxim = "“True greatness is not built in the comfort of the present, but in the relentless pursuit of a future so bold it terrifies the timid and inspires the fearless.”";
+        
+        // 3. Set the text content: use the fetched maxim if available, otherwise use the fallback.
+        maximTextElement.textContent = maxim ? `“${maxim}”` : fallbackMaxim;
+    }
+},
             renderTeamSection: () => {
                 const { members } = AppState.companyProfile;
                 const tabsContainer = document.getElementById('team-tabs-container');
@@ -465,6 +487,7 @@
 </script>
 </body>
 </html>
+
 
 
 
