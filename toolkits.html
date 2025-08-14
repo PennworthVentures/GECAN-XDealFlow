@@ -489,22 +489,6 @@ label.form-label,
     color: var(--premium-text-primary);
 }
 
-        #contract-live-preview {
-    background-color: #fcfcff;
-    color: #1a202c;
-    font-family: 'Garamond', 'Times New Roman', serif;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    border: 1px solid var(--premium-border);
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
-    overflow-y: auto;
-    transition: all 0.3s ease;
-}
-
-        .preview-h1 { font-size: 1.2rem; font-weight: bold; color: #1A237E; border-bottom: 2px solid #b4975a; padding-bottom: 0.5rem; margin-bottom: 1rem; }
-.preview-p { font-size: 0.9rem; line-height: 1.6; text-align: justify; margin-bottom: 1rem; }
-.preview-strong { font-weight: bold; color: #283593; }
-
 /* --- B. HIGH-CONTRAST, PREMIUM FORM ELEMENTS (PROFESSIONAL GRADE) --- */
 #imfpa-modal .form-input, 
 #imfpa-modal .form-select {
@@ -1736,21 +1720,35 @@ togglePricingConfig: () => {
             openImfpaModal: () => {
                 const modal = document.getElementById('imfpa-modal');
                 if (!modal) return console.error("CRITICAL: IMFPA modal container not found.");
-                if (AppState.modeler.legal.agreementType === undefined) AppState.modeler.legal.agreementType = 'IMFPA';
-                if (AppState.modeler.legal.autoBalance === undefined) AppState.modeler.legal.autoBalance = true;
+                
+                // Set default state for the new intelligent features if they don't exist
+                if (AppState.modeler.legal.agreementType === undefined) {
+                    AppState.modeler.legal.agreementType = 'IMFPA';
+                }
+                if (AppState.modeler.legal.autoBalance === undefined) {
+                    AppState.modeler.legal.autoBalance = true;
+                }
+
                 modal.innerHTML = UI.renderImfpaModal();
                 Logic.refreshImfpaModalUI();
                 modal.showModal();
             },
+
             refreshImfpaModalUI: () => {
                 const { legal } = AppState.modeler;
                 const groupsContainer = document.getElementById('imfpa-groups-container');
                 const legalPartiesContainer = document.getElementById('imfpa-legal-parties');
-                if (groupsContainer) groupsContainer.innerHTML = UI.renderImfpaGroups();
+                
+                if (groupsContainer) {
+                    groupsContainer.innerHTML = UI.renderImfpaGroups();
+                }
                 if (legalPartiesContainer) {
                     const allParties = legal.groups.flatMap(g => g.parties);
-                    legalPartiesContainer.innerHTML = allParties.length > 0 ? allParties.map(p => `<div><i class="fas fa-user-check text-premium-gold mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('') : '<p class="text-xs text-premium-text-secondary">No signatory parties defined.</p>';
+                    legalPartiesContainer.innerHTML = allParties.length > 0
+                        ? allParties.map(p => `<div><i class="fas fa-user-check text-premium-gold mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('')
+                        : '<p class="text-xs text-premium-text-secondary">No signatory parties defined in allocation groups.</p>';
                 }
+
                 const modalContent = document.getElementById('imfpa-modal');
                 if (modalContent) {
                     modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
@@ -1759,23 +1757,25 @@ togglePricingConfig: () => {
                     modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
                 }
                 Logic.updateImfpaCalculations();
-                Logic.updateContractPreview(); // Pinnacle Upgrade: Update live preview
             },
 
             handleModelerInputChangeInModal: (e) => {
                 Logic.handleModelerInputChange(e);
                 Logic.updateImfpaCalculations();
-                Logic.updateContractPreview(); // Pinnacle Upgrade: Update live preview
             },
 
             toggleAgreementType: (isImfpa) => {
                 AppState.modeler.legal.agreementType = isImfpa ? 'IMFPA' : 'NCNDA';
                 const commissionSection = document.getElementById('commission-allocation-section');
-                if (commissionSection) commissionSection.classList.toggle('hidden', !isImfpa);
+                if (commissionSection) {
+                    commissionSection.classList.toggle('hidden', !isImfpa);
+                }
+                // Update labels for visual feedback
                 const labels = document.querySelectorAll('.agreement-toggle .toggle-label');
-                labels[0].classList.toggle('active', !isImfpa); labels[0].classList.toggle('text-gray-500', isImfpa);
-                labels[1].classList.toggle('active', isImfpa); labels[1].classList.toggle('text-gray-500', !isImfpa);
-                Logic.updateContractPreview(); // Pinnacle Upgrade: Update live preview
+                labels[0].classList.toggle('active', !isImfpa);
+                labels[0].classList.toggle('text-gray-500', isImfpa);
+                labels[1].classList.toggle('active', isImfpa);
+                labels[1].classList.toggle('text-gray-500', !isImfpa);
             },
 
             updateImfpaCalculations: () => {
@@ -1848,21 +1848,12 @@ togglePricingConfig: () => {
                 });
             },
 
-            // PINNACLE UPGRADE: New function for real-time preview
-            updateContractPreview: () => {
-                const previewContainer = document.getElementById('contract-live-preview');
-                if (!previewContainer) return;
-                const calc = Logic.calculateModel();
-                previewContainer.innerHTML = UI.renderContractPreview(AppState.modeler.legal, calc);
-            },
-
             addImfpaGroup: () => { AppState.modeler.legal.groups.push({ name: `Group ${AppState.modeler.legal.groups.length + 1}`, percentage: 0, parties: [] }); Logic.refreshImfpaModalUI(); },
             removeImfpaGroup: (groupIndex) => { AppState.modeler.legal.groups.splice(groupIndex, 1); Logic.refreshImfpaModalUI(); },
             addImfpaParty: (groupIndex) => { if (!AppState.modeler.legal.groups[groupIndex]) return; AppState.modeler.legal.groups[groupIndex].parties.push({ legalName: `New Party`, role: 'Intermediary', percentage: 0, detailsVisible: true, email: '', contactNumber: '', passport: { number: '', issueDate: '', expiryDate: '', authority: '' }, payment: { method: 'Bank Wire', currency: 'USD', details: '' } }); Logic.refreshImfpaModalUI(); },
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
             togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
             
-            // Re-engineered generateContract function
             generateContract: () => {
                 const { legal } = AppState.modeler;
                 const calc = Logic.calculateModel();
@@ -1873,7 +1864,6 @@ togglePricingConfig: () => {
                 
                 // Context-Aware Validation Engine
                 if (isImfpa) {
-                    if (legal.groups.length === 0) return Utils.showNotification("IMFPA requires at least one allocation group.", 'error');
                     const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
                     if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("IMFPA requires group allocation to equal exactly 100%.", 'error');
                     for (const group of legal.groups) {
@@ -1881,9 +1871,11 @@ togglePricingConfig: () => {
                         if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation in "${group.name}" must equal 100%.`, 'error');
                     }
                     if (allParties.length === 0) return Utils.showNotification("IMFPA requires at least one beneficiary party.", 'error');
+                } else {
+                    // For NCNDA, we need at least two parties to agree, even if no groups are defined.
+                    const signatoryParties = legal.ncndaParties || []; // Assumes a state structure for NCNDA-only parties if needed, or defaults to empty
+                    if (signatoryParties.length < 2 && allParties.length < 2) return Utils.showNotification("An NCNDA requires at least two signatory parties. Add parties via the 'Add Group' workflow.", 'error');
                 }
-                if (allParties.length < 2) return Utils.showNotification("An agreement requires at least two signatory parties.", 'error');
-                if (allParties.some(p => !p.legalName || !p.role || !p.email)) return Utils.showNotification("All parties must have a Legal Name, Role, and Email.", 'error');
                 
                 const agreementReference = `GECAN-${legal.agreementType}-${new Date().getTime()}`;
                 document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
@@ -2661,10 +2653,61 @@ renderYieldGraph: (calc) => {
 
     // --- IMFPA & DOCUMENT EXECUTION SUITE RENDERERS (v6.0 Pinnacle Overhaul) ---
     renderImfpaModal: () => {
-                const { legal } = AppState.modeler;
-                const isImfpa = legal.agreementType === 'IMFPA';
-                return `<div class="dialog-content-wrapper"><div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-start mb-6 imfpa-header"><div><h2 class="text-3xl font-bold">Commission & Contract Suite</h2><p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p></div><button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button></div><div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6"><span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span><label class="toggle-switch"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}><span class="toggle-slider"></span></label><span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span></div><div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2"><div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4"><div id="commission-allocation-section" class="space-y-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}"><div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-premium-text-secondary">Total Pool</p><p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p></div></div><div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container"></div></div><div class="space-y-6"><h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework & Parties</h3><div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Governing Law</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div><div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Cross-Referenced SPA</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div><div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Signatory Parties</label><div id="imfpa-legal-parties" class="space-y-2 text-sm text-premium-text-secondary min-h-[50px]"></div></div></div></div><div class="lg:col-span-2"><h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3><div id="contract-live-preview"></div></div></div><div class="pt-6 border-t border-premium-border mt-auto print-hide"><button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Full Document</button><div id="contract-preview-container" class="mt-4 hidden"></div></div></div></div>`;
-    },
+    const { legal } = AppState.modeler;
+    const isImfpa = legal.agreementType === 'IMFPA';
+
+    return `
+        <div class="dialog-content-wrapper">
+            <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
+                <div class="flex justify-between items-start mb-6 imfpa-header print-hide">
+                    <div>
+                        <h2 class="text-3xl font-bold">Commission & Contract Suite</h2>
+                        <p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p>
+                    </div>
+                    <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button>
+                </div>
+                <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
+                    <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 overflow-y-auto pr-4 -mr-4">
+                    <div id="commission-allocation-section" class="space-y-6 ${isImfpa ? '' : 'hidden'}">
+                        <div class="flex justify-between items-center">
+                            <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3 text-primary-azure"></i>Commission Allocation</h3>
+                            <div class="text-right">
+                                <p class="text-xs text-premium-text-secondary">Total Pool</p>
+                                <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button>
+                            <div class="flex items-center gap-2 text-xs">
+                                <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold">
+                                <label for="auto-balance-toggle">Auto-Balance</label>
+                            </div>
+                            <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
+                        </div>
+                        <div class="space-y-4" id="imfpa-groups-container"></div>
+                    </div>
+                    <div class="space-y-6">
+                        <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3 text-primary-amethyst"></i>Legal Framework & Parties</h3>
+                        <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Governing Law & Jurisdiction</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
+                        <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Signatory Parties</label><div id="imfpa-legal-parties" class="space-y-2 text-sm text-premium-text-secondary min-h-[50px]"></div></div>
+                        <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Cross-Referenced Contract / SPA</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-premium-border mt-auto print-hide">
+                    <button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Document</button>
+                    <div id="contract-preview-container" class="mt-4 hidden"></div>
+                </div>
+            </div>
+        </div>
+    `;
+},
     renderImfpaGroups: () => {
     const { groups } = AppState.modeler.legal;
     if (!groups || groups.length === 0) return `<p class="text-center text-premium-text-secondary py-4">No allocation groups defined. Click 'Add Group' to begin.</p>`;
@@ -2717,22 +2760,6 @@ renderContractDocument: (agreementReference) => {
 
     return `<div class="p-doc"><div class="p-watermark">DRAFT</div><h1 class="p-h1">${title}</h1><p class="p-text"><strong>Reference:</strong> ${agreementReference}</p><p class="p-text"><strong>Effective Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>${imfpaArticle}<div class="p-annex-start"><h2 class="p-h2">SIGNATURE PAGE</h2><p class="p-text">IN WITNESS WHEREOF, the Parties have executed this Agreement by their duly authorized representatives as of the Effective Date.</p>${signatureBlocks}</div></div>`;
 },
-
-     // PINNACLE UPGRADE: New real-time preview renderer
-    renderContractPreview: (legal, calc) => {
-        const isImfpa = legal.agreementType === 'IMFPA';
-        const allParties = legal.groups.flatMap(g => g.parties);
-        const title = isImfpa ? "IMFPA & NCNDA Summary" : "NCNDA Summary";
-        const commissionSummary = isImfpa ? `<p class="preview-p">The Parties acknowledge a total commission pool of <span class="preview-strong">${Utils.formatPrice(legal.totalCommission)}</span> to be distributed as per the configured allocation schedule.</p>` : '';
-        return `
-            <h1 class="preview-h1">${title}</h1>
-            <p class="preview-p"><span class="preview-strong">Reference:</span> GECAN-${legal.agreementType}-... (provisional)</p>
-            <p class="preview-p"><span class="preview-strong">Date:</span> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            <p class="preview-p"><span class="preview-strong">Signatory Parties (${allParties.length}):</span> This agreement is entered into by and between ${allParties.map(p => p.legalName || '[Unnamed Party]').join(', ')}.</p>
-            ${commissionSummary}
-            <p class="preview-p"><span class="preview-strong">Governing Law:</span> This Agreement shall be governed by the laws of ${legal.jurisdiction || '[Not Specified]'}.</p>
-        `;
-    }.
 
     // --- DYNAMIC MODAL RENDERERS ---
     renderNotificationModal: (message, type, title) => {
