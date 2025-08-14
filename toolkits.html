@@ -584,29 +584,10 @@ label.form-label,
             marketData: [],
 
             toolkits: {
-        Dashboard: { 
-            id: 'Dashboard', 
-            name: 'Dashboard', 
-            icon: 'fa-th-large', 
-            description: 'Centralized hub for accessing all GECAN™ proprietary institutional tools.', 
-            color: 'from-blue-500 to-purple-600' 
-        },
-        WalletForensics: { 
-            id: 'WalletForensics', 
-            name: 'Wallet Forensics', 
-            icon: 'fa-shield-alt', 
-            description: 'Execute advanced on-chain due diligence, risk assessment, and provenance analysis.', 
-            color: 'from-sky-500 to-indigo-600' 
-        },
-        // DEFINITIVE NAME & DESCRIPTION CORRECTION:
-        InstitutionalModeler: { 
-            id: 'InstitutionalModeler', 
-            name: 'Institutional Modeler', 
-            icon: 'fa-sitemap', 
-            description: 'Model, simulate, and generate legal frameworks for complex institutional transactions.', 
-            color: 'from-green-500 to-emerald-600' 
-        },
-    },
+                Dashboard: { id: 'Dashboard', name: 'Dashboard', icon: 'fa-th-large', description: 'Centralized hub for accessing all GECAN™ proprietary institutional tools.', color: 'from-blue-500 to-purple-600' },
+                WalletForensics: { id: 'WalletForensics', name: 'Wallet Forensics', icon: 'fa-shield-alt', description: 'Execute advanced on-chain due diligence, risk assessment, and provenance analysis.', color: 'from-sky-500 to-indigo-600' },
+                InstitutionalModeler: { id: 'InstitutionalModeler', name: 'NCNDA/IMFPA Suite', icon: 'fa-sitemap', description: 'Model, simulate, and generate legal frameworks for complex institutional transactions.', color: 'from-green-500 to-emerald-600' },
+            },
             walletAnalysis: { address: null, report: null, isLoading: false },
             modeler: {
                 activeDealType: 'AssetSwap', 
@@ -1119,8 +1100,6 @@ generateExecutiveSummary: (report) => {
  * This function is called once when the toolkit becomes active, using efficient
  * event delegation on the main input container to handle all dynamic changes.
  */
-            Logic.updateModelerUI(true); // `true` forces a full refresh of the input panel.
-        
 bindInstitutionalModelerEvents: () => {
     // A single, robust listener on the main container handles all input changes efficiently.
     const inputContainer = document.getElementById('modeler-input-container');
