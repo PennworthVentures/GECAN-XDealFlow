@@ -847,17 +847,19 @@ html
             generateContract: () => {
                 const { legal } = AppState.modeler;
                 const calc = Logic.calculateModel();
-                if (!calc) return Utils.showNotification("Define core deal parameters first.", 'error');
+                if (!calc) return Utils.showNotification("Define core deal parameters first.", 'error', 'Prerequisite Error');
+                
+                // --- SEVERE VALIDATION ENGINE ---
                 const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-                if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("Group allocation must equal 100%.", 'error');
+                if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("Total group allocation must equal exactly 100%.", 'error', 'Allocation Error');
                 for (const group of legal.groups) {
                     const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-                    if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation in "${group.name}" must equal 100%.`, 'error');
+                    if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation within "${group.name}" must equal exactly 100%.`, 'error', 'Allocation Error');
                 }
                 const allParties = legal.groups.flatMap(g => g.parties);
-                if (allParties.length < 2) return Utils.showNotification("At least two signatories are required.", 'error');
-                if (allParties.some(p => !p.legalName || !p.role || !p.email)) return Utils.showNotification("All parties must have a Legal Name, Role, and Email.", 'error');
-
+                if (allParties.length < 2) return Utils.showNotification("At least two signatory parties are required.", 'error', 'Party Error');
+                if (allParties.some(p => !p.legalName || !p.role || !p.email)) return Utils.showNotification("All parties must have a Legal Name, Role, and Email defined.", 'error', 'Data Incomplete');
+                
                 const agreementReference = `GECAN-IMFPA-${new Date().getTime()}`;
                 document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
                 const contractHTML = UI.renderContractDocument(agreementReference);
@@ -866,12 +868,38 @@ html
                 const printContainer = document.getElementById('print-area');
                 if (previewContainer && printContainer) {
                     previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
-                    printContainer.innerHTML = contractHTML;
+                    printContainer.innerHTML = contractHTML; // Stage for printing
                     previewContainer.classList.remove('hidden');
                     previewContainer.scrollIntoView({ behavior: 'smooth' });
                     Utils.showNotification("Contract synthesized successfully. Ready for signing.", 'success');
                 }
             },
+
+            // 2. ADD this missing function inside your `Logic` object, after `generatePremiumEmailTemplate`.
+            getPrintStyles: () => {
+                let printCss = '';
+                // Iterate through all stylesheets loaded on the page
+                for (const sheet of document.styleSheets) {
+                    try {
+                        // Iterate through all rules in a stylesheet
+                        for (const rule of sheet.cssRules) {
+                            // Check if the rule is an @media rule and if it's for 'print'
+                            if (rule.type === CSSRule.MEDIA_RULE && rule.media.mediaText === 'print') {
+                                // If it matches, iterate through the rules *inside* the @media block
+                                for (const printRule of rule.cssRules) {
+                                    // Append the text content of each rule to our string
+                                    printCss += printRule.cssText + '\n';
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Catch and log potential security errors when accessing cross-origin stylesheets
+                        console.warn("Could not access stylesheet for print styles:", sheet.href, e);
+                    }
+                }
+                return printCss;
+            },
+            
             initiateSigningProcess: () => {
                 const modal = document.getElementById('signature-modal');
                 if(!modal) return;
