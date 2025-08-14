@@ -353,21 +353,20 @@ label.form-label,
     font-weight: 600;
 }
 
-        /* ========================================================================= */
-/* === PINNACLE SUBMISSION SUITE ENGINE v1.0 (ISOLATED & HARDENED) === */
-/* This is a NEW, self-contained block. DO NOT merge with other styles. */
-/* It governs only the wallet submission modal for conflict-free perfection. */
+/* ========================================================================= */
+/* === PINNACLE SUBMISSION SUITE ENGINE v2.0 (ISOLATED & HARDENED) === */
+/* This is the definitive, self-contained style block that governs ONLY */
+/* the #submission-modal for conflict-free, pinnacle-grade performance. */
 /* ========================================================================= */
 
 /* --- A. MODAL CONTAINER & CENTERING --- */
 #submission-modal {
-    /* Base resets for the container element */
-    max-width: 640px; /* Wider for a more premium feel */
+    max-width: 640px;
     width: calc(100% - 2rem);
-    padding: 0;
-    border: none;
-    background: transparent;
-    overflow: visible;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    overflow: visible !important;
 }
 
 #submission-modal[open] {
@@ -377,22 +376,22 @@ label.form-label,
     position: fixed !important; 
     inset: 0 !important; 
     animation: submission-backdrop-fade-in 0.5s ease forwards;
-    z-index: 200; /* Highest z-index */
+    z-index: 200 !important;
 }
 
 #submission-modal::backdrop {
-    background: rgba(10, 10, 15, 0.8);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(10, 10, 15, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
     animation: submission-backdrop-fade-in 0.5s ease forwards;
 }
 
 /* --- B. MODAL CONTENT WRAPPER --- */
-.submission-dialog-content {
-    background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%);
-    border: 1px solid var(--border-premium);
-    box-shadow: var(--shadow-quantum);
-    border-radius: 1.5rem;
+#submission-modal .submission-dialog-content {
+    background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%) !important;
+    border: 1px solid var(--border-premium) !important;
+    box-shadow: var(--shadow-quantum) !important;
+    border-radius: 1.5rem !important;
     width: 100%;
     max-height: 90vh;
     display: flex;
@@ -402,7 +401,8 @@ label.form-label,
 }
 
 /* --- C. HARDENED FORM STYLES (ISOLATED) --- */
-.submission-form-input, .submission-form-select {
+#submission-modal .submission-form-input, 
+#submission-modal .submission-form-select {
     background-color: var(--background-dark) !important;
     border: 1px solid var(--border-secondary) !important;
     color: var(--text-primary) !important; 
@@ -415,20 +415,43 @@ label.form-label,
     -webkit-text-fill-color: var(--text-primary) !important;
     box-shadow: inset 0 0 0 50px var(--background-dark) !important;
 }
-.submission-form-input:-webkit-autofill, .submission-form-input:-webkit-autofill:hover, 
-.submission-form-input:-webkit-autofill:focus, .submission-form-input:-webkit-autofill:active {
+
+#submission-modal input:-webkit-autofill, 
+#submission-modal input:-webkit-autofill:hover, 
+#submission-modal input:-webkit-autofill:focus, 
+#submission-modal input:-webkit-autofill:active {
     -webkit-text-fill-color: var(--text-primary) !important;
     box-shadow: inset 0 0 0 50px var(--background-dark) !important;
     caret-color: var(--text-primary) !important;
 }
-.submission-form-input::placeholder { color: var(--text-muted) !important; opacity: 1 !important; }
-.submission-form-input:focus, .submission-form-select:focus { outline: none !important; border-color: var(--primary-azure) !important; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 0 0 50px var(--background-secondary) !important; background-color: var(--background-secondary) !important; }
-.submission-form-input:read-only { background-color: var(--background-dark) !important; color: var(--text-muted) !important; cursor: not-allowed !important; border-style: dashed; }
-.submission-form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important; background-position: right 0.75rem center !important; background-repeat: no-repeat !important; background-size: 1.5em 1.5em !important; padding-right: 2.5rem !important; }
+
+#submission-modal .submission-form-input::placeholder { color: var(--text-muted) !important; opacity: 1 !important; }
+#submission-modal .submission-form-input:focus, 
+#submission-modal .submission-form-select:focus { 
+    outline: none !important; 
+    border-color: var(--primary-azure) !important; 
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 0 0 50px var(--background-secondary) !important; 
+    background-color: var(--background-secondary) !important; 
+}
+
+#submission-modal .submission-form-input:read-only { 
+    background-color: var(--background-dark) !important; 
+    color: var(--text-muted) !important; 
+    cursor: not-allowed !important; 
+    border-style: dashed; 
+}
+
+#submission-modal .submission-form-select { 
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important; 
+    background-position: right 0.75rem center !important; 
+    background-repeat: no-repeat !important; 
+    background-size: 1.5em 1.5em !important; 
+    padding-right: 2.5rem !important; 
+}
 
 /* --- D. HARDENED TEXT & LAYOUT STYLES (ISOLATED) --- */
-.submission-dialog-content h2 { color: var(--text-diamond) !important; }
-.submission-dialog-content p { color: var(--text-secondary) !important; }
+#submission-modal h2 { color: var(--text-diamond) !important; }
+#submission-modal p { color: var(--text-secondary) !important; }
 #submission-modal fieldset { border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1rem; position: relative; margin-top: 1rem; }
 #submission-modal legend { padding: 0 0.5rem; margin-left: 0.5rem; font-size: 1.125rem; font-weight: 600; color: var(--primary-azure) !important; background: var(--background-light); position: relative; top: -0.5rem; display: inline-block; width: auto; }
 #submission-modal label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 500; color: var(--text-platinum) !important; }
@@ -441,6 +464,8 @@ label.form-label,
 /* --- E. KEYFRAME ANIMATIONS --- */
 @keyframes submission-backdrop-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes submission-content-scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        
     </style>
 </head>
 <body class="min-h-screen">
