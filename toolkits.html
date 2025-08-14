@@ -1647,8 +1647,8 @@ const UI = {
         const assetOptions = (selectedKey) => AppState.marketData.filter(a => a.type !== 'Cross-Rate' && a.price > 0).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
         const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
         return `<div class="flex items-center gap-4"><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">From Asset</label><select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select></div><div class="pt-8"><button onclick="Logic.swapAssets()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-azure/20 text-primary-azure hover:bg-primary-azure/30 transition-all duration-300"><i id="swap-icon" class="fas fa-exchange-alt"></i></button></div><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">To Asset</label><select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select></div></div><div><label class="block text-sm font-medium text-text-muted mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || ''}</span>)</label><input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div>`;
-    }
-},
+    },
+
             renderCommodityTradePanel: () => { /* Preserved */ },
             renderCryptoLoanPanel: () => { /* Preserved */ },
             renderSBLCMonetizationPanel: () => { /* Preserved */ },
