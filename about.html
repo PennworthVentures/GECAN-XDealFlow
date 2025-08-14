@@ -5,7 +5,7 @@
     <title>About GECAN™ | The Quantum Alliance Network</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- CUSTOM TAILWIND CONFIG (CONSISTENT WITH INDEX.HTML) -->
+    <!-- CUSTOM TAILWIND CONFIG (BENCHMARKED) -->
     <script>
         tailwind.config = {
             theme: {
@@ -18,13 +18,14 @@
     </script>
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- PERFORMANCE FIX: Optimized Font Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
         /* --- A. CORE THEME & VARIABLES (MERGED & BENCHMARKED WITH INDEX.HTML) --- */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300..700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
-
         :root {
             --brand-gecan-blue: #1c2e4a; --brand-gecan-gold: #b4975a; --primary-azure: #0ea5e9;
             --primary-sapphire: #3b82f6; --primary-royal: #6366f1; --primary-amethyst: #8b5cf6;
@@ -53,7 +54,8 @@
         /* --- B. BASE STYLES & RESETS --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        body { font-family: 'Space Grotesk', sans-serif; line-height: 1.7; color: var(--text-silver); background: transparent; min-height: 100vh; position: relative; overflow-x: hidden; }
+        body { font-family: 'Space Grotesk', sans-serif; line-height: 1.7; color: var(--text-silver); background-color: var(--background-primary); min-height: 100vh; position: relative; overflow-x: hidden; }
+        body.mobile-sidebar-open { overflow: hidden; }
         #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--background-secondary); } ::-webkit-scrollbar-thumb { background: var(--gradient-primary); border-radius: 4px; }
         ::selection { background: var(--gradient-primary); color: var(--text-diamond); }
@@ -78,7 +80,7 @@
         @keyframes premium-pulse { 100% { transform: scale(1.05); box-shadow: 0 0 50px var(--glow-sapphire), 0 0 70px var(--glow-royal); } }
 
         /* BENCHMARKED NAVIGATION BUTTONS */
-        .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
+        .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
         .nav-btn:hover:not(.active) { background: var(--background-glass-premium); color: var(--text-diamond); transform: var(--transform-ultra); box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure); border-color: var(--border-premium); }
         .nav-btn.active { background: linear-gradient(135deg, rgba(14, 165, 233, 0.65), rgba(139, 92, 246, 0.65)), var(--background-glass); color: var(--text-diamond); font-weight: 700; border-color: var(--primary-azure); filter: brightness(1.1); animation: premium-active-glow 2.5s ease-in-out infinite; }
         .nav-icon-wrapper { perspective: 500px; width: 24px; height: 24px; }
@@ -88,13 +90,14 @@
         .nav-icon-back { transform: rotateY(180deg); background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px var(--glow-royal); }
         @keyframes premium-active-glow { 50% { box-shadow: var(--shadow-luxury), 0 0 55px var(--glow-royal); text-shadow: 0 0 12px rgba(255, 255, 255, 1), 0 0 30px var(--glow-royal); } }
         
-        /* MOBILE NAVIGATION (BENCHMARKED) */
-        .mobile-menu.open { right: 0; }
-        @media (max-width: 1280px) { #nav-container { display: none; } }
-        
         /* --- D. 'ABOUT US' PAGE SPECIFIC STYLES (ELEVATED) --- */
-        .hero-title { font-family: 'Orbitron', monospace; font-weight: 900; text-shadow: 0 0 120px var(--glow-royal), 0 0 60px var(--glow-azure); animation: text-flicker-in-glow 3s linear 1 forwards; }
-        @keyframes text-flicker-in-glow{0%{opacity:0}10%{opacity:0;text-shadow:none}10.1%{opacity:1;text-shadow:none}10.2%{opacity:0;text-shadow:none}20%{opacity:0;text-shadow:none}20.1%{opacity:1;text-shadow:0 0 30px rgba(255,255,255,0.25)}20.6%{opacity:0;text-shadow:none}30%{opacity:0;text-shadow:none}30.1%{opacity:1;text-shadow:0 0 120px var(--glow-royal),0 0 60px var(--glow-azure)}30.5%{opacity:1;text-shadow:0 0 120px var(--glow-royal),0 0 60px var(--glow-azure)}30.6%{opacity:0;text-shadow:none}45%{opacity:0;text-shadow:none}45.1%{opacity:1;text-shadow:0 0 120px var(--glow-royal),0 0 60px var(--glow-azure)}50%{opacity:1;text-shadow:0 0 120px var(--glow-royal),0 0 60px var(--glow-azure)}100%{opacity:1;text-shadow:0 0 120px var(--glow-royal),0 0 60px var(--glow-azure)}}
+        .hero-title { font-family: 'Orbitron', monospace; font-weight: 900; text-shadow: 0 0 120px var(--glow-royal), 0 0 60px var(--glow-azure); animation: text-flicker-in-glow 3s linear 1s 1 forwards; opacity: 0; }
+        @keyframes text-flicker-in-glow{0%{opacity:0}10%{opacity:0;text-shadow:none}10.1%{opacity:1;text-shadow:none}10.2%{opacity:0;text-shadow:none}20%{opacity:0;text-shadow:none}20.1%{opacity:1;text-shadow:0 0 30px rgba(255,255,255,0.25)}20.6%{opacity:0;text-shadow:none}30%{opacity:0;text-shadow:none}30.1%{opacity:1;text-shadow:var(--glow-royal) 0 0 120px,var(--glow-azure) 0 0 60px}30.5%{opacity:1;text-shadow:var(--glow-royal) 0 0 120px,var(--glow-azure) 0 0 60px}30.6%{opacity:0;text-shadow:none}45%{opacity:0;text-shadow:none}45.1%{opacity:1;text-shadow:var(--glow-royal) 0 0 120px,var(--glow-azure) 0 0 60px}50%{opacity:1;text-shadow:var(--glow-royal) 0 0 120px,var(--glow-azure) 0 0 60px}100%{opacity:1;text-shadow:var(--glow-royal) 0 0 120px,var(--glow-azure) 0 0 60px}}
+
+        .founder-maxim { border: 1px solid var(--border-premium); background: var(--background-glass-premium); box-shadow: var(--shadow-ultra), inset 0 1px 0 rgba(255, 255, 255, 0.1); transform: perspective(1200px) rotateX(2deg); transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .founder-maxim:hover { transform: perspective(1200px) rotateX(0deg) scale(1.03); box-shadow: var(--shadow-quantum); border-color: var(--border-quantum); }
+        .quantum-seal { position: absolute; bottom: 1rem; right: 1rem; width: 60px; height: 60px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 2 a 48 48 0 1 1 0 96 a 48 48 0 1 1 0 -96" fill="none" stroke="rgba(251, 191, 36, 0.5)" stroke-width="3"/><path d="M50 15 a 35 35 0 1 1 0 70 a 35 35 0 1 1 0 -70" fill="none" stroke="rgba(251, 191, 36, 0.3)" stroke-width="1.5"/><text x="50" y="58" font-family="Orbitron" font-size="20" fill="rgba(251, 191, 36, 0.8)" text-anchor="middle" font-weight="bold">G™</text></svg>'); background-size: contain; opacity: 0.5; transition: all 0.5s ease; }
+        .founder-maxim:hover .quantum-seal { opacity: 1; transform: scale(1.1) rotate(15deg); filter: drop-shadow(0 0 10px var(--primary-gold)); }
 
         .quantum-section-title { font-family: 'Orbitron', monospace; font-weight: 900; background: var(--gradient-quantum); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 60px var(--glow-diamond); }
         .team-tab { transition: all 0.4s ease; border-bottom: 3px solid transparent; }
@@ -122,7 +125,6 @@
         
         @keyframes card-fade-in-up { from { opacity: 0; transform: translateY(50px) perspective(1000px) rotateX(20deg); } to { opacity: 1; transform: translateY(0) perspective(1000px) rotateX(0deg); } }
         
-        /* Loading Orb (BENCHMARKED) */
         .loader-container { display: grid; place-items: center; perspective: 2000px; }
         .genesis-orb { width: 150px; height: 150px; border-radius: 50%; position: relative; transform-style: preserve-3d; animation: orb-quantum-rotate 20s linear infinite; }
         .genesis-orb::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 30%, var(--primary-azure) 0%, var(--primary-royal) 30%, var(--primary-amethyst) 60%, transparent 80%); animation: orb-quantum-pulse 3s ease-in-out infinite alternate; box-shadow: var(--shadow-quantum); }
@@ -132,10 +134,6 @@
         @keyframes orb-quantum-pulse { to { transform: scale(0.7); opacity: 0.8; } }
         @keyframes orb-quantum-rotate { to { transform: rotateY(360deg) rotateX(180deg); } }
         @keyframes ring-quantum-spin { to { transform: rotateX(70deg) rotateZ(360deg); } }
-
-        /* BENCHMARKED FOOTER */
-        footer { background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-top: 1px solid var(--border-premium); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; }
-        footer h3, footer h4 { font-family: 'Orbitron', monospace; color: var(--text-diamond); }
     </style>
 </head>
 <body class="bg-background-primary">
@@ -143,6 +141,19 @@
     <div id="interactive-background"><div id="background-vortex"></div></div>
     <div id="particles-js"></div>
     
+    <!-- MOBILE SIDEBAR & FAB (BENCHMARKED FROM INDEX.HTML) -->
+    <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/60 z-[99] hidden backdrop-blur-sm transition-opacity duration-300 lg:hidden"></div>
+    <div id="mobile-sidebar" class="fixed top-0 -left-full w-4/5 max-w-[320px] h-full bg-[var(--background-primary)] border-r border-[var(--border-premium)] shadow-2xl z-[100] transition-transform duration-300 ease-in-out flex flex-col lg:hidden">
+        <div class="flex-shrink-0 p-4 border-b border-[var(--border-premium)] flex justify-between items-center">
+            <div><h2 class="text-xl font-bold text-white">GECAN™ Menu</h2><p class="text-xs text-gray-400 font-mono">Platform Navigation</p></div>
+            <button id="mobile-sidebar-close-btn" class="text-2xl text-gray-500 hover:text-white">&times;</button>
+        </div>
+        <div id="mobile-sidebar-content" class="flex-grow overflow-y-auto"></div>
+    </div>
+    <button id="mobile-fab" aria-label="Open Navigation Menu" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-[var(--primary-azure)] to-[var(--primary-amethyst)] rounded-full shadow-2xl z-40 hidden justify-center items-center text-white text-2xl transition-all duration-300 active:scale-90 lg:hidden">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- PREMIUM HEADER (BENCHMARKED FROM INDEX.HTML) -->
     <header class="premium-header p-4 lg:px-6">
         <div class="container mx-auto flex items-center justify-between gap-6">
@@ -151,8 +162,7 @@
                     <div class="gecan-logo-flipper">
                         <div class="logo-face logo-front">GECAN™</div>
                         <div class="logo-face logo-back">
-                            <!-- NO BASE64 - Placeholder for image -->
-                            <img src="" alt="GECAN Logo">
+                            <img src="" alt="GECAN Logo"> <!-- NO BASE64 -->
                         </div>
                     </div>
                     <div class="logo-separator"></div>
@@ -162,7 +172,6 @@
                     </div>
                 </a>
             </div>
-            
             <div id="desktop-nav-placeholder" class="flex-grow">
                 <!-- Navigation is now generated by JavaScript -->
             </div>
@@ -188,6 +197,15 @@
                 <p id="company-tagline" class="text-xl md:text-2xl font-light text-text-silver max-w-5xl mx-auto"></p>
             </section>
 
+            <section>
+                <div class="max-w-4xl mx-auto">
+                    <div id="founder-maxim" class="founder-maxim p-8 md:p-12 rounded-2xl text-text-diamond text-xl md:text-2xl leading-relaxed font-medium relative">
+                        <p id="founder-maxim-text"></p>
+                        <div class="quantum-seal"></div>
+                    </div>
+                </div>
+            </section>
+            
             <section>
                 <div class="grid lg:grid-cols-5 gap-12 md:gap-16 items-start">
                     <div class="lg:col-span-2 space-y-12">
@@ -237,9 +255,6 @@
     </footer>
 
 <script>
-    // =========================================================================
-    // === SCRIPT ENGINE (BENCHMARKED & RE-ARCHITECTED FOR STATIC HOSTING) ===
-    // =========================================================================
     document.addEventListener('DOMContentLoaded', () => {
         
         const API_URL = "https://script.google.com/macros/s/AKfycbxhC2bk6LMz2muF5TY8TdIt3tiAl6ozBAvgi1TG91v9WX2x2mH2M3SvpHu0nn8XgyN4/exec";
@@ -252,9 +267,7 @@
                 method = method.toUpperCase();
                 let url = `${API_URL}?action=${action}`;
                 const options = { method: method, redirect: 'follow', muteHttpExceptions: true };
-                if (method === 'GET') {
-                    Object.keys(params).forEach(key => url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`);
-                } else if (method === 'POST') {
+                if (method === 'POST') {
                     options.body = JSON.stringify({ action: action, data: params });
                     options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
                 }
@@ -272,10 +285,11 @@
             init: () => {
                 initInteractiveBackground();
                 UI.renderParticles(DEFAULT_THEME_CONFIG);
+                Logic.initMobileUI();
                 
                 Promise.all([
                     Logic.createApiRequest('getCompanyProfile'),
-                    Logic.createApiRequest('getActiveThemeConfig').catch(e => { console.warn("Could not fetch theme, using default."); return null; })
+                    Logic.createApiRequest('getActiveThemeConfig').catch(() => null)
                 ]).then(([profileData, themeJson]) => {
                     if (themeJson) {
                         try { UI.renderParticles(JSON.parse(themeJson)); } catch (e) { console.error("Theme parse error", e); }
@@ -285,7 +299,7 @@
             },
             onDataLoaded: (data) => {
                 if (!data || !data.companyInfo || !data.members) {
-                    return Logic.onDataError({ message: "Incomplete data structure received from server." });
+                    return Logic.onDataError({ message: "Incomplete data structure from server." });
                 }
                 AppState.companyProfile = data;
                 const availableCats = Object.keys(data.members).filter(k => data.members[k] && data.members[k].length > 0);
@@ -296,6 +310,30 @@
                 console.error("Failed to load company profile:", error);
                 const loadingState = document.getElementById('loading-state');
                 loadingState.innerHTML = `<div class="text-center py-20"><p class="text-red-400 text-xl">Quantum Connection Error</p><p class="text-text-muted mt-2">A critical disruption occurred. Please try re-initializing the system.</p></div>`;
+            },
+            initMobileUI: () => {
+                const fab = document.getElementById('mobile-fab');
+                const sidebar = document.getElementById('mobile-sidebar');
+                const overlay = document.getElementById('mobile-sidebar-overlay');
+                const closeBtn = document.getElementById('mobile-sidebar-close-btn');
+
+                const openSidebar = () => {
+                    UI.populateNavLinks(); // Populate on open
+                    sidebar.classList.remove('-left-full');
+                    sidebar.classList.add('left-0');
+                    overlay.classList.remove('hidden');
+                    document.body.classList.add('mobile-sidebar-open');
+                };
+                const closeSidebar = () => {
+                    sidebar.classList.add('-left-full');
+                    sidebar.classList.remove('left-0');
+                    overlay.classList.add('hidden');
+                    document.body.classList.remove('mobile-sidebar-open');
+                };
+
+                fab.addEventListener('click', openSidebar);
+                overlay.addEventListener('click', closeSidebar);
+                closeBtn.addEventListener('click', closeSidebar);
             }
         };
 
@@ -305,7 +343,7 @@
                 document.getElementById('content-state').style.display = 'block';
                 UI.renderCompanyInfo();
                 UI.renderTeamSection();
-                UI.populateNavLinks(); // Use the benchmarked navigation logic
+                UI.populateNavLinks();
             },
             renderParticles: (config) => {
                 if (typeof particlesJS !== 'undefined') particlesJS('particles-js', config || DEFAULT_THEME_CONFIG);
@@ -314,7 +352,7 @@
                 const info = AppState.companyProfile.companyInfo;
                 document.getElementById('company-name').textContent = info.CompanyName || 'GECAN™';
                 document.getElementById('company-tagline').textContent = info.CompanyTagline || 'Architecting Tomorrow\'s Ecosystems.';
-                document.querySelector('.founder-maxim').firstChild.textContent = `“${info.FoundersMaxim}”` || '';
+                document.getElementById('founder-maxim-text').textContent = `“${info.FoundersMaxim}”` || '';
                 document.getElementById('mission-statement').textContent = info.MissionStatement || '';
                 document.getElementById('vision-statement').textContent = info.VisionStatement || '';
                 document.getElementById('about-us-full').innerHTML = info.AboutUs_Full ? `<p>${info.AboutUs_Full.replace(/\n/g, '</p><p class="mt-8">')}</p>` : '';
@@ -346,7 +384,7 @@
                                 <div class="relative w-64 h-64 md:w-80 md:h-80">
                                     <div class="photo-base absolute inset-0 rounded-full"></div>
                                     <div class="vectorized-photo w-full h-full rounded-full absolute top-0 left-0">
-                                        <img src="${member.photo}" alt="${member.fullName}" class="w-full h-full object-cover rounded-full">
+                                        <img src="${member.photo}" alt="${member.fullName}" class="w-full h-full object-cover rounded-full" loading="lazy">
                                     </div>
                                 </div>
                             </div>
@@ -360,9 +398,9 @@
                                     </div>
                                 </div>
                                 <div class="mt-8 pt-8 border-t border-border-secondary flex items-center justify-center gap-6">
-                                    <a href="mailto:${member.email}" class="contact-icon w-14 h-14 rounded-full flex items-center justify-center text-xl"><i class="fas fa-envelope"></i></a>
-                                    <a href="${member.linkedIn}" target="_blank" class="contact-icon w-14 h-14 rounded-full flex items-center justify-center text-xl"><i class="fab fa-linkedin-in"></i></a>
-                                    <a href="https://wa.me/${member.phone.replace(/[\s()+-]/g, '')}" target="_blank" class="contact-icon w-14 h-14 rounded-full flex items-center justify-center text-xl"><i class="fab fa-whatsapp"></i></a>
+                                    <a href="mailto:${member.email}" class="contact-icon w-14 h-14 rounded-full flex items-center justify-center text-xl" title="Send Email"><i class="fas fa-envelope"></i></a>
+                                    <a href="${member.linkedIn}" target="_blank" class="contact-icon w-14 h-14 rounded-full flex items-center justify-center text-xl" title="View LinkedIn Profile"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="https://wa.me/${String(member.phone).replace(/[\s()+-]/g, '')}" target="_blank" class="contact-icon w-14 h-14 rounded-full flex items-center justify-center text-xl" title="Contact via WhatsApp"><i class="fab fa-whatsapp"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -371,7 +409,8 @@
             },
             populateNavLinks: () => {
                 const navPlaceholder = document.getElementById('desktop-nav-placeholder');
-                if (!navPlaceholder) return;
+                const mobileMenuContent = document.getElementById('mobile-sidebar-content');
+                if (!navPlaceholder || !mobileMenuContent) return;
                 
                 const path = window.location.pathname;
                 const currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
@@ -384,31 +423,38 @@
                     { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' }
                 ];
                 
-                const navHtml = `
-                    <div id="nav-container" class="hidden xl:flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">
-                        ${links.map(link => {
-                            const isActive = currentPageFile === link.page;
-                            return `
-                                <a href="./${link.page}.html" class="nav-btn ${isActive ? 'active' : ''}">
-                                    <div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div>
-                                    <span class="nav-text">${link.text}</span>
-                                </a>`;
-                        }).join('')}
-                    </div>`;
-                navPlaceholder.innerHTML = navHtml;
+                const navHtml = (isMobile = false) => links.map(link => {
+                    // Correctly identify 'about' page.
+                    const isActive = currentPageFile === link.page || (currentPageFile === 'aboutus' && link.page === 'about');
+                    const btnClass = isMobile ? 'nav-btn w-full justify-start' : 'nav-btn';
+                    return `
+                        <a href="./${link.page}.html" class="${btnClass} ${isActive ? 'active' : ''}">
+                            <div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div>
+                            <span class="nav-text">${link.text}</span>
+                        </a>`;
+                }).join(isMobile ? '' : '');
+
+                navPlaceholder.innerHTML = `<div id="nav-container" class="hidden xl:flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">${navHtml(false)}</div>`;
+                mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
             }
         };
 
         const initInteractiveBackground = () => {
             const vortex = document.getElementById('background-vortex');
             if (!vortex) return;
-            let vortexState = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            let targetX = window.innerWidth / 2;
+            let targetY = window.innerHeight / 2;
+            let currentX = targetX;
+            let currentY = targetY;
+
             document.addEventListener('mousemove', (e) => {
-                vortexState.x = e.clientX;
-                vortexState.y = e.clientY;
+                targetX = e.clientX;
+                targetY = e.clientY;
             });
             const animate = () => {
-                vortex.style.transform = `translate(-50%, -50%) translate3d(${vortexState.x}px, ${vortexState.y}px, 0)`;
+                currentX += (targetX - currentX) * 0.05;
+                currentY += (targetY - currentY) * 0.05;
+                vortex.style.transform = `translate(-50%, -50%) translate3d(${currentX}px, ${currentY}px, 0)`;
                 requestAnimationFrame(animate);
             };
             animate();
@@ -419,5 +465,3 @@
 </script>
 </body>
 </html>
-
-
