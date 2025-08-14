@@ -1951,112 +1951,60 @@ togglePartyDetails: (groupIndex, partyIndex) => {
  * This is the pinnacle, unabridged implementation.
  */
 generateContract: () => {
-    const { legal, activeDealType } = AppState.modeler;
-    const calc = Logic.calculateModel();
+                const { legal } = AppState.modeler;
+                const calc = Logic.calculateModel();
+                if (!calc) return Utils.showNotification("Define core deal parameters first.", 'error', 'Prerequisite Error');
+                
+                // --- SEVERE VALIDATION ENGINE ---
+                const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
+                if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("Total group allocation must equal exactly 100%.", 'error', 'Allocation Error');
+                for (const group of legal.groups) {
+                    const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+                    if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation in "${group.name}" must equal exactly 100%.`, 'error', 'Allocation Error');
+                }
+                const allParties = legal.groups.flatMap(g => g.parties);
+                if (allParties.length < 2) return Utils.showNotification("At least two signatory parties are required.", 'error', 'Party Error');
+                if (allParties.some(p => !p.legalName || !p.role || !p.email)) return Utils.showNotification("All parties must have a Legal Name, Role, and Email defined.", 'error', 'Data Incomplete');
+                
+                const agreementReference = `GECAN-IMFPA-${new Date().getTime()}`;
+                document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
+                const contractHTML = UI.renderContractDocument(agreementReference);
 
-    // --- SEVERE VALIDATION ENGINE ---
-    const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-    if (Math.abs(totalGroupPct - 100) > 0.01) {
-        return Utils.showNotification("Total group allocation must equal exactly 100%.", 'error', 'Allocation Error');
-    }
+                const previewContainer = document.getElementById('contract-preview-container');
+                const printContainer = document.getElementById('print-area');
+                if (previewContainer && printContainer) {
+                    previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
+                    printContainer.innerHTML = contractHTML; // Stage for printing
+                    previewContainer.classList.remove('hidden');
+                    previewContainer.scrollIntoView({ behavior: 'smooth' });
+                    Utils.showNotification("Contract synthesized successfully. Ready for signing.", 'success');
+                }
+            },
 
-    for (const group of legal.groups) {
-        const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-        if (Math.abs(totalPartyPct - 100) > 0.01) {
-            return Utils.showNotification(`Party allocation within "${group.name}" must equal exactly 100%.`, 'error', 'Allocation Error');
-        }
-    }
-    
-    const allParties = legal.groups.flatMap(g => g.parties);
-    if (allParties.length < 2) {
-        return Utils.showNotification("At least two signatory parties are required to generate a contract.", 'error', 'Party Error');
-    }
-
-    if (allParties.some(p => !p.legalName || !p.role)) {
-        return Utils.showNotification("All parties must have a 'Full Legal Name' and a 'Role' defined.", 'error', 'Party Data Incomplete');
-    }
-    // --- END VALIDATION ---
-
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-    
-    // --- DYNAMIC PREAMBLE GENERATION ---
-    const dealDescription = {
-        'AssetSwap': `the exchange of approximately ${Utils.formatPrice(calc.baseValueUSD)} worth of digital and/or physical assets`,
-        'CommodityTrade': `the trade of ${calc.dealTitle} with an estimated value of ${Utils.formatPrice(calc.baseValueUSD)}`,
-        'CryptoLoan': `a crypto-collateralized loan facility with a principal of ${Utils.formatPrice(calc.baseValueUSD)}`,
-        'SBLCMonetization': `the monetization of a Standby Letter of Credit with a face value of ${Utils.formatPrice(AppState.modeler.sblcMonetization.faceValue)}`
-    }[activeDealType] || 'various prospective financial opportunities';
-    
-    // --- PINNACLE HTML TEMPLATE FOR CONTRACT ---
-    const contractHTML = `
-        <div class="contract-preview">
-            <h1 style="text-align: center; font-size: 1.2em; font-weight: bold; text-transform: uppercase;">Non-Circumvention, Non-Disclosure & Working Agreement (NCNDA)</h1>
-            <h2 style="text-align: center; font-size: 1.1em; font-weight: bold; text-transform: uppercase;">Irrevocable Master Fee Protection Agreement (IMFPA)</h2>
-            <p><strong>Effective Date:</strong> ${formattedDate}</p>
-            <p><strong>Reference Code:</strong> GECAN-IMFPA-${now.getTime()}</p>
-            ${legal.spaReferenceCode ? `<p><strong>Cross-Reference:</strong> ${legal.spaReferenceCode}</p>` : ''}
-            <hr style="margin: 1em 0;">
-
-            <p>This Agreement is made and entered into as of the Effective Date, by and between the undersigned Parties, each acting with full corporate authority and responsibility.</p>
-            
-            <h3>ARTICLE 1: PURPOSE</h3>
-            <p>1.1. The Parties, intending to be legally bound, mutually agree to collaborate on ${dealDescription} (the "Project"). This agreement serves to protect the proprietary interests, confidential information, and commission structures of all involved intermediaries.</p>
-
-            <h3>ARTICLE 2: THE PARTIES</h3>
-            ${allParties.map((p, i) => `<p><strong>Party ${String.fromCharCode(65 + i)}:</strong> ${p.legalName}, acting as ${p.role}.</p>`).join('')}
-
-            <h3>ARTICLE 3: NON-CIRCUMVENTION & NON-DISCLOSURE (NCND)</h3>
-            <p>3.1. The Parties irrevocably agree not to circumvent, avoid, or bypass each other, directly or indirectly, to transact with any entity or individual introduced by another Party in relation to the Project. This covenant shall extend for a period of five (5) years from the Effective Date.</p>
-            <p>3.2. All information exchanged, including but not limited to contacts, financial data, and procedures, shall be deemed confidential and proprietary.</p>
-
-            <h3>ARTICLE 4: IRREVOCABLE MASTER FEE PROTECTION AGREEMENT (IMFPA)</h3>
-            <p>4.1. The Parties agree that a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> (the "Commission Pool") is established for the successful execution of the Project.</p>
-            <p>4.2. This Commission Pool shall be irrevocably distributed amongst the Parties as per the schedule detailed in Addendum A.</p>
-            <p>4.3. Payments shall be made via ${allParties[0].payment.method} in ${allParties[0].payment.currency} within seventy-two (72) banking hours of the clearing of funds for each tranche of the transaction.</p>
-
-            <h3>ARTICLE 5: GOVERNING LAW</h3>
-            <p>5.1. This Agreement shall be governed by and construed in accordance with the laws of: <strong>${legal.jurisdiction}</strong>. The principles of the International Chamber of Commerce (ICC) shall be considered persuasive authority.</p>
-
-            <h3>ADDENDUM A: COMMISSION ALLOCATION SCHEDULE</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 1em; font-size: 0.9em;">
-                <thead style="background-color: #1e293b;">
-                    <tr>
-                        <th style="padding: 0.5em; border: 1px solid var(--border-color); text-align: left;">Group / Party</th>
-                        <th style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">Allocation (%)</th>
-                        <th style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">Estimated Payout</th>
-                    </tr>
-                </thead>
-                <tbody>
-                ${legal.groups.map(g => `
-                    <tr style="background-color: #111827;">
-                        <td style="padding: 0.5em; border: 1px solid var(--border-color);"><strong>${g.name}</strong></td>
-                        <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;"><strong>${g.percentage}%</strong></td>
-                        <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;"><strong>${Utils.formatPrice(legal.totalCommission * (g.percentage / 100))}</strong></td>
-                    </tr>
-                    ${g.parties.map(p => `
-                        <tr>
-                            <td style="padding: 0.5em 0.5em 0.5em 2em; border: 1px solid var(--border-color);">${p.legalName} (${p.role})</td>
-                            <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">${p.percentage}%</td>
-                            <td style="padding: 0.5em; border: 1px solid var(--border-color); text-align: right;">${Utils.formatPrice(legal.totalCommission * (g.percentage / 100) * (p.percentage / 100))}</td>
-                        </tr>
-                    `).join('')}
-                `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-
-    // Display the preview and show the finalization button.
-    const previewContainer = document.getElementById('contract-preview-container');
-    if (previewContainer) {
-        previewContainer.innerHTML = contractHTML;
-        previewContainer.classList.remove('hidden');
-        previewContainer.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    Utils.showNotification("NCNDA/IMFPA contract has been successfully synthesized.", 'success', 'Contract Generated');
-},
+            // 2. ADD this missing function inside your `Logic` object, after `generatePremiumEmailTemplate`.
+            getPrintStyles: () => {
+                let printCss = '';
+                // Iterate through all stylesheets loaded on the page
+                for (const sheet of document.styleSheets) {
+                    try {
+                        // Iterate through all rules in a stylesheet
+                        for (const rule of sheet.cssRules) {
+                            // Check if the rule is an @media rule and if it's for 'print'
+                            if (rule.type === CSSRule.MEDIA_RULE && rule.media.mediaText === 'print') {
+                                // If it matches, iterate through the rules *inside* the @media block
+                                for (const printRule of rule.cssRules) {
+                                    // Append the text content of each rule to our string
+                                    printCss += printRule.cssText + '\n';
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // Catch and log potential security errors when accessing cross-origin stylesheets
+                        console.warn("Could not access stylesheet for print styles:", sheet.href, e);
+                    }
+                }
+                return printCss;
+            },
             // --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
 initiateSigningProcess: () => {
     const sigBlocks = document.querySelectorAll('#contract-document-wrapper .p-signature-block');
