@@ -221,54 +221,53 @@
 
 /* --- A. UNIVERSAL DIALOG & BACKDROP STYLES (POSITIONING FIX) --- */
 dialog {
-    /* Base styles - Resets browser defaults */
-    max-width: 560px; /* Default max-width, can be overridden by content wrapper */
-    width: 90%;      /* Responsive width */
-    padding: 0;
-    border: none;
-    background: transparent;
-    overflow: visible; /* Prevents clipping of animations or shadows */
-    /* Position is now handled entirely by the [open] state */
+    /* Base resets */
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+    max-width: 90vw; /* Responsive max-width */
+    width: auto;
 }
 
 /* The [open] state is the key to perfect centering */
 dialog[open] {
-    /* DEFINITIVE CENTERING FIX: */
-    display: flex;          /* 1. Enable flexbox */
-    align-items: center;    /* 2. Vertically center the content */
-    justify-content: center;/* 3. Horizontally center the content */
-    
-    /* Ensure it covers the entire viewport to center within */
-    position: fixed; 
-    inset: 0; 
-    
-    /* Animation for the container fade-in */
-    animation: fadeIn 0.4s ease forwards;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important; 
+    inset: 0 !important; 
+    animation: modal-backdrop-fade-in 0.5s ease forwards;
+    z-index: 200 !important; /* Highest z-index */
 }
 
 dialog::backdrop {
-    background: rgba(10, 10, 15, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    animation: fadeIn 0.4s ease forwards;
+    background: rgba(5, 5, 9, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    animation: modal-backdrop-fade-in 0.5s ease forwards;
 }
 
 /* --- B. DIALOG CONTENT WRAPPER --- */
 /* This is the visible modal box that gets centered by the parent dialog */
 .dialog-content-wrapper {
-    background: linear-gradient(180deg, var(--background-light) 0%, var(--background-primary) 100%);
-    border: 1px solid var(--border-premium);
-    box-shadow: 0 25px 60px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(139, 92, 246, 0.2);
-    border-radius: 1.5rem;
-    width: 100%; /* Takes the width from the parent dialog's max-width */
-    max-height: 90vh; /* Ensures it's scrollable on small screens */
+    background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%) !important;
+    border: 1px solid var(--border-premium) !important;
+    box-shadow: var(--shadow-quantum) !important;
+    border-radius: 1.5rem !important;
+    width: 100%;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Important for internal scrolling of content */
-    animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    overflow: hidden;
+    animation: modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* --- C. UNIVERSAL FORM INPUT STYLES (TEXT COLOR FIX) --- */
+/* --- C. SPECIFIC MODAL WIDTHS --- */
+/* Control the width of specific modals by targeting their ID */
+#imfpa-modal { max-width: 80vw !important; }
+#submission-modal { max-width: 640px !important; }
+#signature-modal { max-width: 560px !important; }
 
 
 /* --- D. KEYFRAME ANIMATIONS --- */
@@ -280,6 +279,9 @@ dialog::backdrop {
     from { opacity: 0; transform: scale(0.95); } 
     to { opacity: 1; transform: scale(1); } 
 }
+
+        @keyframes modal-backdrop-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-content-scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         /* ========================================================================= */
 /* === DEFINITIVE FORM TEXT & LEGEND STYLES (PINNACLE STANDARD v5.4) === */
@@ -2278,7 +2280,59 @@ renderYieldGraph: (calc) => {
  */
 renderImfpaModal: () => {
     const { legal } = AppState.modeler;
-    return `<div id="imfpa-modal-content" class="bg-background-primary rounded-2xl w-full max-w-7xl max-h-[95vh] flex flex-col"><div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden"><div class="flex justify-between items-start mb-6 print-hide"><div><h2 class="text-3xl font-bold text-white">Commission & Contract Suite</h2><p class="text-text-secondary">Synthesize the Irrevocable Master Fee Protection Agreement (IMFPA).</p></div><button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-text-muted hover:text-white transition-colors">×</button></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 overflow-y-auto pr-4 -mr-4"><div class="space-y-6"><div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3 text-primary-azure"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-text-muted">Total Pool</p><p class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p></div></div><div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container"></div></div><div class="space-y-6"><h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3 text-primary-amethyst"></i>Legal Framework</h3><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white">Governing Law</h4><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input mt-2" placeholder="e.g., Singapore, Dubai, England, Wales"></div><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white">Signatory Parties</h4><div id="imfpa-legal-parties" class="mt-2 space-y-2 text-sm text-text-secondary"></div></div></div></div><div class="pt-6 border-t border-border-color mt-auto print-hide"><button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview IMFPA/NCNDA</button><div id="contract-preview-container" class="mt-4 hidden"></div></div></div></div>`;
+    return `
+        <div class="dialog-content-wrapper">
+            <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
+                <div class="flex justify-between items-start mb-6 imfpa-header print-hide">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white">Commission & Contract Suite</h2>
+                        <p class="text-text-secondary">Synthesize the Irrevocable Master Fee Protection Agreement.</p>
+                    </div>
+                    <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-text-muted hover:text-white transition-colors">×</button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 overflow-y-auto pr-4 -mr-4">
+                    <!-- Left: Allocation -->
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3 text-primary-color"></i>Commission Allocation</h3>
+                            <div class="text-right">
+                                <p class="text-xs text-text-muted">Total Pool</p>
+                                <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-color">${Utils.formatPrice(legal.totalCommission)}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button>
+                            <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
+                        </div>
+                        <div class="space-y-4" id="imfpa-groups-container"></div>
+                    </div>
+                    <!-- Right: Legal Details -->
+                    <div class="space-y-6">
+                        <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3 text-accent-color"></i>Legal Framework</h3>
+                        <div class="input-group">
+                            <h4 class="input-group-title"><i class="fas fa-landmark text-primary-color"></i>Governing Law & Jurisdiction</h4>
+                            <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales">
+                        </div>
+                        <div class="input-group">
+                            <h4 class="input-group-title"><i class="fas fa-users text-primary-color"></i>Signatory Parties</h4>
+                            <div class="text-xs text-text-muted mb-2">A comprehensive list of all signatories.</div>
+                            <div id="imfpa-legal-parties" class="space-y-2 text-sm text-text-secondary"></div>
+                        </div>
+                        <div class="input-group">
+                            <h4 class="input-group-title"><i class="fas fa-link text-primary-color"></i>Cross-Referenced Contract / SPA (Optional)</h4>
+                            <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345">
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-border-color mt-auto print-hide">
+                    <button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold">
+                        <i class="fas fa-file-signature mr-2"></i>Synthesize & Preview IMFPA/NCNDA
+                    </button>
+                    <div id="contract-preview-container" class="mt-4 hidden"></div>
+                </div>
+            </div>
+        </div>
+    `;
 },
 
 /**
