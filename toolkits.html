@@ -467,6 +467,183 @@ label.form-label,
 @keyframes submission-backdrop-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes submission-content-scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
+        <!-- ================================================================================================================== -->
+<!-- === PINNACLE REPLACEMENT BLOCK: BEGINS HERE === -->
+<!-- This block contains the new CSS, Modal HTML, and JavaScript Logic for the entire Document Execution Suite. -->
+<!-- ================================================================================================================== -->
+
+<!-- I. RE-ENGINEERED CSS FOR PREMIUM CONTRACT & PRINTING (ADD THIS WITHIN YOUR MAIN <style> TAG) -->
+<style>
+    /* ========================================================================= */
+    /* === PINNACLE DOCUMENT EXECUTION SUITE CSS (v5.0 - UNABRIDGED) === */
+    /* This is the definitive, self-contained style block that governs the */
+    /* entire document generation, preview, and signing workflow. */
+    /* ========================================================================= */
+
+    /* --- A. PREMIUM MODAL DIALOGS (RE-ENGINEERED) --- */
+    #imfpa-modal-content, #signature-modal-content, #finalization-modal-content {
+        background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%) !important;
+        border: 1px solid var(--border-premium) !important;
+        box-shadow: 0 40px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(139, 92, 246, 0.2) !important;
+        border-radius: 1.5rem !important;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    #imfpa-modal .dialog-content-wrapper { max-width: 80vw; }
+    #signature-modal .dialog-content-wrapper { max-width: 560px; }
+    #finalization-modal .dialog-content-wrapper { max-width: 640px; }
+    
+    .imfpa-header {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-premium);
+    }
+    .imfpa-header h2 {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-family: 'Orbitron', monospace;
+    }
+    
+    /* --- B. CONTRACT PREVIEW & EXECUTION SUITE (UNABRIDGED) --- */
+    #contract-preview-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    #execution-suite {
+        background: var(--background-glass);
+        border: 1px solid var(--border-premium);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    #execution-suite .step-panel {
+        background: rgba(var(--rgb-color, 59, 130, 246), 0.1);
+        border: 1px solid rgba(var(--rgb-color, 59, 130, 246), 0.2);
+        border-left: 4px solid rgb(var(--rgb-color, 59, 130, 246));
+        border-radius: 1rem;
+        padding: 1.25rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    #execution-suite .step-panel.step-1 { --rgb-color: 59, 130, 246; /* Sapphire */ }
+    #execution-suite .step-panel.step-2 { --rgb-color: 139, 92, 246; /* Amethyst */ }
+
+    .step-panel h4 {
+        color: rgb(var(--rgb-color));
+        font-weight: 700;
+        font-size: 1.125rem;
+    }
+
+    .step-panel p { color: var(--text-secondary); }
+
+    .execution-btn {
+        background: linear-gradient(135deg, rgb(var(--rgb-color)), rgba(var(--rgb-color), 0.7));
+        border: 1px solid rgb(var(--rgb-color));
+        color: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(var(--rgb-color), 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        padding: 0.75rem 1.5rem;
+        font-weight: 700;
+        border-radius: 0.75rem;
+    }
+    .execution-btn:hover:not(:disabled) {
+        box-shadow: 0 8px 30px rgba(var(--rgb-color), 0.4);
+        transform: translateY(-3px);
+    }
+
+    /* --- C. GENERATED CONTRACT DOCUMENT (PINNACLE STANDARD) --- */
+    #contract-document-wrapper {
+        background: #f8fafc; /* Light background for contrast */
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-top: 1.5rem;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .contract-document {
+        font-family: 'Garamond', 'Times New Roman', serif;
+        font-size: 11pt;
+        line-height: 1.5;
+        color: #1a202c; /* Near-black for readability */
+        background: white;
+        padding: 2cm;
+        margin: 0 auto;
+        max-width: 21cm; /* A4 width */
+        min-height: 29.7cm; /* A4 height */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    /* --- D. SIGNATURE SUITE MODAL (SEVERELY UPGRADED) --- */
+    #signature-modal-content { --glow-color: var(--success-color); }
+    .signature-tab.active { border-color: var(--success-color); color: var(--text-diamond); }
+    #signature-canvas {
+        background: var(--background-dark);
+        border: 1px dashed var(--border-premium);
+        border-radius: 0.75rem;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>') 4 20, crosshair;
+    }
+    
+    /* --- E. FINALIZATION MODAL (SECURE AESTHETIC) --- */
+    #finalization-modal-content { --glow-color: var(--amethyst); }
+    #finalization-icon-container {
+        background: linear-gradient(135deg, var(--primary-amethyst), var(--primary-royal));
+        animation: pulse-glow 3s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+        50% { transform: scale(1.05); box-shadow: 0 0 35px var(--glow-amethyst); }
+    }
+
+    /* --- F. PINNACLE PRINTING STYLES (THE FIX) --- */
+    #print-area { display: none; }
+    @media print {
+        .print-hide { display: none !important; }
+        #print-area { display: block !important; }
+
+        body, html {
+            background: #fff !important;
+            color: #000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        @page {
+            size: A4;
+            margin: 2cm;
+            @top-left { content: var(--agreement-reference); font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 8pt; color: #888; }
+            @top-right { content: "GECAN™ | STRICTLY PRIVATE & CONFIDENTIAL"; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 8pt; color: #888; }
+            @bottom-center { content: "Page " counter(page) " of " counter(pages); font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 8pt; color: #888; }
+        }
+
+        .p-doc { font-family: 'Garamond', 'Times New Roman', serif; font-size: 11pt; line-height: 1.4; color: #000; margin: 0; padding: 0; border: none; box-shadow: none; }
+        .p-h1 { font-size: 18pt; font-weight: bold; color: #1A237E; border-bottom: 2px solid #b4975a; padding-bottom: 8pt; margin-bottom: 24pt; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .p-h2 { font-size: 14pt; font-weight: bold; color: #283593; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-top: 20pt; margin-bottom: 12pt; font-family: 'Helvetica Neue', Arial, sans-serif; page-break-after: avoid; }
+        .p-text { text-align: justify; margin-bottom: 11pt; }
+        
+        .p-table { width: 100%; border-collapse: collapse; margin-top: 12pt; margin-bottom: 16pt; page-break-inside: avoid; }
+        .p-table th, .p-table td { border: 1px solid #ccc; padding: 6pt 8pt; text-align: left; vertical-align: top; font-size: 9pt; }
+        .p-table th { background-color: #e8eaf6; color: #1A237E; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; }
+        .p-table tr:nth-child(even) td { background-color: #f9f9f9; }
+        
+        .p-signature-block { margin-top: 40pt; page-break-inside: avoid; display: block; }
+        .p-signature-line { border-bottom: 1px solid #000; margin-top: 40pt; margin-bottom: 6pt; }
+        .p-signature-label { font-size: 9pt; color: #555; }
+        .p-signature-img { max-height: 60px; object-fit: contain; mix-blend-mode: darken; }
+        .p-seal-img { max-height: 80px; max-width: 80px; object-fit: contain; position: absolute; right: 2cm; bottom: 2cm; opacity: 0.9; }
+
+        .p-annex-start { page-break-before: always; }
+        
+        .p-watermark { display: block !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120pt; color: rgba(180, 151, 90, 0.08); font-weight: bold; z-index: -1000; pointer-events: none; font-family: 'Arial Black', sans-serif; }
+    }
         
     </style>
 </head>
@@ -538,9 +715,114 @@ label.form-label,
     
     <!-- MODAL & DIALOG CONTAINERS -->
     <dialog id="imfpa-modal" class="p-0 bg-transparent max-w-7xl w-full print-hide"></dialog>
-    <dialog id="signature-modal" class="p-0 bg-transparent max-w-2xl w-full print-hide"></dialog>
-    <dialog id="notification-modal" class="p-0 bg-transparent max-w-lg w-full print-hide"></dialog>
-    <dialog id="finalization-modal" class="p-0 bg-transparent max-w-xl w-full print-hide"></dialog>
+    <!-- II. RE-ENGINEERED MODAL HTML CONTAINERS (ADD THESE TO YOUR MAIN HTML BODY) -->
+<dialog id="signature-modal">
+    <div class="dialog-content-wrapper" style="width:100%;">
+        <div id="signature-modal-content" class="text-white flex-grow flex flex-col">
+            <!-- Header -->
+            <div class="p-6 border-b border-[var(--border-premium)] flex-shrink-0">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-300 to-green-500">Document Execution Suite</h2>
+                        <p class="text-sm text-text-secondary">Apply a legally binding signature and/or corporate seal.</p>
+                    </div>
+                    <button onclick="document.getElementById('signature-modal').close()" class="text-3xl text-text-muted hover:text-white transition-colors">×</button>
+                </div>
+                <div>
+                    <label for="signature-target-select" class="block text-sm font-semibold text-text-secondary mb-2">Apply signature/seal for:</label>
+                    <select id="signature-target-select" class="form-select w-full"></select>
+                </div>
+            </div>
+
+            <!-- Signing Area -->
+            <div class="p-6 flex-grow overflow-y-auto">
+                <div class="flex border-b border-[var(--border-premium)] mb-4">
+                    <button id="draw-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent signature-tab" onclick="Logic.switchSignatureMode('draw')">Draw Signature</button>
+                    <button id="upload-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent signature-tab" onclick="Logic.switchSignatureMode('upload')">Upload Signature</button>
+                    <button id="seal-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent signature-tab" onclick="Logic.switchSignatureMode('seal')">Upload Corporate Seal</button>
+                </div>
+                <!-- Panels -->
+                <div id="draw-mode-panel"><canvas id="signature-canvas" class="w-full h-48"></canvas><button onclick="Logic.clearSignaturePad()" class="text-xs text-text-muted hover:text-white mt-2">Clear</button></div>
+                <div id="upload-mode-panel" class="hidden"><input type="file" id="signature-upload-input" accept="image/*" class="hidden"><label for="signature-upload-input" class="w-full h-48 border-2 border-dashed border-[var(--border-premium)] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[var(--background-secondary)] transition-colors"><img id="signature-upload-preview" class="hidden max-h-44 object-contain"/><div id="upload-prompt"><i class="fas fa-upload fa-2x text-text-muted mb-2"></i><p>Click to upload signature</p></div></label></div>
+                <div id="seal-mode-panel" class="hidden"><input type="file" id="seal-upload-input" accept="image/*" class="hidden"><label for="seal-upload-input" class="w-full h-48 border-2 border-dashed border-[var(--border-premium)] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[var(--background-secondary)] transition-colors"><img id="seal-upload-preview" class="hidden max-h-44 object-contain"/><div id="seal-prompt"><i class="fas fa-stamp fa-2x text-text-muted mb-2"></i><p>Click to import corporate seal</p></div></label></div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-6 border-t border-[var(--border-premium)] bg-[var(--background-dark)]/50 flex-shrink-0">
+                <div class="text-xs text-text-muted mb-4"><p>By signing, you affirm all details are correct. A secure, tamper-proof record will be generated.</p><p class="font-mono mt-1"><strong>Timestamp:</strong> <span id="signature-timestamp"></span> | <strong>Location:</strong> <span id="signature-location"></span></p></div>
+                <button onclick="Logic.applySignature()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-green-500 to-green-700 border-green-500"><i class="fas fa-check-circle mr-2"></i>Apply to Document</button>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+    
+    <!-- ==================================================================================== -->
+<!-- === DEFINITIVE NOTIFICATION MODAL (v5.1 - UNIVERSAL REPLACEMENT) === -->
+<!-- This is the complete, benchmark-standard modal required for all platform notifications. -->
+<!-- ==================================================================================== -->
+<dialog id="notification-modal" class="p-0 bg-transparent max-w-lg w-full print-hide">
+    <div class="dialog-content-wrapper" style="width:100%;">
+        <div id="notification-modal-content" class="text-white flex flex-col">
+            <!-- Dynamic Header: Color changes based on message type -->
+            <div id="notification-header" class="p-6 flex items-center gap-4 border-b border-[var(--border-premium)]">
+                <div id="notification-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-400">
+                    <i id="notification-icon" class="fas fa-2x"></i>
+                </div>
+                <div>
+                    <h2 id="notification-title" class="text-2xl font-bold">Notification</h2>
+                    <p id="notification-subtitle" class="text-sm text-text-secondary">Please review this message.</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Content -->
+            <div class="p-8 flex-grow">
+                <p id="notification-message" class="text-text-secondary leading-relaxed">Message content goes here.</p>
+            </div>
+            
+            <!-- Footer & Action -->
+            <div class="p-6 border-t border-[var(--border-premium)] bg-[var(--background-dark)]/50 flex justify-end">
+                <button id="notification-ok-btn" class="btn-primary px-8 py-2 font-bold shadow-lg">OK</button>
+            </div>
+        </div>
+    </div>
+</dialog>
+   
+    
+    <dialog id="finalization-modal">
+    <div class="dialog-content-wrapper" style="width:100%;">
+        <div id="finalization-modal-content" class="flex flex-col text-white">
+             <!-- Header -->
+            <div class="p-6 flex items-center gap-4 border-b border-[var(--border-premium)] bg-[var(--background-dark)]/50">
+                <div id="finalization-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+                    <i class="fas fa-shield-alt fa-2x"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">Finalize & Lock Document</h2>
+                    <p class="text-sm text-text-secondary">Please confirm this critical, irreversible action.</p>
+                </div>
+                 <button onclick="document.getElementById('finalization-modal').close()" class="text-3xl text-text-muted hover:text-white transition-colors ml-auto">×</button>
+            </div>
+            <!-- Content -->
+            <div class="p-8 flex-grow">
+                <p class="text-text-secondary mb-5">You are about to initiate the final, legally binding workflow. This action will:</p>
+                <ul class="space-y-4 text-text-primary">
+                    <li class="flex items-start gap-3"><i class="fas fa-lock text-purple-400 mt-1"></i><div><strong>Lock Document State:</strong> The current version will be cryptographically fingerprinted to prevent edits.</div></li>
+                    <li class="flex items-start gap-3"><i class="fas fa-project-diagram text-purple-400 mt-1"></i><div><strong>Generate Secure Audit Trail:</strong> An immutable record will be created for all actions.</div></li>
+                    <li class="flex items-start gap-3"><i class="fas fa-paper-plane text-purple-400 mt-1"></i><div><strong>Dispatch to All Parties:</strong> A finalized PDF will be emailed to all signatories.</div></li>
+                </ul>
+            </div>
+            <!-- Footer -->
+            <div class="p-6 border-t border-[var(--border-premium)] bg-[var(--background-dark)]/50 flex justify-end items-center gap-4">
+                <button onclick="document.getElementById('finalization-modal').close()" class="btn-secondary px-6 py-2 rounded-lg">Cancel</button>
+                <button id="proceed-finalize-btn" onclick="Logic.executeFinalizationWorkflow()" class="btn-primary bg-gradient-to-r from-purple-600 to-red-600 border-purple-500 hover:shadow-red-500/30 px-8 py-2 font-bold shadow-lg shadow-purple-500/20"><i class="fas fa-gavel mr-2"></i>Proceed with Finalization</button>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+    <!-- This is a hidden div used to stage the final, clean HTML for printing -->
+<div id="print-area"></div>
 
     <!-- ========================================================================= -->
     <!-- === DEFINITIVE FIX: RESTORE THE SUBMISSION MODAL CONTAINER === -->
@@ -619,10 +901,59 @@ label.form-label,
         // ====================================================================================
         const Utils = {
             showNotification: (message, type = 'info', title = null) => {
-                const modal = document.getElementById('notification-modal');
-                if(!modal) return alert(`${(title || type).toUpperCase()}: ${message}`);
-                // Implementation preserved from original, as it is benchmark standard
-            },
+    const modal = document.getElementById('notification-modal');
+    if (!modal) {
+        console.error("Notification modal not found in DOM!");
+        // Fallback for critical errors when the modal itself is missing.
+        alert(`[${type.toUpperCase()}] ${title ? title + ': ' : ''}${message}`);
+        return;
+    }
+
+    const content = document.getElementById('notification-modal-content');
+    const header = document.getElementById('notification-header');
+    const iconContainer = document.getElementById('notification-icon-container');
+    const icon = document.getElementById('notification-icon');
+    const titleEl = document.getElementById('notification-title');
+    const subtitleEl = document.getElementById('notification-subtitle');
+    const messageEl = document.getElementById('notification-message');
+    const okBtn = document.getElementById('notification-ok-btn');
+
+    // A single source of truth for notification types.
+    const types = {
+        success: { iconClass: 'fa-check-circle', defaultTitle: 'Success', subtitle: 'The operation completed successfully.', baseClass: 'green' },
+        error: { iconClass: 'fa-exclamation-triangle', defaultTitle: 'Error', subtitle: 'An error has occurred.', baseClass: 'red' },
+        warning: { iconClass: 'fa-exclamation-circle', defaultTitle: 'Warning', subtitle: 'Please review this message.', baseClass: 'yellow' },
+        info: { iconClass: 'fa-info-circle', defaultTitle: 'Information', subtitle: 'System Notification.', baseClass: 'blue' }
+    };
+
+    const config = types[type] || types.info;
+
+    // Apply dynamic content
+    titleEl.textContent = title || config.defaultTitle;
+    subtitleEl.textContent = config.subtitle;
+    messageEl.textContent = message;
+    icon.className = `fas ${config.iconClass} fa-2x`;
+
+    // Apply dynamic styling using Tailwind classes for consistency and maintainability.
+    const colorClasses = {
+        header: `bg-${config.baseClass}-500/10 border-${config.baseClass}-500/20`,
+        icon: `bg-gradient-to-br from-${config.baseClass}-400 to-${config.baseClass}-600`,
+        button: `bg-gradient-to-r from-${config.baseClass}-500 to-${config.baseClass}-700 border-${config.baseClass}-500`
+    };
+
+    // Remove old color classes before adding new ones
+    header.className = `p-6 flex items-center gap-4 border-b ${colorClasses.header}`;
+    iconContainer.className = `w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-400 ${colorClasses.icon}`;
+    okBtn.className = `btn-primary px-8 py-2 font-bold shadow-lg ${colorClasses.button}`;
+    
+    // Attach a one-time event listener to the OK button to close the modal.
+    okBtn.onclick = () => modal.close();
+    
+    // Show the modal.
+    if (!modal.hasAttribute('open')) {
+        modal.showModal();
+    }
+},
             formatPrice: (amount, currency = 'USD') => new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount || 0),
             formatNumber: (num, decimals = 2) => {
                 if (typeof num !== 'number' || isNaN(num)) return 'N/A';
@@ -1437,18 +1768,10 @@ togglePricingConfig: () => {
  */
 openImfpaModal: () => {
     const modal = document.getElementById('imfpa-modal');
-    if (!modal) {
-        console.error("CRITICAL: IMFPA modal container not found in DOM.");
-        return;
-    }
+    if (!modal) return console.error("CRITICAL: IMFPA modal container not found in DOM.");
     
-    // Inject the complete modal structure into the dialog element.
     modal.innerHTML = UI.renderImfpaModal();
-    
-    // Refresh the UI with the latest data from the application state.
     Logic.refreshImfpaModalUI();
-    
-    // Use the standard browser API to display the modal dialog.
     modal.showModal();
 },
 
@@ -1462,10 +1785,7 @@ refreshImfpaModalUI: () => {
     const groupsContainer = document.getElementById('imfpa-groups-container');
     const legalPartiesContainer = document.getElementById('imfpa-legal-parties');
 
-    // Robustness: Ensure the core containers exist before attempting to update them.
-    if (groupsContainer) {
-        groupsContainer.innerHTML = UI.renderImfpaGroups();
-    }
+    if (groupsContainer) groupsContainer.innerHTML = UI.renderImfpaGroups();
     if (legalPartiesContainer) {
         const allParties = legal.groups.flatMap(g => g.parties);
         legalPartiesContainer.innerHTML = allParties.length > 0
@@ -1473,20 +1793,13 @@ refreshImfpaModalUI: () => {
             : '<p class="text-xs text-text-muted">No signatory parties defined.</p>';
     }
 
-    // Re-bind the delegated input listener to the modal's root content element.
-    // This is crucial for handling events on dynamically added/removed party and group elements.
     const modalContent = document.getElementById('imfpa-modal-content');
     if (modalContent) {
-        // Remove any old listeners to prevent duplication.
         modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
         modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
-        
-        // Add fresh listeners for both 'input' (for text fields) and 'change' (for selects).
         modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
         modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
     }
-    
-    // After re-rendering, immediately update all calculated values.
     Logic.updateImfpaCalculations();
 },
 
@@ -1510,44 +1823,28 @@ handleModelerInputChangeInModal: (e) => {
 updateImfpaCalculations: () => {
     const { groups, totalCommission } = AppState.modeler.legal;
     
-    // Calculate the total percentage allocated across all groups.
+    document.getElementById('imfpa-total-commission-pool').textContent = Utils.formatPrice(totalCommission);
+    
     const totalGroupPct = groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
     const totalAllocatedEl = document.getElementById('imfpa-total-allocated');
     if (totalAllocatedEl) {
         totalAllocatedEl.textContent = `Total Allocated: ${totalGroupPct.toFixed(2)}%`;
-        // Dynamically apply a success or error color based on whether the total is exactly 100%.
         const isBalanced = Math.abs(totalGroupPct - 100) < 0.01;
         totalAllocatedEl.className = `text-right font-mono text-sm ${isBalanced ? 'text-success-color' : 'text-error-color'}`;
     }
 
-    // Loop through each group to update its individual calculated values.
     groups.forEach((g, groupIndex) => {
-        // Calculate the absolute dollar value for this group.
         const groupValue = totalCommission * ((parseFloat(g.percentage) || 0) / 100);
-        const groupValueEl = document.getElementById(`imfpa-group-value-${groupIndex}`);
-        if (groupValueEl) {
-            groupValueEl.textContent = Utils.formatPrice(groupValue);
-        }
+        document.getElementById(`imfpa-group-value-${groupIndex}`).textContent = Utils.formatPrice(groupValue);
 
-        // Calculate the total percentage allocated within this group's parties.
         const totalPartyPct = g.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
         const groupTotalEl = document.getElementById(`imfpa-group-total-${groupIndex}`);
         if (groupTotalEl) {
             groupTotalEl.textContent = `Group Total: ${totalPartyPct.toFixed(2)}%`;
-            // Apply success/error color for the sub-total within the group.
             const isGroupBalanced = Math.abs(totalPartyPct - 100) < 0.01;
             groupTotalEl.className = `text-right font-mono text-xs ${isGroupBalanced ? 'text-success-color' : 'text-error-color'}`;
         }
     });
-
-    // Update the master list of signatory parties in the "Legal Framework" section.
-    const legalPartiesEl = document.getElementById('imfpa-legal-parties');
-    if (legalPartiesEl) {
-        const allParties = groups.flatMap(g => g.parties);
-        legalPartiesEl.innerHTML = allParties.length > 0
-            ? allParties.map(p => `<div><i class="fas fa-user-check text-success-color mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('')
-            : '<p class="text-xs text-text-muted">No signatory parties defined.</p>';
-    }
 },
 
 /**
@@ -1760,6 +2057,225 @@ generateContract: () => {
 
     Utils.showNotification("NCNDA/IMFPA contract has been successfully synthesized.", 'success', 'Contract Generated');
 },
+            // --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
+initiateSigningProcess: () => {
+    const sigBlocks = document.querySelectorAll('#contract-document-wrapper .p-signature-block');
+    const selectEl = document.getElementById('signature-target-select');
+    if (!selectEl) return;
+    
+    selectEl.innerHTML = '<option value="">-- Select a Signatory --</option>';
+    sigBlocks.forEach((block, index) => {
+        const partyName = block.dataset.partyName;
+        const option = new Option(`${index + 1}: ${partyName}`, block.dataset.partyId);
+        selectEl.add(option);
+    });
+
+    const modal = document.getElementById('signature-modal');
+    modal.showModal();
+    Logic.switchSignatureMode('draw');
+    
+    document.getElementById('signature-timestamp').textContent = new Date().toISOString();
+    document.getElementById('signature-location').textContent = 'Fetching...';
+    fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
+        document.getElementById('signature-location').textContent = `${data.city}, ${data.country_name} (IP: ${data.ip})`;
+    }).catch(() => { document.getElementById('signature-location').textContent = 'Location Not Available'; });
+},
+
+switchSignatureMode: (mode) => {
+    const panels = { draw: 'draw-mode-panel', upload: 'upload-mode-panel', seal: 'seal-mode-panel' };
+    const tabs = { draw: 'draw-tab-btn', upload: 'upload-tab-btn', seal: 'seal-tab-btn' };
+
+    Object.values(panels).forEach(id => document.getElementById(id).classList.add('hidden'));
+    Object.values(tabs).forEach(id => document.getElementById(id).classList.remove('active'));
+
+    document.getElementById(panels[mode]).classList.remove('hidden');
+    document.getElementById(tabs[mode]).classList.add('active');
+    document.getElementById('signature-modal').dataset.activeMode = mode;
+    
+    if (mode === 'draw') Logic.setupSignaturePad();
+    if (mode === 'upload' || mode === 'seal') Logic.setupFileUpload(mode);
+},
+
+setupSignaturePad: () => {
+    const canvas = document.getElementById('signature-canvas');
+    if (!canvas) return;
+    const resizeCanvas = () => {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+        if (window.signaturePad) window.signaturePad.clear();
+    };
+    if (!window.signaturePad) window.signaturePad = new SignaturePad(canvas, { penColor: "#1A237E" });
+    setTimeout(resizeCanvas, 50);
+},
+
+clearSignaturePad: () => window.signaturePad?.clear(),
+
+setupFileUpload: (type) => { // 'upload' for signature, 'seal' for seal
+    const inputId = type === 'upload' ? 'signature-upload-input' : 'seal-upload-input';
+    const previewId = type === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
+    const promptId = type === 'upload' ? 'upload-prompt' : 'seal-prompt';
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const prompt = document.getElementById(promptId);
+    if (!input || !preview || !prompt) return;
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                preview.src = event.target.result;
+                preview.classList.remove('hidden');
+                prompt.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+},
+
+processImageForTransparency: (imageDataUrl, threshold = 240) => {
+    return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+            canvas.width = img.width; canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            try {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i] > threshold && data[i + 1] > threshold && data[i + 2] > threshold) {
+                        data[i + 3] = 0;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            } catch (e) { reject(new Error("Cannot process image due to security restrictions.")); }
+        };
+        img.onerror = () => reject(new Error("Failed to load image."));
+        img.src = imageDataUrl;
+    });
+},
+
+applySignature: async () => {
+    const modal = document.getElementById('signature-modal');
+    const mode = modal.dataset.activeMode;
+    const targetPartyId = document.getElementById('signature-target-select').value;
+    if (!targetPartyId) return Utils.showNotification("Please select a signatory.", 'error');
+
+    let dataUrl = '';
+    try {
+        if (mode === 'draw') {
+            if (window.signaturePad.isEmpty()) throw new Error("Please draw a signature.");
+            dataUrl = window.signaturePad.toDataURL('image/png');
+        } else {
+            const previewId = mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
+            const previewImg = document.getElementById(previewId);
+            if (!previewImg.src || previewImg.classList.contains('hidden')) throw new Error(`Please upload a ${mode === 'upload' ? 'signature' : 'seal'}.`);
+            dataUrl = await Logic.processImageForTransparency(previewImg.src);
+        }
+
+        const dateOfExecution = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const containersToUpdate = ['#contract-document-wrapper', '#print-area'];
+
+        containersToUpdate.forEach(containerSelector => {
+            const container = document.querySelector(containerSelector);
+            if (!container) return;
+            const targetBlock = container.querySelector(`.p-signature-block[data-party-id="${targetPartyId}"]`);
+            if (!targetBlock) return;
+
+            if (mode === 'draw' || mode === 'upload') {
+                targetBlock.querySelector('[data-sig-type="signature"]').innerHTML = `<img src="${dataUrl}" class="p-signature-img" alt="Digital Signature">`;
+                targetBlock.querySelector('[data-sig-type="date"]').textContent = dateOfExecution;
+            } else if (mode === 'seal') {
+                targetBlock.querySelector('[data-sig-type="seal"]').innerHTML = `<img src="${dataUrl}" class="p-seal-img" alt="Corporate Seal">`;
+            }
+        });
+
+        modal.close();
+        Logic.resetSignatureInputs();
+        document.querySelector('#finalization-step-panel').classList.remove('opacity-50', 'pointer-events-none');
+        Utils.showNotification("Signature/seal applied successfully.", 'success');
+    } catch (error) {
+        Utils.showNotification(error.message, 'error', 'Application Failed');
+    }
+},
+
+resetSignatureInputs: () => {
+    window.signaturePad?.clear();
+    ['signature-upload', 'seal-upload'].forEach(id => {
+        const input = document.getElementById(`${id}-input`);
+        const preview = document.getElementById(`${id}-preview`);
+        const promptEl = document.getElementById(id.replace('upload', 'prompt'));
+        if(input) input.value = '';
+        if(preview) { preview.src = ''; preview.classList.add('hidden'); }
+        if(promptEl) promptEl.classList.remove('hidden');
+    });
+},
+
+sendForSignature: () => {
+    document.getElementById('finalization-modal').showModal();
+},
+
+simpleHash: async (str) => {
+    const buffer = new TextEncoder().encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+},
+
+executeFinalizationWorkflow: async () => {
+    document.getElementById('finalization-modal').close();
+    Utils.showNotification("Finalizing document and dispatching...", 'info', 'Processing');
+
+    try {
+        const finalHtml = document.getElementById('print-area').innerHTML;
+        const documentFingerprint = await Logic.simpleHash(finalHtml);
+        const agreementReference = finalHtml.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'GECAN-DOC-FINAL';
+        const recipientEmails = AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => p.email).filter(Boolean);
+
+        const payload = {
+            agreementReference,
+            documentFingerprint,
+            recipientEmails: recipientEmails.join(','),
+            emailBody: Logic.generatePremiumEmailTemplate({ agreementReference, documentFingerprint, parties: AppState.modeler.legal.groups.flatMap(g => g.parties) }),
+            fileName: `${agreementReference}_EXECUTED.pdf`,
+            htmlContent: `<!DOCTYPE html><html><head><style>${Array.from(document.styleSheets).map(s => Array.from(s.rules || []).map(r => r.cssText).join('')).join('')}</style></head><body>${finalHtml}</body></html>`
+        };
+
+        const response = await Logic.createApiRequest('generatePdfAndDispatchEmail', 'POST', payload);
+        Utils.showNotification(response, 'success', 'Document Dispatched');
+    } catch (error) {
+        Utils.showNotification(error.message, 'error', 'Dispatch Failed');
+    }
+},
+
+generatePremiumEmailTemplate: (payload) => {
+    const partyListHTML = payload.parties.map(p => `<li><strong>${p.legalName || 'N/A'}</strong> (${p.role || 'N/A'})</li>`).join('');
+    return `
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f9; color: #333; padding: 20px;">
+        <div style="max-width: 750px; margin: auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px;">
+            <div style="background-color: #0369a1; color: white; padding: 25px; text-align: center;"><h1>GECAN™ | Executed Agreement Attached</h1></div>
+            <div style="padding: 30px;">
+                <p>Dear Contracting Parties,</p>
+                <p>Please find attached the fully executed legal document. This document has been finalized and its state cryptographically recorded.</p>
+                <div style="background-color: #f9f9f9; padding: 20px; border-left: 5px solid #0ea5e9; margin: 25px 0;">
+                    <h3 style="color: #0369a1;">Agreement Details</h3>
+                    <p><strong>Reference:</strong> ${payload.agreementReference}</p>
+                    <p><strong>Document Fingerprint (SHA-256):</strong> <code style="font-size: 12px;">${payload.documentFingerprint}</code></p>
+                </div>
+                <h3>Parties to this Agreement:</h3><ul>${partyListHTML}</ul>
+                <p>Thank you for your cooperation.<br><strong>The GECAN™ Transactional Systems</strong></p>
+            </div>
+            <div style="background-color: #e2e8f0; color: #4a5568; padding: 20px; font-size: 12px; text-align: center;">
+                <p><strong>CONFIDENTIALITY NOTICE (ICC Pub. No. 769 E):</strong> This electronic communication is strictly confidential and intended solely for the authorized recipients.</p>
+            </div>
+        </div>
+    </body>`;
+},
+
 
         };
 
