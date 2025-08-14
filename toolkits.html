@@ -398,12 +398,203 @@
             bindActiveToolkitEvents: () => { const binder = Logic[`bind${AppState.activeToolkit}Events`]; if (binder) binder(); },
             
             // --- Wallet Forensics Logic (Unabridged) ---
-            bindWalletForensicsEvents: () => { /* Preserved from original */ },
-            runWalletForensics: () => { /* Preserved from original */ },
-            animateReportElements: () => { /* Preserved from original */ },
-            getExplorerUrl: (wallet, txHash = '') => { /* Preserved from original */ },
-            copyToClipboard: (text, element) => { /* Preserved from original */ },
-            generateExecutiveSummary: (report) => { /* Preserved from original */ },
+            // --- Wallet Forensics Logic (v4.0 - Definitive & Unabridged) ---
+
+/**
+ * Binds all necessary event listeners for the Wallet Forensics toolkit.
+ * This function is called once when the toolkit becomes active.
+ */
+bindWalletForensicsEvents: () => {
+    const checkBtn = document.getElementById('check-wallet-btn');
+    const addressInput = document.getElementById('wallet-address-input');
+    
+    // Robustness: Ensure elements exist before binding to prevent runtime errors.
+    if(checkBtn) {
+        checkBtn.addEventListener('click', Logic.runWalletForensics);
+    }
+    if(addressInput) {
+        addressInput.addEventListener('keypress', e => { 
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission if it's inside a form
+                Logic.runWalletForensics(); 
+            }
+        });
+    }
+},
+
+/**
+ * Orchestrates the entire wallet analysis process, from user input to displaying the final report.
+ * It manages application state, provides premium loading feedback, and handles all API communication.
+ */
+runWalletForensics: () => {
+    const addressInput = document.getElementById('wallet-address-input');
+    if (!addressInput) return; // Safeguard
+    
+    const address = addressInput.value.trim();
+    if (!address) {
+        return Utils.showNotification("Please enter a wallet address to analyze.", 'warning', 'Input Required');
+    }
+    
+    // 1. Set application state to loading and trigger a UI re-render.
+    AppState.walletAnalysis = { address, report: null, isLoading: true };
+    UI.renderActiveToolkit();
+
+    // 2. Initialize the premium, multi-stage loading text spinner.
+    const spinnerTexts = [
+        "Connecting to blockchain networks...", 
+        "Fetching on-chain transaction history...", 
+        "Querying GECAN proprietary intelligence ledger...", 
+        "Running institutional compliance checks...", 
+        "Synthesizing on-chain and proprietary intel...", 
+        "Calculating multi-vector risk scores...", 
+        "Generating definitive wallet classification..."
+    ];
+    let textIndex = 0;
+    
+    // This interval provides dynamic feedback to the user during the analysis process.
+    const textInterval = setInterval(() => {
+        const spinnerEl = document.getElementById('spinner-text');
+        // The interval only updates the text if the spinner is still visible and the app is loading.
+        if (spinnerEl && AppState.walletAnalysis.isLoading) {
+            spinnerEl.style.opacity = '0';
+            setTimeout(() => { 
+                spinnerEl.textContent = spinnerTexts[textIndex++ % spinnerTexts.length]; 
+                spinnerEl.style.opacity = '1';
+            }, 300); // Wait for fade-out before changing text and fading in.
+        } else {
+            clearInterval(textInterval); // Stop the interval if loading is complete.
+        }
+    }, 2500);
+
+    // 3. Execute the API request to the backend.
+    Logic.createApiRequest('getWalletForensicsReport', 'GET', { address })
+        .then(report => {
+            // On success, update the state with the complete report.
+            AppState.walletAnalysis.report = report;
+        })
+        .catch(err => {
+            // On failure, create a structured error object in the state.
+            AppState.walletAnalysis.report = { 
+                success: false, 
+                error: { message: err.message || 'An unknown analysis error occurred.' } 
+            };
+        })
+        .finally(() => {
+            // This block runs regardless of success or failure.
+            AppState.walletAnalysis.isLoading = false;
+            clearInterval(textInterval); // CRITICAL: Ensure the interval is always cleared.
+            UI.renderActiveToolkit(); // Re-render the UI to display the report or error message.
+            
+            // If the report is successful, trigger the animations for the score gauges.
+            if (AppState.walletAnalysis.report && AppState.walletAnalysis.report.success) {
+                Logic.animateReportElements();
+            }
+        });
+},
+
+/**
+ * Triggers the CSS animation for the SVG score gauges after they are rendered.
+ */
+animateReportElements: () => {
+    // A short delay ensures elements are fully in the DOM before animation starts.
+    setTimeout(() => {
+        document.querySelectorAll('.score-gauge-fg').forEach(gauge => {
+            if (gauge.dataset.score) {
+                gauge.style.strokeDasharray = `${gauge.dataset.score}, 100`;
+            }
+        });
+    }, 200);
+},
+
+/**
+ * Generates the correct block explorer URL for a given wallet type and address/transaction.
+ * @param {object} wallet - The wallet object from the report, containing address and type.
+ * @param {string} [txHash=''] - An optional transaction hash.
+ * @returns {string} The full URL to the block explorer.
+ */
+getExplorerUrl: (wallet, txHash = '') => {
+    if (!wallet || !wallet.type) return '#';
+    
+    const explorers = {
+        BITCOIN: { addr: 'https://www.blockchain.com/btc/address/', tx: 'https://www.blockchain.com/btc/tx/' },
+        ETHEREUM: { addr: 'https://etherscan.io/address/', tx: 'https://etherscan.io/tx/' },
+        TRON: { addr: 'https://tronscan.org/#/address/', tx: 'https://tronscan.org/#/transaction/' }
+    };
+
+    const explorer = explorers[wallet.type.toUpperCase()];
+    if (!explorer) return '#'; // Fallback for unknown types.
+
+    return txHash ? explorer.tx + txHash : explorer.addr + wallet.address;
+},
+
+/**
+ * Copies text to the user's clipboard and provides instant visual feedback.
+ * @param {string} text - The text to copy.
+ * @param {HTMLElement} element - The button element that was clicked, used to find the feedback span.
+ */
+copyToClipboard: (text, element) => {
+    navigator.clipboard.writeText(text).then(() => {
+        const feedback = element.querySelector('.copied-feedback');
+        if (feedback) {
+            feedback.style.opacity = '1';
+            setTimeout(() => { feedback.style.opacity = '0'; }, 1500);
+        }
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        Utils.showNotification('Could not copy to clipboard.', 'error');
+    });
+},
+
+/**
+ * Generates a dynamic, human-readable executive summary from the raw report data.
+ * This is the definitive, pinnacle-grade implementation.
+ * @param {object} report - The full report object from the backend.
+ * @returns {string} An HTML string containing the formatted summary.
+ */
+generateExecutiveSummary: (report) => {
+    if (!report || !report.analysis || !report.wallet) {
+        return '<p class="text-error-color">Could not generate summary due to incomplete report data.</p>';
+    }
+
+    const { analysis, wallet, provenance } = report;
+    let summary = `This ${wallet.type} wallet, active for <strong>${wallet.ageInDays} days</strong>, presents a <strong class="${Utils.getRiskClass(analysis.riskLevel)} text-risk-color">${analysis.riskLevel}</strong> risk profile with an integrity score of <strong>${analysis.integrityScore}/100</strong>. `;
+    
+    const uniqueControllers = [...new Set((provenance.records || []).map(r => r.controller).filter(c => c && c.toUpperCase() !== 'UNKNOWN' && c.toUpperCase() !== 'CONFIDENTIAL'))];
+
+    if (provenance.records && provenance.records.length > 0) {
+        summary += `It is documented in the GECAN Ledger <strong>${provenance.records.length} time(s)</strong>. `;
+        if (uniqueControllers.length > 1) {
+            summary += `<strong class="text-critical-color">Critically, it has ${uniqueControllers.length} conflicting alleged controllers: ${uniqueControllers.slice(0, 2).join(', ')}${uniqueControllers.length > 2 ? '...' : ''}.</strong> `;
+        } else if (uniqueControllers.length === 1) {
+            summary += `A single controller, <strong>${uniqueControllers[0]}</strong>, is consistently reported. `;
+        } else {
+            summary += `However, no specific controller name is consistently recorded. `;
+        }
+    } else {
+        summary += `There is <strong class="text-error-color">no provenance history</strong> in the GECAN Ledger, making ownership unverifiable. `;
+    }
+
+    if (analysis.redFlags && analysis.redFlags.length > 0) {
+        const criticalFlagsCount = analysis.redFlags.filter(f => f.level === 'CRITICAL').length;
+        if (criticalFlagsCount > 0) {
+            summary += `The analysis identified <strong class="text-critical-color">${criticalFlagsCount} CRITICAL flag(s)</strong> requiring immediate attention. `;
+        } else {
+            summary += `The analysis identified <strong class="text-warning-color">${analysis.redFlags.length} minor flag(s)</strong>. `;
+        }
+    } else {
+        summary += `<strong class="text-success-color">No major compliance flags</strong> were detected during on-chain analysis. `;
+    }
+
+    const isCompliant = analysis.redFlags.every(flag => flag.category !== 'INSTITUTIONAL');
+    if (wallet.type !== 'BITCOIN') {
+        summary += isCompliant
+            ? `The wallet <strong class="text-success-color">meets</strong> the GECAN institutional requirements for balance and transaction history. `
+            : `The wallet <strong class="text-error-color">does not meet</strong> GECAN institutional requirements. `;
+    }
+    
+    summary += `Final recommendation is to proceed with ${analysis.riskLevel === 'LOW' ? 'standard due diligence' : '<strong>enhanced caution and verification</strong>'}.`;
+    return summary;
+},
             
             // --- Institutional Modeler Logic (Unabridged) ---
             bindInstitutionalModelerEvents: () => { /* Preserved from original */ },
