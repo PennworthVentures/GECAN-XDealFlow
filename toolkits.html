@@ -548,7 +548,7 @@ label.form-label,
         // This engine is the definitive, production-grade standard for the Toolkits page.
         // ====================================================================================
         
-        const API_URL = "https://script.google.com/macros/s/AKfycbyCfa1KMxL4fxhyTPeea8ui4QpP_1JQykYkbTvj_ki4UUzU4XqF2QY4ZX09ndabko5Y/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyzIUMB1T0uQKjokIFZetJk1ETHEicCshXyc4B9ATQ/dev";
         
         // ====================================================================================
         // === SECTION 1: STATE & MODELS (v4.0 - DEFINITIVE & SEVERELY ENHANCED) ===
@@ -1027,36 +1027,46 @@ generateExecutiveSummary: (report) => {
      * [NEW & BENCHMARKED] Gathers all submission form data and sends it to the backend.
      */
     submitWalletForReview: (referralInfo) => {
-        const submitBtn = document.getElementById('confirm-submission-btn');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting to GECAN Compliance...';
+    const submitBtn = document.getElementById('confirm-submission-btn');
+    if (!submitBtn) return;
 
-        // Gather all data from the detailed form
-        const submissionData = {
-            walletAddress: AppState.walletAnalysis.report.wallet.address,
-            report: AppState.walletAnalysis.report, // Attach the full forensics report
-            referralInfo: referralInfo,
-            targetOfferId: document.getElementById('submission-offer-id').value,
-            submitter: {
-                name: document.getElementById('submitter-name').value,
-                role: document.getElementById('submitter-role').value,
-                email: document.getElementById('submitter-email').value,
-                phone: document.getElementById('submitter-phone').value,
-            },
-            controller: {
-                name: document.getElementById('controller-name').value,
-            },
-            // Here you would also process and attach files (e.g., CIS)
-        };
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting to GECAN Compliance...';
 
-        console.log("Submitting Data:", submissionData); // For debugging
+    // 1. Gather all data from the detailed form.
+    const submissionData = {
+        report: AppState.walletAnalysis.report, // Attach the full forensics report.
+        referralInfo: referralInfo,
+        targetOfferId: document.getElementById('submission-offer-id').value,
+        submitter: {
+            name: document.getElementById('submitter-name').value,
+            role: document.getElementById('submitter-role').value,
+            email: document.getElementById('submitter-email').value,
+            phone: document.getElementById('submitter-phone').value,
+        },
+        controller: {
+            name: document.getElementById('controller-name').value,
+        },
+        // In a future version, you could add file processing logic here.
+    };
 
-        // TODO: Replace this timeout with a real API call to a new endpoint like 'submitWalletToLedger'
-        setTimeout(() => {
-            Utils.showNotification('Wallet and report submitted successfully to GECAN for official review.', 'success');
-            document.getElementById('finalization-modal').close();
-        }, 2000);
-    },
+    // 2. DEFINITIVE FIX: Call the new backend API endpoint.
+    Logic.createApiRequest('submitWalletForReview', 'POST', submissionData)
+        .then(successMessage => {
+            // On success, show the confirmation from the server and close the modal.
+            Utils.showNotification(successMessage, 'success', 'Submission Sent');
+            document.getElementById('submission-modal').close();
+        })
+        .catch(error => {
+            // On failure, show a detailed error message.
+            Utils.showNotification(error.message, 'error', 'Submission Failed');
+        })
+        .finally(() => {
+            // Always re-enable the button, regardless of outcome.
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Confirm & Submit to Ledger';
+        });
+},
             
             // --- Institutional Modeler Logic (v4.0 - Definitive & Unabridged) ---
 
