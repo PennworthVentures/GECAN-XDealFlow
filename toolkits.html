@@ -352,6 +352,95 @@ label.form-label,
     color: var(--text-diamond); /* Pure white for emphasis */
     font-weight: 600;
 }
+
+        /* ========================================================================= */
+/* === PINNACLE SUBMISSION SUITE ENGINE v1.0 (ISOLATED & HARDENED) === */
+/* This is a NEW, self-contained block. DO NOT merge with other styles. */
+/* It governs only the wallet submission modal for conflict-free perfection. */
+/* ========================================================================= */
+
+/* --- A. MODAL CONTAINER & CENTERING --- */
+#submission-modal {
+    /* Base resets for the container element */
+    max-width: 640px; /* Wider for a more premium feel */
+    width: calc(100% - 2rem);
+    padding: 0;
+    border: none;
+    background: transparent;
+    overflow: visible;
+}
+
+#submission-modal[open] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: fixed !important; 
+    inset: 0 !important; 
+    animation: submission-backdrop-fade-in 0.5s ease forwards;
+    z-index: 200; /* Highest z-index */
+}
+
+#submission-modal::backdrop {
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    animation: submission-backdrop-fade-in 0.5s ease forwards;
+}
+
+/* --- B. MODAL CONTENT WRAPPER --- */
+.submission-dialog-content {
+    background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%);
+    border: 1px solid var(--border-premium);
+    box-shadow: var(--shadow-quantum);
+    border-radius: 1.5rem;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: submission-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* --- C. HARDENED FORM STYLES (ISOLATED) --- */
+.submission-form-input, .submission-form-select {
+    background-color: var(--background-dark) !important;
+    border: 1px solid var(--border-secondary) !important;
+    color: var(--text-primary) !important; 
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    width: 100% !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    appearance: none !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    box-shadow: inset 0 0 0 50px var(--background-dark) !important;
+}
+.submission-form-input:-webkit-autofill, .submission-form-input:-webkit-autofill:hover, 
+.submission-form-input:-webkit-autofill:focus, .submission-form-input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    box-shadow: inset 0 0 0 50px var(--background-dark) !important;
+    caret-color: var(--text-primary) !important;
+}
+.submission-form-input::placeholder { color: var(--text-muted) !important; opacity: 1 !important; }
+.submission-form-input:focus, .submission-form-select:focus { outline: none !important; border-color: var(--primary-azure) !important; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 0 0 50px var(--background-secondary) !important; background-color: var(--background-secondary) !important; }
+.submission-form-input:read-only { background-color: var(--background-dark) !important; color: var(--text-muted) !important; cursor: not-allowed !important; border-style: dashed; }
+.submission-form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important; background-position: right 0.75rem center !important; background-repeat: no-repeat !important; background-size: 1.5em 1.5em !important; padding-right: 2.5rem !important; }
+
+/* --- D. HARDENED TEXT & LAYOUT STYLES (ISOLATED) --- */
+.submission-dialog-content h2 { color: var(--text-diamond) !important; }
+.submission-dialog-content p { color: var(--text-secondary) !important; }
+#submission-modal fieldset { border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1rem; position: relative; margin-top: 1rem; }
+#submission-modal legend { padding: 0 0.5rem; margin-left: 0.5rem; font-size: 1.125rem; font-weight: 600; color: var(--primary-azure) !important; background: var(--background-light); position: relative; top: -0.5rem; display: inline-block; width: auto; }
+#submission-modal label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 500; color: var(--text-platinum) !important; }
+#submission-modal .recommendation-box { margin-top: 1rem; padding: 1rem; background-color: rgba(245, 158, 11, 0.05); border-left: 4px solid var(--warning-color); border-radius: 0 0.5rem 0.5rem 0; }
+#submission-modal .recommendation-box h4 { font-weight: 600; color: var(--warning-color) !important; }
+#submission-modal .recommendation-box p { font-size: 0.875rem; color: var(--text-secondary) !important; margin-top: 0.25rem; }
+#submission-modal .recommendation-box strong { color: var(--text-diamond) !important; font-weight: 600; }
+#submission-modal #referral-error { color: var(--error-color) !important; }
+
+/* --- E. KEYFRAME ANIMATIONS --- */
+@keyframes submission-backdrop-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes submission-content-scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body class="min-h-screen">
@@ -845,58 +934,59 @@ generateExecutiveSummary: (report) => {
      * [NEW & BENCHMARKED] Initiates the first step of the official submission process: the referral ID modal.
      */
     initiateWalletSubmission: () => {
-        const modal = document.getElementById('finalization-modal');
-        modal.innerHTML = UI.renderReferralValidationSuite(
-            'Secure Submission Protocol', 
-            'A valid Partner Referral ID is required to submit this wallet to the GECAN ledger for official review.'
-        );
-        modal.showModal();
-        document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateSubmissionReferralId);
-    },
+    const modal = document.getElementById('submission-modal');
+    if (!modal) return console.error("CRITICAL: Submission modal container not found.");
+    
+    modal.innerHTML = UI.renderReferralValidationSuite(
+        'Secure Submission Protocol', 
+        'A valid Partner Referral ID is required to submit this wallet to the GECAN ledger for official review.'
+    );
+    modal.showModal();
+    document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateSubmissionReferralId);
+},
 
     /**
      * [NEW & BENCHMARKED] Validates the entered referral ID. On success, transitions to the full engagement suite.
      */
     validateSubmissionReferralId: () => {
-        const btn = document.getElementById('validate-referral-btn');
-        const input = document.getElementById('referral-id-input');
-        const errorDiv = document.getElementById('referral-error');
-        const referralId = input.value.trim();
+    const btn = document.getElementById('validate-referral-btn');
+    const input = document.getElementById('referral-id-input');
+    const errorDiv = document.getElementById('referral-error');
+    if (!btn || !input || !errorDiv) return;
 
-        if (!referralId) {
-            errorDiv.textContent = 'Referral ID cannot be empty.';
+    const referralId = input.value.trim();
+    if (!referralId) {
+        errorDiv.textContent = 'Referral ID cannot be empty.';
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validating...';
+    Utils.showNotification('Validating Referral ID with GECAN servers...', 'info');
+
+    Logic.createApiRequest('validateReferralId', 'POST', { referralId })
+        .then(validationResult => {
+            if (validationResult.isValid) {
+                Utils.showNotification('Referral ID Validated Successfully!', 'success');
+                const modal = document.getElementById('submission-modal');
+                modal.innerHTML = UI.renderWalletSubmissionSuite(validationResult);
+                Logic.populateOfferIdDropdown();
+                document.getElementById('wallet-submission-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    Logic.submitWalletForReview(validationResult);
+                });
+            } else {
+                throw new Error('Invalid or inactive Referral ID. Please check the code and try again.');
+            }
+        })
+        .catch(error => {
+            errorDiv.textContent = error.message;
             errorDiv.classList.remove('hidden');
-            return;
-        }
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validating...';
-        
-        Logic.createApiRequest('validateReferralId', 'POST', { referralId })
-            .then(validationResult => {
-                if (validationResult.isValid) {
-                    const modal = document.getElementById('finalization-modal');
-                    // On success, render the full submission suite inside the same modal.
-                    modal.innerHTML = UI.renderWalletSubmissionSuite(validationResult);
-                    
-                    // Populate the Offer ID dropdown dynamically
-                    Logic.populateOfferIdDropdown();
-
-                    // Re-bind events for the new content
-                    document.getElementById('wallet-submission-form').addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        Logic.submitWalletForReview(validationResult);
-                    });
-                } else {
-                    throw new Error('Invalid or inactive Referral ID. Please check the code and try again.');
-                }
-            })
-            .catch(error => {
-                errorDiv.textContent = error.message;
-                errorDiv.classList.remove('hidden');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-key mr-2"></i>Validate & Proceed';
-            });
-    },
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-key mr-2"></i>Validate & Proceed';
+        });
+},
 
             /**
      * [NEW] Fetches the list of active offers and populates the dropdown in the submission form.
@@ -2064,17 +2154,17 @@ const UI = {
      */
     renderReferralValidationSuite: (title, subtitle) => {
     return `
-        <div class="dialog-content-wrapper p-8 space-y-6">
+        <div class="submission-dialog-content p-8 space-y-6">
             <div class="text-center">
-                <h2 class="text-2xl font-bold text-white">${title}</h2>
-                <p class="text-text-secondary mt-2">${subtitle}</p>
+                <h2 class="text-2xl font-bold">${title}</h2>
+                <p class="mt-2">${subtitle}</p>
             </div>
             <div>
-                <input type="text" id="referral-id-input" placeholder="Enter Partner Referral ID" class="form-input text-center font-mono tracking-widest p-4">
+                <input type="text" id="referral-id-input" placeholder="Enter Partner Referral ID" class="submission-form-input text-center font-mono tracking-widest p-4">
             </div>
-            <div id="referral-error" class="text-center text-red-400 bg-red-500/10 p-3 rounded-lg hidden"></div>
+            <div id="referral-error" class="text-center bg-red-500/10 p-3 rounded-lg hidden"></div>
             <div class="flex flex-col sm:flex-row gap-4 pt-2">
-                <button type="button" onclick="document.getElementById('finalization-modal').close()" class="btn-secondary w-full py-3">Cancel</button>
+                <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3">Cancel</button>
                 <button id="validate-referral-btn" class="btn-primary w-full py-3 font-semibold">
                     <i class="fas fa-key mr-2"></i>Validate & Proceed
                 </button>
@@ -2088,77 +2178,54 @@ const UI = {
     renderWalletSubmissionSuite: (referralInfo) => {
     const { report } = AppState.walletAnalysis;
     return `
-        <div class="dialog-content-wrapper max-w-3xl">
+        <div class="submission-dialog-content max-w-3xl">
             <form id="wallet-submission-form">
                 <!-- Header -->
                 <div class="p-6 border-b border-border-color flex justify-between items-start flex-shrink-0">
                     <div>
-                        <h2 class="text-2xl font-bold text-white">Official Wallet Submission</h2>
-                        <p class="text-text-secondary mt-1">Confirm details for official GECAN ledger entry.</p>
+                        <h2 class="text-2xl font-bold">Official Wallet Submission</h2>
+                        <p class="mt-1">Confirm details for official GECAN ledger entry.</p>
                     </div>
-                    <button type="button" onclick="document.getElementById('finalization-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors">×</button>
+                    <button type="button" onclick="document.getElementById('submission-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors">×</button>
                 </div>
 
                 <!-- Scrollable Content -->
                 <div class="p-6 space-y-6 overflow-y-auto">
-                    <!-- Section 1: Wallet & Offer Details -->
-                    <fieldset class="space-y-4">
+                    <fieldset>
                         <legend>Transaction Context</legend>
-                        <div>
-                            <label class="form-label">Wallet Address to be Submitted</label>
-                            <input type="text" class="form-input" value="${report.wallet.address}" readonly>
-                        </div>
-                        <div>
-                            <label class="form-label">Target Offer ID (If Applicable)</label>
-                            <select id="submission-offer-id" class="form-select"></select>
+                        <div class="space-y-4">
+                            <div><label>Wallet Address to be Submitted</label><input type="text" class="submission-form-input" value="${report.wallet.address}" readonly></div>
+                            <div><label>Target Offer ID (If Applicable)</label><select id="submission-offer-id" class="submission-form-select"></select></div>
                         </div>
                     </fieldset>
 
-                    <!-- Section 2: Your Details -->
-                    <fieldset class="space-y-4">
+                    <fieldset>
                         <legend>Your Details (Submitter)</legend>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="form-label">Your Full Name*</label>
-                                <input type="text" id="submitter-name" class="form-input" placeholder="e.g., Jane Smith" required>
-                            </div>
-                            <div>
-                                <label class="form-label">Your Role*</label>
-                                <input type="text" id="submitter-role" class="form-input" placeholder="e.g., Mandate, Broker" required>
-                            </div>
-                            <div>
-                                <label class="form-label">Your Contact Email*</label>
-                                <input type="email" id="submitter-email" class="form-input" placeholder="you@example.com" required>
-                            </div>
-                            <div>
-                                <label class="form-label">Your Contact Phone*</label>
-                                <input type="tel" id="submitter-phone" class="form-input" placeholder="+1 555 123 4567" required>
-                            </div>
+                            <div><label>Your Full Name*</label><input type="text" id="submitter-name" class="submission-form-input" placeholder="e.g., Jane Smith" required></div>
+                            <div><label>Your Role*</label><input type="text" id="submitter-role" class="submission-form-input" placeholder="e.g., Mandate, Broker" required></div>
+                            <div><label>Your Contact Email*</label><input type="email" id="submitter-email" class="submission-form-input" placeholder="you@example.com" required></div>
+                            <div><label>Your Contact Phone*</label><input type="tel" id="submitter-phone" class="submission-form-input" placeholder="+1 555 123 4567" required></div>
                         </div>
                     </fieldset>
 
-                    <!-- Section 3: Controller Details -->
-                    <fieldset class="space-y-4">
+                    <fieldset>
                         <legend>Alleged Wallet Controller</legend>
-                        <div>
-                            <label class="form-label">Principal / Entity Name*</label>
-                            <input type="text" id="controller-name" class="form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required>
-                        </div>
-                        <div class="recommendation-box">
-                            <h4>Recommendation</h4>
-                            <p>For expedited review, it is highly recommended to provide the alleged controller's Customer Information Sheet (CIS) and Proof of Funds (POF) via secure email to <strong>compliance@gecan.co</strong> after submission.</p>
+                        <div class="space-y-4">
+                            <div><label>Principal / Entity Name*</label><input type="text" id="controller-name" class="submission-form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required></div>
+                            <div class="recommendation-box">
+                                <h4>Recommendation</h4>
+                                <p>For expedited review, it is highly recommended to provide the alleged controller's Customer Information Sheet (CIS) and Proof of Funds (POF) via secure email to <strong>compliance@gecan.co</strong> after submission.</p>
+                            </div>
                         </div>
                     </fieldset>
                     
-                    <div>
-                        <label class="form-label">Referring Partner</label>
-                        <input type="text" class="form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly>
-                    </div>
+                    <div><label>Referring Partner</label><input type="text" class="submission-form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly></div>
                 </div>
 
                 <!-- Footer / Actions -->
                 <div class="p-6 border-t border-border-color mt-auto flex flex-col sm:flex-row gap-4 flex-shrink-0">
-                    <button type="button" onclick="document.getElementById('finalization-modal').close()" class="btn-secondary w-full py-3">Cancel Submission</button>
+                    <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3">Cancel Submission</button>
                     <button type="submit" id="confirm-submission-btn" class="btn-primary w-full py-3 font-semibold bg-gradient-to-r from-success-color to-emerald-600 border-success-color">
                         <i class="fas fa-check-circle mr-2"></i>Confirm & Submit to Ledger
                     </button>
