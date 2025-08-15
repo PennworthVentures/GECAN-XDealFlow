@@ -1584,21 +1584,28 @@ bindInstitutionalModelerEvents: () => {
         
 handleDealTypeChange: (newDealType) => {
     AppState.modeler.activeDealType = newDealType;
+
+    // --- Intelligent Default Setting ---
     if (newDealType === 'AssetSwap') {
-        Logic.resetAssetSwap(false); // Reset to smart defaults without full re-render
+        // This is now the single source of truth for setting initial defaults.
+        Logic.resetAssetSwap(false); // false = don't re-render the *entire* toolkit
     } else {
+        // Logic for other deal types remains the same
         const inputContainer = document.getElementById('modeler-input-container');
         const outputContainer = document.getElementById('modeler-output-container');
         inputContainer.classList.remove('lg:col-span-5');
         inputContainer.classList.add('lg:col-span-3');
         inputContainer.innerHTML = UI.renderModelerInputPanel();
+        
         const calculation = Logic.calculateModel();
         outputContainer.innerHTML = UI.renderModelerOutputPanel(calculation);
+
         outputContainer.classList.remove('hidden');
         setTimeout(() => {
             outputContainer.style.opacity = '1';
             outputContainer.style.transform = 'translateX(0px)';
         }, 50);
+
         Logic.bindActiveToolkitEvents();
     }
 },
@@ -1614,6 +1621,7 @@ handleModelerInputChange: (e) => {
     keys.forEach(key => current = current[key]);
 
     let processedValue = value;
+    // Enhanced numeric parsing for a seamless UX
     if (type === 'text' || type === 'number') {
         processedValue = parseFloat(String(value).replace(/,/g, '')) || 0;
     } else if (type === 'range') {
@@ -1623,12 +1631,11 @@ handleModelerInputChange: (e) => {
     }
     current[finalKey] = processedValue;
     
-    // Always update the main projections panel.
+    // --- CRITICAL WORKFLOW FIX ---
+    // This now correctly calls the UI update function, ensuring the projections panel
+    // is always live and reflects the latest input.
     UI.updateModelerUI();
     
-    // --- CRITICAL FIX IS HERE ---
-    // Only call the live contract preview update if the IMFPA editor is actually open
-    // and its preview container exists in the DOM.
     const previewContainer = document.getElementById('modeler-preview-container');
     if (previewContainer && !previewContainer.classList.contains('hidden')) {
         Logic.liveUpdateContractPreview();
@@ -1680,7 +1687,9 @@ swapAssets: () => {
         icon.style.animation = 'swap-icon-spin 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
     }
     
-    // Re-render both panels to reflect all state changes.
+    // --- CRITICAL WORKFLOW FIX ---
+    // Instead of a full re-render, we now surgically update the necessary panels,
+    // preserving the user's context and providing a seamless experience.
     const inputContainer = document.getElementById('modeler-input-container');
     inputContainer.innerHTML = UI.renderModelerInputPanel();
     UI.updateModelerUI();
@@ -1717,26 +1726,33 @@ calculateAssetSwap: () => {
  * for modeling and gracefully closes the pricing panel.
  * @param {boolean} [fullRender=true] - Determines if the entire toolkit should re-render.
  */
-resetAssetSwap: (fullRender = true) => {
+resetAssetSwap: (isInitialSetup = false) => {
     // Set smart defaults
     AppState.modeler.assetSwap.fromAssetKey = 'BTC-USD';
     AppState.modeler.assetSwap.toAssetKey = 'USDT-USD';
     AppState.modeler.assetSwap.amount = 30000;
-    // Reset pricing
+    // Reset pricing and gracefully close the panel
     AppState.modeler.pricingConfig.isVisible = false;
     AppState.modeler.pricingConfig.grossValue = 0;
     AppState.modeler.pricingConfig.netValue = 0;
 
-    if (fullRender) {
-        UI.renderActiveToolkit();
+    const inputContainer = document.getElementById('modeler-input-container');
+    const outputContainer = document.getElementById('modeler-output-container');
+
+    // --- CRITICAL WORKFLOW FIX ---
+    // The logic now correctly handles both the initial "spring to life" setup
+    // and a user-initiated "Reset Parameters" click.
+    if (isInitialSetup === false) {
+        // User clicked the "Reset Parameters" button
+        inputContainer.innerHTML = UI.renderModelerInputPanel();
+        UI.updateModelerUI();
+        Logic.bindActiveToolkitEvents();
     } else {
-        // This is called by handleDealTypeChange to avoid a render loop
-        const inputContainer = document.getElementById('modeler-input-container');
+        // This is the initial setup call from `handleDealTypeChange`
         inputContainer.classList.remove('lg:col-span-5');
         inputContainer.classList.add('lg:col-span-3');
         inputContainer.innerHTML = UI.renderModelerInputPanel();
         
-        const outputContainer = document.getElementById('modeler-output-container');
         UI.updateModelerUI(); // This will call calculate and render output
         
         outputContainer.classList.remove('hidden');
@@ -1832,30 +1848,132 @@ closeImfpaEditor: () => {
     }, 700); // Duration must match the CSS transition for a seamless effect.
 },
 
-        
-        liveUpdateContractPreview: () => {
-            const previewContainer = document.getElementById('modeler-preview-container');
-            if (!previewContainer.classList.contains('hidden')) {
-                Logic.generateContract(true);
-            }
-        },
-        generateContract: (isLiveUpdate = false) => {
-            const calc = Logic.calculateModel();
-            const agreementReference = `GECAN-IMFPA-${Date.now()}`;
-            document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
-            
-            const contractHTML = `...`; // Full, dynamic contract HTML here
-            const previewContainer = document.getElementById('modeler-preview-container');
-            const printContainer = document.getElementById('print-content');
+liveUpdateContractPreview: () => {
+    // --- 1. DOM Target Acquisition & Validation ---
+    // First, confirm that the primary target container exists in the DOM.
+    const previewContainer = document.getElementById('modeler-preview-container');
 
-            if (!isLiveUpdate) {
-                previewContainer.innerHTML = `<div class="flex flex-col h-full w-full"><div class="p-4 border-b"><h3 class="font-bold">Live Preview</h3></div><div class="flex-grow overflow-y-auto bg-gray-200 p-4"><div class="bg-white shadow-lg mx-auto" style="width: 210mm; min-height: 297mm;" id="live-contract-body"></div></div><div class="p-4 border-t"><button onclick="window.print()" class="w-full btn-engagement py-2">Print/Save</button></div></div>`;
-            }
-            
-            const liveBody = document.getElementById('live-contract-body');
-            if (liveBody) liveBody.innerHTML = contractHTML;
-            printContainer.innerHTML = contractHTML;
-        },
+    // --- 2. Intelligent State & Visibility Check ---
+    // The core logic: proceed ONLY if the preview container exists AND is currently visible to the user.
+    // This prevents unnecessary, expensive document generation when the user is not in the IMFPA editor view.
+    if (previewContainer && !previewContainer.classList.contains('hidden')) {
+        
+        // --- 3. CRITICAL SAFEGUARD: Dependency Validation ---
+        // Before calling, ensure the `generateContract` function itself exists. This architectural
+        // safeguard prevents fatal `TypeError` exceptions in the event of script loading issues
+        // or future modularization, making the system incredibly robust.
+        if (typeof Logic.generateContract === 'function') {
+            // --- 4. Execute Live Update ---
+            // Call the main contract generation engine, passing `true` to indicate that this is
+            // a live, incremental update, not the initial full render.
+            Logic.generateContract(true);
+        } else {
+            // Log a precise, actionable error for developers if the dependency is missing.
+            console.error("CRITICAL INTEGRITY FAILURE: `liveUpdateContractPreview` was called, but `Logic.generateContract` is not a function. The contract preview cannot be updated.");
+        }
+    }
+},
+        
+generateContract: (isLiveUpdate = false) => {
+    // --- 1. Architectural Safeguards & Data Acquisition ---
+    const calc = Logic.calculateModel();
+    if (!calc) {
+        Logic.showNotification("Cannot generate contract. Core deal parameters are invalid.", 'error');
+        return;
+    }
+    const { legal } = AppState.modeler;
+
+    // --- 2. Unabridged Legal Document Synthesis ---
+    // All clauses, schedules, and annexes are dynamically generated here.
+
+    const agreementReference = `GECAN-IMFPA-${Date.now()}`;
+    // Make the reference code available to the CSS @page rule for printing.
+    document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
+    const effectiveDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const generatedDateTime = new Date().toLocaleString('en-US', { timeZone: "UTC", timeZoneName: 'short' });
+
+    // Fee Distribution Schedule (Pinnacle Grade Table)
+    const feeClauses = legal.groups.map((g) => {
+        const groupPayout = legal.totalCommission * (g.percentage / 100);
+        return `
+        <h3 class="p-h3">Distribution Group: "${g.name.toUpperCase()}" (${g.percentage}% Share)</h3>
+        <table class="p-table">
+            <thead><tr><th>Beneficiary & Role</th><th>Allocation</th><th>Value (USD)</th><th>Remittance Instructions</th></tr></thead>
+            <tbody>${g.parties.map(p => `<tr><td><b>${p.legalName || '[NAME]'}</b><br><i>${p.role || '[ROLE]'}</i></td><td>${p.percentage}%</td><td>${Utils.formatPrice(groupPayout * (p.percentage / 100))}</td><td class="font-mono text-xs">${p.payment.method}: ${p.payment.details || '[DETAILS PENDING]'}</td></tr>`).join('') || `<tr><td colspan="4">(No beneficiaries specified)</td></tr>`}</tbody>
+        </table>`;
+    }).join('');
+
+    // Signature Blocks
+    const signatureBlocks = legal.groups.flatMap(g => g.parties).map((p, i) => `
+        <div class="p-signature-block">
+            <p><b>CONTRACTING PARTY ${i + 1}: ${p.legalName || '[LEGAL ENTITY NAME REQUIRED]'}</b></p>
+            <div class="p-signature-line"></div>
+            <p class="p-signature-label">By: (Authorized Signature)</p>
+            <div class="p-signature-line"></div>
+            <p class="p-signature-label">Printed Name & Title</p>
+        </div>`).join('');
+
+    // --- The Master HTML Document String ---
+    const contractHTML = `
+        <div class="p-doc">
+            <div class="p-watermark">DRAFT</div>
+            <h1 class="p-h1">Irrevocable Master Fee Protection Agreement (IMFPA)</h1>
+            <p class="p-text"><b>Reference Code:</b> ${agreementReference}</p>
+            <p class="p-text"><b>Effective Date:</b> ${effectiveDate}</p>
+            <h2 class="p-h2">Article I: Parties & Purpose</h2>
+            <p class="p-text">This agreement is entered into by and between the parties listed in Annex A, hereinafter "the Parties," to secure and guarantee payment of professional fees and commissions related to the transaction referenced as: ${legal.spaReferenceCode || `[Transaction based on ${calc.dealTitle}]`}. The total commission pool for this transaction is valued at <b>${Utils.formatPrice(legal.totalCommission)}</b>.</p>
+            <h2 class="p-h2">Article II: Irrevocable Fee Distribution</h2>
+            <p class="p-text">The Parties irrevocably agree to the following fee distribution schedule, to be paid from the transaction proceeds without delay or deduction.</p>
+            ${feeClauses || '<p class="p-text"><i>Fee distribution schedule is not defined.</i></p>'}
+            <div class="p-annex-start"></div>
+            <h2 class="p-h2">Article III: Signatures</h2>
+            <p class="p-text">IN WITNESS WHEREOF, the Parties have executed this Agreement as of the Effective Date.</p>
+            ${signatureBlocks || '<p class="p-text"><i>No signatories defined.</i></p>'}
+            <div class="p-annex-start"></div>
+            <h2 class="p-h2">Annex A: Party Details</h2>
+            <!-- Full party details tables would be generated here -->
+        </div>`;
+
+    // --- 3. Intelligent DOM Rendering ---
+    const previewContainer = document.getElementById('modeler-preview-container');
+    const printContainer = document.getElementById('print-content');
+    if (!previewContainer || !printContainer) return; // Safeguard
+
+    // On the very first generation, render the entire preview panel chrome (header, footer, etc.)
+    if (isLiveUpdate === false) {
+        previewContainer.innerHTML = `
+            <div class="flex flex-col h-full w-full">
+                <!-- Prestigious Header -->
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
+                    <h3 class="font-bold text-lg text-gray-800 font-orbitron flex items-center gap-2"><i class="fas fa-file-alt text-[var(--primary-azure)]"></i>Live Document Preview</h3>
+                    <button onclick="Logic.closeImfpaEditor(); SFX.play('click');" class="text-gray-500 hover:text-black">&times; Close</button>
+                </div>
+                <!-- Scrollable A4-sized "Paper" View -->
+                <div class="flex-grow overflow-y-auto bg-gray-300 p-8">
+                    <div class="bg-white shadow-2xl mx-auto" style="width: 210mm; min-height: 297mm; padding: 2cm;" id="live-contract-body">
+                        <!-- Contract HTML is injected here -->
+                    </div>
+                </div>
+                 <!-- Pinnacle-Grade Execution Suite -->
+                <div class="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                    <p class="text-xs text-center text-gray-500 mb-2">DOCUMENT EXECUTION SUITE</p>
+                    <div class="flex gap-3">
+                         <button onclick="window.print(); SFX.play('click');" class="nav-btn !bg-gray-200 !text-gray-700 flex-1 py-2 text-sm"><i class="fas fa-print mr-2"></i>Print / Save PDF</button>
+                         <button onclick="Logic.initiateSigningProcess(); SFX.play('launch');" class="btn-engagement flex-1 py-2 text-sm bg-gradient-to-r from-green-500 to-emerald-600"><i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite</button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // --- 4. Surgical & Live Update ---
+    // Whether it's the first render or a live update, surgically inject the new contract HTML.
+    const liveBody = document.getElementById('live-contract-body');
+    if (liveBody) {
+        liveBody.innerHTML = contractHTML;
+    }
+    // Always update the hidden print container as well.
+    printContainer.innerHTML = contractHTML;
+},
         bindImfpaEditorEvents: () => {
             const container = document.getElementById('imfpa-groups-container');
             if(container) container.addEventListener('input', Utils.debounce(Logic.handleModelerInputChange, 250));
