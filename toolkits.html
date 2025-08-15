@@ -1663,38 +1663,58 @@ addImfpaParty: (groupIndex) => {
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
             togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
             generateContract: () => {
-                const { legal } = AppState.modeler;
-                const calc = Logic.calculateModel();
-                if (!calc) return Utils.showNotification("Define core deal parameters first.", 'error');
-                const allParties = legal.groups.flatMap(g => g.parties);
-                const isImfpa = legal.agreementType === 'IMFPA';
-                if (isImfpa) {
-                    if (legal.groups.length === 0) return Utils.showNotification("IMFPA requires at least one allocation group.", 'error');
-                    const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-                    if (Math.abs(totalGroupPct - 100) > 0.01) return Utils.showNotification("IMFPA requires group allocation to equal 100%. Disable Auto-Balance to set manually.", 'error');
-                    for (const group of legal.groups) {
-                        const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-                        if (Math.abs(totalPartyPct - 100) > 0.01) return Utils.showNotification(`Party allocation in "${group.name}" must equal 100%. Disable Auto-Balance to set manually.`, 'error');
-                    }
-                    if (allParties.length === 0) return Utils.showNotification("IMFPA requires at least one beneficiary party.", 'error');
-                }
-                if (allParties.length < 2) return Utils.showNotification("An agreement requires at least two signatory parties.", 'error');
-                if (allParties.some(p => !p.legalName || !p.role || !p.email)) return Utils.showNotification("All parties must have a Legal Name, Role, and Email defined.", 'error');
-                
-                const agreementReference = `GECAN-${legal.agreementType}-${new Date().getTime()}`;
-                document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
-                const contractHTML = UI.renderContractDocument(agreementReference);
+    // --- 1. PINNACLE-GRADE PRE-SYNTHESIS VALIDATION ---
+    // Use the validation engine to check if the data is ready.
+    if (!Logic.validateImfpaData()) {
+        Utils.showNotification("Cannot synthesize document. Please complete all required fields (*) first.", 'error', 'Data Incomplete');
+        // Vibrate the button to give physical feedback of failure.
+        const btn = document.getElementById('synthesize-btn');
+        if (btn) {
+            btn.style.animation = 'shake 0.5s';
+            setTimeout(() => btn.style.animation = '', 500);
+        }
+        return;
+    }
 
-                const previewContainer = document.getElementById('contract-preview-container');
-                const printContainer = document.getElementById('print-area');
-                if (previewContainer && printContainer) {
-                    previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
-                    printContainer.innerHTML = contractHTML;
-                    previewContainer.classList.remove('hidden');
-                    previewContainer.scrollIntoView({ behavior: 'smooth' });
-                    Utils.showNotification(`${legal.agreementType} document synthesized successfully.`, 'success');
-                }
-            },
+    const { legal } = AppState.modeler;
+    const agreementReference = `GECAN-${legal.agreementType}-${Date.now()}`;
+
+    // --- 2. DYNAMIC STYLING FOR PRINTING ENGINE ---
+    // Set the CSS variable used by the @page rule for perfect print headers.
+    document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
+
+    // --- 3. SYNTHESIZE THE HTML DOCUMENT ---
+    const contractHTML = UI.renderContractDocument(agreementReference);
+
+    // --- 4. LOCATE TARGET CONTAINERS ---
+    const previewContainer = document.getElementById('contract-preview-container');
+    const printContainer = document.getElementById('print-area');
+
+    if (previewContainer && printContainer) {
+        // --- 5. POPULATE THE CONTAINERS ---
+        // Render the full execution suite (buttons + document wrapper) into the visible container.
+        previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
+        // Render ONLY the clean contract document into the hidden print-area for perfect PDF generation.
+        printContainer.innerHTML = contractHTML;
+
+        // --- 6. <<< PINNACLE FIX: MAKE THE CONTAINER VISIBLE >>> ---
+        // This is the critical step that was missing. It commands the browser to render the container.
+        previewContainer.classList.remove('hidden');
+
+        // --- 7. ENHANCED USER EXPERIENCE ---
+        // Provide immediate success feedback.
+        Utils.showNotification(`${legal.agreementType} document synthesized successfully.`, 'success', 'Synthesis Complete');
+        
+        // Automatically scroll the user down to the newly visible contract for a guided workflow.
+        setTimeout(() => {
+            previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100); // A slight delay ensures the browser has rendered the element before scrolling.
+    } else {
+        // Military-grade error handling for critical UI failures.
+        console.error("CRITICAL FAILURE: #contract-preview-container or #print-area not found in DOM.");
+        Utils.showNotification("A critical UI error prevented the document from being displayed.", 'error');
+    }
+},
 
 
             // 2. ADD this missing function inside your `Logic` object, after `generatePremiumEmailTemplate`.
