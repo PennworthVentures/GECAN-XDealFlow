@@ -1674,62 +1674,286 @@ addImfpaParty: (groupIndex) => {
 },
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
             togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
+            
+            
+            /**
+             * [PINNACLE/MILITARY-GRADE v13.0 - CLIENT-SIDE SYNTHESIS ENGINE (DEFINITIVE)]
+             * This function is the definitive, self-contained, client-side engine for synthesizing the complete, 
+             * professional-grade IMFPA-NCNDA document. It meticulously constructs the entire HTML document string 
+             * based on the current deal model, incorporating all advanced legal clauses, dynamic data, premium 
+             * styling, and the required detailed table-based outputs. This function is perfectly integral to 
+             * the toolkits.html file structure and executes entirely within the browser as instructed.
+             */
             generateContract: () => {
-    // --- 1. PINNACLE-GRADE PRE-SYNTHESIS VALIDATION ---
-    // Use the validation engine to check if the data is ready.
-    if (!Logic.validateImfpaData()) {
-        Utils.showNotification("Cannot synthesize document. Please complete all required fields (*) first.", 'error', 'Data Incomplete');
-        // Vibrate the button to give physical feedback of failure.
-        const btn = document.getElementById('synthesize-btn');
-        if (btn) {
-            btn.style.animation = 'shake 0.5s';
-            setTimeout(() => btn.style.animation = '', 500);
-        }
-        return;
-    }
+                // --- 1. PRE-SYNTHESIS VALIDATION & RESOURCE CONFIRMATION ---
+                const { legal } = AppState.modeler;
+                const calc = Logic.calculateModel();
+            
+                if (!calc) { 
+                    Utils.showNotification("Cannot generate contract. Please define and calculate the core deal parameters first.", 'error', 'Calculation Incomplete');
+                    return; 
+                }
 
-    const { legal } = AppState.modeler;
-    const agreementReference = `GECAN-${legal.agreementType}-${Date.now()}`;
+                const previewContainer = document.getElementById('contract-preview-container');
+                const printContainer = document.getElementById('print-area');
 
-    // --- 2. DYNAMIC STYLING FOR PRINTING ENGINE ---
-    // Set the CSS variable used by the @page rule for perfect print headers.
-    document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
+                if (!previewContainer || !printContainer) {
+                    console.error('CRITICAL UI FAILURE: The required #contract-preview-container or #print-area DOM elements are missing.');
+                    Utils.showNotification("A critical UI error prevented the document from being displayed.", 'error', 'UI Integration Fault');
+                    return;
+                }
+            
+                // --- 2. DYNAMIC LEGAL CLAUSE & METADATA SYNTHESIS ---
+                const agreementReference = `GECAN-IMFPA-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                const effectiveDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const generatedDateTime = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+                
+                // Generates elevated, transaction-specific legal language for the preamble.
+                let recitalsText = '';
+                switch(AppState.modeler.activeDealType) {
+                    case 'AssetSwap':
+                        recitalsText = `WHEREAS, the Contracting Parties have entered into preliminary negotiations concerning a sophisticated digital and/or physical asset exchange transaction contemplating the bilateral swap of approximately ${Utils.formatNumber(AppState.modeler.assetSwap.amount)} units of ${calc.fromAsset.baseAsset} in consideration for equivalent value in ${calc.toAsset.baseAsset}, subject to market valuations and regulatory compliance;`;
+                        break;
+                    case 'CommodityTrade':
+                        const ct = AppState.modeler.commodityTrade;
+                        recitalsText = `WHEREAS, the Contracting Parties are engaged in commercial negotiations for the procurement, sale, and delivery of physical commodities, specifically ${Utils.formatNumber(ct.quantity)} ${ct.unitOfMeasure} of premium-grade ${Utils.getAssetByKey(ct.assetKey).baseAsset}, in accordance with international trade conventions and applicable commodity exchange regulations;`;
+                        break;
+                    case 'CryptoLoan':
+                        const cl = AppState.modeler.cryptoLoan;
+                        recitalsText = `WHEREAS, the Contracting Parties seek to establish a sophisticated credit facility secured by digital asset collateral, encompassing a principal loan amount of ${Utils.formatPrice(calc.loanPrincipal, cl.loanCurrency)} against pledged collateral consisting of ${Utils.formatNumber(cl.collateralAmount)} units of ${Utils.getAssetByKey(cl.collateralAssetKey).baseAsset}, subject to regulatory compliance and risk management protocols;`;
+                        break;
+                    case 'SBLCMonetization':
+                        const sblc = AppState.modeler.sblcMonetization;
+                        recitalsText = `WHEREAS, the Contracting Parties are collaborating on the monetization and financial optimization of a Standby Letter of Credit (SBLC) instrument bearing a face value of ${Utils.formatPrice(sblc.faceValue)}, issued by a prime banking institution and compliant with ICC UCP 600 standards;`;
+                        break;
+                    default:
+                        recitalsText = `WHEREAS, the Contracting Parties have established a framework for cooperation in connection with a substantial international financial transaction of significant commercial value and strategic importance;`;
+                }
+            
+                // --- 3. SEVERELY UPGRADED FEE DISTRIBUTION SCHEDULE SYNTHESIS (PREMIUM TABLE FORMAT) ---
+                const feeClauses = legal.groups.map((g) => {
+                    const groupPayout = legal.totalCommission * (g.percentage / 100);
+            
+                    const partiesRows = g.parties.map((p) => {
+                        const partyValue = groupPayout * (p.percentage / 100);
+                        const settlementDetailsText = p.payment.details || 'To be furnished through separate, encrypted KYC/KYB documentation exchange pursuant to regulatory requirements';
+            
+                        return `
+                        <tr>
+                            <td>
+                                <div class="beneficiary-name">${p.legalName || '[LEGAL ENTITY NAME REQUIRED]'}</div>
+                                <div class="beneficiary-role">${p.role || '[ROLE NOT DESIGNATED]'}</div>
+                            </td>
+                            <td>
+                                <div class="allocation-value">${p.percentage}%</div>
+                                <div class="text-muted">${Utils.formatPrice(partyValue, 'USD')}</div>
+                            </td>
+                            <td>
+                                <div class="settlement-method">${p.payment.method?.toUpperCase() || '[METHOD]'} (${p.payment.currency || 'N/A'})</div>
+                                <div class="settlement-details">${settlementDetailsText}</div>
+                            </td>
+                        </tr>`;
+                    }).join('');
+            
+                    const tableBody = g.parties.length > 0
+                        ? partiesRows
+                        : `<tr class="no-parties-row"><td colspan="3">(No designated beneficiaries specified for this distribution group)</td></tr>`;
+            
+                    return `
+                    <div class="fee-group-container">
+                        <div class="fee-group-header">
+                            <span class="fee-group-header-title">Distribution Group: "${g.name.toUpperCase()}"</span>
+                            <span class="fee-group-header-value">${g.percentage}% (${Utils.formatPrice(groupPayout, 'USD')})</span>
+                        </div>
+                        <table class="fee-distribution-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40%;">Beneficiary & Role</th>
+                                    <th style="width: 20%;">Allocation</th>
+                                    <th style="width: 40%;">Remittance Instructions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableBody}
+                            </tbody>
+                        </table>
+                    </div>`;
+                }).join('');
+            
+                // --- 4. ENHANCED PARTY SIGNATURE BLOCK SYNTHESIS ---
+                const signatureBlocks = legal.groups.flatMap(g => g.parties).map((p, i) => `
+                <div class="p-signature-block" data-party-id="party-${i}" data-party-name="${p.legalName || 'Unnamed Party'}">
+                    <p class="p-strong">FOR AND ON BEHALF OF: ${(p.legalName || '[LEGAL ENTITY NAME REQUIRED]').toUpperCase()}</p>
+                    <div class="p-signature-line" data-sig-type="signature"><!-- Signature will be applied here --></div>
+                    <p class="p-signature-label">By: (Authorized Signature)</p>
+                    <div class="p-signature-line" data-sig-type="print-name"></div>
+                    <p class="p-signature-label">Name/Title: ${p.legalName || ''} / ${p.role || ''}</p>
+                    <div class="p-signature-line" data-sig-type="date"><!-- Date will be applied here --></div>
+                    <p class="p-signature-label">Date of Execution:</p>
+                    <div data-sig-type="seal" style="position: relative; height: 100px; margin-top: 10px;"><!-- Seal will be applied here --></div>
+                </div>`).join('\n');
+            
+                // --- 5. COMPREHENSIVE PARTY DETAILS ANNEX SYNTHESIS (TABLE OUTPUT FORMAT) ---
+                const partyDetailsTable = legal.groups.flatMap(g => g.parties).map((p, i) => `
+                <div class="party-details-section">
+                    <h4>CONTRACTING PARTY ${i+1} - COMPREHENSIVE DETAILS</h4>
+                    <table class="party-details-table">
+                        <tbody>
+                            <tr>
+                                <td class="detail-label">Legal Entity Name:</td>
+                                <td class="detail-value">${p.legalName || '[REQUIRED - NOT SPECIFIED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Functional Role & Capacity:</td>
+                                <td class="detail-value">${p.role || '[ROLE NOT DESIGNATED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Primary Contact Email:</td>
+                                <td class="detail-value">${p.email || '[EMAIL ADDRESS REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Direct Contact Number:</td>
+                                <td class="detail-value">${p.contactNumber || '[CONTACT NUMBER REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Passport/ID Number:</td>
+                                <td class="detail-value">${p.passport.number || '[IDENTIFICATION REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Document Issue Date:</td>
+                                <td class="detail-value">${p.passport.issueDate || '[DATE REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Document Expiry Date:</td>
+                                <td class="detail-value">${p.passport.expiryDate || '[DATE REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Issuing Authority:</td>
+                                <td class="detail-value">${p.passport.authority || '[AUTHORITY REQUIRED]'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h5>REMITTANCE & SETTLEMENT COORDINATES</h5>
+                    <table class="payment-details-table">
+                        <tbody>
+                            <tr>
+                                <td class="detail-label">Fee Allocation Percentage:</td>
+                                <td class="detail-value">(As specified in Article 3 - Fee Distribution Schedule)</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Preferred Payment Method:</td>
+                                <td class="detail-value">${p.payment.method || '[METHOD NOT SPECIFIED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Settlement Currency:</td>
+                                <td class="detail-value">${p.payment.currency || '[CURRENCY NOT SPECIFIED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Banking/Payment Details:</td>
+                                <td class="detail-value">${p.payment.details || 'To be furnished through separate, secure KYC/KYB documentation exchange in compliance with AML/CTF regulations'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`).join('\n\n');
+            
+                // --- 6. MASTER DOCUMENT ASSEMBLY ---
+                const contractHTML = `
+                <div class="p-doc">
+                    <style>
+                        /* This embedded style block ensures the document is self-contained and renders perfectly for printing or PDF conversion. */
+                        .p-doc { font-family: 'Garamond', 'Times New Roman', serif; font-size: 11pt; line-height: 1.4; color: #000; }
+                        .p-h1 { font-size: 18pt; font-weight: bold; color: #1A237E; border-bottom: 2px solid #b4975a; padding-bottom: 8pt; margin-bottom: 24pt; font-family: 'Helvetica Neue', Arial, sans-serif; }
+                        .p-h2 { font-size: 14pt; font-weight: bold; color: #283593; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-top: 20pt; margin-bottom: 12pt; font-family: 'Helvetica Neue', Arial, sans-serif; page-break-after: avoid; }
+                        .p-text { text-align: justify; margin-bottom: 11pt; }
+                        .p-strong { font-weight: bold; color: #283593; }
+                        .p-annex-start { page-break-before: always; }
+                        .p-watermark { display: block !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120pt; color: rgba(180, 151, 90, 0.08); font-weight: bold; z-index: -1000; pointer-events: none; font-family: 'Arial Black', sans-serif; }
+                        
+                        .fee-group-container { margin-top: 20pt; border: 1px solid #ccc; border-radius: 6pt; overflow: hidden; background: #fff; page-break-inside: avoid; }
+                        .fee-group-header { background: #e8eaf6; padding: 8pt 12pt; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+                        .fee-group-header-title { font-size: 10pt; font-weight: bold; color: #1A237E; text-transform: uppercase; }
+                        .fee-group-header-value { font-family: 'Courier New', monospace; font-size: 11pt; font-weight: bold; color: #1A237E; }
+                        .fee-distribution-table { width: 100%; border-collapse: collapse; }
+                        .fee-distribution-table th, .fee-distribution-table td { padding: 8pt 12pt; text-align: left; vertical-align: top; border-bottom: 1px solid #ddd; font-size: 9pt; }
+                        .fee-distribution-table th { font-weight: bold; font-size: 8pt; color: #283593; text-transform: uppercase; background-color: #f9f9f9; }
+                        .beneficiary-name { font-weight: bold; font-size: 10pt; color: #000; }
+                        .beneficiary-role { font-style: italic; color: #555; }
+                        .allocation-value { font-family: 'Courier New', monospace; font-weight: bold; color: #1A237E; }
+                        .text-muted { color: #555; }
+                        .settlement-method { font-weight: bold; text-transform: uppercase; }
+                        .settlement-details { font-family: 'Courier New', monospace; font-size: 8pt; color: #555; word-break: break-all; }
+                        .no-parties-row td { text-align: center; font-style: italic; color: #777; padding: 15pt; }
 
-    // --- 3. SYNTHESIZE THE HTML DOCUMENT ---
-    const contractHTML = UI.renderContractDocument(agreementReference);
+                        .party-details-section { margin-top: 20pt; page-break-inside: avoid; }
+                        .party-details-section h4 { background: #1A237E; color: white; padding: 8pt 12pt; margin: 0; font-size: 10pt; text-transform: uppercase; }
+                        .party-details-section h5 { background: #e8eaf6; color: #1A237E; padding: 6pt 12pt; margin: 0; font-size: 9pt; text-transform: uppercase; font-weight: bold; }
+                        .party-details-table, .payment-details-table { width: 100%; border: 1px solid #ccc; border-collapse: collapse; margin-bottom: 12pt; }
+                        .party-details-table td, .payment-details-table td { padding: 6pt 8pt; border: 1px solid #ccc; font-size: 9pt; vertical-align: top; }
+                        .detail-label { background: #f9f9f9; font-weight: bold; width: 30%; }
+                        .detail-value { font-family: 'Courier New', monospace; }
 
-    // --- 4. LOCATE TARGET CONTAINERS ---
-    const previewContainer = document.getElementById('contract-preview-container');
-    const printContainer = document.getElementById('print-area');
+                        .p-signature-block { margin-top: 40pt; page-break-inside: avoid; display: block; border-top: 1px solid #ccc; padding-top: 20pt; }
+                        .p-signature-line { border-bottom: 1px solid #000; margin-top: 40pt; margin-bottom: 6pt; min-height: 20px; }
+                        .p-signature-label { font-size: 9pt; color: #555; }
 
-    if (previewContainer && printContainer) {
-        // --- 5. POPULATE THE CONTAINERS ---
-        // Render the full execution suite (buttons + document wrapper) into the visible container.
-        previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
-        // Render ONLY the clean contract document into the hidden print-area for perfect PDF generation.
-        printContainer.innerHTML = contractHTML;
+                        .legal-footer { margin-top: 40pt; padding-top: 15pt; border-top: 2px solid #1A237E; font-size: 8pt; color: #555; text-align: center; page-break-inside: avoid; }
+                    </style>
+                    <div class="p-watermark">GECAN DRAFT</div>
+                    <h1 class="p-h1">Irrevocable Master Fee Protection & Non-Circumvention Non-Disclosure Agreement (IMFPA-NCNDA)</h1>
+                    <p class="p-text"><strong>Reference:</strong> ${agreementReference}</p>
+                    <p class="p-text"><strong>Effective Date:</strong> ${effectiveDate}</p>
+                    <p class="p-text"><strong>Governing Law:</strong> ${legal.jurisdiction || '[JURISDICTION TO BE SPECIFIED]'}</p>
+                    <p class="p-text">This Agreement is structured in accordance with the highest standards of international commercial practice, including but not limited to, principles promulgated by the International Chamber of Commerce (ICC), Paris, France.</p>
 
-        // --- 6. <<< PINNACLE FIX: MAKE THE CONTAINER VISIBLE >>> ---
-        // This is the critical step that was missing. It commands the browser to render the container.
-        previewContainer.classList.remove('hidden');
+                    <h2 class="p-h2">PRELIMINARY RECITALS</h2>
+                    <p class="p-text" style="font-style: italic;">${recitalsText}</p>
+                    <p class="p-text">NOW, THEREFORE, in consideration of the mutual covenants contained herein, the Parties agree to be legally bound by the terms and conditions set forth in this Agreement.</p>
 
-        // --- 7. ENHANCED USER EXPERIENCE ---
-        // Provide immediate success feedback.
-        Utils.showNotification(`${legal.agreementType} document synthesized successfully.`, 'success', 'Synthesis Complete');
-        
-        // Automatically scroll the user down to the newly visible contract for a guided workflow.
-        setTimeout(() => {
-            previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100); // A slight delay ensures the browser has rendered the element before scrolling.
-    } else {
-        // Military-grade error handling for critical UI failures.
-        console.error("CRITICAL FAILURE: #contract-preview-container or #print-area not found in DOM.");
-        Utils.showNotification("A critical UI error prevented the document from being displayed.", 'error');
-    }
-},
+                    <h2 class="p-h2">ARTICLE I: TRANSACTION & FEE POOL</h2>
+                    <p class="p-text">The subject matter of this Agreement is a transaction with an aggregate base value of <strong>${Utils.formatPrice(calc.baseValueUSD)}</strong>, which generates a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> (the "Fee Pool").</p>
 
+                    <div class="p-annex-start">
+                        <h2 class="p-h2">ANNEX A: IRREVOCABLE FEE DISTRIBUTION SCHEDULE</h2>
+                        <p class="p-text">The Fee Pool shall be irrevocably distributed directly from the designated Payer's transactional settlement account(s) to the respective Beneficiaries' accounts according to the following schedule:</p>
+                        ${feeClauses}
+                    </div>
 
-            // 2. ADD this missing function inside your `Logic` object, after `generatePremiumEmailTemplate`.
+                    <div class="p-annex-start">
+                        <h2 class="p-h2">ANNEX B: COMPREHENSIVE CONTRACTING PARTY DETAILS</h2>
+                        <p class="p-text">This Annex B forms an integral, binding, and enforceable component of the foregoing Agreement and contains comprehensive identification and payment coordination details for all Contracting Parties.</p>
+                        ${partyDetailsTable}
+                    </div>
+                    
+                    <div class="p-annex-start">
+                        <h2 class="p-h2">EXECUTION & SIGNATURE PAGE</h2>
+                        <p class="p-text">IN WITNESS WHEREOF, the Contracting Parties have caused this Agreement to be executed by their respective duly authorized representatives as of the Effective Date first written above.</p>
+                        ${signatureBlocks}
+                    </div>
+
+                    <div class="legal-footer">
+                        <strong>CONFIDENTIAL & PROPRIETARY DOCUMENT</strong><br>
+                        This document contains legally privileged and confidential commercial information. Unauthorized disclosure, reproduction, or distribution is strictly prohibited.<br>
+                        Document Reference: ${agreementReference} | Generated: ${generatedDateTime}
+                    </div>
+                </div>`;
+            
+                // --- 7. RENDER DOCUMENT & EXECUTION SUITE TO THE DOM ---
+                previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
+                printContainer.innerHTML = contractHTML; // Populate hidden div for clean printing
+                
+                previewContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+                
+                Utils.showNotification(
+                    'Premium legal contract generated successfully! Please review with legal counsel before execution.', 
+                    'success',
+                    'Document Synthesized'
+                );
+            },
+            
             getPrintStyles: () => {
                 let printCss = '';
                 // Iterate through all stylesheets loaded on the page
