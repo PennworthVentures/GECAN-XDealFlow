@@ -1573,27 +1573,77 @@ togglePricingConfig: () => {
         // Premium audio feedback for high-end user experience
         Logic.playPremiumSoundFeedback('modal-open');
     },
-            refreshImfpaModalUI: () => {
-    // This function's core job is to re-render the editor panel's content
-    const editorColumn = document.querySelector('.imfpa-editor-column');
-    if (editorColumn) {
-        editorColumn.innerHTML = UI.renderImfpaEditorContent(); // Use new helper function
-    }
+    refreshImfpaModalUI: () => {
+        // Advanced UI refresh with intelligent state preservation
+        const editorColumn = document.querySelector('.imfpa-editor-column');
+        if (!editorColumn) return;
 
-    // Re-bind event listeners after re-rendering
-    const modalContent = document.getElementById('imfpa-modal');
-    if (modalContent) { 
-        modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
-        modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
-        modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
-        modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal); 
-    }
+        // Preserve scroll position for seamless UX
+        const scrollPosition = editorColumn.scrollTop;
+        
+        // Premium fade-out animation before content refresh
+        editorColumn.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        editorColumn.style.opacity = '0.7';
+        
+        setTimeout(() => {
+            // Render enhanced editor content with premium styling
+            editorColumn.innerHTML = UI.renderImfpaEditorContent();
+            
+            // Restore scroll position for continuity
+            editorColumn.scrollTop = scrollPosition;
+            
+            // Premium fade-in animation
+            editorColumn.style.opacity = '1';
+            
+            // Initialize premium hover effects and micro-interactions
+            Logic.initializePremiumInteractions(editorColumn);
+        }, 150);
 
-    // Run all necessary updates
-    Logic.updateImfpaCalculations(); 
-    Logic.updateContractPreview(); 
-    Logic.updateSynthesizeButtonState();
-},
+        // Rebind enhanced event listeners with debouncing
+        const modalContent = document.getElementById('imfpa-modal');
+        if (modalContent) {
+            // Remove existing listeners to prevent memory leaks
+            modalContent.removeEventListener('input', Logic.debouncedInputHandler);
+            modalContent.removeEventListener('change', Logic.debouncedInputHandler);
+            
+            // Add premium debounced handlers for optimal performance
+            modalContent.addEventListener('input', Logic.debouncedInputHandler);
+            modalContent.addEventListener('change', Logic.debouncedInputHandler);
+        }
+
+        // Execute comprehensive update cascade
+        Logic.updateImfpaCalculations();
+        Logic.updateContractPreview();
+        Logic.updateSynthesizeButtonState();
+        Logic.updateProgressIndicators();
+    },
+// === ENHANCED INPUT HANDLING WITH PREMIUM DEBOUNCING ===
+    debouncedInputHandler: Logic.debounce((e) => {
+        // Premium visual feedback on input
+        const inputElement = e.target;
+        if (inputElement.tagName === 'INPUT' || inputElement.tagName === 'TEXTAREA') {
+            Logic.addPremiumInputFeedback(inputElement);
+        }
+        
+        Logic.handleModelerInputChange(e);
+        Logic.updateImfpaCalculations();
+        Logic.updateContractPreview();
+        Logic.updateSynthesizeButtonState();
+        Logic.playPremiumSoundFeedback('input-change');
+    }, 300),
+
+    // === PREMIUM DEBOUNCE UTILITY ===
+    debounce: (func, wait) => {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
 
             handleModelerInputChangeInModal: (e) => {
                 Logic.handleModelerInputChange(e);
@@ -1601,95 +1651,219 @@ togglePricingConfig: () => {
                 Logic.updateContractPreview();
                 Logic.updateSynthesizeButtonState(); // <-- ADD THIS LINE
             },
-            toggleAgreementType: (isImfpa) => {
-                AppState.modeler.legal.agreementType = isImfpa ? 'IMFPA' : 'NCNDA';
-                const commissionSection = document.getElementById('commission-allocation-section');
-                if (commissionSection) commissionSection.classList.toggle('hidden', !isImfpa);
-                const labels = document.querySelectorAll('.agreement-toggle .toggle-label');
-                labels[0].classList.toggle('active', !isImfpa); labels[0].classList.toggle('text-gray-500', isImfpa);
-                labels[1].classList.toggle('active', isImfpa); labels[1].classList.toggle('text-gray-500', !isImfpa);
-                Logic.updateContractPreview();
-                Logic.updateSynthesizeButtonState(); // <-- ADD THIS LINE
-            },
-            updateImfpaCalculations: () => {
-                const { legal } = AppState.modeler;
-                const { groups, totalCommission, autoBalance } = legal;
-                const totalPoolEl = document.getElementById('imfpa-total-commission-pool');
-                if (totalPoolEl) totalPoolEl.textContent = Utils.formatPrice(totalCommission);
+
+            setTimeout(() => {
+                toggleContainer.style.transform = 'rotateY(0deg)';
+            }, 300);
+        }
+        
+        // Enhanced commission section animation
+        const commissionSection = document.getElementById('commission-allocation-section');
+        if (commissionSection) {
+            if (!isImfpa) {
+                // Premium slide-up and fade-out animation
+                commissionSection.style.transform = 'translateY(-20px)';
+                commissionSection.style.opacity = '0';
+                setTimeout(() => commissionSection.classList.add('hidden'), 300);
+            } else {
+                // Premium slide-down and fade-in animation
+                commissionSection.classList.remove('hidden');
+                commissionSection.style.transform = 'translateY(20px)';
+                commissionSection.style.opacity = '0';
                 
-                if (autoBalance && legal.agreementType === 'IMFPA') {
-                    // Auto-Balance Groups
-                    let totalSetGroupPct = 0;
-                    const zeroGroups = [];
-                    groups.forEach((g, index) => {
-                        const pct = parseFloat(g.percentage) || 0;
-                        if (pct > 0) totalSetGroupPct += pct; else zeroGroups.push(index);
-                    });
-                    if (zeroGroups.length > 0 && totalSetGroupPct < 100) {
-                        const remainingPct = 100 - totalSetGroupPct;
-                        const share = remainingPct / zeroGroups.length;
-                        zeroGroups.forEach(index => {
-                            groups[index].percentage = share;
-                            const input = document.querySelector(`[data-path="legal.groups[${index}].percentage"]`);
-                            if (input) input.value = share.toFixed(2);
-                        });
-                    }
-                }
-
-                const totalGroupPct = groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-                const totalAllocatedEl = document.getElementById('imfpa-total-allocated');
-                if (totalAllocatedEl) {
-                    totalAllocatedEl.textContent = `Total Allocated: ${totalGroupPct.toFixed(2)}%`;
-                    totalAllocatedEl.className = `text-right font-mono text-sm ${Math.abs(totalGroupPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
-                }
-
-                groups.forEach((g, groupIndex) => {
-                    const groupValueEl = document.getElementById(`imfpa-group-value-${groupIndex}`);
-                    if(groupValueEl) groupValueEl.textContent = Utils.formatPrice(totalCommission * ((parseFloat(g.percentage) || 0) / 100));
-                    
-                    if (autoBalance && legal.agreementType === 'IMFPA') {
-                        // Auto-Balance Parties
-                        let totalSetPartyPct = 0;
-                        const zeroParties = [];
-                        g.parties.forEach((p, partyIndex) => {
-                            const pct = parseFloat(p.percentage) || 0;
-                            if (pct > 0) totalSetPartyPct += pct; else zeroParties.push(partyIndex);
-                        });
-                        if (zeroParties.length > 0 && totalSetPartyPct < 100) {
-                            const remainingPct = 100 - totalSetPartyPct;
-                            const share = remainingPct / zeroParties.length;
-                            zeroParties.forEach(index => {
-                                g.parties[index].percentage = share;
-                                const input = document.querySelector(`[data-path="legal.groups[${groupIndex}].parties[${index}].percentage"]`);
-                                if (input) input.value = share.toFixed(2);
-                            });
-                        }
-                    }
-
-                    const totalPartyPct = g.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-                    const groupTotalEl = document.getElementById(`imfpa-group-total-${groupIndex}`);
-                    if (groupTotalEl) {
-                        groupTotalEl.textContent = `Group Total: ${totalPartyPct.toFixed(2)}%`;
-                        groupTotalEl.className = `text-right font-mono text-xs ${Math.abs(totalPartyPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
-                    }
+                requestAnimationFrame(() => {
+                    commissionSection.style.transition = 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+                    commissionSection.style.transform = 'translateY(0)';
+                    commissionSection.style.opacity = '1';
                 });
-            },
-            updateContractPreview: () => {
-    // This function now exclusively handles the live preview.
-    const documentWrapper = document.getElementById('contract-document-wrapper');
-    if (!documentWrapper) return;
-    
-    // Check if data is sufficient to render a preview.
-    if (Logic.validateImfpaData()) {
+            }
+        }
+        
+        // Enhanced label state management with premium hover effects
+        const labels = document.querySelectorAll('.agreement-toggle .toggle-label');
+        labels.forEach((label, index) => {
+            const isActive = (index === 0 && !isImfpa) || (index === 1 && isImfpa);
+            label.classList.toggle('active', isActive);
+            label.classList.toggle('text-gray-500', !isActive);
+            
+            // Add premium pulsing effect for active state
+            if (isActive) {
+                label.style.animation = 'premiumPulse 0.8s ease-in-out';
+            }
+        });
+        
+        // Update all dependent systems
+        Logic.updateContractPreview();
+        Logic.updateSynthesizeButtonState();
+        Logic.updateProgressIndicators();
+        Logic.playPremiumSoundFeedback('toggle-switch');
+    },
+    // === ADVANCED COMMISSION CALCULATIONS WITH REAL-TIME INTELLIGENCE ===
+    updateImfpaCalculations: () => {
         const { legal } = AppState.modeler;
-        const agreementReference = `GECAN-${legal.agreementType}-... (Live Preview)`;
-        document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
-        documentWrapper.innerHTML = UI.renderContractDocument(agreementReference);
-    } else {
-        // If data is incomplete, show the placeholder.
-        documentWrapper.innerHTML = UI.renderContractPreviewPlaceholder();
-    }
-},
+        const { groups, totalCommission, autoBalance } = legal;
+        
+        // Premium animated counter for total commission pool
+        const totalPoolEl = document.getElementById('imfpa-total-commission-pool');
+        if (totalPoolEl) {
+            Logic.animateNumberCounter(totalPoolEl, totalCommission, 800);
+        }
+        
+        // Advanced auto-balancing with smooth animations
+        if (autoBalance && legal.agreementType === 'IMFPA') {
+            Logic.executeSmartAutoBalance(groups);
+        }
+
+        // Calculate and animate total group percentage
+        const totalGroupPct = groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
+        const totalAllocatedEl = document.getElementById('imfpa-total-allocated');
+        
+        if (totalAllocatedEl) {
+            const isBalanced = Math.abs(totalGroupPct - 100) < 0.01;
+            
+            // Premium color transition animation
+            totalAllocatedEl.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            totalAllocatedEl.textContent = `Total Allocated: ${totalGroupPct.toFixed(2)}%`;
+            totalAllocatedEl.className = `text-right font-mono text-sm ${
+                isBalanced ? 'text-success-color premium-glow-green' : 'text-error-color premium-glow-red'
+            }`;
+            
+            // Add premium breathing animation for balanced state
+            if (isBalanced) {
+                totalAllocatedEl.style.animation = 'premiumBreathing 2s ease-in-out infinite';
+            }
+        }
+
+        // Enhanced group-level calculations with premium animations
+        groups.forEach((group, groupIndex) => {
+            Logic.updateGroupCalculations(group, groupIndex, totalCommission, autoBalance, legal.agreementType);
+        });
+    },
+
+    // === INTELLIGENT AUTO-BALANCE SYSTEM ===
+    executeSmartAutoBalance: (groups) => {
+        // Group-level auto-balancing with premium visual feedback
+        let totalSetGroupPct = 0;
+        const zeroGroups = [];
+        
+        groups.forEach((group, index) => {
+            const pct = parseFloat(group.percentage) || 0;
+            if (pct > 0) {
+                totalSetGroupPct += pct;
+            } else {
+                zeroGroups.push(index);
+            }
+        });
+        
+        if (zeroGroups.length > 0 && totalSetGroupPct < 100) {
+            const remainingPct = 100 - totalSetGroupPct;
+            const sharePerGroup = remainingPct / zeroGroups.length;
+            
+            zeroGroups.forEach(index => {
+                groups[index].percentage = sharePerGroup;
+                const input = document.querySelector(`[data-path="legal.groups[${index}].percentage"]`);
+                if (input) {
+                    Logic.animateInputValue(input, sharePerGroup.toFixed(2));
+                }
+            });
+        }
+    },
+
+    // === ENHANCED GROUP CALCULATIONS WITH MICRO-ANIMATIONS ===
+    updateGroupCalculations: (group, groupIndex, totalCommission, autoBalance, agreementType) => {
+        // Animate group value with premium counter effect
+        const groupValueEl = document.getElementById(`imfpa-group-value-${groupIndex}`);
+        if (groupValueEl) {
+            const groupValue = totalCommission * ((parseFloat(group.percentage) || 0) / 100);
+            Logic.animateNumberCounter(groupValueEl, groupValue, 600, true);
+        }
+        
+        // Party-level auto-balancing with enhanced animations
+        if (autoBalance && agreementType === 'IMFPA') {
+            Logic.executePartyAutoBalance(group, groupIndex);
+        }
+
+        // Calculate and animate party percentage totals
+        const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+        const groupTotalEl = document.getElementById(`imfpa-group-total-${groupIndex}`);
+        
+        if (groupTotalEl) {
+            const isBalanced = Math.abs(totalPartyPct - 100) < 0.01;
+            
+            groupTotalEl.style.transition = 'all 0.3s ease-out';
+            groupTotalEl.textContent = `Group Total: ${totalPartyPct.toFixed(2)}%`;
+            groupTotalEl.className = `text-right font-mono text-xs ${
+                isBalanced ? 'text-success-color' : 'text-error-color'
+            }`;
+            
+            // Add premium shimmer effect for balanced groups
+            if (isBalanced) {
+                groupTotalEl.style.animation = 'premiumShimmer 1.5s ease-in-out';
+            }
+        }
+    },
+
+    // === PARTY-LEVEL AUTO-BALANCE WITH PREMIUM ANIMATIONS ===
+    executePartyAutoBalance: (group, groupIndex) => {
+        let totalSetPartyPct = 0;
+        const zeroParties = [];
+        
+        group.parties.forEach((party, partyIndex) => {
+            const pct = parseFloat(party.percentage) || 0;
+            if (pct > 0) {
+                totalSetPartyPct += pct;
+            } else {
+                zeroParties.push(partyIndex);
+            }
+        });
+        
+        if (zeroParties.length > 0 && totalSetPartyPct < 100) {
+            const remainingPct = 100 - totalSetPartyPct;
+            const sharePerParty = remainingPct / zeroParties.length;
+            
+            zeroParties.forEach(index => {
+                group.parties[index].percentage = sharePerParty;
+                const input = document.querySelector(`[data-path="legal.groups[${groupIndex}].parties[${index}].percentage"]`);
+                if (input) {
+                    Logic.animateInputValue(input, sharePerParty.toFixed(2));
+                }
+            });
+        }
+    },
+    // === PREMIUM CONTRACT PREVIEW WITH LIVE UPDATES ===
+    updateContractPreview: () => {
+        const documentWrapper = document.getElementById('contract-document-wrapper');
+        if (!documentWrapper) return;
+        
+        // Premium loading animation
+        documentWrapper.style.opacity = '0.8';
+        documentWrapper.style.transform = 'scale(0.98)';
+        
+        setTimeout(() => {
+            if (Logic.validateImfpaData()) {
+                const { legal } = AppState.modeler;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const agreementReference = `GECAN-${legal.agreementType}-${timestamp.substring(0, 19)} (Live Preview)`;
+                
+                // Update CSS custom property for watermarking
+                document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
+                
+                // Render premium document with enhanced styling
+                documentWrapper.innerHTML = UI.renderContractDocument(agreementReference);
+                
+                // Add premium document animations
+                Logic.initializePremiumDocumentEffects(documentWrapper);
+            } else {
+                // Show elegant placeholder with completion progress
+                documentWrapper.innerHTML = UI.renderContractPreviewPlaceholder();
+            }
+            
+            // Premium fade-in animation
+            documentWrapper.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            documentWrapper.style.opacity = '1';
+            documentWrapper.style.transform = 'scale(1)';
+        }, 200);
+    },
             // ADD THIS NEW FUNCTION to the Logic object
 activateWorkspaceMode: () => {
     const modal = document.getElementById('imfpa-modal');
@@ -1755,409 +1929,1055 @@ getPrintStyles: () => {
     }
     return css;
 },
-            // Add this new function inside the `Logic` object
-validateImfpaData: () => {
-    const { legal } = AppState.modeler;
-    const allParties = legal.groups.flatMap(g => g.parties);
-    const isImfpa = legal.agreementType === 'IMFPA';
-
-    // Rule 1: Must have a jurisdiction
-    if (!legal.jurisdiction) return false;
-
-    // Rule 2: Must have at least two parties for any agreement
-    if (allParties.length < 2) return false;
-
-    // --- SEVERELY UPGRADED RULE 3 ---
-    // All parties must be at least in a "Sufficient" state (core details complete).
-    const allPartiesSufficient = allParties.every(p => 
-        p.legalName && p.email && p.contactNumber
-    );
-    if (!allPartiesSufficient) return false;
-
-    // Rule 4: If IMFPA, run commission allocation checks
-    if (isImfpa) {
-        if (legal.groups.length === 0) return false;
-        const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-        if (Math.abs(totalGroupPct - 100) > 0.01) return false;
-
-        for (const group of legal.groups) {
-            if (group.parties.length === 0) return false;
-            const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-            if (Math.abs(totalPartyPct - 100) > 0.01) return false;
-        }
-    }
-
-    // If all critical checks pass, the data is valid for synthesis.
-    return true;
-},
-
-// Add this new function inside the `Logic` object
-updateSynthesizeButtonState: () => {
-    const isReady = Logic.validateImfpaData();
-    const btn = document.getElementById('synthesize-btn');
-    if (!btn) return;
-
-    btn.disabled = !isReady;
-    btn.innerHTML = `<i class="fas fa-file-signature mr-2"></i>${isReady ? 'Synthesize & Preview Full Document' : 'Complete All Required Fields (*)'}`;
-    
-    // Dynamically change the button's class for a premium color shift
-    const readyClass = 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow';
-    const incompleteClass = 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed';
-    
-    // Remove old classes before adding new ones
-    btn.classList.remove(...readyClass.split(' '), ...incompleteClass.split(' '));
-    btn.classList.add(...(isReady ? readyClass : incompleteClass).split(' '));
-},
+    // === ADVANCED DATA VALIDATION WITH ENHANCED INTELLIGENCE ===
+    validateImfpaData: () => {
+        const { legal } = AppState.modeler;
+        const allParties = legal.groups.flatMap(g => g.parties);
+        const isImfpa = legal.agreementType === 'IMFPA';
+        
+        // Enhanced validation rules with comprehensive checks
+        const validationRules = [
+            {
+                condition: !legal.jurisdiction,
+                message: "Jurisdiction selection required",
+                severity: "critical"
+            },
+            {
+                condition: allParties.length < 2,
+                message: "Minimum two parties required",
+                severity: "critical"
+            },
+            {
+                condition: !allParties.every(p => p.legalName && p.email && p.contactNumber),
+                message: "All parties must have complete core details",
+                severity: "critical"
+            }
+        ];
+        
+        // IMFPA-specific validation rules
+        if (isImfpa) {
+            validationRules.push(
+                {
+                    condition: legal.groups.length === 0,
+                    message: "At least one commission group required",
+                    severity: "critical"
+                },
+                {
+                    condition: Math.abs(legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0) - 100) > 0.01,
+                    message: "Group percentages must total 100%",
+                    severity: "critical"
+                }
+            );
             
-/**
- * Adds a new group or a new signatory party based on the current agreement mode.
- * Pinnacle-Grade Logic: This is the single control point for adding new entities,
- * ensuring the correct workflow is always triggered.
- */
-addImfpaGroup: () => {
-    const isImfpa = AppState.modeler.legal.agreementType === 'IMFPA';
+            // Party-level percentage validation
+            for (const group of legal.groups) {
+                if (group.parties.length === 0) {
+                    validationRules.push({
+                        condition: true,
+                        message: "Each group must contain at least one party",
+                        severity: "critical"
+                    });
+                    break;
+                }
+                
+                const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+                if (Math.abs(totalPartyPct - 100) > 0.01) {
+                    validationRules.push({
+                        condition: true,
+                        message: "Party percentages within each group must total 100%",
+                        severity: "critical"
+                    });
+                    break;
+                }
+            }
+        }
+        
+        // Execute validation and update UI indicators
+        const failedRules = validationRules.filter(rule => rule.condition);
+        Logic.updateValidationIndicators(failedRules);
+        
+        return failedRules.length === 0;
+    },
 
-    if (isImfpa) {
-        // IMFPA Mode: Add a new, distinct group for commission allocation.
-        AppState.modeler.legal.groups.push({
-            name: `Group ${AppState.modeler.legal.groups.length + 1}`,
-            percentage: 0,
-            parties: []
-        });
-    } else {
-        // NCNDA Mode: We don't add a "group". Instead, we call `addImfpaParty`
-        // and force it to add a party to the first (and only) hidden group.
-        // This maintains a consistent data structure while providing a decoupled UX.
-        Logic.addImfpaParty(0);
-    }
-    
-    // Refresh the entire modal UI to reflect the changes.
-    Logic.refreshImfpaModalUI();
-},
-            removeImfpaGroup: (groupIndex) => { AppState.modeler.legal.groups.splice(groupIndex, 1); Logic.refreshImfpaModalUI(); },
-            /**
-/**
- * Adds a new party to a SPECIFIED group.
- * This function is now a specialized utility called by the UI or by `addImfpaGroup`.
- * @param {number} groupIndex - The index of the group to add the party to.
- */
+    // === PREMIUM SYNTHESIS BUTTON WITH INTELLIGENT STATE MANAGEMENT ===
+    updateSynthesizeButtonState: () => {
+        const isReady = Logic.validateImfpaData();
+        const btn = document.getElementById('synthesize-btn');
+        if (!btn) return;
+        
+        // Premium state transition animation
+        btn.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        btn.disabled = !isReady;
+        
+        // Enhanced button content with premium icons
+        const readyContent = '<i class="fas fa-magic mr-2"></i>Synthesize & Preview Full Document';
+        const incompleteContent = '<i class="fas fa-exclamation-triangle mr-2"></i>Complete All Required Fields (*)';
+        btn.innerHTML = isReady ? readyContent : incompleteContent;
+        
+        // Premium visual state management
+        const readyClasses = 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-xl hover:shadow-premium-gold-glow premium-btn-ready';
+        const incompleteClasses = 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed premium-btn-disabled';
+        
+        // Clean class management
+        btn.classList.remove(...readyClasses.split(' '), ...incompleteClasses.split(' '));
+        btn.classList.add(...(isReady ? readyClasses : incompleteClasses).split(' '));
+        
+        // Add premium pulsing effect when ready
+        if (isReady) {
+            btn.style.animation = 'premiumReadyPulse 2s ease-in-out infinite';
+        } else {
+            btn.style.animation = '';
+        }
+    },
+            
+    // === ENHANCED GROUP AND PARTY MANAGEMENT ===
+    addImfpaGroup: () => {
+        const isImfpa = AppState.modeler.legal.agreementType === 'IMFPA';
+        
+        if (isImfpa) {
+            // Add new group with premium default configuration
+            const newGroupIndex = AppState.modeler.legal.groups.length;
+            AppState.modeler.legal.groups.push({
+                name: `Group ${newGroupIndex + 1}`,
+                percentage: 0,
+                parties: [],
+                createdAt: Date.now(),
+                premium: true
+            });
+            
+            Logic.playPremiumSoundFeedback('group-added');
+        } else {
+            // NCNDA mode: add party to default group
+            Logic.addImfpaParty(0);
+        }
+        
+        // Refresh with premium animations
+        Logic.refreshImfpaModalUI();
+        Logic.updateProgressIndicators();
+    },
+
+    removeImfpaGroup: (groupIndex) => {
+        if (AppState.modeler.legal.groups[groupIndex]) {
+            // Premium removal animation
+            const groupElement = document.querySelector(`[data-group-index="${groupIndex}"]`);
+            if (groupElement) {
+                groupElement.style.transition = 'all 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
+                groupElement.style.transform = 'translateX(-100%) scale(0.8)';
+                groupElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    AppState.modeler.legal.groups.splice(groupIndex, 1);
+                    Logic.refreshImfpaModalUI();
+                    Logic.playPremiumSoundFeedback('item-removed');
+                }, 400);
+            } else {
+                AppState.modeler.legal.groups.splice(groupIndex, 1);
+                Logic.refreshImfpaModalUI();
+            }
+        }
+    },
 addImfpaParty: (groupIndex) => {
-    const { legal } = AppState.modeler;
-
-    // Military-Grade Safeguard: If the target group doesn't exist (especially for NCNDA's first run), create it.
-    if (!legal.groups[groupIndex]) {
-        legal.groups[groupIndex] = {
-            name: 'NCNDA Signatories',
-            percentage: 100, // Not used in UI but good for data consistency
-            parties: []
+        const { legal } = AppState.modeler;
+        
+        // Ensure target group exists
+        if (!legal.groups[groupIndex]) {
+            legal.groups[groupIndex] = {
+                name: 'NCNDA Signatories',
+                percentage: 100,
+                parties: [],
+                premium: true
+            };
+        }
+        
+        // Create enhanced party template
+        const newPartyTemplate = {
+            legalName: `New Party`,
+            role: 'Signatory',
+            percentage: 0,
+            detailsVisible: true,
+            email: '',
+            contactNumber: '',
+            createdAt: Date.now(),
+            premium: true,
+            passport: { 
+                number: '', 
+                issueDate: '', 
+                expiryDate: '', 
+                authority: '' 
+            },
+            payment: { 
+                method: 'Bank Wire', 
+                currency: 'USD', 
+                details: '' 
+            }
         };
-    }
+        
+        // Add party with premium feedback
+        legal.groups[groupIndex].parties.push(newPartyTemplate);
+        Logic.refreshImfpaModalUI();
+        Logic.playPremiumSoundFeedback('party-added');
+        Logic.updateProgressIndicators();
+    },
 
-    // Define the pristine, default state for a new party.
-    const newPartyTemplate = {
-        legalName: `New Party`,
-        role: 'Signatory', // More appropriate default for both modes
-        percentage: 0,
-        detailsVisible: true, // Auto-expand for immediate data entry
-        email: '', contactNumber: '',
-        passport: { number: '', issueDate: '', expiryDate: '', authority: '' },
-        payment: { method: 'Bank Wire', currency: 'USD', details: '' }
-    };
+    removeImfpaParty: (groupIndex, partyIndex) => {
+        if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) {
+            // Premium removal animation
+            const partyElement = document.querySelector(`[data-party-index="${partyIndex}"][data-group-index="${groupIndex}"]`);
+            if (partyElement) {
+                partyElement.style.transition = 'all 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
+                partyElement.style.transform = 'translateY(-20px) scale(0.9)';
+                partyElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1);
+                    Logic.refreshImfpaModalUI();
+                    Logic.playPremiumSoundFeedback('item-removed');
+                }, 400);
+            } else {
+                AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1);
+                Logic.refreshImfpaModalUI();
+            }
+        }
+    },
 
-    // Add the new party to the specified group's `parties` array.
-    legal.groups[groupIndex].parties.push(newPartyTemplate);
-    
-    // Refresh the UI to show the new party card.
-    Logic.refreshImfpaModalUI();
-},
-            removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
-            togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
-generateContract: () => {
-    // This function is now the FINAL step that LOCKS the preview and shows execution buttons.
-    if (!Logic.validateImfpaData()) {
-        Utils.showNotification("Cannot finalize. Please ensure all required fields (*) are complete.", 'error');
-        return;
-    }
+    togglePartyDetails: (groupIndex, partyIndex) => {
+        const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex];
+        if (party) {
+            party.detailsVisible = !party.detailsVisible;
+            
+            // Premium toggle animation
+            const detailsPanel = document.querySelector(`[data-details-panel="${groupIndex}-${partyIndex}"]`);
+            if (detailsPanel) {
+                if (party.detailsVisible) {
+                    detailsPanel.style.maxHeight = '0';
+                    detailsPanel.style.opacity = '0';
+                    setTimeout(() => {
+                        detailsPanel.style.transition = 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+                        detailsPanel.style.maxHeight = '500px';
+                        detailsPanel.style.opacity = '1';
+                    }, 50);
+                } else {
+                    detailsPanel.style.transition = 'all 0.3s ease-out';
+                    detailsPanel.style.maxHeight = '0';
+                    detailsPanel.style.opacity = '0';
+                }
+            }
+            
+            Logic.playPremiumSoundFeedback('toggle');
+        }
+    },
 
-    const modal = document.getElementById('imfpa-modal');
-    const footerSuiteContainer = document.getElementById('execution-suite-footer');
-    const printContainer = document.getElementById('print-area');
-    const finalHtml = document.querySelector('#contract-document-wrapper .contract-document')?.outerHTML;
+    // === PREMIUM CONTRACT GENERATION WITH ENHANCED WORKFLOW ===
+    generateContract: () => {
+        if (!Logic.validateImfpaData()) {
+            Utils.showNotification("Cannot finalize. Please ensure all required fields (*) are complete.", 'error');
+            return;
+        }
+        
+        const modal = document.getElementById('imfpa-modal');
+        const footerSuiteContainer = document.getElementById('execution-suite-footer');
+        const printContainer = document.getElementById('print-area');
+        const finalHtml = document.querySelector('#contract-document-wrapper .contract-document')?.outerHTML;
+        
+        if (!modal || !footerSuiteContainer || !finalHtml || !printContainer) {
+            Utils.showNotification("A critical UI error occurred.", 'error');
+            return;
+        }
+        
+        // Premium generation animation sequence
+        modal.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        modal.classList.add('generating');
+        
+        setTimeout(() => {
+            // Lock document in print area with premium styling
+            printContainer.innerHTML = finalHtml;
+            
+            // Add synthesis completion class with enhanced animations
+            modal.classList.add('synthesis-complete');
+            modal.classList.remove('generating');
+            
+            // Render premium execution suite
+            footerSuiteContainer.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center premium-execution-suite">
+                    <button class="btn-secondary w-full py-3 premium-btn-editor" onclick="Logic.unlockWorkspace()">
+                        <i class="fas fa-edit mr-2"></i>Back to Editor
+                    </button>
+                    <button id="launch-signing-btn" class="execution-btn step-1 w-full premium-btn-signature" onclick="Logic.initiateSigningProcess()">
+                        <i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite
+                    </button>
+                    <button id="send-for-signature-btn" class="execution-btn step-2 w-full premium-btn-dispatch opacity-50 pointer-events-none" onclick="Logic.sendForSignature()">
+                        <i class="fas fa-paper-plane mr-2"></i>Lock & Dispatch
+                    </button>
+                </div>
+            `;
+            
+            // Initialize premium hover effects for execution buttons
+            Logic.initializePremiumExecutionEffects();
+            
+            Utils.showNotification("Document Synthesized & Finalized for Execution.", 'success', 'Synthesis Complete');
+            Logic.playPremiumSoundFeedback('synthesis-complete');
+        }, 800);
+    },
 
-    if (!modal || !footerSuiteContainer || !finalHtml || !printContainer) {
-        Utils.showNotification("A critical UI error occurred.", 'error');
-        return;
-    }
+    unlockWorkspace: () => {
+        const modal = document.getElementById('imfpa-modal');
+        if (modal) {
+            // Premium unlock animation
+            modal.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            modal.classList.remove('synthesis-complete');
+            modal.style.transform = 'scale(1.02)';
+            
+            setTimeout(() => {
+                modal.style.transform = 'scale(1)';
+            }, 200);
+        }
+        
+        Utils.showNotification("Workspace unlocked. You can now continue editing.", 'info', 'Editor Mode');
+        Logic.playPremiumSoundFeedback('workspace-unlock');
+    },
 
-    // 1. Lock the document in the print area.
-    printContainer.innerHTML = finalHtml;
-    
-    // 2. Add class to the modal to trigger CSS changes (hide synthesize button, show execution suite).
-    modal.classList.add('synthesis-complete');
+    // === PREMIUM ANIMATION UTILITIES ===
+    animateNumberCounter: (element, targetValue, duration = 1000, isCurrency = false) => {
+        const startValue = parseFloat(element.textContent.replace(/[^\d.-]/g, '')) || 0;
+        const startTime = performance.now();
+        
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Premium easing function
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+            const currentValue = startValue + (targetValue - startValue) * easedProgress;
+            
+            element.textContent = isCurrency ? Utils.formatPrice(currentValue) : currentValue.toFixed(2);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        requestAnimationFrame(animate);
+    },
 
-    // 3. Render the final execution suite in the footer.
-    footerSuiteContainer.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-            <button class="btn-secondary w-full py-2" onclick="Logic.unlockWorkspace()">
-                <i class="fas fa-edit mr-2"></i>Back to Editor
-            </button>
-            <button id="launch-signing-btn" class="execution-btn step-1 w-full" onclick="Logic.initiateSigningProcess()">
-                <i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite
-            </button>
-            <button id="send-for-signature-btn" class="execution-btn step-2 w-full opacity-50 pointer-events-none" onclick="Logic.sendForSignature()">
-                <i class="fas fa-paper-plane mr-2"></i>Lock & Dispatch
-            </button>
-        </div>
-    `;
+    animateInputValue: (input, value) => {
+        input.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        input.style.backgroundColor = '#f0fdf4';
+        input.style.borderColor = '#22c55e';
+        
+        input.value = value;
+        
+        setTimeout(() => {
+            input.style.backgroundColor = '';
+            input.style.borderColor = '';
+        }, 1000);
+    },
 
-    Utils.showNotification("Document Synthesized & Finalized for Execution.", 'success', 'Synthesis Complete');
-},
+    addPremiumInputFeedback: (inputElement) => {
+        inputElement.style.transition = 'all 0.2s ease-out';
+        inputElement.style.transform = 'scale(1.02)';
+        inputElement.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.3)';
+        
+        setTimeout(() => {
+            inputElement.style.transform = 'scale(1)';
+            inputElement.style.boxShadow = '';
+        }, 200);
+    },
 
-            // ADD THIS NEW, CRITICAL "UNLOCK" FUNCTION to your Logic object
-unlockWorkspace: () => {
-    const modal = document.getElementById('imfpa-modal');
-    if (modal) {
-        modal.classList.remove('synthesis-complete');
-    }
-    Utils.showNotification("Workspace unlocked. You can now continue editing.", 'info', 'Editor Mode');
-},
+    initializePremiumInteractions: (container) => {
+        // Add premium hover effects to interactive elements
+        const interactiveElements = container.querySelectorAll('input, button, select, textarea');
+        
+        interactiveElements.forEach(element => {
+            element.addEventListener('mouseenter', () => {
+                element.style.transition = 'all 0.2s ease-out';
+                element.style.transform = 'translateY(-1px)';
+                element.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            });
+            
+            element.addEventListener('mouseleave', () => {
+                element.style.transform = 'translateY(0)';
+                element.style.boxShadow = '';
+            });
+        });
+    },
+
+    initializePremiumDocumentEffects: (container) => {
+        // Add premium document animations and effects
+        const sections = container.querySelectorAll('.document-section');
+        
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                section.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                section.style.opacity = '1';
+                section.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    },
+
+    initializePremiumExecutionEffects: () => {
+        const executionButtons = document.querySelectorAll('.premium-execution-suite button');
+        
+        executionButtons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                button.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                button.style.transform = 'scale(1.05) translateY(-2px)';
+                button.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.2)';
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1) translateY(0)';
+                button.style.boxShadow = '';
+            });
+        });
+    },
+
+    updateProgressIndicators: () => {
+        const { legal } = AppState.modeler;
+        const allParties = legal.groups.flatMap(g => g.parties);
+        const totalFields = 10; // Adjust based on required fields
+        
+        let completedFields = 0;
+        if (legal.jurisdiction) completedFields++;
+        if (allParties.length >= 2) completedFields++;
+        
+        allParties.forEach(party => {
+            if (party.legalName) completedFields++;
+            if (party.email) completedFields++;
+            if (party.contactNumber) completedFields++;
+        });
+        
+        const progressPercentage = (completedFields / totalFields) * 100;
+        const progressIndicator = document.getElementById('progress-indicator');
+        
+        if (progressIndicator) {
+            progressIndicator.style.width = `${progressPercentage}%`;
+            progressIndicator.style.transition = 'width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        }
+    },
+
+    updateValidationIndicators: (failedRules) => {
+        const validationContainer = document.getElementById('validation-indicators');
+        if (!validationContainer) return;
+        
+        if (failedRules.length === 0) {
+            validationContainer.innerHTML = '<div class="validation-success premium-success-glow"><i class="fas fa-check-circle mr-2"></i>All requirements satisfied</div>';
+        } else {
+            const criticalRules = failedRules.filter(rule => rule.severity === 'critical');
+            validationContainer.innerHTML = criticalRules.map(rule => 
+                `<div class="validation-error premium-error-glow"><i class="fas fa-exclamation-circle mr-2"></i>${rule.message}</div>`
+            ).join('');
+        }
+    },
+
+    playPremiumSoundFeedback: (eventType) => {
+        // Premium audio feedback system (non-intrusive)
+        const audioContext = window.AudioContext || window.webkitAudioContext;
+        if (!audioContext) return;
+        
+        const ctx = new audioContext();
+        const frequencies = {
+            'modal-open': 440,
+            'input-change': 523,
+            'toggle-switch': 659,
+            'group-added': 698,
+            'party-added': 784,
+            'item-removed': 349,
+            'toggle': 493,
+            'synthesis-complete': 880,
+            'workspace-unlock': 659
+        };
+        
+        const frequency = frequencies[eventType] || 523;
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.3);
+    },
 
 
-// --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
+    // === ENHANCED SIGNATURE SUITE WITH PREMIUM 3D EFFECTS ===
+    initiateSigningProcess: () => {
+        const sigBlocks = document.querySelectorAll('#contract-document-wrapper .p-signature-block');
+        const selectEl = document.getElementById('signature-target-select');
+        if (!selectEl) return;
+        
+        // Premium signature selection interface
+        selectEl.innerHTML = '<option value="" class="premium-option">-- Select a Signatory --</option>';
+        sigBlocks.forEach((block, index) => {
+            const partyName = block.dataset.partyName;
+            const option = new Option(`${index + 1}: ${partyName}`, block.dataset.partyId);
+            option.className = 'premium-option';
+            selectEl.add(option);
+        });
 
-            initiateSigningProcess: () => {
-    const sigBlocks = document.querySelectorAll('#contract-document-wrapper .p-signature-block');
-    const selectEl = document.getElementById('signature-target-select');
-    if (!selectEl) return;
-    
-    selectEl.innerHTML = '<option value="">-- Select a Signatory --</option>';
-    sigBlocks.forEach((block, index) => {
-        const partyName = block.dataset.partyName;
-        const option = new Option(`${index + 1}: ${partyName}`, block.dataset.partyId);
-        selectEl.add(option);
-    });
+        const modal = document.getElementById('signature-modal');
+        if (modal) {
+            // Premium modal entrance animation
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.9) rotateX(10deg)';
+            modal.showModal();
+            
+            requestAnimationFrame(() => {
+                modal.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                modal.style.opacity = '1';
+                modal.style.transform = 'scale(1) rotateX(0deg)';
+            });
+        }
+        
+        Logic.switchSignatureMode('draw');
+        
+        // Premium timestamp and location services
+        document.getElementById('signature-timestamp').textContent = new Date().toISOString();
+        document.getElementById('signature-location').textContent = 'Acquiring premium location data...';
+        
+        // Enhanced geolocation with premium styling
+        fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+                const locationText = `${data.city}, ${data.country_name} (IP: ${data.ip})`;
+                document.getElementById('signature-location').textContent = locationText;
+                Logic.animateTextReveal(document.getElementById('signature-location'));
+            })
+            .catch(() => {
+                document.getElementById('signature-location').textContent = 'Location Services Unavailable';
+            });
+        
+        Logic.playPremiumSoundFeedback('modal-open');
+    },
 
-    const modal = document.getElementById('signature-modal');
-    modal.showModal();
-    Logic.switchSignatureMode('draw');
-    
-    document.getElementById('signature-timestamp').textContent = new Date().toISOString();
-    document.getElementById('signature-location').textContent = 'Fetching...';
-    fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
-        document.getElementById('signature-location').textContent = `${data.city}, ${data.country_name} (IP: ${data.ip})`;
-    }).catch(() => { document.getElementById('signature-location').textContent = 'Location Not Available'; });
-},
+    switchSignatureMode: (mode) => {
+        const panels = { 
+            draw: 'draw-mode-panel', 
+            upload: 'upload-mode-panel', 
+            seal: 'seal-mode-panel' 
+        };
+        const tabs = { 
+            draw: 'draw-tab-btn', 
+            upload: 'upload-tab-btn', 
+            seal: 'seal-tab-btn' 
+        };
 
-switchSignatureMode: (mode) => {
-    const panels = { draw: 'draw-mode-panel', upload: 'upload-mode-panel', seal: 'seal-mode-panel' };
-    const tabs = { draw: 'draw-tab-btn', upload: 'upload-tab-btn', seal: 'seal-tab-btn' };
+        // Premium panel transition animations
+        Object.values(panels).forEach(id => {
+            const panel = document.getElementById(id);
+            if (panel) {
+                panel.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                panel.style.opacity = '0';
+                panel.style.transform = 'translateX(-20px)';
+                setTimeout(() => panel.classList.add('hidden'), 200);
+            }
+        });
+        
+        // Premium tab state management
+        Object.values(tabs).forEach(id => {
+            const tab = document.getElementById(id);
+            if (tab) {
+                tab.classList.remove('active');
+                tab.style.transform = 'scale(1)';
+            }
+        });
 
-    Object.values(panels).forEach(id => document.getElementById(id).classList.add('hidden'));
-    Object.values(tabs).forEach(id => document.getElementById(id).classList.remove('active'));
+        // Activate selected mode with premium animations
+        setTimeout(() => {
+            const activePanel = document.getElementById(panels[mode]);
+            const activeTab = document.getElementById(tabs[mode]);
+            
+            if (activePanel) {
+                activePanel.classList.remove('hidden');
+                activePanel.style.opacity = '1';
+                activePanel.style.transform = 'translateX(0)';
+            }
+            
+            if (activeTab) {
+                activeTab.classList.add('active');
+                activeTab.style.transform = 'scale(1.05)';
+                activeTab.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            }
+        }, 200);
 
-    document.getElementById(panels[mode]).classList.remove('hidden');
-    document.getElementById(tabs[mode]).classList.add('active');
-    document.getElementById('signature-modal').dataset.activeMode = mode;
-    
-    if (mode === 'draw') Logic.setupSignaturePad();
-    if (mode === 'upload' || mode === 'seal') Logic.setupFileUpload(mode);
-},
+        document.getElementById('signature-modal').dataset.activeMode = mode;
+        
+        // Initialize mode-specific functionality
+        if (mode === 'draw') Logic.setupSignaturePad();
+        if (mode === 'upload' || mode === 'seal') Logic.setupFileUpload(mode);
+        
+        Logic.playPremiumSoundFeedback('toggle-switch');
+    },
 
-setupSignaturePad: () => {
-    const canvas = document.getElementById('signature-canvas');
-    if (!canvas) return;
-    const resizeCanvas = () => {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext("2d").scale(ratio, ratio);
-        if (window.signaturePad) window.signaturePad.clear();
-    };
-    if (!window.signaturePad) window.signaturePad = new SignaturePad(canvas, { penColor: "#1A237E" });
-    setTimeout(resizeCanvas, 50);
-},
+    setupSignaturePad: () => {
+        const canvas = document.getElementById('signature-canvas');
+        if (!canvas) return;
+        
+        // Enhanced canvas setup with premium responsiveness
+        const resizeCanvas = () => {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = rect.width * ratio;
+            canvas.height = rect.height * ratio;
+            
+            const ctx = canvas.getContext("2d");
+            ctx.scale(ratio, ratio);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Premium canvas styling
+            canvas.style.border = '2px solid #e5e7eb';
+            canvas.style.borderRadius = '8px';
+            canvas.style.transition = 'all 0.3s ease';
+            
+            if (window.signaturePad) {
+                window.signaturePad.clear();
+                // Premium signature pad configuration
+                window.signaturePad.penColor = "#1A237E";
+                window.signaturePad.minWidth = 1;
+                window.signaturePad.maxWidth = 3;
+            }
+        };
+        
+        // Initialize premium signature pad
+        if (!window.signaturePad && typeof SignaturePad !== 'undefined') {
+            window.signaturePad = new SignaturePad(canvas, { 
+                penColor: "#1A237E",
+                minWidth: 1,
+                maxWidth: 3,
+                velocityFilterWeight: 0.7,
+                backgroundColor: 'rgba(255,255,255,0)'
+            });
+            
+            // Premium interaction feedback
+            canvas.addEventListener('touchstart', () => {
+                canvas.style.borderColor = '#3b82f6';
+                canvas.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                canvas.style.borderColor = '#e5e7eb';
+                canvas.style.boxShadow = '';
+            });
+        }
+        
+        setTimeout(resizeCanvas, 100);
+        window.addEventListener('resize', resizeCanvas);
+    },
 
-clearSignaturePad: () => window.signaturePad?.clear(),
+    clearSignaturePad: () => {
+        if (window.signaturePad) {
+            // Premium clear animation
+            const canvas = document.getElementById('signature-canvas');
+            if (canvas) {
+                canvas.style.transition = 'opacity 0.2s ease';
+                canvas.style.opacity = '0.5';
+                
+                setTimeout(() => {
+                    window.signaturePad.clear();
+                    canvas.style.opacity = '1';
+                }, 100);
+            }
+            
+            Logic.playPremiumSoundFeedback('item-removed');
+        }
+    },
 
-setupFileUpload: (type) => { // 'upload' for signature, 'seal' for seal
-    const inputId = type === 'upload' ? 'signature-upload-input' : 'seal-upload-input';
-    const previewId = type === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
-    const promptId = type === 'upload' ? 'upload-prompt' : 'seal-prompt';
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    const prompt = document.getElementById(promptId);
-    if (!input || !preview || !prompt) return;
-    input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
+    setupFileUpload: (type) => {
+        const inputId = type === 'upload' ? 'signature-upload-input' : 'seal-upload-input';
+        const previewId = type === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
+        const promptId = type === 'upload' ? 'upload-prompt' : 'seal-prompt';
+        
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const prompt = document.getElementById(promptId);
+        
+        if (!input || !preview || !prompt) return;
+        
+        // Enhanced file upload with premium drag & drop
+        const dropZone = prompt.closest('.upload-zone');
+        if (dropZone) {
+            // Premium drag & drop styling
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.style.backgroundColor = '#f0f9ff';
+                    dropZone.style.borderColor = '#3b82f6';
+                    dropZone.style.transform = 'scale(1.02)';
+                }, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.style.backgroundColor = '';
+                    dropZone.style.borderColor = '';
+                    dropZone.style.transform = 'scale(1)';
+                }, false);
+            });
+            
+            dropZone.addEventListener('drop', handleDrop, false);
+        }
+        
+        input.onchange = handleFileSelect;
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+        
+        function processFile(file) {
+            // Premium file validation
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!validTypes.includes(file.type)) {
+                Utils.showNotification('Please upload a valid image file (PNG, JPEG, WebP)', 'error');
+                return;
+            }
+            
+            if (file.size > maxSize) {
+                Utils.showNotification('File size must be less than 5MB', 'error');
+                return;
+            }
+            
             const reader = new FileReader();
             reader.onload = (event) => {
+                // Premium preview animation
+                preview.style.opacity = '0';
+                preview.style.transform = 'scale(0.9)';
                 preview.src = event.target.result;
-                preview.classList.remove('hidden');
-                prompt.classList.add('hidden');
+                
+                preview.onload = () => {
+                    preview.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    preview.classList.remove('hidden');
+                    preview.style.opacity = '1';
+                    preview.style.transform = 'scale(1)';
+                    
+                    prompt.style.transition = 'all 0.3s ease';
+                    prompt.style.opacity = '0';
+                    setTimeout(() => prompt.classList.add('hidden'), 300);
+                };
+                
+                Logic.playPremiumSoundFeedback('input-change');
             };
             reader.readAsDataURL(file);
         }
-    };
-},
+    },
 
-processImageForTransparency: (imageDataUrl) => {
-    return new Promise((resolve, reject) => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
+    processImageForTransparency: (imageDataUrl) => {
+        return new Promise((resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
 
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
 
-            try {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
+                try {
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imageData.data;
 
-                // --- SUPREME INTELLIGENCE: DYNAMIC BACKGROUND DETECTION ---
-                // Sample the corner pixel color to intelligently determine the background.
-                const cornerPixel = [data[0], data[1], data[2]];
-                const isLightBg = (cornerPixel[0] + cornerPixel[1] + cornerPixel[2]) / 3 > 128;
+                    // === SUPREME INTELLIGENCE: DYNAMIC BACKGROUND DETECTION ===
+                    // Sample multiple corner pixels for more accurate background detection
+                    const cornerSamples = [
+                        [0, 1, 2], // Top-left
+                        [canvas.width * 4 - 4, canvas.width * 4 - 3, canvas.width * 4 - 2], // Top-right
+                        [(canvas.height - 1) * canvas.width * 4, (canvas.height - 1) * canvas.width * 4 + 1, (canvas.height - 1) * canvas.width * 4 + 2], // Bottom-left
+                        [data.length - 4, data.length - 3, data.length - 2] // Bottom-right
+                    ];
+                    
+                    let avgR = 0, avgG = 0, avgB = 0;
+                    cornerSamples.forEach(sample => {
+                        if (sample[0] < data.length) {
+                            avgR += data[sample[0]] || 0;
+                            avgG += data[sample[1]] || 0;
+                            avgB += data[sample[2]] || 0;
+                        }
+                    });
+                    
+                    const bgR = Math.floor(avgR / cornerSamples.length);
+                    const bgG = Math.floor(avgG / cornerSamples.length);
+                    const bgB = Math.floor(avgB / cornerSamples.length);
+                    const bgBrightness = (bgR + bgG + bgB) / 3;
+                    
+                    // Adaptive threshold based on background brightness
+                    const threshold = bgBrightness > 200 ? 40 : bgBrightness > 128 ? 30 : 20;
 
-                if (!isLightBg) {
-                    // If the background is not light, we assume it's a pre-processed transparent PNG.
-                    // No processing needed, just resolve.
-                    resolve(canvas.toDataURL('image/png'));
-                    return;
-                }
-
-                const bgR = cornerPixel[0];
-                const bgG = cornerPixel[1];
-                const bgB = cornerPixel[2];
-                // Dynamic threshold adapts to the detected background color.
-                const threshold = 30; 
-
-                // --- PINNACLE-GRADE PROCESSING: PIXEL-BY-PIXEL ANALYSIS ---
-                for (let i = 0; i < data.length; i += 4) {
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-
-                    // Calculate color distance from the detected background color.
-                    const distance = Math.sqrt(
-                        Math.pow(r - bgR, 2) +
-                        Math.pow(g - bgG, 2) +
-                        Math.pow(b - bgB, 2)
-                    );
-
-                    if (distance < threshold) {
-                        // Pixel is part of the background, make it transparent.
-                        data[i + 3] = 0;
-                    } else {
-                        // --- SEVERE UPGRADE: RE-TONE TO LEGAL NAVY BLUE & ENHANCE CONTRAST ---
-                        // This pixel is part of the signature.
-                        // Convert to grayscale to neutralize original color.
-                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                        
-                        // Re-tone to a legally profound navy blue (#1A237E).
-                        // The darker the original pixel, the closer to pure navy it becomes.
-                        const intensity = 1 - (gray / 255);
-                        data[i] = 26 * intensity;   // R channel for #1A237E
-                        data[i + 1] = 35 * intensity; // G channel for #1A237E
-                        data[i + 2] = 126 * intensity;// B channel for #1A237E
-
-                        // Enhance alpha based on intensity for smoother edges.
-                        data[i + 3] = 255 * Math.pow(intensity, 0.8);
+                    if (bgBrightness < 50) {
+                        // Dark background - likely pre-processed, return as-is
+                        resolve(canvas.toDataURL('image/png'));
+                        return;
                     }
+
+                    // === PINNACLE-GRADE PROCESSING: ADVANCED PIXEL ANALYSIS ===
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+
+                        // Enhanced color distance calculation with weighted channels
+                        const distance = Math.sqrt(
+                            Math.pow(r - bgR, 2) * 0.299 +
+                            Math.pow(g - bgG, 2) * 0.587 +
+                            Math.pow(b - bgB, 2) * 0.114
+                        );
+
+                        if (distance < threshold) {
+                            // Background pixel - make transparent
+                            data[i + 3] = 0;
+                        } else {
+                            // === PREMIUM RE-TONING TO LEGAL NAVY BLUE ===
+                            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                            const intensity = Math.min(1, (255 - gray) / 180); // Enhanced intensity calculation
+                            
+                            // Premium legal navy blue (#1A237E) with enhanced contrast
+                            data[i] = Math.floor(26 + (255 - 26) * (1 - intensity)); // R
+                            data[i + 1] = Math.floor(35 + (255 - 35) * (1 - intensity)); // G
+                            data[i + 2] = Math.floor(126 + (255 - 126) * (1 - intensity)); // B
+                            
+                            // Premium alpha blending for smooth edges
+                            const edgeDistance = Math.min(distance - threshold, 20);
+                            const alphaMultiplier = Math.min(1, edgeDistance / 20);
+                            data[i + 3] = Math.floor(255 * intensity * alphaMultiplier);
+                        }
+                    }
+
+                    // Apply processed data back to canvas
+                    ctx.putImageData(imageData, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                } catch (e) {
+                    console.error("Premium image processing failed:", e);
+                    reject(new Error("Image processing failed due to security restrictions. Please use the Draw Signature method or a different image file."));
                 }
+            };
 
-                // Put the modified, optimized, and re-toned image data back onto the canvas.
-                ctx.putImageData(imageData, 0, 0);
-                
-                // Resolve the Promise with the new, pinnacle-grade PNG data URL.
-                resolve(canvas.toDataURL('image/png'));
-            } catch (e) {
-                console.error("Could not process image data due to security restrictions:", e);
-                reject(new Error("Image is from a different origin or is security-protected. Please use the 'Draw Signature' method or a different image file."));
-            }
-        };
+            img.onerror = () => {
+                reject(new Error("Failed to load signature image. The file may be corrupted or inaccessible."));
+            };
 
-        img.onerror = () => {
-            reject(new Error("Failed to load the signature image for processing. The file may be corrupt or inaccessible."));
-        };
+            img.src = imageDataUrl;
+        });
+    },
 
-        // Start loading the image
-        img.src = imageDataUrl;
-    });
-},
-
-applySignature: async () => {
-    const modal = document.getElementById('signature-modal');
-    const mode = modal.dataset.activeMode;
-    const targetPartyId = document.getElementById('signature-target-select').value;
-    if (!targetPartyId) return Utils.showNotification("Please select a signatory.", 'error');
-
-    let dataUrl = '';
-    try {
-        if (mode === 'draw') {
-            if (window.signaturePad.isEmpty()) throw new Error("Please draw a signature.");
-            dataUrl = window.signaturePad.toDataURL('image/png');
-        } else {
-            const previewId = mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
-            const previewImg = document.getElementById(previewId);
-            if (!previewImg.src || previewImg.classList.contains('hidden')) throw new Error(`Please upload a ${mode === 'upload' ? 'signature' : 'seal'}.`);
-            dataUrl = await Logic.processImageForTransparency(previewImg.src);
+    applySignature: async () => {
+        const modal = document.getElementById('signature-modal');
+        const mode = modal.dataset.activeMode;
+        const targetPartyId = document.getElementById('signature-target-select').value;
+        
+        if (!targetPartyId) {
+            Utils.showNotification("Please select a signatory.", 'error');
+            return;
         }
 
-        const dateOfExecution = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        const containersToUpdate = ['#contract-document-wrapper', '#print-area'];
+        let dataUrl = '';
+        try {
+            if (mode === 'draw') {
+                if (!window.signaturePad || window.signaturePad.isEmpty()) {
+                    throw new Error("Please draw a signature on the canvas.");
+                }
+                dataUrl = window.signaturePad.toDataURL('image/png');
+            } else {
+                const previewId = mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
+                const previewImg = document.getElementById(previewId);
+                
+                if (!previewImg.src || previewImg.classList.contains('hidden')) {
+                    throw new Error(`Please upload a ${mode === 'upload' ? 'signature' : 'seal'} image.`);
+                }
+                
+                // Premium loading indicator
+                Utils.showNotification("Processing image with premium algorithms...", 'info');
+                dataUrl = await Logic.processImageForTransparency(previewImg.src);
+            }
 
-        containersToUpdate.forEach(containerSelector => {
-            const container = document.querySelector(containerSelector);
-            if (!container) return;
-            const targetBlock = container.querySelector(`.p-signature-block[data-party-id="${targetPartyId}"]`);
-            if (!targetBlock) return;
+            const dateOfExecution = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            const containersToUpdate = ['#contract-document-wrapper', '#print-area'];
 
-            if (mode === 'draw' || mode === 'upload') {
-                targetBlock.querySelector('[data-sig-type="signature"]').innerHTML = `<img src="${dataUrl}" class="p-signature-img" alt="Digital Signature">`;
-                targetBlock.querySelector('[data-sig-type="date"]').textContent = dateOfExecution;
-            } else if (mode === 'seal') {
-                targetBlock.querySelector('[data-sig-type="seal"]').innerHTML = `<img src="${dataUrl}" class="p-seal-img" alt="Corporate Seal">`;
+            // Premium signature application animation
+            containersToUpdate.forEach(containerSelector => {
+                const container = document.querySelector(containerSelector);
+                if (!container) return;
+                
+                const targetBlock = container.querySelector(`.p-signature-block[data-party-id="${targetPartyId}"]`);
+                if (!targetBlock) return;
+
+                // Premium signature insertion with animation
+                if (mode === 'draw' || mode === 'upload') {
+                    const sigElement = targetBlock.querySelector('[data-sig-type="signature"]');
+                    if (sigElement) {
+                        sigElement.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                        sigElement.style.opacity = '0';
+                        sigElement.style.transform = 'scale(0.8)';
+                        
+                        setTimeout(() => {
+                            sigElement.innerHTML = `<img src="${dataUrl}" class="p-signature-img premium-signature" alt="Digital Signature">`;
+                            sigElement.style.opacity = '1';
+                            sigElement.style.transform = 'scale(1)';
+                        }, 250);
+                    }
+                    
+                    const dateElement = targetBlock.querySelector('[data-sig-type="date"]');
+                    if (dateElement) {
+                        Logic.animateTextReveal(dateElement, dateOfExecution);
+                    }
+                } else if (mode === 'seal') {
+                    const sealElement = targetBlock.querySelector('[data-sig-type="seal"]');
+                    if (sealElement) {
+                        sealElement.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                        sealElement.style.opacity = '0';
+                        sealElement.style.transform = 'scale(0.8) rotate(-5deg)';
+                        
+                        setTimeout(() => {
+                            sealElement.innerHTML = `<img src="${dataUrl}" class="p-seal-img premium-seal" alt="Corporate Seal">`;
+                            sealElement.style.opacity = '1';
+                            sealElement.style.transform = 'scale(1) rotate(0deg)';
+                        }, 250);
+                    }
+                }
+            });
+
+            // Premium modal closure animation
+            modal.style.transition = 'all 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.95) rotateX(-10deg)';
+            
+            setTimeout(() => {
+                modal.close();
+                modal.style.opacity = '';
+                modal.style.transform = '';
+            }, 400);
+            
+            Logic.resetSignatureInputs();
+            
+            // Enable finalization step with premium animation
+            const finalizationPanel = document.querySelector('#finalization-step-panel');
+            if (finalizationPanel) {
+                finalizationPanel.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                finalizationPanel.classList.remove('opacity-50', 'pointer-events-none');
+                finalizationPanel.style.transform = 'scale(1.02)';
+                
+                setTimeout(() => {
+                    finalizationPanel.style.transform = 'scale(1)';
+                }, 200);
+            }
+            
+            Utils.showNotification("Signature applied with premium quality processing.", 'success', 'Application Complete');
+            Logic.playPremiumSoundFeedback('synthesis-complete');
+            
+        } catch (error) {
+            Utils.showNotification(error.message, 'error', 'Application Failed');
+            Logic.playPremiumSoundFeedback('item-removed');
+        }
+    },
+
+    resetSignatureInputs: () => {
+        // Premium reset animations
+        if (window.signaturePad) {
+            const canvas = document.getElementById('signature-canvas');
+            if (canvas) {
+                canvas.style.transition = 'opacity 0.3s ease';
+                canvas.style.opacity = '0.7';
+                
+                setTimeout(() => {
+                    window.signaturePad.clear();
+                    canvas.style.opacity = '1';
+                }, 150);
+            }
+        }
+        
+        // Reset upload inputs with premium animations
+        ['signature-upload', 'seal-upload'].forEach(id => {
+            const input = document.getElementById(`${id}-input`);
+            const preview = document.getElementById(`${id}-preview`);
+            const promptEl = document.getElementById(id.replace('upload', 'prompt'));
+            
+            if (input) input.value = '';
+            
+            if (preview && !preview.classList.contains('hidden')) {
+                preview.style.transition = 'all 0.3s ease';
+                preview.style.opacity = '0';
+                preview.style.transform = 'scale(0.9)';
+                
+                setTimeout(() => {
+                    preview.src = '';
+                    preview.classList.add('hidden');
+                }, 300);
+            }
+            
+            if (promptEl && promptEl.classList.contains('hidden')) {
+                setTimeout(() => {
+                    promptEl.classList.remove('hidden');
+                    promptEl.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    promptEl.style.opacity = '1';
+                }, 300);
             }
         });
+    },
 
-        modal.close();
-        Logic.resetSignatureInputs();
-        document.querySelector('#finalization-step-panel').classList.remove('opacity-50', 'pointer-events-none');
-        Utils.showNotification("Signature/seal applied successfully.", 'success');
-    } catch (error) {
-        Utils.showNotification(error.message, 'error', 'Application Failed');
-    }
-},
+    sendForSignature: () => {
+        const modal = document.getElementById('finalization-modal');
+        if (!modal) return;
+        
+        // Premium finalization modal setup
+        modal.innerHTML = UI.renderFinalizationModal();
+        
+        // Premium entrance animation
+        modal.style.opacity = '0';
+        modal.style.transform = 'scale(0.9) translateY(20px)';
+        modal.showModal();
+        
+        requestAnimationFrame(() => {
+            modal.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            modal.style.opacity = '1';
+            modal.style.transform = 'scale(1) translateY(0)';
+        });
+        
+        Logic.playPremiumSoundFeedback('modal-open');
+    },
 
-resetSignatureInputs: () => {
-    window.signaturePad?.clear();
-    ['signature-upload', 'seal-upload'].forEach(id => {
-        const input = document.getElementById(`${id}-input`);
-        const preview = document.getElementById(`${id}-preview`);
-        const promptEl = document.getElementById(id.replace('upload', 'prompt'));
-        if(input) input.value = '';
-        if(preview) { preview.src = ''; preview.classList.add('hidden'); }
-        if(promptEl) promptEl.classList.remove('hidden');
-    });
-},
-
-sendForSignature: () => {
-                const modal = document.getElementById('finalization-modal');
-                if(!modal) return;
-                modal.innerHTML = UI.renderFinalizationModal();
-                modal.showModal();
-            },
-
-simpleHash: async (str) => {
-    const buffer = new TextEncoder().encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-},
-
+    // === PREMIUM CRYPTOGRAPHIC UTILITIES ===
+    simpleHash: async (str) => {
+        const buffer = new TextEncoder().encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+        
 executeFinalizationWorkflow: async () => {
     document.getElementById('finalization-modal').close();
     Utils.showNotification("Finalizing document and dispatching...", 'info', 'Processing');
