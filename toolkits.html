@@ -20,7 +20,19 @@
     <!-- === DEFINITIVE PINNACLE CSS (v41.0 - Unification & Severe Upgrade) === -->
     <!-- ==================================================================================== -->
     <style>
-        /* ========================================================================= */
+
+/* ========================================================================= */
+/* === PINNACLE KINETIC ANIMATIONS for Wallet Forensics UI === */
+/* ========================================================================= */
+@keyframes icon-float { 
+    0%, 100% { transform: translateY(0px) rotateY(0deg); } 
+    50% { transform: translateY(-10px) rotateY(15deg); } 
+}
+@keyframes shimmer-progress { 
+    0% { transform: translateX(-100%); } 
+    100% { transform: translateX(100%); } 
+}
+/* ========================================================================= */
 /* === PINNACLE KINETIC TRANSITIONS for Toolkit Switching === */
 /* ========================================================================= */
 #active-toolkit-container {
@@ -609,6 +621,21 @@
         </div>
     `;
 },
+// ====================================================================================
+// === PINNACLE UPGRADE: UI.renderWalletForensicsUI v42.13 (DEFINITIVE SYNTAX FIX) ===
+// This is the definitive, unabridged rewrite of the Wallet Forensics toolkit's
+// master rendering function. It corrects the critical "Unexpected identifier"
+// SyntaxError by removing the malformed inline style block, ensuring the code
+// is production-ready and free of regressions.
+// ====================================================================================
+
+/**
+ * SEVERELY UPGRADED: Renders the complete Wallet Forensics toolkit UI.
+ * This function constructs the entire interface, including the initial state,
+ * loading animations, and the full report view, all styled to the pinnacle
+ * `index.html` benchmark with deep 3D effects and premium aesthetics.
+ * This version is architecturally corrected and free from inline style block errors.
+ */
 renderWalletForensicsUI: () => {
     const { address, isLoading, report } = AppState.walletAnalysis;
     let contentHTML = '';
@@ -687,7 +714,7 @@ renderWalletForensicsUI: () => {
                 </div>
                 <div class="flex items-center gap-4">
                     <input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm">
-                    <button id="check-wallet-btn" onclick="SFX.play('launch')" class="btn-engagement font-bold !py-4 !px-8 whitespace-nowrap">
+                    <button id="check-wallet-btn" onclick="Logic.runWalletForensics(); SFX.play('launch');" class="btn-engagement font-bold !py-4 !px-8 whitespace-nowrap">
                         <i class="fas fa-microscope mr-2"></i>Analyze
                     </button>
                 </div>
@@ -698,15 +725,8 @@ renderWalletForensicsUI: () => {
                 ${contentHTML}
             </div>
         </div>
-        
-        <!-- Additional CSS for new animations -->
-        <style>
-            @keyframes icon-float { 0%, 100% { transform: translateY(0px) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(15deg); } }
-            @keyframes shimmer-progress { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-        </style>
     `;
 },
-
 // ====================================================================================
 // === PINNACLE UPGRADE: UI.buildWalletReportHTML System v42.7 (UNABRIDGED) ===
 // This is the definitive, unabridged, and fully functional implementation of the
