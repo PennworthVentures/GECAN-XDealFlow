@@ -1547,14 +1547,32 @@ togglePricingConfig: () => {
 // This is the definitive, military-grade logic and UI for the entire contract workflow.
 // ========================================================================================
 
-// --- A. SEVERELY OVERHAULED LOGIC ---
-            openImfpaModal: () => {
-    const modal = document.getElementById('imfpa-modal');
-    if (!modal) return;
-    modal.innerHTML = UI.renderImfpaModal(); // Renders the new dual-column structure
-    Logic.refreshImfpaModalUI(); // Populates it with content
-    modal.showModal();
-},
+// === MODAL ORCHESTRATION & PREMIUM UI RENDERING ===
+    openImfpaModal: () => {
+        const modal = document.getElementById('imfpa-modal');
+        if (!modal) return;
+
+        // Render premium dual-column architecture with enhanced animations
+        modal.innerHTML = UI.renderImfpaModal();
+        
+        // Apply premium entrance animation sequence
+        modal.style.opacity = '0';
+        modal.style.transform = 'scale(0.9) translateY(-20px)';
+        modal.showModal();
+        
+        // Premium animation cascade with orchestrated timing
+        requestAnimationFrame(() => {
+            modal.style.transition = 'all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1)';
+            modal.style.opacity = '1';
+            modal.style.transform = 'scale(1) translateY(0)';
+        });
+        
+        // Initialize premium UI state with enhanced responsiveness
+        Logic.refreshImfpaModalUI();
+        
+        // Premium audio feedback for high-end user experience
+        Logic.playPremiumSoundFeedback('modal-open');
+    },
             refreshImfpaModalUI: () => {
     // This function's core job is to re-render the editor panel's content
     const editorColumn = document.querySelector('.imfpa-editor-column');
