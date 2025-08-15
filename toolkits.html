@@ -1572,29 +1572,30 @@ validateImfpaData: () => {
     // Rule 1: Must have a jurisdiction
     if (!legal.jurisdiction) return false;
 
-    // Rule 2: Must have at least two parties
+    // Rule 2: Must have at least two parties for any agreement
     if (allParties.length < 2) return false;
 
-    // Rule 3: All parties must have critical details
-    const allDetailsComplete = allParties.every(p => 
-        p.legalName && p.role && p.email && p.contactNumber && p.passport?.number && p.payment?.details
+    // --- SEVERELY UPGRADED RULE 3 ---
+    // All parties must be at least in a "Sufficient" state (core details complete).
+    const allPartiesSufficient = allParties.every(p => 
+        p.legalName && p.email && p.contactNumber
     );
-    if (!allDetailsComplete) return false;
+    if (!allPartiesSufficient) return false;
 
-    // Rule 4: If IMFPA, check commission allocations
+    // Rule 4: If IMFPA, run commission allocation checks
     if (isImfpa) {
         if (legal.groups.length === 0) return false;
         const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
         if (Math.abs(totalGroupPct - 100) > 0.01) return false;
 
         for (const group of legal.groups) {
-            if (group.parties.length === 0) return false; // Each group must have parties
+            if (group.parties.length === 0) return false;
             const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
             if (Math.abs(totalPartyPct - 100) > 0.01) return false;
         }
     }
 
-    // If all checks pass, the data is valid
+    // If all critical checks pass, the data is valid for synthesis.
     return true;
 },
 
@@ -2653,47 +2654,64 @@ renderImfpaParty: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
 
-    // --- MILITARY-GRADE REAL-TIME VALIDATION ENGINE (v2.0) ---
-    const hasRequiredDetails = party.email && party.contactNumber && party.passport?.number && party.payment?.details;
-    const validationStatus = {
-        icon: hasRequiredDetails ? 'fa-check-circle' : 'fa-exclamation-triangle',
-        color: hasRequiredDetails ? 'text-success-color' : 'text-warning-color',
-        text: hasRequiredDetails ? 'Details Complete' : 'Details Required'
-    };
+    // --- MILITARY-GRADE MULTI-STAGE VALIDATION ENGINE (v3.0) ---
+    const isSufficient = party.legalName && party.email && party.contactNumber;
+    const isComplete = isSufficient && party.role && party.passport?.number && party.passport?.authority && party.passport?.issueDate && party.passport?.expiryDate && party.payment?.method && party.payment?.currency && party.payment?.details;
+    
+    let validationStatus;
+    if (isComplete) {
+        validationStatus = {
+            badgeClass: 'bg-green-500/20 text-green-400',
+            badgeText: 'COMPLETE',
+            indicatorClass: 'text-success-color',
+            indicatorIcon: 'fa-check-double',
+            indicatorText: 'All Details Provided'
+        };
+    } else if (isSufficient) {
+        validationStatus = {
+            badgeClass: 'bg-blue-500/20 text-blue-400',
+            badgeText: 'SUFFICIENT',
+            indicatorClass: 'text-primary-azure',
+            indicatorIcon: 'fa-check-circle',
+            indicatorText: 'Core Details Sufficient'
+        };
+    } else {
+        validationStatus = {
+            badgeClass: 'bg-red-500/20 text-red-400 animate-pulse',
+            badgeText: 'INCOMPLETE',
+            indicatorClass: 'text-error-color',
+            indicatorIcon: 'fa-exclamation-triangle',
+            indicatorText: 'Core Details Required'
+        };
+    }
 
     return `
         <div class="allocation-party-card p-3">
             <div class="flex items-center gap-2">
                 <!-- ========================================================= -->
-                <!-- === PINNACLE PARTY HEADER w/ REAL-TIME VALIDATION BADGE === -->
+                <!-- === PINNACLE PARTY HEADER w/ DYNAMIC STATUS BADGE === -->
                 <!-- ========================================================= -->
-                <!-- Legal Name Input (Main Identifier) -->
                 <input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-premium-text-primary" placeholder="Full Legal Name*">
                 
-                <!-- REAL-TIME VALIDATION BADGE (NEW) -->
-                ${!hasRequiredDetails ? `
-                    <span class="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-1 rounded-md flex-shrink-0 animate-pulse">
-                        INCOMPLETE
-                    </span>
-                ` : ''}
+                <!-- DYNAMIC STATUS BADGE (NEW) -->
+                <span class="text-xs font-bold px-2 py-1 rounded-md flex-shrink-0 ${validationStatus.badgeClass}">
+                    ${validationStatus.badgeText}
+                </span>
 
-                <!-- Percentage Input (Hidden in NCNDA mode) -->
                 <div class="relative w-24 flex-shrink-0 ${AppState.modeler.legal.agreementType === 'IMFPA' ? 'block' : 'hidden'}">
                     <input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span>
                 </div>
                 
-                <!-- Remove Button -->
                 <button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex-shrink-0 flex items-center justify-center transition-colors duration-300 rounded-full hover:bg-red-500/10">×</button>
             </div>
 
             <div class="mt-2 flex justify-between items-center">
-                <!-- Validation Indicator Text -->
-                <div class="flex items-center gap-2 text-xs ${validationStatus.color}">
-                    <i class="fas ${validationStatus.icon}"></i>
-                    <span>${validationStatus.text}</span>
+                <!-- Dynamic Indicator Text -->
+                <div class="flex items-center gap-2 text-xs ${validationStatus.indicatorClass}">
+                    <i class="fas ${validationStatus.indicatorIcon}"></i>
+                    <span>${validationStatus.indicatorText}</span>
                 </div>
-                <!-- "Manage Details" Toggle Button -->
                 <a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1">
                     <i class="fas fa-user-cog"></i> 
                     Manage Details 
@@ -2712,9 +2730,12 @@ renderImfpaPartyDetails: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
     
-    // Intelligent placeholder text for payment details based on the selected method.
+    // --- INTELLIGENT FIELD HIGHLIGHTING ENGINE ---
+    // This helper function adds a green border class if the field has a value.
+    const highlightIfComplete = (value) => value ? 'border-green-500/50' : '';
+
     const paymentDetailsPlaceholder = {
-        'Bank Wire': 'Beneficiary Name, Bank Name, Address, Account Number, SWIFT/BIC, IBAN (if applicable)',
+        'Bank Wire': 'Beneficiary, Bank, Address, Acct No, SWIFT/BIC, IBAN...',
         'USDT TRC-20': 'TRC-20 Wallet Address (e.g., T...)',
         'USDT ERC-20': 'ERC-20 Wallet Address (e.g., 0x...)'
     }[party.payment.method] || 'Enter relevant payment coordinates...';
@@ -2728,41 +2749,41 @@ renderImfpaPartyDetails: (groupIndex, partyIndex) => {
                 <legend class="text-premium-text-secondary text-sm px-2">Core Identification</legend>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="party-detail-label">Role*</label>
-                        <input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate, Intermediary">
+                        <label class="party-detail-label">Email Address*</label>
+                        <input type="email" class="form-input !text-xs ${highlightIfComplete(party.email)}" value="${party.email || ''}" data-path="${base}.email" placeholder="Used for official correspondence">
                     </div>
                     <div>
-                        <label class="party-detail-label">Email Address*</label>
-                        <input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="Used for official correspondence">
-                    </div>
-                    <div class="col-span-1 sm:col-span-2">
                         <label class="party-detail-label">Contact Number*</label>
-                        <input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567">
+                        <input class="form-input !text-xs ${highlightIfComplete(party.contactNumber)}" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567">
                     </div>
                 </div>
             </fieldset>
 
             <!-- ========================================================= -->
-            <!-- === GUIDED FIELDSET: PASSPORT/ID VERIFICATION === -->
+            <!-- === GUIDED FIELDSET: OPTIONAL DETAILS === -->
             <!-- ========================================================= -->
             <fieldset class="col-span-2 border border-premium-border p-4 rounded-lg">
-                <legend class="text-premium-text-secondary text-sm px-2">Passport/ID Verification (KYC/KYB)</legend>
+                <legend class="text-premium-text-secondary text-sm px-2">Optional Details (Recommended for Expedited Review)</legend>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="party-detail-label">Passport / ID Number*</label>
-                        <input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="As shown on document">
+                        <label class="party-detail-label">Role</label>
+                        <input class="form-input !text-xs ${highlightIfComplete(party.role)}" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate, Intermediary">
                     </div>
                     <div>
-                        <label class="party-detail-label">Issuing Authority / Country*</label>
-                        <input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="e.g., USA">
+                        <label class="party-detail-label">Passport / ID Number</label>
+                        <input class="form-input !text-xs ${highlightIfComplete(party.passport.number)}" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="As shown on document">
                     </div>
                     <div>
-                        <label class="party-detail-label">Date of Issue*</label>
-                        <input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate">
+                        <label class="party-detail-label">Issuing Authority / Country</label>
+                        <input class="form-input !text-xs ${highlightIfComplete(party.passport.authority)}" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="e.g., USA">
+                    </div>
+                     <div>
+                        <label class="party-detail-label">Date of Expiry</label>
+                        <input type="date" class="form-input !text-xs ${highlightIfComplete(party.passport.expiryDate)}" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate">
                     </div>
                     <div>
-                        <label class="party-detail-label">Date of Expiry*</label>
-                        <input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate">
+                        <label class="party-detail-label">Date of Issue</label>
+                        <input type="date" class="form-input !text-xs ${highlightIfComplete(party.passport.issueDate)}" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate">
                     </div>
                 </div>
             </fieldset>
@@ -2774,7 +2795,7 @@ renderImfpaPartyDetails: (groupIndex, partyIndex) => {
                 <legend class="text-premium-text-secondary text-sm px-2">Remittance Coordinates</legend>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="party-detail-label">Payment Method*</label>
+                        <label class="party-detail-label">Payment Method</label>
                         <select class="form-select !text-xs" data-path="${base}.payment.method">
                             <option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option>
                             <option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option>
@@ -2782,7 +2803,7 @@ renderImfpaPartyDetails: (groupIndex, partyIndex) => {
                         </select>
                     </div>
                     <div>
-                        <label class="party-detail-label">Settlement Currency*</label>
+                        <label class="party-detail-label">Settlement Currency</label>
                         <select class="form-select !text-xs" data-path="${base}.payment.currency">
                             <option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option>
                             <option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option>
@@ -2790,8 +2811,8 @@ renderImfpaPartyDetails: (groupIndex, partyIndex) => {
                         </select>
                     </div>
                     <div class="col-span-1 sm:col-span-2">
-                        <label class="party-detail-label">Payment Coordinates*</label>
-                        <textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea>
+                        <label class="party-detail-label">Payment Coordinates</label>
+                        <textarea class="form-input !text-xs font-mono ${highlightIfComplete(party.payment.details)}" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea>
                     </div>
                 </div>
             </fieldset>
