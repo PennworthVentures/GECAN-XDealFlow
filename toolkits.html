@@ -1749,38 +1749,90 @@ resetAssetSwap: (fullRender = true) => {
     }
 },
         
+openImfpaEditor: () => {
+    SFX.play('launch'); // Play the "launch" sound to signify a major action.
+    
+    const inputContainer = document.getElementById('modeler-input-container');
+    const previewContainer = document.getElementById('modeler-preview-container');
+
+    // --- 1. Architectural Safeguards ---
+    // Ensure both critical panels exist before attempting to animate them.
+    if (!inputContainer || !previewContainer) {
+        console.error("CRITICAL RENDER FAILURE: Cannot open IMFPA editor. Input or preview container not found.");
+        Logic.showNotification("A critical UI error occurred. Please refresh.", 'error', 'Render Engine Failure');
+        return;
+    }
+    
+    // --- 2. Initiate Cinematic Transition ---
+    // Animate the input panel to its new, narrower state. The CSS transition handles the smoothness.
+    inputContainer.classList.remove('lg:col-span-5');
+    inputContainer.classList.add('lg:col-span-3');
+
+    // Prepare the preview panel for its entrance animation.
+    previewContainer.classList.remove('hidden');
+    
+    // --- 3. Render and Bind Content (Pre-Animation) ---
+    // Populate the editor panel with its UI.
+    inputContainer.innerHTML = UI.renderImfpaEditorPanel();
+    
+    // Perform the initial render of the contract preview.
+    Logic.liveUpdateContractPreview(); 
+    
+    // Bind all necessary event listeners to the newly rendered editor.
+    Logic.bindImfpaEditorEvents();
+            
+    // --- 4. Execute Coordinated "Spring to Life" Animation ---
+    // This timeout allows the browser a moment to register the DOM changes before
+    // we trigger the final animation classes, ensuring the transition is not jarring.
+    setTimeout(() => {
+        // Trigger the animation by changing opacity and transform properties.
+        // The CSS `transition` rules will handle the smooth animation.
+        previewContainer.style.opacity = '1';
+        previewContainer.style.transform = 'translateX(0px) rotateY(0deg)';
+    }, 50);
+},
+        
+closeImfpaEditor: () => {
+    SFX.play('click'); // Play a crisp "close" sound effect.
+
+    const inputContainer = document.getElementById('modeler-input-container');
+    const previewContainer = document.getElementById('modeler-preview-container');
+
+    // --- 1. Architectural Safeguards ---
+    // Ensure both critical panels exist before attempting to animate them.
+    if (!inputContainer || !previewContainer) {
+        console.error("CRITICAL RENDER FAILURE: Cannot close IMFPA editor. Input or preview container not found.");
+        return;
+    }
+
+    // --- 2. Initiate Cinematic Retraction ---
+    // Animate the preview panel out by reversing the entrance animation.
+    // The CSS `transition` rules will handle the smooth animation.
+    previewContainer.style.opacity = '0';
+    previewContainer.style.transform = 'translateX(50px) rotateY(-5deg)';
+
+    // Simultaneously, animate the input panel to reclaim the full width.
+    inputContainer.classList.remove('lg:col-span-3');
+    inputContainer.classList.add('lg:col-span-5');
+
+    // --- 3. Execute Post-Animation Cleanup and Re-render ---
+    // After the animation completes (matching the CSS transition duration),
+    // hide the preview panel and restore the initial Modeler UI.
+    setTimeout(() => {
+        previewContainer.classList.add('hidden');
+
+        // --- 4. Flawless State Restoration ---
+        // Re-render the initial deal SELECTION panel to return the user to the
+        // starting point of the Modeler workflow. This provides a clean, predictable state.
+        inputContainer.innerHTML = UI.renderModelerSelectionPanel();
+        
+        // It is critical to re-bind the event listeners for the newly rendered selection panel.
+        Logic.bindActiveToolkitEvents();
+
+    }, 700); // Duration must match the CSS transition for a seamless effect.
+},
 
         
-        openImfpaEditor: () => {
-            const inputContainer = document.getElementById('modeler-input-container');
-            const previewContainer = document.getElementById('modeler-preview-container');
-            const mainContent = document.getElementById('modeler-main-content');
-            
-            inputContainer.classList.remove('lg:col-span-5');
-            inputContainer.classList.add('lg:col-span-3');
-            inputContainer.innerHTML = UI.renderImfpaEditorPanel();
-            
-            previewContainer.classList.remove('hidden');
-            setTimeout(() => {
-                previewContainer.style.opacity = '1';
-                previewContainer.style.transform = 'translateX(0px)';
-            }, 50);
-            
-            Logic.liveUpdateContractPreview();
-            Logic.bindImfpaEditorEvents();
-        },
-        closeImfpaEditor: () => {
-            const inputContainer = document.getElementById('modeler-input-container');
-            const previewContainer = document.getElementById('modeler-preview-container');
-            
-            previewContainer.style.opacity = '0';
-            previewContainer.style.transform = 'translateX(50px)';
-            setTimeout(() => previewContainer.classList.add('hidden'), 500);
-
-            inputContainer.classList.remove('lg:col-span-3');
-            inputContainer.classList.add('lg:col-span-5');
-            inputContainer.innerHTML = UI.renderModelerSelectionPanel();
-        },
         liveUpdateContractPreview: () => {
             const previewContainer = document.getElementById('modeler-preview-container');
             if (!previewContainer.classList.contains('hidden')) {
