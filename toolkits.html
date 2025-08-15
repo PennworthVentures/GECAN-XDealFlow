@@ -1548,25 +1548,27 @@ togglePricingConfig: () => {
                 modal.showModal();
             },
             refreshImfpaModalUI: () => {
-                const { legal } = AppState.modeler;
-                const groupsContainer = document.getElementById('imfpa-groups-container');
-                const legalPartiesContainer = document.getElementById('imfpa-legal-parties');
-                if (groupsContainer) groupsContainer.innerHTML = UI.renderImfpaGroups();
-                if (legalPartiesContainer) {
-                    const allParties = legal.groups.flatMap(g => g.parties);
-                    legalPartiesContainer.innerHTML = allParties.length > 0 ? allParties.map(p => `<div><i class="fas fa-user-check text-premium-gold mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('') : '<p class="text-xs text-premium-text-secondary">No signatory parties defined.</p>';
-                }
-                const modalContent = document.getElementById('imfpa-modal');
-                if (modalContent) {
-                    modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
-                    modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
-                    modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
-                    modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
-                }
-                Logic.updateImfpaCalculations();
-                Logic.updateSynthesizeButtonState(); // <-- ADD THIS LINE AT THE END
-                Logic.updateContractPreview();
-            },
+    // Step 1: Re-render the primary dynamic content: the group and party cards.
+    // This function now intelligently handles both IMFPA and NCNDA modes.
+    UI.renderImfpaGroups();
+
+    // Step 2: Re-bind event listeners to the modal container. This ensures that
+    // newly rendered input fields are immediately interactive.
+    const modalContent = document.getElementById('imfpa-modal');
+    if (modalContent) {
+        // A robust method to ensure listeners are not duplicated.
+        modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
+        modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
+        modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
+        modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
+    }
+
+    // Step 3: Run all necessary recalculations and validation checks.
+    // The order of these calls is critical for a smooth UI update.
+    Logic.updateImfpaCalculations();      // Recalculates percentages and monetary values.
+    Logic.updateContractPreview();        // Updates the live document preview on the right.
+    Logic.updateSynthesizeButtonState();  // Validates all data and updates the main action button's state and color.
+},
             handleModelerInputChangeInModal: (e) => {
                 Logic.handleModelerInputChange(e);
                 Logic.updateImfpaCalculations();
@@ -1815,35 +1817,8 @@ generateContract: () => {
     }
 },
 
-            
 
-
-
-            // 2. ADD this missing function inside your `Logic` object, after `generatePremiumEmailTemplate`.
-            getPrintStyles: () => {
-                let printCss = '';
-                // Iterate through all stylesheets loaded on the page
-                for (const sheet of document.styleSheets) {
-                    try {
-                        // Iterate through all rules in a stylesheet
-                        for (const rule of sheet.cssRules) {
-                            // Check if the rule is an @media rule and if it's for 'print'
-                            if (rule.type === CSSRule.MEDIA_RULE && rule.media.mediaText === 'print') {
-                                // If it matches, iterate through the rules *inside* the @media block
-                                for (const printRule of rule.cssRules) {
-                                    // Append the text content of each rule to our string
-                                    printCss += printRule.cssText + '\n';
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        // Catch and log potential security errors when accessing cross-origin stylesheets
-                        console.warn("Could not access stylesheet for print styles:", sheet.href, e);
-                    }
-                }
-                return printCss;
-            },
-            // --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
+// --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
 
             initiateSigningProcess: () => {
     const sigBlocks = document.querySelectorAll('#contract-document-wrapper .p-signature-block');
@@ -2646,8 +2621,15 @@ renderYieldGraph: (calc) => {
     renderImfpaModal: () => {
     const { legal } = AppState.modeler;
     const isImfpa = legal.agreementType === 'IMFPA';
-    const mainSectionTitle = isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties';
-    const mainSectionIcon = isImfpa ? 'fa-sitemap' : 'fa-users';
+    
+    // --- Pinnacle Grade Validation & Button Logic ---
+    const isReadyToSynthesize = Logic.validateImfpaData();
+    const synthesizeButtonClass = isReadyToSynthesize 
+        ? 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow'
+        : 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed';
+    const synthesizeButtonText = isReadyToSynthesize 
+        ? 'Activate Interactive Workspace' 
+        : 'Complete Core Details (*) to Activate';
 
     return `
         <div class="dialog-content-wrapper">
@@ -2671,28 +2653,46 @@ renderYieldGraph: (calc) => {
                 </div>
 
                 <!-- ========================================================= -->
-                <!-- === NEW DUAL-COLUMN WORKSPACE GRID === -->
+                <!-- === RE-ARCHITECTED DUAL-COLUMN WORKSPACE GRID === -->
                 <!-- ========================================================= -->
                 <div class="imfpa-grid flex-grow overflow-hidden gap-8">
                     
                     <!-- LEFT COLUMN: EDITOR PANEL -->
                     <div class="imfpa-editor-column overflow-y-auto pr-4">
+                        <!-- Commission Allocation (IMFPA ONLY) -->
+                        <div id="commission-allocation-section" class="space-y-6 mb-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}">
+                            <div class="flex justify-between items-center">
+                                <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3>
+                                <div class="text-right">
+                                    <p class="text-xs text-premium-text-secondary">Total Pool</p>
+                                    <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure"></p>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button>
+                                <div class="flex items-center gap-2 text-xs">
+                                    <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold">
+                                    <label for="auto-balance-toggle">Auto-Balance</label>
+                                </div>
+                                <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
+                            </div>
+                            <div class="space-y-4" id="imfpa-groups-container"></div>
+                        </div>
+                        
+                        <!-- Signatory Parties (ALWAYS VISIBLE) -->
+                        <div class="space-y-6 mb-6">
+                             <h3 class="imfpa-section-title"><i class="fas fa-users mr-3"></i>Signatory Parties</h3>
+                             <div id="imfpa-controls" class="flex justify-between items-center ${isImfpa ? 'hidden' : 'flex'}">
+                                 <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Signatory Party</button>
+                             </div>
+                             <div class="space-y-4" id="ncnda-parties-container"></div>
+                        </div>
+
+                        <!-- Legal Framework (ALWAYS VISIBLE) -->
                         <div class="space-y-6">
-                            <div id="commission-allocation-section" class="space-y-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}">
-                                <div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-premium-text-secondary">Total Pool</p><p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure"></p></div></div>
-                                <div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div>
-                                <div class="space-y-4" id="imfpa-groups-container"></div>
-                            </div>
-                            <div class="space-y-6">
-                                <h3 class="imfpa-section-title"><i class="fas ${mainSectionIcon} mr-3"></i>${mainSectionTitle}</h3>
-                                <div id="imfpa-controls" class="flex justify-between items-center ${isImfpa ? 'hidden' : 'flex'}"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Signatory Party</button></div>
-                                <div class="space-y-4" id="ncnda-parties-container"></div>
-                            </div>
-                            <div class="space-y-6">
-                                <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
-                                <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
-                                <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced SPA (Optional)</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
-                            </div>
+                            <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
+                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
+                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced SPA (Optional)</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
                         </div>
                     </div>
 
@@ -2709,14 +2709,12 @@ renderYieldGraph: (calc) => {
                 <!-- === DYNAMIC FOOTER & ACTION BUTTONS === -->
                 <!-- ========================================================= -->
                 <div class="imfpa-footer pt-6 border-t border-premium-border mt-auto print-hide flex-shrink-0">
-                    <!-- Container for the initial "Synthesize" button -->
                     <div class="synthesis-button-container">
-                         <button id="synthesize-btn" onclick="Logic.activateWorkspaceMode()" class="btn-primary w-full py-3 font-bold"></button>
+                         <button id="synthesize-btn" onclick="Logic.activateWorkspaceMode()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r ${synthesizeButtonClass}" ${!isReadyToSynthesize ? 'disabled' : ''}>
+                             <i class="fas fa-wand-magic-sparkles mr-2"></i>${synthesizeButtonText}
+                         </button>
                     </div>
-                    <!-- Container for the final "Sign" and "Dispatch" buttons -->
-                    <div class="execution-suite-container" id="execution-suite-footer">
-                         <!-- The final buttons will be rendered here by JavaScript -->
-                    </div>
+                    <div class="execution-suite-container" id="execution-suite-footer"></div>
                 </div>
             </div>
         </div>
@@ -2724,25 +2722,22 @@ renderYieldGraph: (calc) => {
 },
 renderImfpaGroups: () => {
     const { legal } = AppState.modeler;
-    const { groups, agreementType } = legal;
-    const isImfpa = agreementType === 'IMFPA';
+    const { groups } = legal;
+    
+    // --- IMFPA Mode: Render full group cards into the commission container ---
+    if (AppState.modeler.legal.agreementType === 'IMFPA') {
+        const imfpaContainer = document.getElementById('imfpa-groups-container');
+        if (!imfpaContainer) return;
 
-    // --- A. PINNACLE-GRADE HANDLING FOR IMFPA MODE ---
-    if (isImfpa) {
         if (!groups || groups.length === 0) {
-            return `<p class="text-center text-premium-text-secondary py-4">No allocation groups defined. Click 'Add Group' to begin.</p>`;
+            imfpaContainer.innerHTML = `<p class="text-center text-premium-text-secondary py-4">No allocation groups defined. Click 'Add Group' to begin.</p>`;
+            return;
         }
-        return groups.map((g, groupIndex) => `
+        imfpaContainer.innerHTML = groups.map((g, groupIndex) => `
             <div class="allocation-group-card p-4">
-                <!-- ========================================================= -->
-                <!-- === PINNACLE GROUP HEADER w/ REAL-TIME PARTY COUNTER === -->
-                <!-- ========================================================= -->
                 <div class="flex items-center gap-2 mb-3">
                     <input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-premium-text-primary" placeholder="Group Name">
-                    <!-- REAL-TIME PARTY COUNTER -->
-                    <span class="text-xs font-mono text-premium-text-secondary bg-black/20 px-2 py-1 rounded-md flex-shrink-0">
-                        ${g.parties.length} ${g.parties.length === 1 ? 'Party' : 'Parties'}
-                    </span>
+                    <span class="text-xs font-mono text-premium-text-secondary bg-black/20 px-2 py-1 rounded-md flex-shrink-0">${g.parties.length} ${g.parties.length === 1 ? 'Party' : 'Parties'}</span>
                     <div class="relative w-32 flex-shrink-0"><input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div>
                     <button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex-shrink-0 flex items-center justify-center transition-colors duration-300 rounded-full hover:bg-red-500/10">×</button>
                 </div>
@@ -2756,17 +2751,29 @@ renderImfpaGroups: () => {
                 </div>
             </div>
         `).join('');
-    }
-    // --- B. SEVERELY GUIDED WORKFLOW FOR NCNDA-ONLY MODE ---
+
+        // Clear the NCNDA container when in IMFPA mode
+        const ncndaContainer = document.getElementById('ncnda-parties-container');
+        if (ncndaContainer) ncndaContainer.innerHTML = '';
+    } 
+    // --- NCNDA Mode: Render only party cards into the dedicated signatory container ---
     else {
+        const ncndaContainer = document.getElementById('ncnda-parties-container');
+        if (!ncndaContainer) return;
+
         if (!groups || groups.length === 0) {
             AppState.modeler.legal.groups.push({ name: 'NCNDA Signatories', percentage: 100, parties: [] });
         }
         const signatoryList = AppState.modeler.legal.groups[0].parties;
         if (signatoryList.length === 0) {
-            return `<p class="text-center text-premium-text-secondary py-4">No signatory parties defined. Click 'Add Signatory Party' to begin.</p>`;
+            ncndaContainer.innerHTML = `<p class="text-center text-premium-text-secondary py-4">No signatory parties defined. Click 'Add Signatory Party' to begin.</p>`;
+        } else {
+            ncndaContainer.innerHTML = signatoryList.map((p, partyIndex) => UI.renderImfpaParty(0, partyIndex)).join('');
         }
-        return signatoryList.map((p, partyIndex) => UI.renderImfpaParty(0, partyIndex)).join('');
+        
+        // Clear the IMFPA container when in NCNDA mode
+        const imfpaContainer = document.getElementById('imfpa-groups-container');
+        if (imfpaContainer) imfpaContainer.innerHTML = '';
     }
 },
 
