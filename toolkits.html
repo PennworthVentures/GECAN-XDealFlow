@@ -1119,12 +1119,7 @@ renderModelerOutputPanel: (calculation) => {
         rate, fromAsset, toAsset 
     } = calculation;
 
-    /**
-     * Pinnacle-Grade Sub-Renderer for a single metric card.
-     * This is a complete reconstruction using the benchmark's 'offer-card' and a new
-     * 'metrics-item'-style 3D icon for the ultimate kinetic effect.
-     */
-    const metricCard = (icon, label, value, subtext, themeColor, themeGlow, isRate = false) => `
+    const metricCard = (icon, label, value, subtext, themeColor, themeGlow) => `
         <div 
             class="offer-card !p-4 !rounded-xl" 
             style="--asset-primary: ${themeColor}; --asset-glow: ${themeGlow};"
@@ -1140,16 +1135,10 @@ renderModelerOutputPanel: (calculation) => {
                         <div class="icon-face icon-back" style="background: radial-gradient(ellipse at center, ${themeColor} 0%, transparent 70%); box-shadow: 0 0 20px ${themeGlow};"></div>
                     </div>
                 </div>
-
                 <!-- PRESTIGIOUS VALUE DISPLAY -->
                 <div class="flex-1 min-w-0">
                     <p class="text-sm text-[var(--text-muted)] mb-1">${label}</p>
-                    <h4 
-                        class="asset-header !text-3xl !mb-0 -ml-1 truncate" 
-                        style="--asset-gradient: linear-gradient(135deg, ${themeColor}, var(--text-diamond)); --asset-glow: ${themeGlow};"
-                    >
-                        ${value}
-                    </h4>
+                    <h4 class="asset-header !text-3xl !mb-0 -ml-1 truncate" style="--asset-gradient: linear-gradient(135deg, ${themeColor}, var(--text-diamond)); --asset-glow: ${themeGlow};">${value}</h4>
                     <p class="text-xs text-[var(--text-subtle)] font-mono mt-1 truncate">${subtext}</p>
                 </div>
             </div>
@@ -1164,7 +1153,7 @@ renderModelerOutputPanel: (calculation) => {
                 ${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle, 'var(--primary-azure)', 'var(--glow-azure)')}
                 ${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription, 'var(--success-color)', 'rgba(34, 197, 94, 0.7)')}
                 ${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription, 'var(--warning-color)', 'rgba(245, 158, 11, 0.7)')}
-                ${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable', 'var(--primary-amethyst)', 'var(--glow-amethyst)', true)}
+                ${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable', 'var(--primary-amethyst)', 'var(--glow-amethyst)')}
             </div>
             <div class="mt-auto pt-6 border-t border-[var(--border-color)]">
                 <button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold">
@@ -1587,10 +1576,10 @@ handleDealTypeChange: (newDealType) => {
 
     // --- Intelligent Default Setting ---
     if (newDealType === 'AssetSwap') {
-        // This is now the single source of truth for setting initial defaults.
+        // Reset to smart defaults and trigger the two-panel UI.
         Logic.resetAssetSwap(false); // false = don't re-render the *entire* toolkit
     } else {
-        // Logic for other deal types remains the same
+        // This logic path is for future toolkits like CommodityTrade, etc.
         const inputContainer = document.getElementById('modeler-input-container');
         const outputContainer = document.getElementById('modeler-output-container');
         inputContainer.classList.remove('lg:col-span-5');
@@ -1697,15 +1686,27 @@ swapAssets: () => {
 },
         
 togglePricingConfig: () => {
+    // 1. Mutate the state.
     AppState.modeler.pricingConfig.isVisible = !AppState.modeler.pricingConfig.isVisible;
-    const inputContainer = document.getElementById('modeler-input-container');
-    if (inputContainer) {
-        inputContainer.innerHTML = UI.renderModelerInputPanel();
-        Logic.bindActiveToolkitEvents();
+
+    // 2. Surgically target the DOM elements.
+    const collapsibleContent = document.querySelector('.collapsible-content');
+    const chevronIcon = document.querySelector('.collapsible-header .fa-chevron-down');
+
+    // 3. Apply classes to trigger CSS animations.
+    if (collapsibleContent && chevronIcon) {
+        if (AppState.modeler.pricingConfig.isVisible) {
+            collapsibleContent.classList.add('expanded');
+            chevronIcon.classList.add('rotate-180');
+        } else {
+            collapsibleContent.classList.remove('expanded');
+            chevronIcon.classList.remove('rotate-180');
+        }
     }
+    
+    // 4. Update projections in case visibility affects calculations.
     UI.updateModelerUI();
 },
-
 calculateAssetSwap: () => {
     const state = AppState.modeler.assetSwap;
     const amount = parseFloat(String(state.amount).replace(/,/g, '')) || 0;
@@ -1974,10 +1975,66 @@ generateContract: (isLiveUpdate = false) => {
     // Always update the hidden print container as well.
     printContainer.innerHTML = contractHTML;
 },
-        bindImfpaEditorEvents: () => {
-            const container = document.getElementById('imfpa-groups-container');
-            if(container) container.addEventListener('input', Utils.debounce(Logic.handleModelerInputChange, 250));
-        },
+bindImfpaEditorEvents: () => {
+    const editorContainer = document.getElementById('modeler-input-container');
+
+    // Architectural Safeguard: Do nothing if the main editor container doesn't exist.
+    if (!editorContainer) {
+        console.error("CRITICAL BINDING FAILURE: #modeler-input-container not found. Cannot bind IMFPA editor events.");
+        return;
+    }
+
+    // --- 1. DELEGATED INPUT EVENT LISTENER ---
+    // A single, debounced listener on the parent container handles all text/number inputs.
+    // This is hyper-efficient and automatically works for newly added party/group inputs.
+    editorContainer.addEventListener('input', Utils.debounce((e) => {
+        if (e.target.matches('[data-path]')) {
+            Logic.handleModelerInputChange(e);
+        }
+    }, 250)); // 250ms debounce for a smooth typing experience.
+
+    // --- 2. DELEGATED CLICK EVENT LISTENER ---
+    // A single click listener intelligently handles all button actions within the editor.
+    editorContainer.addEventListener('click', (e) => {
+        const target = e.target.closest('button, [onclick*="togglePartyDetails"]');
+        if (!target) return;
+
+        // Retrieve the action and necessary data attributes from the clicked element.
+        const action = target.dataset.action;
+        const groupIndex = target.dataset.groupIndex;
+        const partyIndex = target.dataset.partyIndex;
+
+        // Play a crisp sound for all interactions.
+        SFX.play('click');
+
+        // --- Pinnacle-Grade Action Router ---
+        // Use a clean switch statement to perform the correct logic based on the action.
+        switch (action) {
+            case 'addGroup':
+                Logic.addImfpaGroup();
+                break;
+            case 'removeGroup':
+                // Ensure we have a valid index before attempting to remove.
+                if (groupIndex !== undefined) Logic.removeImfpaGroup(parseInt(groupIndex));
+                break;
+            case 'addParty':
+                if (groupIndex !== undefined) Logic.addImfpaParty(parseInt(groupIndex));
+                break;
+            case 'removeParty':
+                if (groupIndex !== undefined && partyIndex !== undefined) {
+                    Logic.removeImfpaParty(parseInt(groupIndex), parseInt(partyIndex));
+                }
+                break;
+            case 'toggleDetails':
+                 if (groupIndex !== undefined && partyIndex !== undefined) {
+                    Logic.togglePartyDetails(parseInt(groupIndex), parseInt(partyIndex));
+                }
+                break;
+            // The "Synthesize" and "Close" buttons are handled by their own `onclick` attributes
+            // as they are part of the static panel chrome, not the dynamic list.
+        }
+    });
+},
     };
 
     // --- V. APPLICATION BOOTSTRAP ---
