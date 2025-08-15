@@ -1059,10 +1059,105 @@ buildWalletReportHTML: (report) => {
             return `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold font-orbitron text-white">Select Deal Type</h2><button onclick="Logic.resetModelerState()" class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20"><i class="fas fa-undo mr-2"></i>Reset</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8">${dealTypes.map((deal, i) => `<div class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')" style="--asset-primary: ${colorMap[deal.color.split(' ')[0]].primary}; --asset-glow: ${colorMap[deal.color.split(' ')[0]].glow};"><div class="card-content"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4"><i class="fas ${deal.icon}"></i></div><h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3><p class="text-sm">${deal.desc}</p></div></div>`).join('')}</div>`;
         },
         renderModelerInputPanel: () => {
-            const dealPanelHTML = UI[`render${AppState.modeler.activeDealType}Panel`] ? UI[`render${AppState.modeler.activeDealType}Panel`]() : '';
-            return `<div class="flex items-center mb-6"><button onclick="UI.renderActiveToolkit()" class="nav-btn !py-2 !px-4 text-sm"><i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection</button></div><h2 class="text-2xl font-bold text-white mb-6"><i class="fas fa-sliders-h text-[var(--primary-azure)] mr-3"></i>Deal Parameters</h2><div class="space-y-6 flex-grow">${dealPanelHTML}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button onclick="Logic.openImfpaEditor()" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite</button></div>`;
-        },
+    const { activeDealType, pricingConfig } = AppState.modeler;
+
+    // --- 1. Dynamic Sub-Panel Rendering ---
+    // This logic robustly calls the specific renderer for the active deal type
+    // (e.g., UI.renderAssetSwapPanel), ensuring modularity and scalability.
+    const dealPanelRenderer = UI[`render${activeDealType}Panel`];
+    const dealPanelHTML = dealPanelRenderer 
+        ? dealPanelRenderer() 
+        : `<div class="text-center p-4 bg-red-900/50 border border-red-500/50 rounded-lg text-red-300">
+             <strong>Render Error:</strong> Input panel UI for '${activeDealType}' not found.
+           </div>`;
+
+    // --- 2. Advanced Pricing Configuration Panel (Unabridged Implementation) ---
+    // This was previously missing and is now fully implemented with dynamic state.
+    const pricingConfigHTML = `
+        <div 
+            class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"
+        >
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <select data-path="pricingConfig.offerType" class="form-select">
+                    ${['discount', 'premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}
+                </select>
+                <select data-path="pricingConfig.isValueInPercent" class="form-select">
+                    ${[[true, '%'], [false, '$']].map(([v, l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}
+                </select>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Gross Offer</label>
+                    <input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Net to Buyer</label>
+                    <input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input">
+                </div>
+            </div>
+        </div>`;
+    
+    // --- 3. Master Panel Assembly (Unabridged HTML) ---
+    return `
+        <!-- Panel Navigation & Header -->
+        <div class="flex items-center mb-6 animate-fade-in-up">
+            <button 
+                onclick="UI.renderActiveToolkit(); SFX.play('click');" 
+                class="nav-btn !py-2 !px-4 text-sm"
+            >
+                <i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection
+            </button>
+        </div>
+        <h2 
+            class="text-2xl font-bold font-orbitron text-white mb-6 animate-fade-in-up stagger-1"
+        >
+            <i class="fas fa-sliders-h text-[var(--primary-azure)] mr-3"></i>Deal Parameters
+        </h2>
+        
+        <!-- Main Content Area -->
+        <div class="space-y-6 flex-grow">
+            
+            <!-- Core Deal Parameters Sub-Panel (Pinnacle Grade) -->
+            <div class="offer-card !p-6 animate-fade-in-up stagger-2">
+                <h4 class="asset-header text-lg -ml-1 mb-4 flex items-center gap-3">
+                    <i class="fas fa-file-contract"></i>Transaction Core
+                </h4>
+                <div class="space-y-4">
+                    ${dealPanelHTML}
+                </div>
+            </div>
+
+            <!-- Advanced Pricing Sub-Panel (Pinnacle Grade & Collapsible) -->
+            <div class="offer-card !p-6 animate-fade-in-up stagger-3">
+                <div 
+                    class="collapsible-header cursor-pointer group" 
+                    onclick="Logic.togglePricingConfig(); SFX.play('click');"
+                >
+                    <h4 class="asset-header text-lg -ml-1 flex items-center gap-3">
+                        <i class="fas fa-percent"></i>Pricing & Configuration
+                    </h4>
+                    <i class="fas fa-chevron-down text-[var(--text-muted)] transition-transform duration-300 group-hover:text-white ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i>
+                </div>
+                ${pricingConfigHTML}
+            </div>
+
+        </div>
+        
+        <!-- Footer Action Button (Pinnacle Grade) -->
+        <div class="mt-auto pt-6 border-t border-[var(--border-color)] animate-fade-in-up stagger-4">
+            <button 
+                onclick="Logic.openImfpaEditor(); SFX.play('launch');" 
+                class="btn-engagement w-full py-3 font-bold"
+            >
+                <i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite
+            </button>
+        </div>
+    `;
+},
+        
         renderAssetSwapPanel: () => `...`, renderCommodityTradePanel: () => `...`, renderCryptoLoanPanel: () => `...`, renderSBLCMonetizationPanel: () => `...`,
+        
+        
         renderImfpaEditorPanel: () => {
             const { legal } = AppState.modeler;
             const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
