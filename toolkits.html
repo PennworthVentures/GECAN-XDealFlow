@@ -218,11 +218,23 @@ dialog::backdrop {
 
 /* --- C. SPECIFIC MODAL WIDTHS (PINNACLE CONTROL) --- */
 /* We set the max-width on the WRAPPER, not the dialog, for precision. */
-#imfpa-modal .dialog-content-wrapper { max-width: 80rem; } /* For wide, two-column layouts */
 #submission-modal .dialog-content-wrapper { max-width: 40rem; }
 #signature-modal .dialog-content-wrapper { max-width: 35rem; }
 #finalization-modal .dialog-content-wrapper { max-width: 35rem; }
 #notification-modal .dialog-content-wrapper { max-width: 32rem; }
+
+/* ========================================================================= */
+/* === DEFINITIVE FIX: IMFPA Modal Sizing & Efficiency (USER REQUEST) === */
+/* This rule is specifically enhanced to meet the requirement for a centered,
+   max-efficiency view for the Commission & Contract Suite. */
+/* ========================================================================= */
+#imfpa-modal .dialog-content-wrapper { 
+    /* 1. Increase max-width for better use of large screens. */
+    max-width: 90rem; /* Increased from 80rem for superior viewing on widescreen monitors */
+    
+    /* 2. Ensure the modal uses as much vertical space as possible for an immersive feel. */
+    height: 95%; /* Use 95% of the available vertical space inside the padded dialog */
+}
 
 /* --- D. PINNACLE ANIMATIONS --- */
 @keyframes modal-backdrop-fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -401,7 +413,7 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
     <dialog id="submission-modal"></dialog>
 
     <!-- MODAL & DIALOG CONTAINERS -->
-    <dialog id="imfpa-modal" class="p-0 bg-transparent max-w-7xl w-full print-hide"></dialog>
+    <dialog id="imfpa-modal"></dialog>
     <!-- II. RE-ENGINEERED MODAL HTML CONTAINERS (ADD THESE TO YOUR MAIN HTML BODY) -->
 <dialog id="signature-modal">
     <div class="dialog-content-wrapper" style="width:100%;">
