@@ -1123,6 +1123,20 @@ renderModelerOutputPanel: (calculation) => {
     return `<div class="flex flex-col h-full animate-fade-in-up"><h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2><div class="space-y-4 flex-grow">${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle)}${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription)}${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription)}${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable for conversion.', true)}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite</button></div></div>`;
 },
 
+updateModelerUI: () => {
+    // 1. Always recalculate the model to get the latest projections.
+    const calculation = Logic.calculateModel();
+
+    // 2. Select the container for the projections panel.
+    const outputContainer = document.getElementById('modeler-output-container');
+    
+    // 3. Robustly check if the container exists before attempting to update it.
+    if (outputContainer && !outputContainer.classList.contains('hidden')) {
+        // 4. Re-render ONLY the projections panel with the new, accurate data.
+        outputContainer.innerHTML = UI.renderModelerOutputPanel(calculation);
+    }
+},
+        
 /**
  * SEVERELY UPGRADED: Renders the Commodity Trade deal parameter panel.
  * This function provides a brilliant, user-guided, step-by-step process for structuring
@@ -1242,6 +1256,7 @@ renderCryptoLoanPanel: () => {
         </div>
     `;
 },
+        
 
 /**
  * SEVERELY UPGRADED: Renders the SBLC Monetization parameter panel.
@@ -1477,23 +1492,18 @@ populateNavLinks: () => {
         
 handleDealTypeChange: (newDealType) => {
     AppState.modeler.activeDealType = newDealType;
-
-    // --- Intelligent Default Setting ---
     if (newDealType === 'AssetSwap') {
-        const btc = AppState.marketData.find(a => a.key === 'BTC-USD');
-        const usdt = AppState.marketData.find(a => a.key === 'USDT-USD');
-        if (btc) AppState.modeler.assetSwap.fromAssetKey = 'BTC-USD';
-        if (usdt) AppState.modeler.assetSwap.toAssetKey = 'USDT-USD';
+        AppState.modeler.assetSwap.fromAssetKey = 'BTC-USD';
+        AppState.modeler.assetSwap.toAssetKey = 'USDT-USD';
         AppState.modeler.assetSwap.amount = 30000;
     }
-
     const inputContainer = document.getElementById('modeler-input-container');
     const outputContainer = document.getElementById('modeler-output-container');
-    
     inputContainer.classList.remove('lg:col-span-5');
     inputContainer.classList.add('lg:col-span-3');
-
     inputContainer.innerHTML = UI.renderModelerInputPanel();
+    
+    // CRITICAL FIX: The projections panel is now rendered here, ensuring it exists.
     const calculation = Logic.calculateModel();
     outputContainer.innerHTML = UI.renderModelerOutputPanel(calculation);
 
@@ -1502,17 +1512,39 @@ handleDealTypeChange: (newDealType) => {
         outputContainer.style.opacity = '1';
         outputContainer.style.transform = 'translateX(0px)';
     }, 50);
-
     Logic.bindActiveToolkitEvents();
 },
-        handleModelerInputChange: (e) => {
-            const { dataset, value } = e.target;
-            let current = AppState.modeler;
-            const keys = dataset.path.split(/[\.\[\]]+/).filter(Boolean);
-            keys.slice(0, -1).forEach(key => current = current[key]);
-            current[keys.pop()] = value;
-            Logic.liveUpdateContractPreview(); // Always update preview on any input change
-        },
+        
+handleModelerInputChange: (e) => {
+    const { dataset, value, type } = e.target;
+    const path = dataset.path;
+    if (!path) return;
+
+    let current = AppState.modeler;
+    const keys = path.split(/[\.\[\]]+/).filter(Boolean);
+    const finalKey = keys.pop();
+    keys.forEach(key => current = current[key]);
+
+    // Handle numeric formatting for a seamless UX
+    let processedValue = value;
+    if (type === 'text' && (path.includes('amount') || path.includes('Value'))) {
+        processedValue = parseFloat(value.replace(/,/g, '')) || 0;
+    } else if (type === 'number' || type === 'range') {
+        processedValue = parseFloat(value) || 0;
+    } else if (typeof current[finalKey] === 'boolean') {
+        processedValue = (value === 'true');
+    }
+    current[finalKey] = processedValue;
+    
+    // CRITICAL FIX: Calls the correct UI update function.
+    UI.updateModelerUI();
+    
+    // Only call the contract preview if the IMFPA editor is actually open.
+    // This resolves the second TypeError.
+    if (!document.getElementById('modeler-preview-container').classList.contains('hidden')) {
+        Logic.liveUpdateContractPreview();
+    }
+},
         
 calculateModel: () => {
     const { activeDealType, pricingConfig } = AppState.modeler;
@@ -1544,36 +1576,34 @@ swapAssets: () => {
     const toAsset = Utils.getAssetByKey(swapState.toAssetKey);
     const amount = parseFloat(String(swapState.amount).replace(/,/g, '')) || 0;
 
-    // --- Intelligent Value Preservation Engine ---
-    // Instead of just swapping keys, we preserve the total USD value of the transaction.
     if (fromAsset.price > 0 && toAsset.price > 0) {
         const totalUsdValue = amount * fromAsset.price;
-        // Calculate the new 'from' amount that equals the same total USD value.
         swapState.amount = totalUsdValue / toAsset.price;
     }
     
-    // Atomically swap the asset keys in the state.
     [swapState.fromAssetKey, swapState.toAssetKey] = [swapState.toAssetKey, swapState.fromAssetKey];
     
-    // --- Pinnacle-Grade Kinetic Feedback ---
     const icon = document.getElementById('swap-icon');
     if (icon) {
-        // Reset and trigger a high-fidelity CSS animation.
         icon.style.animation = 'none';
-        // This line is a clever trick to force a browser reflow, allowing the animation to re-trigger.
         void icon.offsetWidth; 
         icon.style.animation = 'swap-icon-spin 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
     }
     
-    // Trigger a full re-render of the UI to reflect all state changes.
-    Logic.updateModelerUI(true);
+    // CRITICAL FIX: This now triggers the full, correct re-render of both panels.
+    Logic.handleDealTypeChange(AppState.modeler.activeDealType);
 },
+
 togglePricingConfig: () => {
-    // Directly mutate the state. The UI will react to this change.
     AppState.modeler.pricingConfig.isVisible = !AppState.modeler.pricingConfig.isVisible;
-    
-    // Trigger a full re-render to apply the '.expanded' class and animate the panel.
-    Logic.updateModelerUI(true);
+    // We must re-render the entire input panel to get the expand/collapse animation.
+    const inputContainer = document.getElementById('modeler-input-container');
+    if (inputContainer) {
+        inputContainer.innerHTML = UI.renderModelerInputPanel();
+        Logic.bindActiveToolkitEvents(); // Re-bind listeners after re-render
+    }
+    // Also update projections in case visibility affects calculations.
+    UI.updateModelerUI();
 },
 
 calculateAssetSwap: () => {
