@@ -6,7 +6,6 @@
     <!-- ========================================================================= -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
     <base target="_top">
@@ -35,7 +34,7 @@
 
     <style>
 /* ========================================================================= */
-/* === PINNACLE CSS ENGINE v5.0 (SEVERELY UPGRADED & SYNTHESIZED) === */
+/* === PINNACLE CSS ENGINE v5.1 (CORRECTED & STABILIZED) === */
 /* This stylesheet is the definitive standard for the Toolkits page, */
 /* ensuring visual consistency with the entire GECAN platform. */
 /* ========================================================================= */
@@ -136,14 +135,14 @@ body.mobile-sidebar-open { overflow: hidden; }
 .output-metric-card.base-value .value { color: var(--primary-azure); } .output-metric-card.net .value { color: var(--success-color); } .output-metric-card.commission .value { color: var(--warning-color); }
 
 /* ========================================================================= */
-/* === DEFINITIVE MODAL & CENTERING ENGINE (MILITARY-GRADE v7.0) === */
+/* === DEFINITIVE MODAL & CENTERING ENGINE (MILITARY-GRADE v7.1) === */
 /* ========================================================================= */
 dialog { padding: 0 !important; border: none !important; background: transparent !important; max-width: 100%; width: 100%; overflow: hidden; }
 dialog[open] { display: grid !important; place-items: center !important; position: fixed !important; inset: 0 !important; z-index: 200 !important; padding: 2rem; animation: modal-backdrop-fade-in 0.5s ease forwards; }
 @media (max-width: 768px) { dialog[open] { padding: 0; } }
 dialog::backdrop { background: rgba(5, 5, 9, 0.85) !important; backdrop-filter: blur(16px) saturate(180%) !important; -webkit-backdrop-filter: blur(16px) saturate(180%) !important; animation: modal-backdrop-fade-in 0.5s ease forwards; }
 .dialog-content-wrapper { background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%) !important; border: 1px solid var(--border-premium) !important; box-shadow: var(--shadow-quantum) !important; border-radius: 1.5rem !important; width: 100%; max-height: calc(100vh - 4rem); display: flex; flex-direction: column; overflow: hidden; animation: modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@media (max-width: 768px) { .dialog-content-wrapper { max-height: 100vh; border-radius: 0 !important; } }
+@media (max-width: 1023px) { .dialog-content-wrapper { max-height: 100vh; border-radius: 0 !important; } }
 
 #imfpa-modal .dialog-content-wrapper { max-width: 90rem; }
 #signature-modal .dialog-content-wrapper { max-width: 35rem; }
@@ -162,9 +161,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .collapsible-content > div { overflow: hidden; }
 
 /* =================================================================================== */
-/* === PINNACLE NCNDA/IMFPA WORKSPACE ENGINE v10.0 (SEVERELY UPGRADED) === */
-/* This engine GUARANTEES a maximized, dual-column interactive contract suite */
-/* with a fully responsive, premium mobile-first architecture. */
+/* === PINNACLE NCNDA/IMFPA WORKSPACE ENGINE v10.1 (RESPONSIVE OVERHAUL) === */
 /* =================================================================================== */
 #imfpa-modal .dialog-content-wrapper {
     --premium-gold: #D4AF37; --premium-gold-glow: rgba(212, 175, 55, 0.4);
@@ -173,23 +170,16 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
     background: radial-gradient(circle at top left, var(--premium-bg-light), var(--premium-bg-dark) 70%);
     border: 1px solid var(--premium-border); color: var(--premium-text-primary);
     box-shadow: 0 40px 80px -20px rgba(0,0,0,0.75), 0 0 0 1px var(--premium-gold-glow);
-    /* NEW: Full screen height for responsive layout */
-    min-height: 100vh;
-    border-radius: 0 !important; /* Full screen on mobile */
+    min-height: 100vh; border-radius: 0 !important;
 }
-@media (min-width: 1024px) {
-    #imfpa-modal .dialog-content-wrapper {
-        min-height: auto;
-        border-radius: 1.5rem !important;
-    }
-}
-.imfpa-header h2 { font-family: 'Orbitron', monospace; background: linear-gradient(90deg, var(--premium-text-primary), var(--premium-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.imfpa-section-title { font-size: 1.25rem; font-weight: 700; color: var(--premium-text-primary); border-left: 3px solid var(--premium-gold); padding-left: 1rem; margin-bottom: 1.5rem; }
+@media (min-width: 1024px) { #imfpa-modal .dialog-content-wrapper { min-height: auto; max-height: 95vh; border-radius: 1.5rem !important; } }
+
 .imfpa-section-title i { animation: icon-pulse 3s infinite ease-in-out; }
 @keyframes icon-pulse { 50% { transform: scale(1.1); color: var(--premium-gold); } }
 
 /* Workspace Grid & Columns (New Responsive Logic) */
-.workspace-grid { display: grid; grid-template-columns: 1fr; }
+.workspace-main { flex-grow: 1; overflow: hidden; }
+.workspace-grid { height: 100%; display: grid; grid-template-columns: 1fr; }
 @media (min-width: 1024px) { .workspace-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .editor-panel, .preview-panel { height: 100%; display: flex; flex-direction: column; }
 .editor-content, .preview-content { flex-grow: 1; overflow-y: auto; }
@@ -201,15 +191,10 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 /* Mobile Preview Toggling */
 @media (max-width: 1023px) {
     .preview-panel {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 60;
-        transform: translateX(100%);
-        transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 60;
+        transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
     }
-    body[data-mobile-preview="visible"] .preview-panel {
-        transform: translateX(0);
-    }
+    body[data-mobile-preview="visible"] .preview-panel { transform: translateX(0); }
 }
 
 /* Agreement Toggle Switch (New Premium Version) */
@@ -222,26 +207,17 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 .party-card:hover { background-color: rgba(255,255,255,0.05); }
 
 /* Execution Suite & Buttons (New Premium Styles) */
-#execution-suite-footer .execution-btn {
-    font-weight: 700;
-    padding: 0.8rem 1.5rem;
-    border-radius: 0.75rem;
-    border-width: 2px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-#execution-suite-footer .execution-btn:hover:not(:disabled) {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-/* Synthesize & Finalization Buttons (New Premium Styles) */
+#execution-suite-footer .execution-btn { font-weight: 700; padding: 0.8rem 1.5rem; border-radius: 0.75rem; border-width: 2px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+#execution-suite-footer .execution-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
 .synthesis-button-container, .execution-suite-container.hidden { display: none; }
 #imfpa-modal.synthesis-complete .synthesis-button-container { display: none; }
 #imfpa-modal.synthesis-complete .execution-suite-container { display: block; }
+#synthesis-state { display: block; }
+#imfpa-modal.synthesis-complete #synthesis-state { display: none; }
 
 /* Signature & Finalization Modals */
-#signature-modal .signature-tab.active { border-color: var(--success-color); color: var(--text-diamond); }
-#signature-canvas { border: 1px solid var(--border-premium); border-radius: 0.5rem; background-color: var(--background-dark); cursor: crosshair; }
+#signature-modal .tool-tab.active { border-color: var(--success-color); color: var(--text-diamond); }
+#signature-canvas { cursor: crosshair; }
 #finalization-icon-container { background: linear-gradient(135deg, var(--primary-amethyst), var(--primary-royal)); animation: pulse-glow 3s ease-in-out infinite; }
 @keyframes pulse-glow { 50% { transform: scale(1.05); box-shadow: 0 0 35px var(--glow-amethyst); } }
 
@@ -262,17 +238,16 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
     .contract-document { font-family: 'Garamond', 'Times New Roman', serif; font-size: 11pt; line-height: 1.4; color: #000; margin: 0; padding: 0; border: none; box-shadow: none; background: #fff !important; }
     .document-title { font-size: 18pt; font-weight: bold; color: #1A237E; border-bottom: 2px solid #b4975a; padding-bottom: 8pt; margin-bottom: 24pt; font-family: 'Helvetica Neue', Arial, sans-serif; }
     .section-title { font-size: 14pt; font-weight: bold; color: #283593; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-top: 20pt; margin-bottom: 12pt; font-family: 'Helvetica Neue', Arial, sans-serif; page-break-after: avoid; }
-    .text-gray-700 { color: #000 !important; }
-    .p-text, .text-gray-700, .text-gray-600 { text-align: justify; margin-bottom: 11pt; }
-    .members-table { width: 100%; border-collapse: collapse; margin-top: 12pt; margin-bottom: 16pt; page-break-inside: avoid; }
-    .members-table th, .members-table td { border: 1px solid #ccc; padding: 6pt 8pt; text-align: left; vertical-align: top; font-size: 9pt; }
-    .members-table th { background-color: #e8eaf6; color: #1A237E; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; }
-    .members-table tr:nth-child(even) td { background-color: #f9f9f9; }
+    .text-gray-700, .text-gray-600 { color: #000 !important; text-align: justify; margin-bottom: 11pt; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12pt; margin-bottom: 16pt; page-break-inside: avoid; }
+    th, td { border: 1px solid #ccc; padding: 6pt 8pt; text-align: left; vertical-align: top; font-size: 9pt; }
+    th { background-color: #e8eaf6; color: #1A237E; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; }
+    tr:nth-child(even) td { background-color: #f9f9f9; }
     .signature-block { margin-top: 40pt; page-break-inside: avoid; display: block; border: 1px solid #ccc; padding: 1cm; background: #f9f9f9; }
     .signature-line { border-bottom: 1px solid #000; margin-top: 40pt; margin-bottom: 6pt; min-height: 20px; }
     .signature-label { font-size: 9pt; color: #555; }
-    .signature-fields img.p-signature-img { max-height: 60px; object-fit: contain; mix-blend-mode: darken; }
-    .seal-area img.p-seal-img { max-height: 80px; max-width: 80px; object-fit: contain; mix-blend-mode: darken; }
+    .signature-fields img { max-height: 60px; object-fit: contain; mix-blend-mode: darken; }
+    .seal-area img { max-height: 80px; max-width: 80px; object-fit: contain; mix-blend-mode: darken; }
     .commission-section, .signature-section { page-break-before: always; }
     .watermark { display: block !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120pt; color: rgba(180, 151, 90, 0.08); font-weight: bold; z-index: -1000; pointer-events: none; font-family: 'Arial Black', sans-serif; }
 }
@@ -344,11 +319,8 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 
     <!-- MODAL & DIALOG CONTAINERS -->
     <dialog id="imfpa-modal" class="p-0 bg-transparent w-full print-hide"></dialog>
-
     <dialog id="signature-modal"></dialog>
-    
     <dialog id="notification-modal"></dialog>
-    
     <dialog id="finalization-modal"></dialog>
 
     <!-- This is a hidden div used to stage the final, clean HTML for printing -->
@@ -377,20 +349,19 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
 
     <script>
 // ====================================================================================
-// === PINNACLE SCRIPT ENGINE v5.0 (SEVERELY UPGRADED & SYNTHESIZED) ===
+// === PINNACLE SCRIPT ENGINE v5.1 (CORRECTED & STABILIZED) ===
 // This engine is the definitive, production-grade standard for the Toolkits page,
 // with the Institutional Modeler as the primary focus.
 // ====================================================================================
 const API_URL = "https://script.google.com/macros/s/AKfycby_U6tBwtdj4Sud-t94FFgTmb8YwNRyS3VJeHJIoZ3KEkhR9EfM8I3NuS0CYLsCWjzX/exec";
 
 // ====================================================================================
-// === SECTION 1: STATE & MODELS (v5.0 - DEFINITIVE & REFINED) ===
+// === SECTION 1: STATE & MODELS (v5.1 - DEFINITIVE & REFINED) ===
 // ====================================================================================
 const AppState = {
     isInitialized: false, 
     activeToolkit: 'Dashboard', 
     marketData: [],
-
     toolkits: {
         Dashboard: { id: 'Dashboard', name: 'Dashboard', icon: 'fa-th-large', description: 'Centralized hub for accessing all GECAN™ proprietary institutional tools.', color: 'from-blue-500 to-purple-600' },
         InstitutionalModeler: { id: 'InstitutionalModeler', name: 'Institutional Modeler Suite', icon: 'fa-sitemap', description: 'Model, simulate, and generate legal frameworks for complex institutional transactions.', color: 'from-green-500 to-emerald-600' },
@@ -419,7 +390,7 @@ const commodityData = {
 };
 
 // ====================================================================================
-// === SECTION 2: UTILITIES (v5.0 - DEFINITIVE & BENCHMARKED) ===
+// === SECTION 2: UTILITIES (v5.1 - DEFINITIVE & BENCHMARKED) ===
 // ====================================================================================
 const Utils = {
     showNotification: (message, type = 'info', title = null) => {
@@ -441,19 +412,44 @@ const Utils = {
 };
 
 // ====================================================================================
-// === SECTION 3: CORE LOGIC CONTROLLER (v5.0 - DEFINITIVE & UPGRADED) ===
+// === SECTION 3: CORE LOGIC CONTROLLER (v5.1 - CORRECTED & STABILIZED) ===
 // ====================================================================================
 const Logic = {
+    createApiRequest: async (action, method = 'GET', params = {}) => {
+        const url = new URL(API_URL);
+        url.searchParams.append('action', action);
+        const options = { method: method.toUpperCase(), redirect: 'follow' };
+        if (options.method === 'GET') {
+            Object.entries(params).forEach(([k, v]) => url.searchParams.append(k, v));
+        } else {
+            options.body = JSON.stringify({ action, data: params });
+            options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+        }
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`API Network Error: Status ${response.status}`);
+            const result = await response.json();
+            if (result.success === false) throw new Error(result.error || 'Server error.');
+            return result.data || result.message || result;
+        } catch (error) {
+            console.error(`API Error for '${action}':`, error);
+            throw new Error(`API Error: ${error.message}`);
+        }
+    },
     init: async () => {
         UI.init();
         UI.populateNavLinks(); 
         Logic.initMobileUI();
         Logic.setupEventListeners();
         try {
+            // =========================================================================
+            // === DEFINITIVE FIX: Explicitly specify 'GET' for initial data fetches ===
+            // =========================================================================
             const [marketData, themeJson] = await Promise.all([
-                Logic.createApiRequest('getMarketMatrixData'),
-                Logic.createApiRequest('getActiveThemeConfig').catch(() => null)
+                Logic.createApiRequest('getMarketMatrixData', 'GET'),
+                Logic.createApiRequest('getActiveThemeConfig', 'GET').catch(() => null)
             ]);
+            
             if (themeJson) { try { UI.renderParticles(JSON.parse(themeJson)); } catch (e) {} }
             if (!marketData || !Array.isArray(marketData)) throw new Error("Market data invalid.");
             AppState.marketData = marketData.filter(a => a.status === 'OK' || a.status === 'MANUAL').map(a => ({ ...a, price: parseFloat(a.price) || 0 }));
@@ -468,7 +464,7 @@ const Logic = {
     onDataError: (error) => {
         console.error("CRITICAL FAILURE:", error);
         Utils.showNotification(`Failed to load critical platform data: ${error.message}.`, 'error', 'Platform Initialization Error');
-        document.getElementById('initial-loader').innerHTML = `<div class="text-center text-red-400">Platform Initialization Failed.</div>`;
+        document.getElementById('initial-loader').innerHTML = `<div class="text-center text-red-400 p-8"><h3 class="text-xl font-bold mb-2">Platform Initialization Failed</h3><p class="text-sm">${error.message}</p><button onclick="location.reload()" class="btn-primary mt-4 px-4 py-2">Retry</button></div>`;
     },
     initMobileUI: () => {
         const fab = document.getElementById('mobile-fab'), 
@@ -487,7 +483,7 @@ const Logic = {
     setActiveToolkit: (id) => { if (AppState.activeToolkit === id && AppState.isInitialized) return; AppState.activeToolkit = id; UI.renderActiveToolkit(); },
     bindActiveToolkitEvents: () => { const binder = Logic[`bind${AppState.activeToolkit}Events`]; if (binder) binder(); },
     
-    // --- Institutional Modeler Logic (v5.0 - Definitive & Unabridged) ---
+    // --- Institutional Modeler Logic (v5.1 - Definitive & Unabridged) ---
     bindInstitutionalModelerEvents: () => {
         Logic.updateModelerUI(true);
         const inputContainer = document.getElementById('modeler-input-container');
@@ -611,6 +607,8 @@ const Logic = {
         UI.refreshImfpaModalUI();
     },
     refreshImfpaModalUI: () => {
+        const editorContent = document.getElementById('editor-content-dynamic');
+        if (editorContent) editorContent.innerHTML = UI.renderImfpaEditorContent();
         UI.renderImfpaGroups();
         Logic.updateImfpaCalculations();
         Logic.updateContractPreview();
@@ -730,11 +728,23 @@ const Logic = {
         ['draw', 'upload', 'seal'].forEach(m => {
             document.getElementById(`${m}-mode-panel`).classList.toggle('hidden', m !== mode);
             document.getElementById(`${m}-tab-btn`).classList.toggle('active', m === mode);
-            document.getElementById(`${m}-tab-btn`).classList.toggle('text-green-400', m === mode);
-            document.getElementById(`${m}-tab-btn`).classList.toggle('border-green-400', m === mode);
         });
         document.getElementById('signature-modal').dataset.activeMode = mode;
         if (mode === 'draw') Logic.setupSignaturePad();
+        document.querySelectorAll(`#upload-mode-panel input, #seal-mode-panel input`).forEach(input => {
+            input.onchange = (e) => {
+                const file = e.target.files[0]; if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const preview = document.getElementById(mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview');
+                    const prompt = document.getElementById(mode === 'upload' ? 'upload-prompt' : 'seal-prompt');
+                    preview.src = event.target.result;
+                    preview.classList.remove('hidden');
+                    prompt.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            };
+        });
     },
     setupSignaturePad: () => {
         const canvas = document.getElementById('signature-canvas'); if (!canvas) return;
@@ -749,7 +759,7 @@ const Logic = {
         let dataUrl = '';
         try {
             if (mode === 'draw') { if (!window.signaturePad || window.signaturePad.isEmpty()) throw new Error("Please draw a signature."); dataUrl = window.signaturePad.toDataURL('image/png'); }
-            else { const preview = document.getElementById(mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview'); if (!preview.src) throw new Error(`Please upload an image.`); dataUrl = preview.src; }
+            else { const preview = document.getElementById(mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview'); if (!preview.src || preview.classList.contains('hidden')) throw new Error(`Please upload an image.`); dataUrl = preview.src; }
             ['#contract-document-wrapper', '#print-area'].forEach(container => {
                 const targetBlock = document.querySelector(`${container} .signature-block[data-party-name="${targetPartyName}"]`); if (!targetBlock) return;
                 const imgClass = mode === 'seal' ? 'p-seal-img' : 'p-signature-img';
@@ -761,33 +771,22 @@ const Logic = {
         } catch (error) { Utils.showNotification(error.message, 'error'); }
     },
     sendForSignature: () => { const modal = document.getElementById('finalization-modal'); if(modal) { modal.innerHTML = UI.renderFinalizationModal(); modal.showModal(); } },
-
-    // === PREMIUM FINALIZATION WORKFLOW (NEW & UPGRADED) ===
     executeFinalizationWorkflow: async () => {
-        const modal = document.getElementById('finalization-modal');
-        if (modal) {
-            modal.style.transition = 'all 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
-            modal.style.opacity = '0';
-            modal.style.transform = 'scale(0.95)';
-            setTimeout(() => modal.close(), 400);
-        }
-        Utils.showNotification("Initiating premium document finalization and dispatch workflow...", 'info', 'Processing');
+        const modal = document.getElementById('finalization-modal'); if (modal) modal.close();
+        Utils.showNotification("Initiating premium document finalization and dispatch...", 'info', 'Processing');
         try {
             const finalHtml = document.getElementById('print-area').innerHTML;
-            if (!finalHtml) throw new Error("No document content available for processing");
+            if (!finalHtml) throw new Error("No document content available.");
             const documentFingerprint = await Logic.simpleHash(finalHtml + Date.now());
             const agreementReference = finalHtml.match(/Reference:<\/strong>\s*([^<]+)/)?.[1]?.trim() || 'GECAN-DOC-FINAL';
             const recipientEmails = [...new Set(AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => p.email).filter(Boolean))];
-            if (recipientEmails.length === 0) throw new Error("No valid recipient email addresses found");
+            if (recipientEmails.length === 0) throw new Error("No valid recipient emails found.");
             const emailBody = Logic.generatePremiumEmailTemplate({ agreementReference, documentFingerprint, parties: AppState.modeler.legal.groups.flatMap(g => g.parties) });
             const printStyles = Logic.getPrintStyles();
             const payload = { agreementReference, documentFingerprint, recipientEmails: recipientEmails.join(','), emailBody, fileName: `${agreementReference}_EXECUTED.pdf`, htmlContent: `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${printStyles}</style></head><body>${finalHtml}</body></html>` };
-            const response = await Logic.createApiRequest('generatePdfAndDispatchEmail', 'POST', payload);
-            Utils.showNotification("Document successfully finalized and dispatched to all parties with premium encryption.", 'success', 'Dispatch Complete');
-        } catch (error) {
-            console.error("Premium finalization workflow error:", error);
-            Utils.showNotification(error.message || "An error occurred during the finalization process.", 'error', 'Dispatch Failed');
-        }
+            await Logic.createApiRequest('generatePdfAndDispatchEmail', 'POST', payload);
+            Utils.showNotification("Document successfully finalized and dispatched.", 'success', 'Dispatch Complete');
+        } catch (error) { Utils.showNotification(error.message, 'error', 'Dispatch Failed'); }
     },
     generatePremiumEmailTemplate: (payload) => {
         const partyListHTML = payload.parties.map(p => `<li style="padding: 8px 0; border-bottom: 1px solid #f1f5f9;"><strong style="color: #1e293b;">${p.legalName || 'N/A'}</strong><span style="color: #64748b; margin-left: 10px;">(${p.role || 'Signatory'})</span>${p.email ? `<br><span style="color: #0369a1; font-size: 14px;">${p.email}</span>` : ''}</li>`).join('');
@@ -798,17 +797,6 @@ const Logic = {
         for (const sheet of document.styleSheets) { try { if (sheet.cssRules) { for (const rule of sheet.cssRules) { if (rule.type === CSSRule.MEDIA_RULE && rule.media.mediaText.includes('print')) { for (const printRule of rule.cssRules) { css += printRule.cssText + '\n'; } } } } } catch (e) { console.warn("Stylesheet access restricted by CORS.", sheet.href); } }
         return css;
     },
-    createApiRequest: async (action, method = 'POST', params = {}) => {
-        const url = new URL(API_URL); url.searchParams.append('action', action);
-        const options = { method: method.toUpperCase(), redirect: 'follow', body: JSON.stringify({ action, data: params }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }};
-        try {
-            const response = await fetch(url, options);
-            if (!response.ok) throw new Error(`API Network Error: Status ${response.status}`);
-            const result = await response.json();
-            if (result.success === false) throw new Error(result.error || 'Server error.');
-            return result.data || result.message || result;
-        } catch (error) { console.error(`API Error for '${action}':`, error); throw error; }
-    },
     simpleHash: async (str) => {
         const buffer = new TextEncoder().encode(str); const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -816,7 +804,7 @@ const Logic = {
 };
 
 // ====================================================================================
-// === SECTION 4: UI RENDERERS (v5.0 - DEFINITIVE & SEVERELY UPGRADED) ===
+// === SECTION 4: UI RENDERERS (v5.1 - DEFINITIVE & SEVERELY UPGRADED) ===
 // ====================================================================================
 const UI = {
     init: () => {
@@ -910,11 +898,10 @@ const UI = {
         const isReadyToSynthesize = Logic.validateImfpaData();
         const synthesizeButtonClass = isReadyToSynthesize ? 'from-premium-gold via-yellow-500 to-yellow-600 border-premium-gold hover:shadow-2xl hover:shadow-premium-gold-glow transform hover:scale-105 transition-all duration-300' : 'from-gray-700 via-gray-600 to-gray-800 border-gray-600 cursor-not-allowed opacity-75';
         const synthesizeButtonText = isReadyToSynthesize ? 'Synthesize & Generate Document' : 'Complete Required Fields (*) to Synthesize';
-        return `<div class="dialog-content-wrapper"><header class="sticky top-0 z-50 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border-b border-premium-border shadow-2xl px-4 md:px-8 py-4"><div class="flex items-center justify-between"><div class="hidden md:block"><h1 class="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-premium-gold to-yellow-400 bg-clip-text text-transparent">Interactive Contract Workspace</h1><p class="text-sm text-premium-text-secondary mt-1">Configure details on the left • Live preview on the right</p></div><div class="md:hidden"><h1 class="text-lg font-bold bg-gradient-to-r from-premium-gold to-yellow-400 bg-clip-text text-transparent">Contract Builder</h1></div><button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-all duration-300 hover:rotate-90 transform">&times;</button></div><div class="mt-4 mb-2"><div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border border-premium-border/50"><div class="flex items-center justify-center gap-4 md:gap-8"><span class="toggle-label font-semibold ${!isImfpa ? 'text-primary-azure' : 'text-gray-500'}">NCNDA Only</span><label class="relative"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''} class="sr-only"><div class="toggle-track w-16 h-8 bg-gray-600 rounded-full transition-colors duration-300 ${isImfpa ? 'bg-premium-gold' : ''}"><div class="toggle-thumb absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform duration-300 transform ${isImfpa ? 'translate-x-8' : 'translate-x-0'}"></div></div></label><span class="toggle-label font-semibold ${isImfpa ? 'text-premium-gold' : 'text-gray-500'}">Full IMFPA</span></div></div></div><div class="mobile-nav-pills md:hidden mt-4 flex gap-2 overflow-x-auto pb-2"><button onclick="UI.scrollToSection('editor')" class="nav-pill bg-primary-azure/20 text-primary-azure px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-edit mr-1"></i>Configure</button><button onclick="UI.scrollToSection('preview')" class="nav-pill bg-premium-gold/20 text-premium-gold px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-eye mr-1"></i>Preview</button></div></header><main class="flex-1"><div class="h-full"><div class="workspace-grid h-full grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-6"><section id="editor-section" class="bg-gradient-to-b from-slate-900/50 to-slate-800/50 backdrop-blur-sm"><div class="h-full flex flex-col"><div class="sticky top-0 z-40 bg-gradient-to-r from-slate-800/90 to-slate-700/90 backdrop-blur-sm p-4 border-b border-premium-border/50"><div class="flex items-center justify-between"><h2 class="text-lg font-bold text-premium-text-primary flex items-center"><i class="fas fa-cogs text-primary-azure mr-3"></i>Configuration Panel</h2><button onclick="UI.toggleMobilePreview()" class="lg:hidden btn-secondary px-3 py-1.5 text-sm rounded-lg"><i class="fas fa-eye mr-1"></i>Preview</button></div></div><div class="editor-content flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6"><div id="editor-content-dynamic"></div></div></div></section><section id="preview-section" class="preview-panel bg-gradient-to-b from-slate-900/30 to-slate-800/30 backdrop-blur-sm lg:block hidden"><div class="h-full flex flex-col"><div class="preview-header sticky top-0 z-40 bg-gradient-to-r from-slate-800/90 to-slate-700/90 backdrop-blur-sm p-4 border-b border-premium-border/50"><div class="flex items-center justify-between"><h2 class="text-lg font-bold text-premium-text-primary flex items-center"><i class="fas fa-file-contract text-premium-gold mr-3"></i>Live Document Preview</h2><button onclick="UI.toggleMobilePreview()" class="lg:hidden btn-secondary px-3 py-1.5 text-sm rounded-lg"><i class="fas fa-arrow-left mr-1"></i>Back</button></div></div><div class="preview-content flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6"><div id="contract-document-wrapper"></div></div></div></section></div></div></main><footer class="sticky bottom-0 z-50 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border-t border-premium-border shadow-2xl p-4 md:p-6"><div id="synthesis-state"><button id="synthesize-btn" onclick="Logic.generateContract()" class="w-full py-3 md:py-4 font-bold text-sm md:text-base rounded-xl bg-gradient-to-r ${synthesizeButtonClass} border-2 transition-all duration-300 shadow-lg" ${!isReadyToSynthesize ? 'disabled' : ''}><i class="fas fa-wand-magic-sparkles mr-2"></i>${synthesizeButtonText}</button></div><div class="execution-suite-container hidden" id="execution-suite-footer"><div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4"><button onclick="UI.returnToEditor()" class="execution-btn bg-gradient-to-r from-blue-600 to-blue-700 border-blue-500 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"><i class="fas fa-edit mr-2"></i><span class="hidden sm:inline">Back to </span>Editor</button><button id="launch-signing-btn" onclick="Logic.initiateSigningProcess()" class="execution-btn bg-gradient-to-r from-green-600 to-green-700 border-green-500 hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"><i class="fas fa-pen-fancy mr-2"></i><span class="hidden sm:inline">Launch </span>Signing</button><button id="send-for-signature-btn" onclick="Logic.sendForSignature()" class="execution-btn bg-gradient-to-r from-purple-600 to-red-600 border-purple-500 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"><i class="fas fa-paper-plane mr-2"></i><span class="hidden sm:inline">Lock & </span>Send</button></div></div></footer></div>`;
+        return `<div class="dialog-content-wrapper"><header class="sticky top-0 z-50 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border-b border-premium-border shadow-2xl px-4 md:px-8 py-4"><div class="flex items-center justify-between"><div class="hidden md:block"><h1 class="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-premium-gold to-yellow-400 bg-clip-text text-transparent">Interactive Contract Workspace</h1><p class="text-sm text-premium-text-secondary mt-1">Configure details on the left • Live preview on the right</p></div><div class="md:hidden"><h1 class="text-lg font-bold bg-gradient-to-r from-premium-gold to-yellow-400 bg-clip-text text-transparent">Contract Builder</h1></div><button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-all duration-300 hover:rotate-90 transform">&times;</button></div><div class="mt-4 mb-2"><div class="bg-black/30 backdrop-blur-sm p-4 rounded-xl border border-premium-border/50"><div class="flex items-center justify-center gap-4 md:gap-8"><span class="toggle-label font-semibold ${!isImfpa ? 'text-primary-azure' : 'text-gray-500'}">NCNDA Only</span><label class="relative"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''} class="sr-only"><div class="toggle-track w-16 h-8 bg-gray-600 rounded-full transition-colors duration-300 ${isImfpa ? 'bg-premium-gold' : ''}"><div class="toggle-thumb absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform duration-300 transform ${isImfpa ? 'translate-x-8' : 'translate-x-0'}"></div></div></label><span class="toggle-label font-semibold ${isImfpa ? 'text-premium-gold' : 'text-gray-500'}">Full IMFPA</span></div></div></div><div class="mobile-nav-pills md:hidden mt-4 flex gap-2 overflow-x-auto pb-2"><button onclick="UI.scrollToSection('editor')" class="nav-pill bg-primary-azure/20 text-primary-azure px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-edit mr-1"></i>Configure</button><button onclick="UI.scrollToSection('preview')" class="nav-pill bg-premium-gold/20 text-premium-gold px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap"><i class="fas fa-eye mr-1"></i>Preview</button></div></header><main class="workspace-main flex-1"><div class="h-full"><div class="workspace-grid h-full grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-6"><section id="editor-section" class="editor-panel bg-gradient-to-b from-slate-900/50 to-slate-800/50 backdrop-blur-sm"><div class="h-full flex flex-col"><div class="editor-header sticky top-0 z-40 bg-gradient-to-r from-slate-800/90 to-slate-700/90 backdrop-blur-sm p-4 border-b border-premium-border/50"><div class="flex items-center justify-between"><h2 class="text-lg font-bold text-premium-text-primary flex items-center"><i class="fas fa-cogs text-primary-azure mr-3"></i>Configuration Panel</h2><button onclick="UI.toggleMobilePreview()" class="lg:hidden btn-secondary px-3 py-1.5 text-sm rounded-lg"><i class="fas fa-eye mr-1"></i>Preview</button></div></div><div class="editor-content flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6"><div id="editor-content-dynamic"></div></div></div></section><section id="preview-section" class="preview-panel bg-gradient-to-b from-slate-900/30 to-slate-800/30 backdrop-blur-sm lg:block hidden"><div class="h-full flex flex-col"><div class="preview-header sticky top-0 z-40 bg-gradient-to-r from-slate-800/90 to-slate-700/90 backdrop-blur-sm p-4 border-b border-premium-border/50"><div class="flex items-center justify-between"><h2 class="text-lg font-bold text-premium-text-primary flex items-center"><i class="fas fa-file-contract text-premium-gold mr-3"></i>Live Document Preview</h2><button onclick="UI.toggleMobilePreview()" class="lg:hidden btn-secondary px-3 py-1.5 text-sm rounded-lg"><i class="fas fa-arrow-left mr-1"></i>Back</button></div></div><div class="preview-content flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6"><div id="contract-document-wrapper" class="contract-preview-container"></div></div></div></section></div></div></main><footer class="workspace-footer sticky bottom-0 z-50 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border-t border-premium-border shadow-2xl p-4 md:p-6"><div id="synthesis-state"><button id="synthesize-btn" onclick="Logic.generateContract()" class="synthesis-button w-full py-3 md:py-4 font-bold text-sm md:text-base rounded-xl bg-gradient-to-r ${synthesizeButtonClass} border-2 transition-all duration-300 shadow-lg" ${!isReadyToSynthesize ? 'disabled' : ''}><i class="fas fa-wand-magic-sparkles mr-2"></i>${synthesizeButtonText}</button></div><div class="execution-suite-container hidden" id="execution-suite-footer"><div class="execution-actions grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4"><button onclick="UI.returnToEditor()" class="execution-btn bg-gradient-to-r from-blue-600 to-blue-700 border-blue-500 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"><i class="fas fa-edit mr-2"></i><span class="hidden sm:inline">Back to </span>Editor</button><button id="launch-signing-btn" onclick="Logic.initiateSigningProcess()" class="execution-btn bg-gradient-to-r from-green-600 to-green-700 border-green-500 hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"><i class="fas fa-pen-fancy mr-2"></i><span class="hidden sm:inline">Launch </span>Signing</button><button id="send-for-signature-btn" onclick="Logic.sendForSignature()" class="execution-btn bg-gradient-to-r from-purple-600 to-red-600 border-purple-500 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"><i class="fas fa-paper-plane mr-2"></i><span class="hidden sm:inline">Lock & </span>Send</button></div></div></footer></div>`;
     },
     renderImfpaGroups: () => {
-        const { legal } = AppState.modeler;
-        const { groups } = legal;
+        const { legal } = AppState.modeler; const { groups } = legal;
         if (AppState.modeler.legal.agreementType === 'IMFPA') {
             const imfpaContainer = document.getElementById('imfpa-groups-container'); if (!imfpaContainer) return;
             if (!groups || groups.length === 0) { imfpaContainer.innerHTML = `<div class="text-center py-8"><i class="fas fa-sitemap fa-3x text-premium-text-secondary/30 mb-4"></i><h4 class="font-bold text-premium-text-primary mb-2">No Allocation Groups</h4><p class="text-premium-text-secondary mb-4">Create your first commission allocation group to begin.</p><button onclick="Logic.addImfpaGroup()" class="btn-primary px-6 py-2 rounded-lg"><i class="fas fa-plus mr-2"></i>Add First Group</button></div>`; return; }
@@ -950,7 +937,7 @@ const UI = {
     },
     renderContractDocument: (agreementReference) => {
         const { legal } = AppState.modeler; const allParties = legal.groups.flatMap(g => g.parties); const isImfpa = legal.agreementType === 'IMFPA';
-        const feeClauses = isImfpa ? legal.groups.map((group, groupIndex) => `<div class="mb-8"><h3 class="text-lg font-bold text-black mb-4 flex items-center"><span class="w-6 h-6 bg-yellow-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">${groupIndex + 1}</span>${group.name} (${group.percentage}%)</h3><div class="mb-4 p-4 bg-gray-100 rounded-lg"><p class="text-black font-semibold">Group Total: <span class="text-yellow-700 font-mono">${Utils.formatPrice(legal.totalCommission * (group.percentage / 100))}</span></p></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b-2 border-gray-400"><th class="text-left py-2 px-3 font-semibold">Beneficiary</th><th class="text-center py-2 px-3 font-semibold">Share</th><th class="text-right py-2 px-3 font-semibold">Value</th><th class="text-left py-2 px-3 font-semibold">Payment Method</th></tr></thead><tbody>${group.parties.map(party => `
+        const feeClauses = isImfpa ? legal.groups.map((group, groupIndex) => `<div class="mb-8"><h3 class="section-title text-lg font-bold text-black mb-4 flex items-center"><span class="w-6 h-6 bg-yellow-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">${groupIndex + 1}</span>${group.name} (${group.percentage}%)</h3><div class="mb-4 p-4 bg-gray-100 rounded-lg"><p class="text-black font-semibold">Group Total: <span class="text-yellow-700 font-mono">${Utils.formatPrice(legal.totalCommission * (group.percentage / 100))}</span></p></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b-2 border-gray-400"><th class="text-left py-2 px-3 font-semibold">Beneficiary</th><th class="text-center py-2 px-3 font-semibold">Share</th><th class="text-right py-2 px-3 font-semibold">Value</th><th class="text-left py-2 px-3 font-semibold">Payment Method</th></tr></thead><tbody>${group.parties.map(party => `
         <tr class="border-b border-gray-200"><td class="py-3 px-3 font-medium">${party.legalName}</td><td class="py-3 px-3 text-center font-mono">${party.percentage}%</td><td class="py-3 px-3 text-right font-mono font-bold text-yellow-800">${Utils.formatPrice(legal.totalCommission * (group.percentage / 100) * (party.percentage / 100))}</td><td class="py-3 px-3 text-xs">${party.payment.method}</td></tr>`).join('')}</tbody></table></div></div>`).join('') : '';
         const signatureBlocks = allParties.map((party, index) => `<div class="signature-block bg-gray-50 rounded-lg p-6 border border-gray-200" data-party-id="party-${index}" data-party-name="${party.legalName}"><p class="text-lg font-bold text-black uppercase mb-4">FOR AND ON BEHALF OF: ${party.legalName}</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="signature-field"><div class="signature-line h-16 border-b-2 border-gray-400 mb-2" data-sig-type="signature"></div><p class="text-sm font-medium">Authorized Signature</p></div><div class="signature-field"><div class="signature-line h-16 border-b-2 border-gray-400 mb-2" data-sig-type="print-name"></div><p class="text-sm font-medium">Print Name: ${party.legalName}</p><p class="text-sm text-gray-600">Title: ${party.role || 'Authorized Representative'}</p></div><div class="signature-field"><div class="signature-line h-16 border-b-2 border-gray-400 mb-2" data-sig-type="date"></div><p class="text-sm font-medium">Date of Execution</p></div><div class="signature-field"><div class="seal-area h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center" data-sig-type="seal"><span class="text-xs text-gray-500">Corporate Seal</span></div></div></div></div>`).join('');
         const title = isImfpa ? "Irrevocable Master Fee Protection Agreement & NCNDA" : "Non-Circumvention, Non-Disclosure Agreement (NCNDA)";
@@ -963,7 +950,7 @@ const UI = {
         return `<div class="dialog-content-wrapper"><div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col"><div class="bg-gradient-to-r ${config.bg} border-b border-premium-border p-6"><div class="flex items-center gap-4"><div class="w-16 h-16 bg-gradient-to-br from-${config.c}-400 to-${config.c}-600 rounded-full flex items-center justify-center shadow-lg"><i class="fas ${config.i} fa-2x text-white"></i></div><div class="flex-1"><h2 class="text-2xl font-bold text-premium-text-primary">${title || defaultTitle}</h2><p class="text-sm text-premium-text-secondary mt-1">Please review this important message</p></div></div></div><div class="flex-1 p-8"><div class="text-premium-text-primary leading-relaxed text-lg">${message}</div></div><div class="bg-black/20 border-t border-premium-border p-6 flex justify-end"><button id="notification-ok-btn" class="btn-primary bg-gradient-to-r from-${config.c}-500 to-${config.c}-700 border-${config.c}-500 px-8 py-3 font-bold text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"><i class="fas fa-check mr-2"></i>Acknowledge</button></div></div></div>`;
     },
     renderSignatureModal: () => `
-        <div class="dialog-content-wrapper"><div id="signature-modal-content" class="text-white flex flex-col"><div class="p-6 border-b border-premium-border"><div class="flex items-center justify-between"><h2 class="text-2xl font-bold bg-gradient-to-r from-green-300 to-emerald-400 bg-clip-text text-transparent">Document Execution Suite</h2><button onclick="document.getElementById('signature-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button></div><div class="mt-4"><label for="signature-target-select" class="block text-sm font-semibold mb-2">Apply signature to:</label><select id="signature-target-select" class="form-select w-full bg-black/30 border-premium-border"></select></div></div><div class="flex-1 overflow-y-auto p-6"><div class="flex border-b border-premium-border mb-6"><button id="draw-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent" onclick="Logic.switchSignatureMode('draw')"><i class="fas fa-pencil-alt mr-2"></i>Draw Signature</button><button id="upload-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent" onclick="Logic.switchSignatureMode('upload')"><i class="fas fa-upload mr-2"></i>Upload Image</button><button id="seal-tab-btn" class="flex-1 p-3 text-sm font-semibold border-b-2 border-transparent" onclick="Logic.switchSignatureMode('seal')"><i class="fas fa-stamp mr-2"></i>Corporate Seal</button></div><div id="draw-mode-panel"><canvas id="signature-canvas" class="w-full h-48 bg-white rounded"></canvas><button onclick="Logic.clearSignaturePad()" class="mt-2 text-xs text-muted hover:text-white">Clear</button></div><div id="upload-mode-panel" class="hidden"><input type="file" id="signature-upload-input" accept="image/*" class="hidden"><label for="signature-upload-input" class="w-full h-48 border-2 border-dashed border-premium-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-black/10"><img id="signature-upload-preview" class="hidden max-h-44 object-contain"/><div id="upload-prompt"><i class="fas fa-cloud-upload-alt fa-3x text-muted mb-4"></i><p>Click to upload</p></div></label></div><div id="seal-mode-panel" class="hidden"><input type="file" id="seal-upload-input" accept="image/*" class="hidden"><label for="seal-upload-input" class="w-full h-48 border-2 border-dashed border-premium-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-black/10"><img id="seal-upload-preview" class="hidden max-h-44 object-contain"/><div id="seal-prompt"><i class="fas fa-certificate fa-3x text-muted mb-4"></i><p>Upload corporate seal</p></div></label></div></div><div class="bg-black/20 border-t border-premium-border p-6"><button onclick="Logic.applySignature()" class="w-full bg-gradient-to-r from-green-600 to-emerald-700 border-green-500 text-white font-bold py-4 rounded-lg"><i class="fas fa-check-double mr-2"></i>Apply to Document</button></div></div></div>`,
+        <div class="dialog-content-wrapper"><div id="signature-modal-content" class="bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col"><div class="p-6 border-b border-premium-border bg-gradient-to-r from-green-600/20 to-emerald-700/20"><div class="flex items-center justify-between"><h2 class="text-2xl font-bold bg-gradient-to-r from-green-300 to-emerald-400 bg-clip-text text-transparent">Document Execution Suite</h2><button onclick="document.getElementById('signature-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button></div><div class="mt-4"><label for="signature-target-select" class="block text-sm font-semibold mb-2">Apply signature to:</label><select id="signature-target-select" class="form-select w-full bg-black/30 border-premium-border"></select></div></div><div class="flex-1 overflow-y-auto p-6"><div class="tool-tabs flex border-b border-premium-border mb-6"><button id="draw-tab-btn" class="tool-tab flex-1 p-3 text-sm font-semibold border-b-2 border-transparent" onclick="Logic.switchSignatureMode('draw')"><i class="fas fa-pencil-alt mr-2"></i>Draw Signature</button><button id="upload-tab-btn" class="tool-tab flex-1 p-3 text-sm font-semibold border-b-2 border-transparent" onclick="Logic.switchSignatureMode('upload')"><i class="fas fa-upload mr-2"></i>Upload Image</button><button id="seal-tab-btn" class="tool-tab flex-1 p-3 text-sm font-semibold border-b-2 border-transparent" onclick="Logic.switchSignatureMode('seal')"><i class="fas fa-stamp mr-2"></i>Corporate Seal</button></div><div id="draw-mode-panel"><div class="bg-white rounded-lg p-4 mb-4"><canvas id="signature-canvas" class="w-full h-48 border border-gray-300 rounded"></canvas></div><button onclick="Logic.clearSignaturePad()" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg text-sm">Clear</button></div><div id="upload-mode-panel" class="hidden"><input type="file" id="signature-upload-input" accept="image/*" class="hidden"><label for="signature-upload-input" class="w-full h-48 border-2 border-dashed border-premium-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-black/10"><img id="signature-upload-preview" class="hidden max-h-44 object-contain rounded"/><div id="upload-prompt" class="text-center"><i class="fas fa-cloud-upload-alt fa-3x text-muted mb-4"></i><p>Click to upload</p></div></label></div><div id="seal-mode-panel" class="hidden"><input type="file" id="seal-upload-input" accept="image/*" class="hidden"><label for="seal-upload-input" class="w-full h-48 border-2 border-dashed border-premium-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-black/10"><img id="seal-upload-preview" class="hidden max-h-44 object-contain rounded"/><div id="seal-prompt" class="text-center"><i class="fas fa-certificate fa-3x text-muted mb-4"></i><p>Upload corporate seal</p></div></label></div></div><div class="bg-black/20 border-t border-premium-border p-6"><button onclick="Logic.applySignature()" class="w-full bg-gradient-to-r from-green-600 to-emerald-700 border-green-500 text-white font-bold py-4 rounded-lg"><i class="fas fa-check-double mr-2"></i>Apply to Document</button></div></div></div>`,
     renderFinalizationModal: () => `
         <div class="dialog-content-wrapper"><div class="flex flex-col text-white"><div class="p-6 border-b border-premium-border bg-gradient-to-r from-red-600/20 to-purple-700/20"><div class="flex items-center gap-4"><div class="w-16 h-16 bg-gradient-to-br from-red-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg"><i class="fas fa-gavel fa-2x"></i></div><div><h2 class="text-2xl font-bold bg-gradient-to-r from-red-300 to-purple-400 bg-clip-text text-transparent">Finalize & Lock Document</h2><p class="text-sm text-premium-text-secondary mt-1">This action is irreversible</p></div><button onclick="document.getElementById('finalization-modal').close()" class="ml-auto text-3xl text-premium-text-secondary hover:text-white">&times;</button></div></div><div class="flex-1 p-8"><div class="bg-red-500/10 border border-red-500/30 rounded-xl p-6 mb-8"><h3 class="text-xl font-bold text-red-400 mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>Critical Action Warning</h3><p class="text-premium-text-secondary">You are about to finalize this contract. This action is <strong class="text-red-400">irreversible</strong> and will create a legally binding agreement.</p></div><h4 class="text-lg font-bold mb-4">Finalization Process</h4><ul class="space-y-4">
         <li class="flex items-start gap-4"><i class="fas fa-lock text-purple-400 mt-1"></i><div><strong>Document State Lock</strong><p class="text-sm text-muted">The current version will be cryptographically sealed.</p></div></li>
