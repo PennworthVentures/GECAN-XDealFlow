@@ -1130,11 +1130,82 @@ renderInstitutionalModelerUI: () => {
             </div>
         </div>`;
 },
-        renderModelerSelectionPanel: () => {
-            const dealTypes = [{ id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct asset conversions.', color: 'from-blue-500 to-cyan-500' }, { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' }, { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' }, { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' }];
-            const colorMap = { 'from-blue-500': { primary: '#3b82f6', glow: 'rgba(59, 130, 246, 0.7)' }, 'from-yellow-500': { primary: '#f59e0b', glow: 'rgba(245, 158, 11, 0.7)' }, 'from-green-500': { primary: '#22c55e', glow: 'rgba(34, 197, 94, 0.7)' }, 'from-purple-500': { primary: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.7)' } };
-            return `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold font-orbitron text-white">Select Deal Type</h2><button onclick="Logic.resetModelerState()" class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20"><i class="fas fa-undo mr-2"></i>Reset</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8">${dealTypes.map((deal, i) => `<div class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')" style="--asset-primary: ${colorMap[deal.color.split(' ')[0]].primary}; --asset-glow: ${colorMap[deal.color.split(' ')[0]].glow};"><div class="card-content"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4"><i class="fas ${deal.icon}"></i></div><h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3><p class="text-sm">${deal.desc}</p></div></div>`).join('')}</div>`;
-        },
+
+renderModelerSelectionPanel: () => {
+    // --- Pinnacle-Grade Data Structures ---
+    // The dealTypes array is structured for clarity and easy maintenance.
+    const dealTypes = [
+        { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct conversions between assets.', color: 'from-blue-500 to-cyan-500' },
+        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' },
+        { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' },
+        { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' },
+    ];
+
+    // The colorMap provides a single source of truth for dynamic theming, ensuring
+    // consistency with the benchmark's CSS variable system. It's expanded for future scalability.
+    const colorMap = {
+        'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' },
+        'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
+        'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' },
+        'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
+    };
+
+    // --- Unabridged HTML Template Literal ---
+    // The function returns a single, complete string containing the entire UI for this panel.
+    return `
+        <!-- Panel Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold font-orbitron text-white">Select Institutional Deal Type</h2>
+            <button 
+                onclick="Logic.resetModelerState(); SFX.play('click');" 
+                class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20 hover:!text-red-400"
+            >
+                <i class="fas fa-undo mr-2"></i>Reset Modeler
+            </button>
+        </div>
+
+        <!-- Pinnacle-Grade 3D Card Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8" style="perspective: 2000px;">
+            ${dealTypes.map((deal, i) => {
+                const theme = colorMap[deal.color.split(' ')[0]];
+                const isActive = AppState.modeler.activeDealType === deal.id;
+                
+                return `
+                <!-- 
+                    SEVERE UPGRADE: This card is a complete reconstruction using the 'offer-card'
+                    benchmark standard for pinnacle-grade 3D effects, shaders, and animations.
+                -->
+                <div 
+                    class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${isActive ? 'active' : ''}"
+                    onclick="Logic.handleDealTypeChange('${deal.id}'); SFX.play('launch');"
+                    onmouseover="SFX.play('deploy')"
+                    style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"
+                >
+                    <!-- 3D EFFECT: Inner card-content wrapper for depth, consistent with benchmark. -->
+                    <div class="card-content">
+                        
+                        <!-- 3D EFFECT: Icon with its own independent 3D hover transform and glow. -->
+                        <div 
+                            class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4 transition-all duration-500 shadow-lg" 
+                            style="transform-style: preserve-3d;"
+                        >
+                            <i 
+                                class="fas ${deal.icon} transition-all duration-500" 
+                                style="transform: translateZ(20px); text-shadow: 0 0 15px rgba(255,255,255,0.5);"
+                            ></i>
+                        </div>
+
+                        <!-- 3D EFFECT: Header text with deep hover transform, consistent with benchmark. -->
+                        <h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3>
+                        
+                        <!-- Description Text -->
+                        <p class="text-sm text-[var(--text-silver)]">${deal.desc}</p>
+
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>`;
+},
         renderModelerInputPanel: () => {
             const dealPanelHTML = UI[`render${AppState.modeler.activeDealType}Panel`] ? UI[`render${AppState.modeler.activeDealType}Panel`]() : '';
             return `<div class="flex items-center mb-6"><button onclick="UI.renderActiveToolkit()" class="nav-btn !py-2 !px-4 text-sm"><i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection</button></div><h2 class="text-2xl font-bold text-white mb-6"><i class="fas fa-sliders-h text-[var(--primary-azure)] mr-3"></i>Deal Parameters</h2><div class="space-y-6 flex-grow">${dealPanelHTML}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button onclick="Logic.openImfpaEditor()" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite</button></div>`;
@@ -1229,18 +1300,77 @@ renderInstitutionalModelerUI: () => {
         
         // Wallet Forensics Logic
         bindWalletForensicsEvents: () => document.getElementById('check-wallet-btn')?.addEventListener('click', Logic.runWalletForensics),
-        runWalletForensics: async () => {
-            const address = document.getElementById('wallet-address-input').value.trim();
-            if (!address) return;
-            AppState.walletAnalysis = { address, report: null, isLoading: true };
-            UI.renderActiveToolkit();
-            try {
-                const report = await Logic.createApiRequest('getWalletForensicsReport', 'POST', { address });
-                AppState.walletAnalysis.report = report;
-                SFX.play('success');
-            } catch (err) { AppState.walletAnalysis.report = { error: { message: err.message } }; }
-            finally { AppState.walletAnalysis.isLoading = false; UI.renderActiveToolkit(); }
-        },
+runWalletForensics: async () => {
+    const address = document.getElementById('wallet-address-input').value.trim();
+    if (!address) {
+        Logic.showNotification("Please enter a wallet address to analyze.", 'error', 'Input Required');
+        SFX.play('error');
+        return;
+    }
+
+    // --- 1. Initiate State Change & Premium Loading UI ---
+    AppState.walletAnalysis = { address, report: null, isLoading: true };
+    UI.renderActiveToolkit(); // This will now display the pinnacle-grade loading animation.
+
+    // --- 2. Enhanced Kinetic Feedback: Animate loading text for user engagement ---
+    const spinnerTexts = [
+        "Connecting to blockchain networks...",
+        "Fetching transaction history...",
+        "Querying GECAN proprietary database...",
+        "Running institutional compliance checks...",
+        "Synthesizing on-chain and proprietary intel...",
+        "Calculating multi-vector risk scores...",
+        "Generating definitive wallet classification..."
+    ];
+    let textIndex = 0;
+    const textInterval = setInterval(() => {
+        const spinnerEl = document.getElementById('spinner-text');
+        if (spinnerEl && AppState.walletAnalysis.isLoading) {
+            spinnerEl.style.opacity = '0';
+            setTimeout(() => {
+                spinnerEl.textContent = spinnerTexts[textIndex++ % spinnerTexts.length];
+                spinnerEl.style.opacity = '1';
+            }, 300);
+        } else {
+            clearInterval(textInterval);
+        }
+    }, 2500);
+
+    try {
+        // --- 3. CRITICAL FIX & API CALL ---
+        // The API call is now correctly made using the 'GET' method for data retrieval.
+        // The `address` is passed as a parameter, which `createApiRequest` will
+        // correctly append to the URL as a query string.
+        const report = await Logic.createApiRequest('getWalletForensicsReport', 'GET', { address });
+
+        // --- 4. Handle Successful Response ---
+        if (!report || typeof report !== 'object') {
+            throw new Error("Received an invalid or empty report from the server.");
+        }
+        
+        AppState.walletAnalysis.report = report;
+        SFX.play('success'); // Play success sound on valid data receipt.
+
+    } catch (err) {
+        // --- 5. Robust Error Handling ---
+        console.error('Wallet Forensics Error:', err);
+        // Set the error state, which will be rendered by the UI function.
+        AppState.walletAnalysis.report = { error: { message: err.message || 'An unknown error occurred during analysis.' } };
+        // The error sound is played by the UI renderer itself.
+
+    } finally {
+        // --- 6. Final State Update & UI Re-render ---
+        // This block executes regardless of success or failure.
+        clearInterval(textInterval);
+        AppState.walletAnalysis.isLoading = false;
+        // Re-render the entire toolkit UI to display either the full report or the error message.
+        UI.renderActiveToolkit();
+        // If the report was successful, trigger the animation for the score gauges.
+        if (AppState.walletAnalysis.report && !AppState.walletAnalysis.report.error) {
+            Logic.animateReportElements();
+        }
+    }
+},
         initiatePdfGeneration: async () => {
             const report = AppState.walletAnalysis.report;
             if (!report) return Logic.showNotification('No report data.', 'error');
