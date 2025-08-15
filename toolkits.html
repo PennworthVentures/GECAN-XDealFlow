@@ -188,25 +188,36 @@
     <!-- === 1. ULTRA-PREMIUM HEADER (BENCHMARK STANDARD) === -->
     <!-- ========================================================================= -->
     <header class="premium-header p-4 md:p-6 print-hide">
-        <div class="container mx-auto flex items-center justify-between gap-6">
-            <div class="flex items-center gap-6 flex-shrink-0">
-                <a href="#" id="logo-link" class="gecan-logo-container flex items-center gap-4 group">
-                    <div class="gecan-logo-flipper">
-                        <div class="logo-face logo-front">GECAN™</div>
-                        <div class="logo-face logo-back"><img src=""></div>
+    <div class="container mx-auto flex items-center justify-between gap-6">
+        
+        <!-- SEVERE UPGRADE: 3D Animated Logo Section (Benchmark Standard) -->
+        <div class="flex items-center gap-6 flex-shrink-0">
+            <a href="./index.html" id="logo-link" class="gecan-logo-container flex items-center gap-4 group">
+                <!-- This structure contains the 3D flipping front (text) and back (image) faces -->
+                <div class="gecan-logo-flipper">
+                    <div class="logo-face logo-front">GECAN™</div>
+                    <div class="logo-face logo-back">
+                        <!-- The official GECAN logo image would be placed here -->
+                        <img src="" alt="GECAN™ Official Logo">
                     </div>
-                    <div class="logo-separator"></div>
-                    <div>
-                        <h1 class="text-xl md:text-2xl font-bold text-white">XDealFlow Intelligent Toolkits</h1>
-                        <p class="text-sm text-gray-400 font-mono">Premium Institutional Platform</p>
-                    </div>
-                </a>
-            </div>
-            <div id="desktop-nav-placeholder" class="flex-grow">
-                <!-- Nav buttons are dynamically injected here by JavaScript -->
-            </div>
+                </div>
+                <!-- The glowing, animated vertical separator bar -->
+                <div class="logo-separator"></div>
+                <div>
+                    <!-- Page-specific title -->
+                    <h1 class="text-xl md:text-2xl font-bold text-white">XDealFlow Intelligent Toolkits</h1>
+                    <p class="text-sm text-gray-400 font-mono">Premium Institutional Platform</p>
+                </div>
+            </a>
         </div>
-    </header>
+
+        <!-- This container will be dynamically populated by the upgraded JS function -->
+        <div id="desktop-nav-placeholder" class="flex-grow">
+            <!-- Navigation buttons are injected here by the `populateNavLinks` function -->
+        </div>
+        
+    </div>
+</header>
 
     <main class="container mx-auto p-4 md:p-8 flex-grow print-hide">
         <div class="flex flex-col lg:flex-row gap-8">
@@ -518,27 +529,110 @@
     // to instantly reflect the active state change.
     UI.renderToolkitMenu();
 },
-        renderDashboardUI: () => {
-            const colorMap = {
-                'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' }, 'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
-                'from-sky-500': { primary: 'var(--primary-azure)', glow: 'var(--glow-azure)' }, 'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
-            };
-            return `
-            <div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-8 h-full flex flex-col animate-fade-in-up" style="perspective: 2000px;">
-                <div class="text-center mb-12">
-                    <h2 class="text-4xl font-bold font-orbitron bg-clip-text text-transparent bg-[var(--gradient-primary)] mb-4" style="animation: premium-text-glow 4s ease-in-out infinite;">GECAN™ Intelligent Toolkits</h2>
-                    <p class="text-[var(--text-silver)] text-lg max-w-2xl mx-auto">Select a proprietary tool to begin your institutional-grade analysis.</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
-                    ${Object.values(AppState.toolkits).filter(t => t.id !== 'Dashboard').map((t, index) => {
-                        const theme = colorMap[t.color.split(' ')[0]];
-                        return `<div class="offer-card rounded-2xl p-8 cursor-pointer animate-fade-in-up stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('launch');" onmouseover="SFX.play('deploy')" style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};">
-                            <div class="card-content"><div class="flex items-start gap-6"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl transition-all duration-500" style="transform-style: preserve-3d;"><i class="fas ${t.icon} transition-all duration-500" style="transform: translateZ(20px);"></i></div><div class="flex-1"><h3 class="asset-header text-2xl font-bold text-white mb-3 -ml-1">${t.name}</h3><p class="text-[var(--text-silver)] leading-relaxed">${t.description}</p><div class="mt-4 flex items-center text-[var(--asset-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"><span class="text-sm font-medium">Launch Toolkit</span><i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i></div></div></div></div>
-                        </div>`;
-                    }).join('')}
-                </div>
-            </div>`;
-        },
+// ====================================================================================
+// === PINNACLE UPGRADE: UI.renderDashboardUI v43.1 (UNABRIDGED KINETIC & AESTHETIC) ===
+// This is the definitive, unabridged rewrite of the dashboard rendering function.
+// It elevates the UI to the ultimate benchmark standard with an expanded color matrix,
+// enhanced 3D effects, and zero regressions, ensuring future scalability.
+// ====================================================================================
+
+/**
+ * SEVERELY UPGRADED: Renders the main dashboard UI with pinnacle-grade 3D kinetic cards.
+ * This function mirrors the prestigious architecture and aesthetic of the `index.html`
+ * benchmark, featuring multi-layered backgrounds, dynamic glows, deep 3D hover states,
+ * and integrated audio-kinetic feedback for an unparalleled user experience.
+ */
+renderDashboardUI: () => {
+    // --- Pinnacle-Grade Color & Glow Matrix (Expanded for Future Toolkits) ---
+    // This centralized matrix provides a single source of truth for theming and ensures
+    // absolute consistency with the benchmark's color and glow variable system.
+    const colorMap = {
+        'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' },
+        'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
+        'from-sky-500': { primary: 'var(--primary-azure)', glow: 'var(--glow-azure)' },
+        'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
+        'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' },
+        'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
+        // Future-proofing: Add more potential toolkit colors here.
+        'from-indigo-500': { primary: 'var(--primary-royal)', glow: 'var(--glow-royal)' },
+        'from-amber-500': { primary: 'var(--brand-gecan-gold)', glow: 'var(--glow-gold)' },
+    };
+
+    // The function returns a single, unabridged template literal containing the complete UI.
+    return `
+        <!-- Main Content Wrapper with 3D Perspective -->
+        <div 
+            class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-8 h-full flex flex-col animate-fade-in-up" 
+            style="perspective: 2000px;"
+        >
+            
+            <!-- Premium Animated Header (Benchmark Standard) -->
+            <div class="text-center mb-12">
+                <h2 
+                    class="text-4xl font-bold font-orbitron bg-clip-text text-transparent bg-[var(--gradient-primary)] mb-4" 
+                    style="animation: premium-text-glow 4s ease-in-out infinite, fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1);"
+                >
+                    GECAN™ Intelligent Toolkits
+                </h2>
+                <p 
+                    class="text-[var(--text-silver)] text-lg max-w-2xl mx-auto"
+                    style="animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s; animation-fill-mode: backwards;"
+                >
+                    Select a proprietary tool from the sidebar to begin your institutional-grade analysis. Each toolkit is powered by advanced algorithms and real-time data intelligence.
+                </p>
+            </div>
+            
+            <!-- Pinnacle-Grade 3D Card Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
+                ${Object.values(AppState.toolkits).filter(t => t.id !== 'Dashboard').map((t, index) => {
+                    const theme = colorMap[t.color.split(' ')[0]] || colorMap['from-sky-500']; // Robust fallback
+                    return `
+                    <!-- 
+                        SEVERE UPGRADE: Pinnacle-grade card structure mirroring index.html.
+                        - Uses 'offer-card' class for benchmark-aligned 3D effects & shaders.
+                        - Injects asset-specific CSS variables for dynamic theming.
+                        - Integrates audio-kinetic feedback with SFX.play().
+                    -->
+                    <div 
+                        class="offer-card rounded-2xl p-8 cursor-pointer animate-fade-in-up stagger-${index + 1}"
+                        onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('launch');"
+                        onmouseover="SFX.play('deploy')"
+                        style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"
+                    >
+                        <!-- 3D EFFECT: Inner card-content wrapper for depth, consistent with benchmark. -->
+                        <div class="card-content">
+                            <div class="flex items-start gap-6">
+                                
+                                <!-- 3D EFFECT: Icon with its own independent 3D hover transform and glow. -->
+                                <div 
+                                    class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl transition-all duration-500 shadow-lg" 
+                                    style="transform-style: preserve-3d;"
+                                >
+                                    <i 
+                                        class="fas ${t.icon} transition-all duration-500" 
+                                        style="transform: translateZ(20px); text-shadow: 0 0 15px rgba(255,255,255,0.5);"
+                                    ></i>
+                                </div>
+
+                                <div class="flex-1">
+                                    <!-- 3D EFFECT: Header text with deep hover transform, consistent with benchmark. -->
+                                    <h3 class="asset-header text-2xl font-bold text-white mb-3 -ml-1">${t.name}</h3>
+                                    <p class="text-[var(--text-silver)] leading-relaxed">${t.description}</p>
+                                    
+                                    <!-- Interactive "Launch" prompt with kinetic arrow animation. -->
+                                    <div class="mt-4 flex items-center text-[var(--asset-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <span class="text-sm font-medium">Launch Toolkit</span>
+                                        <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>
+    `;
+},
         renderWalletForensicsUI: () => {
             const { address, isLoading, report } = AppState.walletAnalysis;
             let contentHTML = '';
@@ -647,12 +741,65 @@
                 UI.renderActiveToolkit();
             } catch (err) { console.error('INIT FAILED:', err); }
         },
-        populateNavLinks: () => {
-            const nav = document.getElementById('desktop-nav-placeholder');
-            const links = [{ p: 'index', i: 'tachometer-alt', t: 'XDealFlow Home' }, { p: 'toolkits', i: 'tools', t: 'Intelligent Toolkits' }, { p: 'architect', i: 'drafting-compass', t: 'Architect Wizard' }, { p: 'intelligence', i: 'sitemap', t: 'Network Intelligence' }];
-            nav.innerHTML = `<div class="flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">${links.map(l => `<a href="./${l.p}.html" class="nav-btn ${l.p === 'toolkits' ? 'active' : ''}"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="fas fa-${l.i}"></i></div><div class="nav-icon-face nav-icon-back"><i class="fas fa-${l.i}"></i></div></div></div><span>${l.t}</span></a>`).join('')}</div>`;
-            document.getElementById('logo-link').href = './index.html';
-        },
+// ====================================================================================
+// === PINNACLE UPGRADE: Logic.populateNavLinks v43.2 (BENCHMARK-ALIGNED) ===
+// This is the definitive, unabridged rewrite of the navigation link generator.
+// It creates the full 3D flipping icon components required by the new header,
+// ensuring absolute consistency with the index.html benchmark.
+// ====================================================================================
+
+/**
+ * SEVERELY UPGRADED: Populates the desktop navigation placeholder with pinnacle-grade,
+ * 3D kinetic navigation buttons, perfectly mirroring the index.html benchmark.
+ * It dynamically sets the 'active' state for the current page ('toolkits').
+ */
+populateNavLinks: () => {
+    const navPlaceholder = document.getElementById('desktop-nav-placeholder');
+    if (!navPlaceholder) {
+        console.error("CRITICAL RENDER FAILURE: #desktop-nav-placeholder not found in DOM.");
+        return;
+    }
+
+    // Definitive list of all platform navigation points.
+    const links = [
+        { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
+        { page: 'about', icon: 'fas fa-landmark', text: 'About The Alliance' },
+        { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
+        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
+        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' }
+    ];
+    
+    // Unabridged template literal generating the full, complex HTML for each button.
+    const navHtml = `
+        <div class="flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">
+            ${links.map(link => {
+                // Sets the 'active' class only for the 'toolkits' link on this page.
+                const isActive = link.page === 'toolkits';
+                return `
+                <!-- NAVIGATION BUTTON (BENCHMARK STANDARD) -->
+                <a 
+                    href="./${link.page}.html" 
+                    class="nav-btn ${isActive ? 'active' : ''}"
+                    onmouseover="SFX.play('hover')"
+                >
+                    <!-- 3D Icon Flipper Wrapper -->
+                    <div class="nav-icon-wrapper">
+                        <div class="nav-icon-flipper">
+                            <div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div>
+                            <div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div>
+                        </div>
+                    </div>
+                    <span class="transition-transform duration-300 group-hover:translate-x-1">${link.text}</span>
+                </a>`;
+            }).join('')}
+        </div>`;
+
+    navPlaceholder.innerHTML = navHtml;
+
+    // Ensure the main logo link is always correct.
+    const logoLink = document.getElementById('logo-link');
+    if(logoLink) logoLink.href = './index.html';
+},
         setupEventListeners: () => { /* Global listeners */ },
         setActiveToolkit: (id) => { AppState.activeToolkit = id; UI.renderActiveToolkit(); },
         bindActiveToolkitEvents: () => { const binder = Logic[`bind${AppState.activeToolkit}Events`]; if (binder) binder(); },
