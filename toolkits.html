@@ -2580,14 +2580,152 @@ renderImfpaGroups: () => {
 renderImfpaParty: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
-    return `<div class="allocation-party-card p-3"><div class="flex items-center gap-2"><input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-premium-text-primary" placeholder="Full Legal Name"><div class="relative w-24"><input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div><button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex items-center justify-center transition">×</button></div><div class="mt-2"><a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1 w-full"><i class="fas fa-user-cog"></i> Manage Details <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i></a></div><div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}"><div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div></div></div>`;
+
+    // --- MILITARY-GRADE REAL-TIME VALIDATION ENGINE ---
+    // This logic checks for the presence of critical details without revealing them.
+    const hasRequiredDetails = party.email && party.contactNumber && party.passport?.number && party.payment?.details;
+    const validationStatus = {
+        icon: hasRequiredDetails ? 'fa-check-circle' : 'fa-exclamation-triangle',
+        color: hasRequiredDetails ? 'text-success-color' : 'text-warning-color',
+        text: hasRequiredDetails ? 'Details Complete' : 'Details Required'
+    };
+
+    return `
+        <div class="allocation-party-card p-3">
+            <!-- ========================================================= -->
+            <!-- === PINNACLE PARTY HEADER (OPTIMIZED FOR ALL SCREENS) === -->
+            <!-- ========================================================= -->
+            <div class="flex items-center gap-2">
+                <!-- Legal Name Input (Main Identifier) -->
+                <input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-premium-text-primary" placeholder="Full Legal Name*">
+                
+                <!-- Percentage Input -->
+                <div class="relative w-24 flex-shrink-0">
+                    <input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span>
+                </div>
+                
+                <!-- Remove Button -->
+                <button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex-shrink-0 flex items-center justify-center transition-colors duration-300 rounded-full hover:bg-red-500/10">×</button>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- === SEVERELY GUIDED DETAILS MANAGEMENT (NEW WORKFLOW) === -->
+            <!-- ========================================================= -->
+            <div class="mt-2 flex justify-between items-center">
+                <!-- Real-Time Validation Indicator -->
+                <div class="flex items-center gap-2 text-xs ${validationStatus.color}">
+                    <i class="fas ${validationStatus.icon}"></i>
+                    <span>${validationStatus.text}</span>
+                </div>
+
+                <!-- "Manage Details" Toggle Button -->
+                <a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1">
+                    <i class="fas fa-user-cog"></i> 
+                    Manage Details 
+                    <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i>
+                </a>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- === COLLAPSIBLE DETAILS PANEL (NO AUTO-EXPAND) === -->
+            <!-- ========================================================= -->
+            <div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}">
+                <div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div>
+            </div>
+        </div>
+    `;
 },
 
 renderImfpaPartyDetails: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
-    const paymentDetailsPlaceholder = { 'Bank Wire': 'IBAN, SWIFT, Bank Info...', 'USDT TRC-20': 'TRC-20 Wallet Address', 'USDT ERC-20': 'ERC-20 Wallet Address' }[party.payment.method] || 'Details...';
-    return `<div class="party-details-grid"><div><span class="party-detail-label">Role</span><input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate"></div><div><span class="party-detail-label">Email</span><input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="contact@email.com"></div><div><span class="party-detail-label">Contact Number</span><input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567"></div><div><span class="party-detail-label">Passport No.</span><input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="P12345678"></div><div><span class="party-detail-label">Passport Issue Date</span><input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate"></div><div><span class="party-detail-label">Passport Expiry Date</span><input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate"></div><div class="col-span-2"><span class="party-detail-label">Passport Issuing Authority</span><input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="USA"></div><div class="col-span-2 pt-2 mt-2 border-t border-premium-border"><span class="party-detail-label font-bold">Payment Method</span></div><div><select class="form-select !text-xs" data-path="${base}.payment.method"><option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option><option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option><option value="USDT ERC-20" ${party.payment.method === 'USDT ERC-20' ? 'selected':''}>USDT (ERC-20)</option></select></div><div><select class="form-select !text-xs" data-path="${base}.payment.currency"><option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option><option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option><option value="EUR" ${party.payment.currency === 'EUR' ? 'selected':''}>EUR</option></select></div><div class="col-span-2"><span class="party-detail-label">Payment Coordinates</span><textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea></div></div>`;
+    
+    // Intelligent placeholder text for payment details based on the selected method.
+    const paymentDetailsPlaceholder = {
+        'Bank Wire': 'Beneficiary Name, Bank Name, Address, Account Number, SWIFT/BIC, IBAN (if applicable)',
+        'USDT TRC-20': 'TRC-20 Wallet Address (e.g., T...)',
+        'USDT ERC-20': 'ERC-20 Wallet Address (e.g., 0x...)'
+    }[party.payment.method] || 'Enter relevant payment coordinates...';
+
+    return `
+        <div class="party-details-grid pt-4 mt-2 border-t border-premium-border">
+            <!-- ========================================================= -->
+            <!-- === GUIDED FIELDSET: CORE IDENTIFICATION === -->
+            <!-- ========================================================= -->
+            <fieldset class="col-span-2 border border-premium-border p-4 rounded-lg">
+                <legend class="text-premium-text-secondary text-sm px-2">Core Identification</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="party-detail-label">Role*</label>
+                        <input class="form-input !text-xs" value="${party.role || ''}" data-path="${base}.role" placeholder="e.g., Mandate, Intermediary">
+                    </div>
+                    <div>
+                        <label class="party-detail-label">Email Address*</label>
+                        <input type="email" class="form-input !text-xs" value="${party.email || ''}" data-path="${base}.email" placeholder="Used for official correspondence">
+                    </div>
+                    <div class="col-span-1 sm:col-span-2">
+                        <label class="party-detail-label">Contact Number*</label>
+                        <input class="form-input !text-xs" value="${party.contactNumber || ''}" data-path="${base}.contactNumber" placeholder="+1-555-123-4567">
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ========================================================= -->
+            <!-- === GUIDED FIELDSET: PASSPORT/ID VERIFICATION === -->
+            <!-- ========================================================= -->
+            <fieldset class="col-span-2 border border-premium-border p-4 rounded-lg">
+                <legend class="text-premium-text-secondary text-sm px-2">Passport/ID Verification (KYC/KYB)</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="party-detail-label">Passport / ID Number*</label>
+                        <input class="form-input !text-xs" value="${party.passport.number || ''}" data-path="${base}.passport.number" placeholder="As shown on document">
+                    </div>
+                    <div>
+                        <label class="party-detail-label">Issuing Authority / Country*</label>
+                        <input class="form-input !text-xs" value="${party.passport.authority || ''}" data-path="${base}.passport.authority" placeholder="e.g., USA">
+                    </div>
+                    <div>
+                        <label class="party-detail-label">Date of Issue*</label>
+                        <input type="date" class="form-input !text-xs" value="${party.passport.issueDate || ''}" data-path="${base}.passport.issueDate">
+                    </div>
+                    <div>
+                        <label class="party-detail-label">Date of Expiry*</label>
+                        <input type="date" class="form-input !text-xs" value="${party.passport.expiryDate || ''}" data-path="${base}.passport.expiryDate">
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- ========================================================= -->
+            <!-- === GUIDED FIELDSET: REMITTANCE COORDINATES === -->
+            <!-- ========================================================= -->
+            <fieldset class="col-span-2 border border-premium-border p-4 rounded-lg">
+                <legend class="text-premium-text-secondary text-sm px-2">Remittance Coordinates</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="party-detail-label">Payment Method*</label>
+                        <select class="form-select !text-xs" data-path="${base}.payment.method">
+                            <option value="Bank Wire" ${party.payment.method === 'Bank Wire' ? 'selected':''}>Bank Wire</option>
+                            <option value="USDT TRC-20" ${party.payment.method === 'USDT TRC-20' ? 'selected':''}>USDT (TRC-20)</option>
+                            <option value="USDT ERC-20" ${party.payment.method === 'USDT ERC-20' ? 'selected':''}>USDT (ERC-20)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="party-detail-label">Settlement Currency*</label>
+                        <select class="form-select !text-xs" data-path="${base}.payment.currency">
+                            <option value="USD" ${party.payment.currency === 'USD' ? 'selected':''}>USD</option>
+                            <option value="USDT" ${party.payment.currency === 'USDT' ? 'selected':''}>USDT</option>
+                            <option value="EUR" ${party.payment.currency === 'EUR' ? 'selected':''}>EUR</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1 sm:col-span-2">
+                        <label class="party-detail-label">Payment Coordinates*</label>
+                        <textarea class="form-input !text-xs font-mono" data-path="${base}.payment.details" rows="3" placeholder="${paymentDetailsPlaceholder}">${party.payment.details || ''}</textarea>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    `;
 },
 renderExecutionSuite: (contractHTML) => `
     <div id="execution-suite"><div class="step-panel step-1"><h4>Step 1: Sign & Prepare Document</h4><p class="text-sm mt-2 mb-4">Apply all known signatures and corporate seals. This prepares the document for the final, binding workflow.</p><button id="launch-signing-btn" class="execution-btn" onclick="Logic.initiateSigningProcess()"><i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite</button></div><div id="finalization-step-panel" class="step-panel step-2 opacity-50 pointer-events-none"><h4>Step 2: Finalize & Dispatch</h4><p class="text-sm mt-2 mb-4">This will lock the document and dispatch the finalized PDF to all parties.</p><button id="send-for-signature-btn" class="execution-btn" onclick="Logic.sendForSignature()"><i class="fas fa-paper-plane mr-2"></i>Lock & Send to Parties</button></div></div><div id="contract-document-wrapper">${contractHTML}</div>`,
