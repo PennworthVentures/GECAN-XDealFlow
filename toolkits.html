@@ -20,139 +20,7 @@
     <!-- === DEFINITIVE PINNACLE CSS (v41.0 - Unification & Severe Upgrade) === -->
     <!-- ==================================================================================== -->
     <style>
-
-/* ==================================================================================== */
-/* === PINNACLE UPGRADE: Institutional Modeler Step-Panel CSS v42.12 === */
-/* ==================================================================================== */
-.deal-step {
-    background: var(--background-glass);
-    border: 1px solid var(--border-color);
-    border-radius: 1.5rem;
-    overflow: hidden;
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-}
-.deal-step::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: 1.5rem;
-    padding: 1px;
-    background: var(--gradient-primary);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: subtract;
-    mask-composite: subtract;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    pointer-events: none;
-}
-.deal-step.active {
-    border-color: var(--primary-azure);
-    box-shadow: 0 0 30px var(--glow-azure);
-}
-.deal-step.active::before {
-    opacity: 0.5;
-}
-.deal-step.completed {
-    border-color: var(--success-color);
-}
-.deal-step.locked {
-    opacity: 0.5;
-    filter: saturate(0.5);
-    pointer-events: none;
-}
-.deal-step-summary {
-    display: flex;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    cursor: pointer;
-    user-select: none;
-    list-style: none; /* Hide default details marker */
-}
-.deal-step-summary::-webkit-details-marker {
-    display: none;
-}
-.deal-step-icon {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    margin-right: 1.25rem;
-    flex-shrink: 0;
-    font-size: 1.25rem;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    background: var(--background-secondary);
-    color: var(--text-muted);
-}
-.deal-step.active .deal-step-icon {
-    background: var(--primary-azure);
-    color: white;
-    transform: scale(1.1) rotate(-10deg);
-    box-shadow: 0 0 20px var(--glow-azure);
-}
-.deal-step.completed .deal-step-icon {
-    background: var(--success-color);
-    color: white;
-}
-.deal-step-title {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--text-diamond);
-}
-.deal-step-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-}
-.deal-step-chevron {
-    margin-left: auto;
-    transition: transform 0.3s ease;
-}
-.deal-step details[open] > .deal-step-summary .deal-step-chevron {
-    transform: rotate(180deg);
-}
-.deal-step-content {
-    padding: 0 1.5rem 1.5rem 1.5rem;
-    border-top: 1px solid var(--border-color);
-    margin: 0 1.5rem;
-    padding-top: 1.5rem;
-}
-/* Pricing Model Radio Buttons */
-.pricing-model-label {
-    display: block;
-    padding: 0.75rem;
-    text-align: center;
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    background: var(--background-secondary);
-}
-.pricing-model-label:hover {
-    border-color: var(--primary-azure);
-    color: var(--text-diamond);
-}
-input[type="radio"]:checked + .pricing-model-label {
-    background: var(--gradient-primary);
-    border-color: var(--primary-azure);
-    color: var(--text-diamond);
-    box-shadow: 0 0 15px var(--glow-azure);
-    transform: translateY(-2px);
-}
-
-/* ========================================================================= */
-/* === PINNACLE KINETIC ANIMATIONS for Wallet Forensics UI === */
-/* ========================================================================= */
-@keyframes icon-float { 
-    0%, 100% { transform: translateY(0px) rotateY(0deg); } 
-    50% { transform: translateY(-10px) rotateY(15deg); } 
-}
-@keyframes shimmer-progress { 
-    0% { transform: translateX(-100%); } 
-    100% { transform: translateX(100%); } 
-}
-/* ========================================================================= */
+        /* ========================================================================= */
 /* === PINNACLE KINETIC TRANSITIONS for Toolkit Switching === */
 /* ========================================================================= */
 #active-toolkit-container {
@@ -536,960 +404,172 @@ input[type="radio"]:checked + .pricing-model-label {
                 particlesJS('particles-js', { "particles": { "number": { "value": 50 }, "color": { "value": ["#0ea5e9", "#6366f1", "#8b5cf6"] }, "opacity": { "value": 0.6, "random": true }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#475569", "opacity": 0.4 }, "move": { "enable": true, "speed": 1, "random": true, "out_mode": "out" } }, "interactivity": { "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } } } });
             }
         },
-    renderToolkitMenu: () => {
-        const menuContainer = document.getElementById('toolkit-menu');
-        if (!menuContainer) return;
-        menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
-            const isActive = AppState.activeToolkit === t.id;
-            return `
-            <button onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('click');" onmouseover="SFX.play('hover')" class="nav-btn w-full text-left p-4 !rounded-xl group relative ${isActive ? 'active' : ''}" style="perspective: 800px;">
+        renderToolkitMenu: () => {
+    const menuContainer = document.getElementById('toolkit-menu');
+    if (!menuContainer) return;
+
+    menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
+        const isActive = AppState.activeToolkit === t.id;
+        
+        // This HTML structure is severely upgraded to mirror the complex, multi-layered
+        // component style of the index.html benchmark for maximum visual fidelity.
+        return `
+            <!-- TOOLKIT BUTTON: SEVERE UPGRADE - Pinnacle Grade Component -->
+            <button 
+                onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('click');" 
+                onmouseover="SFX.play('hover')"
+                class="nav-btn w-full text-left p-4 !rounded-xl group relative ${isActive ? 'active' : ''}"
+                style="perspective: 800px;"
+            >
+                <!-- NEW: Active State Indicator Bar (Animated) -->
                 <div class="absolute left-0 top-1/4 bottom-1/4 w-1.5 bg-[var(--gradient-primary)] rounded-r-full transition-all duration-500 ease-in-out shadow-lg shadow-[var(--glow-azure)] ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}"></div>
+
+                <!-- 3D Icon Flipper (Benchmark Standard) -->
                 <div class="nav-icon-wrapper !w-12 !h-12 ml-2">
                     <div class="nav-icon-flipper">
-                        <div class="nav-icon-face nav-icon-front w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300"><i class="fas ${t.icon}"></i></div>
-                        <div class="nav-icon-face nav-icon-back w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg" style="text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6);"><i class="fas ${t.icon}"></i></div>
+                        <!-- Front Face: Standard Icon -->
+                        <div class="nav-icon-face nav-icon-front w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas ${t.icon}"></i>
+                        </div>
+                        <!-- Back Face: Glowing Icon on Hover (Pinnacle Aesthetic) -->
+                        <div class="nav-icon-face nav-icon-back w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg" style="text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6);">
+                            <i class="fas ${t.icon}"></i>
+                        </div>
                     </div>
                 </div>
-                <div class="flex-1 transition-transform duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);"><div class="font-semibold text-base">${t.name}</div><div class="text-xs opacity-75 mt-1">${t.description.split('.')[0]}</div></div>
+
+                <!-- Text Content with 3D Depth -->
+                <div class="flex-1 transition-transform duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);">
+                    <div class="font-semibold text-base">${t.name}</div>
+                    <div class="text-xs opacity-75 mt-1">${t.description.split('.')[0]}</div>
+                </div>
+
+                <!-- Chevron Indicator with Kinetic Hover Effect -->
                 <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);"></i>
             </button>`;
-        }).join('');
-    },
-    renderActiveToolkit: () => {
-        const container = document.getElementById('active-toolkit-container');
-        if (!container) return;
-        container.classList.add('transitioning-out');
-        setTimeout(() => {
-            try {
-                const renderFunc = UI[`render${AppState.activeToolkit}UI`];
-                if (typeof renderFunc === 'function') {
-                    container.innerHTML = renderFunc();
-                    Logic.bindActiveToolkitEvents();
-                } else {
-                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up bg-[var(--background-glass)] rounded-2xl border border-[var(--error-color)]"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50 relative"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Render Engine Error</h3><p class="text-[var(--text-silver)]">UI rendering function for '${AppState.activeToolkit}' not found.</p></div>`;
-                    SFX.play('error');
-                }
-            } catch (error) {
-                console.error(`Fatal error rendering '${AppState.activeToolkit}':`, error);
-                container.innerHTML = `<div class="text-center p-8 text-error-color"><h3>A critical error occurred while rendering this toolkit.</h3><p class="text-sm">${error.message}</p></div>`;
-            } finally {
-                container.classList.remove('hidden', 'transitioning-out');
-                container.classList.add('transitioning-in');
-                setTimeout(() => container.classList.remove('transitioning-in'), 300);
-            }
-        }, 300);
-        UI.renderToolkitMenu();
-    },
-
-    renderDashboardUI: () => {
-        const colorMap = {
-            'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' }, 'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
-            'from-sky-500': { primary: 'var(--primary-azure)', glow: 'var(--glow-azure)' }, 'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
-            'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' }, 'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
-        };
-        return `
-        <div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-8 h-full flex flex-col animate-fade-in-up" style="perspective: 2000px;">
-            <div class="text-center mb-12"><h2 class="text-4xl font-bold font-orbitron bg-clip-text text-transparent bg-[var(--gradient-primary)] mb-4" style="animation: premium-text-glow 4s ease-in-out infinite;">GECAN™ Intelligent Toolkits</h2><p class="text-[var(--text-silver)] text-lg max-w-2xl mx-auto">Select a proprietary tool to begin your institutional-grade analysis.</p></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
-                ${Object.values(AppState.toolkits).filter(t => t.id !== 'Dashboard').map((t, index) => {
-                    const theme = colorMap[t.color.split(' ')[0]];
-                    return `<div class="offer-card rounded-2xl p-8 cursor-pointer animate-fade-in-up stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('launch');" onmouseover="SFX.play('deploy')" style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"><div class="card-content"><div class="flex items-start gap-6"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl transition-all duration-500" style="transform-style: preserve-3d;"><i class="fas ${t.icon}" style="transform: translateZ(20px);"></i></div><div class="flex-1"><h3 class="asset-header text-2xl font-bold text-white mb-3 -ml-1">${t.name}</h3><p class="text-[var(--text-silver)]">${t.description}</p><div class="mt-4 flex items-center text-[var(--asset-primary)] opacity-0 group-hover:opacity-100 transition-opacity"><span class="text-sm font-medium">Launch Toolkit</span><i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i></div></div></div></div></div>`;
-                }).join('')}
-            </div>
-        </div>`;
-    },
-// ====================================================================================
-// === PINNACLE UPGRADE: UI.renderWalletForensicsUI v42.13 (DEFINITIVE SYNTAX FIX) ===
-// This is the definitive, unabridged rewrite of the Wallet Forensics toolkit's
-// master rendering function. It corrects the critical "Unexpected identifier"
-// SyntaxError by removing the malformed inline style block, ensuring the code
-// is production-ready and free of regressions.
-// ====================================================================================
-
-    renderWalletForensicsUI: () => {
-        const { address, isLoading, report } = AppState.walletAnalysis;
-        let contentHTML = '';
-        if (isLoading) {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="relative w-24 h-24 mb-8" style="perspective: 1000px;"><div class="absolute inset-0 border-2 border-[var(--primary-azure)] rounded-full animate-spin" style="animation-duration: 2s;"></div><div class="absolute inset-2 border-2 border-[var(--primary-royal)] rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div><div class="w-full h-full flex items-center justify-center" style="transform-style: preserve-3d; animation: icon-float 6s ease-in-out infinite;"><i class="fas fa-shield-alt text-4xl text-[var(--primary-azure)]" style="transform: translateZ(40px); text-shadow: 0 0 25px var(--glow-azure);"></i></div></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analyzing Wallet Provenance</h3><p id="spinner-text" class="text-[var(--text-silver)] mb-6">Initializing GECAN Heuristic Engine...</p></div>`;
-        } else if (report?.error) {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analysis Failed</h3><p class="text-[var(--text-silver)]">${report.error.message}</p><button onclick="Logic.runWalletForensics();" class="btn-engagement mt-8 !py-3 !px-8"><i class="fas fa-redo mr-2"></i>Retry</button></div>`;
-        } else if (report) {
-            contentHTML = UI.buildWalletReportHTML(report);
-        } else {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center bg-[var(--background-glass)] rounded-2xl border-2 border-dashed border-[var(--border-color)] animate-fade-in-up p-8" style="perspective: 1000px;"><div class="w-24 h-24 rounded-full bg-[var(--primary-azure)]/10 flex items-center justify-center mb-8 relative hover:scale-110" style="transform-style: preserve-3d; animation: icon-float 8s ease-in-out infinite;"><i class="fas fa-search fa-3x text-[var(--primary-azure)]" style="transform: translateZ(30px); text-shadow: 0 0 20px var(--glow-azure);"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Ready for Analysis</h3><p class="text-[var(--text-silver)] max-w-md">Enter a wallet address for due diligence.</p></div>`;
-        }
-        return `<div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-0 h-full flex flex-col animate-fade-in-up" style="transform-style: preserve-3d;"><div class="p-8 border-b border-[var(--border-color)]" style="transform: translateZ(20px);"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-shield-alt fa-lg"></i></div><div><h2 class="text-3xl font-bold font-orbitron text-white">Wallet Due Diligence</h2><p class="text-[var(--text-silver)] font-mono">Blockchain Forensics & Risk Assessment</p></div></div><div class="flex items-center gap-4"><input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter wallet address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono"><button id="check-wallet-btn" onclick="SFX.play('launch')" class="btn-engagement font-bold !py-4 !px-8"><i class="fas fa-microscope mr-2"></i>Analyze</button></div></div><div class="flex-grow p-8 overflow-y-auto" style="transform: translateZ(10px);">${contentHTML}</div></div>`;
-    },
-// ====================================================================================
-// === PINNACLE UPGRADE: UI.buildWalletReportHTML System v42.7 (UNABRIDGED) ===
-// This is the definitive, unabridged, and fully functional implementation of the
-// Wallet Forensics report renderer. It fulfills all 11 audited feature requirements
-// with pinnacle-grade aesthetics and benchmark-aligned architecture.
-// ====================================================================================
-
-/**
- * SEVERELY UPGRADED: Renders the complete, multi-component Wallet Forensics report.
- * This is the master function that assembles the UI by calling a suite of specialized
- * sub-renderers, each responsible for a critical component from the audit log.
- *
- * @param {object} report - The complete wallet analysis report object from the backend.
- * @returns {string} The complete, styled HTML for the entire report interface.
- */
-buildWalletReportHTML: (report) => {
-    // This top-level function now acts as a master assembler, calling dedicated
-    // sub-functions for each of the 11 audited components for maximum clarity and power.
-    return `
-        <div class="animate-fade-in-up">
-            <!-- COMPONENT 1 & 10/11: Dynamic Header & Action Buttons -->
-            ${UI.buildWalletReport_Header(report)}
-
-            <!-- Main Dashboard Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Main Content Column (Left) -->
-                <div class="lg:col-span-2 space-y-8">
-                    <!-- Executive Summary -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-1"><h3 class="asset-header text-xl -ml-1 mb-4"><i class="fas fa-file-invoice mr-3"></i>Institutional Executive Summary</h3><p class="text-[var(--text-silver)] leading-relaxed">${Logic.generateExecutiveSummary(report)}</p></div>
-                    
-                    <!-- COMPONENT 3: Institutional Compliance Check Engine -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-2">${UI.buildWalletReport_ComplianceCheck(report)}</div>
-                    
-                    <!-- COMPONENT 4: Advanced Risk Assessment & Positive Indicators -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-3"><h3 class="asset-header text-xl -ml-1 mb-6"><i class="fas fa-flag mr-3"></i>Risk Assessment (${report.analysis.redFlags.length > 0 ? report.analysis.redFlags.length + ' Flags' : 'Positive Indicators'})</h3>${UI.buildWalletReport_RiskAssessment(report)}</div>
-                    
-                    <!-- COMPONENT 8 & 9: Clickable Transaction Ledger with "Show More" -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-4"><h3 class="asset-header text-xl -ml-1 mb-6"><i class="fas fa-exchange-alt mr-3"></i>On-Chain Transaction Ledger</h3>${UI.buildWalletReport_TransactionLedger(report)}</div>
-                </div>
-
-                <!-- Sidebar Column (Right) -->
-                <div class="lg:col-span-1 space-y-8">
-                    <!-- COMPONENT 2: Multi-Vector Scoring Dashboard -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-1"><h3 class="asset-header text-xl -ml-1 mb-6 text-center">Scoring Dashboard</h3>${UI.buildWalletReport_ScoringDashboard(report)}</div>
-                    
-                    <!-- COMPONENT 7: Wallet Classification & Flow Profile -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-2">${UI.buildWalletReport_Classification(report)}</div>
-
-                    <!-- COMPONENT 5: Enriched Wallet Intel Panel -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-3">${UI.buildWalletReport_EnrichedIntel(report)}</div>
-                    
-                    <!-- COMPONENT 6: GECAN Provenance Timeline -->
-                    <div class="offer-card p-6 animate-fade-in-up stagger-4">${UI.buildWalletReport_ProvenanceTimeline(report)}</div>
-                </div>
-            </div>
-        </div>`;
+    }).join('');
 },
-
-/**
- * SUB-RENDERER 1: Builds the dynamic report header with status tags and action buttons.
- */
-buildWalletReport_Header: (report) => {
-    const { wallet, analysis, provenance } = report;
-    let headerTags = [];
-    if (provenance.records.length > 0) headerTags.push({ text: 'GECAN LEDGER MATCH', class: 'bg-success-color/20 text-success-color' });
-    else headerTags.push({ text: 'UNVERIFIED IN LEDGER', class: 'bg-warning-color/20 text-warning-color' });
-    
-    headerTags.push({ text: `${analysis.riskLevel} RISK`, class: `bg-[var(--flag-color)]/20 text-risk-color ${Utils.getRiskClass(analysis.riskLevel)}` });
-    
-    const uniqueControllers = [...new Set((provenance.records || []).map(r => r.controller).filter(Boolean))];
-    if (uniqueControllers.length > 1) headerTags.push({ text: 'OWNERSHIP CONFLICT', class: 'bg-critical-color/20 text-critical-color' });
-    if (analysis.walletClassification.type === 'BLACKLISTED') headerTags.push({ text: 'BLACKLISTED', class: 'bg-critical-color/20 text-critical-color' });
-    
-    return `
-    <div class="mb-8">
-        <div class="bg-[var(--background-glass-premium)] p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in-up border border-[var(--border-premium)] shadow-lg">
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-wallet text-2xl text-[var(--primary-azure)]"></i>
-                    <a href="${Logic.getExplorerUrl(wallet)}" target="_blank" class="font-mono text-lg text-white truncate hover:underline" title="View on Explorer">${wallet.address}</a>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 mt-2">
-                    ${headerTags.map(tag => `<span class="text-xs font-bold px-3 py-1 rounded-full ${tag.class}">${tag.text}</span>`).join('')}
-                </div>
-            </div>
-            <div class="flex-shrink-0 flex items-center gap-3">
-                <button onclick="Logic.initiatePdfGeneration(); SFX.play('click');" class="btn-engagement py-2 px-4 text-sm"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button>
-                <button onclick="Logic.openWalletSubmissionModal(); SFX.play('launch');" class="btn-engagement py-2 px-4 text-sm bg-gradient-to-r from-green-500 to-emerald-600"><i class="fas fa-paper-plane mr-2"></i>Submit for Review</button>
-            </div>
-        </div>
-    </div>`;
-},
-
-/**
- * SUB-RENDERER 2: Builds the multi-vector scoring dashboard with animated gauges.
- */
-buildWalletReport_ScoringDashboard: (report) => {
-    const { integrityScore, scoreBreakdown } = report.analysis;
-    const createScoreGauge = (score, label, size = 'w-40 h-40', isMain = false) => {
-        let scoreClass = 'gauge-low';
-        if (score < 40) scoreClass = 'gauge-critical'; else if (score < 65) scoreClass = 'gauge-high'; else if (score < 80) scoreClass = 'gauge-medium';
-        return `
-        <div class="text-center transition-transform duration-300 hover:scale-105">
-            <div class="relative ${size} mx-auto mb-3">
-                <svg viewBox="0 0 36 36" class="w-full h-full score-gauge"><circle cx="18" cy="18" r="15.9155" fill="none" stroke-width="3" class="stroke-current text-[var(--border-color)]"></circle><circle cx="18" cy="18" r="15.9155" fill="none" stroke-width="3" stroke-dasharray="0, 100" class="score-gauge-fg stroke-current ${scoreClass}" data-score="${score}"></circle></svg>
-                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="${isMain ? 'text-5xl' : 'text-3xl'} font-black ${scoreClass}">${Math.round(score)}</span></div>
-            </div><p class="text-sm font-semibold text-white">${label}</p>
-        </div>`;
-    };
-    return `
-        ${createScoreGauge(integrityScore, 'Overall Integrity', 'w-40 h-40', true)}
-        <div class="mt-8 border-t border-[var(--border-color)] pt-6 grid grid-cols-2 gap-6">
-            ${createScoreGauge(scoreBreakdown.provenance.score, 'Provenance', 'w-28 h-28')}
-            ${createScoreGauge(scoreBreakdown.behavioral.score, 'Behavioral', 'w-28 h-28')}
-            ${createScoreGauge(scoreBreakdown.temporal.score, 'Temporal', 'w-28 h-28')}
-            ${createScoreGauge(scoreBreakdown.compliance.score, 'Compliance', 'w-28 h-28')}
-        </div>`;
-},
-
-/**
- * SUB-RENDERER 3: Builds the institutional compliance check engine UI.
- */
-buildWalletReport_ComplianceCheck: (report) => {
-    const { wallet, analysis, transactions } = report;
-    const { riskLevel } = analysis;
-    const INST_USDT_BALANCE_REQ = 20000000;
-    const INST_USDT_TX_REQ = 100;
-    const INST_BTC_BALANCE_REQ = 1000;
-    const INST_BTC_TX_REQ = 150;
-    const reliableTransactionCount = transactions?.length || 0;
-
-    let balanceCheck, txCheck, hardRulesMet, title;
-    const isLowRisk = riskLevel === 'LOW';
-
-    if (wallet.type === 'BITCOIN') {
-        title = 'Institutional Compliance (Bitcoin)';
-        balanceCheck = { met: wallet.balance > INST_BTC_BALANCE_REQ, value: wallet.balance, threshold: INST_BTC_BALANCE_REQ, text: `> ${INST_BTC_BALANCE_REQ.toLocaleString()} BTC Balance` };
-        txCheck = { met: reliableTransactionCount < INST_BTC_TX_REQ, value: reliableTransactionCount, threshold: INST_BTC_TX_REQ, text: `< ${INST_BTC_TX_REQ} Transactions` };
-    } else if (wallet.type === 'ETHEREUM' || wallet.type === 'TRON') {
-        title = 'Institutional Compliance (USDT)';
-        balanceCheck = { met: wallet.balance > INST_USDT_BALANCE_REQ, value: wallet.balance, threshold: INST_USDT_BALANCE_REQ, text: `> $${Utils.formatNumber(INST_USDT_BALANCE_REQ)} USDT` };
-        txCheck = { met: reliableTransactionCount < INST_USDT_TX_REQ, value: reliableTransactionCount, threshold: INST_USDT_TX_REQ, text: `< ${INST_USDT_TX_REQ} Transactions` };
-    } else {
-        return `<h3 class="asset-header text-xl -ml-1 mb-4"><i class="fas fa-university mr-3"></i>Institutional Compliance</h3><div class="text-center text-[var(--text-muted)] py-8"><i class="fas fa-info-circle fa-2x mb-3"></i><p class="font-semibold text-[var(--text-silver)] text-sm">Compliance checks are not applicable for this asset type.</p></div>`;
+        renderActiveToolkit: () => {
+    const container = document.getElementById('active-toolkit-container');
+    if (!container) {
+        console.error("CRITICAL RENDER FAILURE: #active-toolkit-container not found in DOM.");
+        return;
     }
 
-    hardRulesMet = balanceCheck.met && txCheck.met;
+    // --- 1. CINEMATIC TRANSITION: Fade Out Existing Content ---
+    // Instead of instantly replacing the HTML, we first apply a class to gracefully
+    // fade out the current toolkit, providing a smooth visual transition.
+    container.classList.add('transitioning-out');
 
-    const checkItem = (check) => {
-        const isBalance = check.text.toLowerCase().includes('balance');
-        const displayValue = isBalance ? Utils.formatPrice(check.value, wallet.type === 'BITCOIN' ? 'BTC' : 'USD').replace('$', '') : check.value.toLocaleString();
-        const displayThreshold = isBalance ? Utils.formatPrice(check.threshold, wallet.type === 'BITCOIN' ? 'BTC' : 'USD').replace('$', '') : check.threshold.toLocaleString();
-        const statusClass = check.met ? 'success-color' : 'critical-color';
-        const icon = check.met ? 'fa-check-circle' : 'fa-times-circle';
+    // After the fade-out animation completes (300ms), we perform the DOM update.
+    setTimeout(() => {
+        try {
+            // --- 2. DYNAMIC CONTENT RENDERING ---
+            // Determine which specific UI rendering function to call based on the active toolkit state.
+            const renderFunc = UI[`render${AppState.activeToolkit}UI`];
 
-        return `
-            <div class="flex items-center justify-between p-3 rounded-lg bg-[var(--${statusClass})]/10 transition-all duration-300 hover:bg-[var(--${statusClass})]/20">
-                <div class="flex items-center gap-3">
-                    <i class="fas ${icon} text-[var(--${statusClass})] fa-lg"></i>
-                    <span class="font-semibold text-white">${check.text}</span>
+            if (typeof renderFunc === 'function') {
+                // If a valid renderer exists, generate the new HTML.
+                const newToolkitHTML = renderFunc();
+                // Replace the container's content with the newly generated toolkit UI.
+                container.innerHTML = newToolkitHTML;
+
+                // --- 3. BIND DYNAMIC EVENT LISTENERS ---
+                // It is critical to re-bind events *after* the new HTML is in the DOM.
+                Logic.bindActiveToolkitEvents();
+            } else {
+                // --- 4. ROBUST ERROR HANDLING (PINNACLE STANDARD) ---
+                // If a rendering function is missing for a toolkit, display a premium,
+                // user-friendly error message instead of failing silently or breaking the page.
+                const errorMessage = `
+                    <div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up bg-[var(--background-glass)] rounded-2xl border border-[var(--error-color)]">
+                        <div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50 relative">
+                            <i class="fas fa-exclamation-triangle fa-3x text-red-500" style="text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);"></i>
+                            <div class="absolute inset-0 rounded-full animate-ping bg-red-500 opacity-25"></div>
+                        </div>
+                        <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Render Engine Error</h3>
+                        <p class="text-[var(--text-silver)] max-w-md leading-relaxed">
+                            The UI rendering function for the '${AppState.activeToolkit}' toolkit could not be found. This module may be under development or a script error has occurred.
+                        </p>
+                    </div>`;
+                container.innerHTML = errorMessage;
+                SFX.play('error'); // Provide audio feedback for the error state.
+            }
+        } catch (error) {
+            console.error(`Fatal error during rendering of '${AppState.activeToolkit}':`, error);
+            // Display a critical failure message if the render function itself throws an error.
+            container.innerHTML = `<div class="text-center p-8 text-error-color"><h3>A critical error occurred while rendering this toolkit.</h3><p class="text-sm">${error.message}</p></div>`;
+        } finally {
+            // --- 5. CINEMATIC TRANSITION: Fade In New Content ---
+            // Remove the 'transitioning-out' class and add 'transitioning-in' to
+            // trigger the fade-in animation, revealing the new content smoothly.
+            container.classList.remove('hidden', 'transitioning-out');
+            container.classList.add('transitioning-in');
+
+            // Clean up the animation class after it completes to keep the DOM clean.
+            setTimeout(() => {
+                container.classList.remove('transitioning-in');
+            }, 300);
+        }
+    }, 300); // This timeout duration must match the CSS transition duration.
+
+    // --- 6. STATIC UI REFRESH ---
+    // The toolkit menu is outside the main container and can be re-rendered immediately
+    // to instantly reflect the active state change.
+    UI.renderToolkitMenu();
+},
+        renderDashboardUI: () => {
+            const colorMap = {
+                'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' }, 'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
+                'from-sky-500': { primary: 'var(--primary-azure)', glow: 'var(--glow-azure)' }, 'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
+            };
+            return `
+            <div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-8 h-full flex flex-col animate-fade-in-up" style="perspective: 2000px;">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold font-orbitron bg-clip-text text-transparent bg-[var(--gradient-primary)] mb-4" style="animation: premium-text-glow 4s ease-in-out infinite;">GECAN™ Intelligent Toolkits</h2>
+                    <p class="text-[var(--text-silver)] text-lg max-w-2xl mx-auto">Select a proprietary tool to begin your institutional-grade analysis.</p>
                 </div>
-                <div class="text-right">
-                    <span class="font-mono text-sm text-white">${displayValue}</span>
-                    <span class="font-mono text-xs text-[var(--text-muted)]"> / ${displayThreshold}</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
+                    ${Object.values(AppState.toolkits).filter(t => t.id !== 'Dashboard').map((t, index) => {
+                        const theme = colorMap[t.color.split(' ')[0]];
+                        return `<div class="offer-card rounded-2xl p-8 cursor-pointer animate-fade-in-up stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('launch');" onmouseover="SFX.play('deploy')" style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};">
+                            <div class="card-content"><div class="flex items-start gap-6"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl transition-all duration-500" style="transform-style: preserve-3d;"><i class="fas ${t.icon} transition-all duration-500" style="transform: translateZ(20px);"></i></div><div class="flex-1"><h3 class="asset-header text-2xl font-bold text-white mb-3 -ml-1">${t.name}</h3><p class="text-[var(--text-silver)] leading-relaxed">${t.description}</p><div class="mt-4 flex items-center text-[var(--asset-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"><span class="text-sm font-medium">Launch Toolkit</span><i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i></div></div></div></div>
+                        </div>`;
+                    }).join('')}
                 </div>
             </div>`;
-    };
-    
-    let overallStatus;
-    if (hardRulesMet && isLowRisk) {
-        overallStatus = { text: 'COMPLIANT', class: 'text-success-color', icon: 'fa-shield-alt' };
-    } else if (!hardRulesMet) {
-        overallStatus = { text: 'NON-COMPLIANT', class: 'text-critical-color', icon: 'fa-exclamation-triangle' };
-    } else {
-        overallStatus = { text: 'COMPLIANT (WITH FLAGS)', class: 'text-warning-color', icon: 'fa-exclamation-circle' };
-    }
-
-    return `
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="asset-header text-xl -ml-1"><i class="fas fa-university mr-3"></i>${title}</h3>
-            <div class="flex items-center gap-3 bg-black/20 px-4 py-2 rounded-full">
-                <i class="fas ${overallStatus.icon} ${overallStatus.class} text-xl animate-pulse"></i>
-                <p class="text-lg font-bold ${overallStatus.class}">${overallStatus.text}</p>
-            </div>
-        </div>
-        <div class="space-y-3">${checkItem(balanceCheck)}${checkItem(txCheck)}</div>
-    `;
-},
-
-/**
- * SUB-RENDERER 4: Builds the advanced risk assessment panel.
- * This unabridged function renders a detailed list of all detected compliance red flags
- * or, in their absence, highlights positive indicators with premium styling.
- */
-buildWalletReport_RiskAssessment: (report) => {
-    const { redFlags } = report.analysis;
-    const { wallet, provenance, transactions } = report;
-
-    if (redFlags.length > 0) {
-        return `<div class="space-y-4 max-h-[28rem] overflow-y-auto pr-2">${redFlags.map(flag => `
-            <div 
-                class="bg-[var(--background-glass)] p-4 rounded-xl border-l-4 ${Utils.getRiskClass(flag.level)} border-risk-color transition-all duration-300 hover:bg-[var(--flag-color)]/10"
-                onmouseover="SFX.play('hover')"
-            >
-                <div class="flex items-start gap-4">
-                    <i class="fas ${Utils.getRiskIcon(flag.level)} text-risk-color text-xl mt-1"></i>
-                    <div>
-                        <p class="font-bold text-risk-color">${flag.title}</p>
-                        <p class="text-sm text-[var(--text-silver)] mt-1">${flag.details}</p>
-                    </div>
-                </div>
-            </div>`).join('')}
-        </div>`;
-    }
-
-    const positiveIndicator = (icon, title, details) => `
-        <div class="bg-[var(--background-glass)] p-4 rounded-xl border-l-4 border-success-color transition-all duration-300 hover:bg-success-color/10" onmouseover="SFX.play('hover')">
-            <div class="flex items-start gap-4">
-                <i class="fas ${icon} text-success-color text-xl mt-1"></i>
-                <div>
-                    <p class="font-bold text-success-color">${title}</p>
-                    <p class="text-sm text-[var(--text-silver)] mt-1">${details}</p>
-                </div>
-            </div>
-        </div>`;
-    
-    let indicatorsHTML = '';
-    const uniqueControllers = [...new Set((provenance.records || []).map(r => r.controller).filter(Boolean))];
-    if (wallet.ageInDays > 730) indicatorsHTML += positiveIndicator('fa-calendar-check', 'Established History', `Wallet has been active for over ${Math.floor(wallet.ageInDays / 365)} years, indicating stability.`);
-    if (provenance.records.length > 0 && uniqueControllers.length === 1) indicatorsHTML += positiveIndicator('fa-user-check', 'Consistent Ownership Record', `A single controller is consistently reported in the GECAN Ledger.`);
-    if (transactions?.length > 0 && transactions.filter(tx=>tx.type === 'Send').length === 0) indicatorsHTML += positiveIndicator('fa-arrow-alt-circle-down', 'Clear Accumulation Pattern', `The wallet has only received funds, a strong indicator of a holding or accumulation strategy.`);
-    
-    if (indicatorsHTML === '') {
-        return `<div class="text-center text-[var(--text-muted)] py-12">
-            <i class="fas fa-check-circle text-success-color fa-3x mb-4" style="text-shadow: 0 0 15px var(--success-color);"></i>
-            <p class="font-semibold text-[var(--text-silver)]">No Significant Compliance Flags Detected</p>
-            <p class="text-sm">The wallet exhibits a standard behavioral profile without standout risk or positive indicators.</p>
-        </div>`;
-    }
-    return `<div class="space-y-4">${indicatorsHTML}</div>`;
-},
-
-/**
- * SUB-RENDERER 5: Builds the Enriched Wallet Intel panel.
- * This unabridged function renders key derived metrics for at-a-glance analysis,
- * styled with premium 3D hover effects.
- */
-buildWalletReport_EnrichedIntel: (report) => {
-    const { wallet, transactions } = report;
-    const reliableTransactionCount = transactions?.length || 0;
-    const lastActivityDate = reliableTransactionCount > 0 ? new Date(transactions[0].time) : null;
-    const daysSinceLastTx = lastActivityDate ? Math.floor((new Date() - lastActivityDate) / (1000 * 60 * 60 * 24)) : 'N/A';
-    const transactionVelocity = wallet.ageInDays > 0 ? (reliableTransactionCount / wallet.ageInDays).toFixed(2) : 0;
-
-    const intelItem = (label, value, icon) => `
-        <div class="flex justify-between items-center bg-[var(--background-glass)] p-3 rounded-lg transition-transform duration-300 hover:scale-105 hover:bg-[var(--background-secondary)]">
-            <dt class="text-[var(--text-muted)] flex items-center gap-2 text-sm"><i class="fas ${icon} fa-fw w-4 text-[var(--primary-azure)]"></i>${label}</dt>
-            <dd class="font-semibold text-white font-mono">${value}</dd>
-        </div>`;
-
-    return `
-        <h3 class="asset-header text-xl -ml-1 mb-4"><i class="fas fa-cogs mr-3"></i>Enriched Wallet Intel</h3>
-        <dl class="space-y-3">
-            ${intelItem('Balance (USD Eq.)', Utils.formatNumber(wallet.balance), 'fa-dollar-sign')}
-            ${intelItem('Total Transactions', reliableTransactionCount.toLocaleString(), 'fa-receipt')}
-            ${intelItem('Last Activity', `${daysSinceLastTx} days ago`, 'fa-history')}
-            ${intelItem('Tx Velocity', `${transactionVelocity} tx/day`, 'fa-tachometer-alt')}
-            ${intelItem('Wallet Age', `${wallet.ageInDays} Days`, 'fa-calendar-alt')}
-        </dl>`;
-},
-
-/**
- * SUB-RENDERER 6: Builds the GECAN Provenance Timeline.
- * This unabridged function renders a premium, animated vertical timeline visualizing
- * the wallet's documented history within the GECAN Ledger.
- */
-buildWalletReport_ProvenanceTimeline: (report) => {
-    const { provenance } = report;
-    const uniqueControllers = [...new Set((provenance.records || []).map(r => r.controller).filter(Boolean))];
-
-    return `
-        <h3 class="asset-header text-xl -ml-1 mb-6"><i class="fas fa-history mr-3"></i>GECAN Provenance Timeline</h3>
-        <div class="relative">
-            ${provenance.records.length > 0 
-                ? provenance.records.map(rec => `
-                    <div class="timeline-item">
-                        <div class="timeline-dot"><div class="timeline-dot-inner ${uniqueControllers.length > 1 ? 'bg-critical-color' : 'bg-[var(--primary-azure)]'}"></div></div>
-                        <p class="text-xs font-mono text-[var(--text-muted)] mb-1">${rec.date}</p>
-                        <p class="font-semibold text-white">Controller: <span class="text-[var(--primary-azure)]">${rec.controller}</span></p>
-                        <p class="text-xs text-[var(--text-subtle)]">Source: ${rec.source}</p>
-                    </div>`).join('') 
-                : `<div class="text-center text-[var(--text-muted)] py-8">
-                        <i class="fas fa-question-circle text-warning-color fa-2x mb-3"></i>
-                        <p class="font-semibold text-[var(--text-silver)] text-sm">No GECAN Ledger Records</p>
-                   </div>`
+        },
+        renderWalletForensicsUI: () => {
+            const { address, isLoading, report } = AppState.walletAnalysis;
+            let contentHTML = '';
+            if (isLoading) {
+                contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="relative w-24 h-24 mb-8"><div class="absolute inset-0 border-4 border-[var(--primary-azure)] rounded-full opacity-50"></div><div class="absolute inset-0 border-4 border-[var(--primary-azure)] rounded-full animate-ping"></div><i class="fas fa-shield-alt text-4xl text-[var(--primary-azure)] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="text-shadow: 0 0 20px var(--glow-azure);"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analyzing Wallet Provenance</h3><p class="text-[var(--text-silver)] mb-6">Initializing GECAN Heuristic Engine...</p></div>`;
+            } else if (report?.error) {
+                SFX.play('error');
+                contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analysis Failed</h3><p class="text-[var(--text-silver)] max-w-md">${report.error.message}</p><button onclick="Logic.runWalletForensics();" class="btn-engagement mt-8 !py-3 !px-8"><i class="fas fa-redo mr-2"></i>Retry Analysis</button></div>`;
+            } else if (report) {
+                contentHTML = UI.buildWalletReportHTML(report);
+            } else {
+                contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center bg-[var(--background-glass)] rounded-2xl border-2 border-dashed border-[var(--border-color)] animate-fade-in-up p-8" style="perspective: 1000px;"><div class="w-24 h-24 rounded-full bg-[var(--primary-azure)]/10 flex items-center justify-center mb-8 relative transition-transform duration-500 hover:scale-110" style="transform-style: preserve-3d; animation: icon-float 8s ease-in-out infinite;"><i class="fas fa-search fa-3x text-[var(--primary-azure)]" style="transform: translateZ(30px); text-shadow: 0 0 20px var(--glow-azure);"></i><div class="absolute inset-0 rounded-full border-2 border-[var(--primary-azure)]/50" style="transform: rotateX(70deg);"></div></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Ready for Analysis</h3><p class="text-[var(--text-silver)] max-w-md">Enter a wallet address for comprehensive due diligence.</p></div>`;
             }
-        </div>
-        <style>
-            .timeline-item { position: relative; padding-bottom: 2.5rem; padding-left: 2.5rem; }
-            .timeline-item:last-child { padding-bottom: 0; }
-            .timeline-item::before { content: ''; position: absolute; left: 0.7rem; top: 1.5rem; height: 100%; border-left: 2px dashed var(--border-color); }
-            .timeline-item:last-child::before { display: none; }
-            .timeline-dot { position: absolute; left: 0; top: 0.5rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--background-secondary); box-shadow: 0 0 0 4px var(--background-primary); }
-            .timeline-dot-inner { width: 0.75rem; height: 0.75rem; border-radius: 50%; transition: all 0.3s; }
-            .timeline-item:hover .timeline-dot-inner { transform: scale(1.3); box-shadow: 0 0 12px currentColor; }
-        </style>`;
-},
-
-/**
- * SUB-RENDERER 7: Builds the Wallet Classification & Flow Profile panel.
- * This unabridged function renders the AI-driven classification of the wallet,
- * complete with a premium, glowing icon and detailed confidence metrics.
- */
-buildWalletReport_Classification: (report) => {
-    const { walletClassification } = report.analysis;
-    const { transactions } = report;
-    const inboundCount = transactions?.filter(tx => tx.type === 'Receive').length || 0;
-    const outboundCount = transactions?.filter(tx => tx.type === 'Send').length || 0;
-
-    let flowProfile = { text: 'Balanced Flow', class: 'text-[var(--text-silver)]' };
-    if (transactions?.length > 5) {
-        if (outboundCount === 0 && inboundCount > 0) flowProfile = { text: 'Accumulation / Deposit-Only', class: 'text-success-color' };
-        else if (inboundCount === 0 && outboundCount > 0) flowProfile = { text: 'Distribution / Spend-Only', class: 'text-error-color' };
-    }
-
-    return `
-        <h3 class="asset-header text-xl -ml-1 mb-4"><i class="fas fa-microchip mr-3"></i>Wallet Classification</h3>
-        <div class="text-center p-4 bg-[var(--background-glass)] rounded-xl transition-all duration-300 hover:scale-105 hover:bg-[var(--background-secondary)]">
-            <i class="fas ${walletClassification.icon} fa-3x mb-3 text-[var(--primary-azure)]" style="text-shadow: 0 0 20px var(--glow-azure);"></i>
-            <p class="text-2xl font-bold font-orbitron text-white">${walletClassification.type}</p>
-            <p class="font-semibold mt-1 ${flowProfile.class}">${flowProfile.text}</p>
-            <div class="mt-2 text-xs text-[var(--text-muted)] font-mono">
-                Confidence: <span class="font-semibold text-[var(--text-silver)]">${walletClassification.confidence}</span> | Source: <span class="font-semibold text-[var(--text-silver)]">${walletClassification.source}</span>
-            </div>
-        </div>`;
-},
-/**
- * SUB-RENDERER 8 & 9: Builds the clickable, paginated transaction ledger.
- */
-buildWalletReport_TransactionLedger: (report) => {
-    const { transactions, wallet } = report;
-    if (!transactions || transactions.length === 0) {
-        return `<div class="text-center text-[var(--text-muted)] py-12"><i class="fas fa-exchange-alt fa-3x mb-4"></i><p class="font-semibold text-[var(--text-silver)]">No On-Chain Transactions Found</p></div>`;
-    }
-    const currency = wallet.type === 'BITCOIN' ? 'BTC' : 'USDT';
-    const displayedTxs = transactions.slice(0, 50);
-    const hiddenCount = transactions.length - displayedTxs.length;
-
-    return `
-        <div class="grid grid-cols-3 gap-4 mb-6 text-center">
-            <div class="bg-[var(--background-glass)] p-3 rounded-lg"><p class="text-xs text-[var(--text-muted)]">Total Txs</p><p class="text-xl font-bold text-white">${transactions.length.toLocaleString()}</p></div>
-            <div class="bg-[var(--background-glass)] p-3 rounded-lg"><p class="text-xs text-[var(--text-muted)]">Inbound</p><p class="text-xl font-bold text-success-color">${transactions.filter(tx=>tx.type === 'Receive').length.toLocaleString()}</p></div>
-            <div class="bg-[var(--background-glass)] p-3 rounded-lg"><p class="text-xs text-[var(--text-muted)]">Outbound</p><p class="text-xl font-bold text-error-color">${transactions.filter(tx=>tx.type === 'Send').length.toLocaleString()}</p></div>
-        </div>
-        <div id="transaction-ledger" class="space-y-3 max-h-[28rem] overflow-y-auto pr-2">
-            ${displayedTxs.map((tx, index) => {
-                const isInbound = tx.type === 'Receive';
-                return `<div class="transaction-item bg-[var(--background-glass)] p-3 rounded-lg flex items-center justify-between gap-4 animate-fade-in-up ${isInbound ? 'transaction-inbound' : 'transaction-outbound'}" style="animation-delay: ${index * 20}ms">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${isInbound ? 'bg-success-color/10 text-success-color' : 'bg-error-color/10 text-error-color'}"><i class="fas ${isInbound ? 'fa-arrow-down' : 'fa-arrow-up'}"></i></div>
-                        <div class="min-w-0">
-                            <a href="${Logic.getExplorerUrl(wallet, tx.hash)}" target="_blank" class="font-mono text-sm text-white truncate block hover:underline" title="View Transaction">${tx.hash.substring(0, 10)}...${tx.hash.substring(tx.hash.length - 6)}</a>
-                        </div>
-                    </div>
-                    <div class="text-right flex-shrink-0"><p class="font-mono font-semibold text-base ${isInbound ? 'text-success-color' : 'text-error-color'}">${isInbound ? '+' : '-'}${Utils.formatNumber(tx.amount, 6)} <span class="text-xs text-[var(--text-muted)]">${currency}</span></p></div>
-                </div>`
-            }).join('')}
-        </div>
-        ${hiddenCount > 0 ? `<button onclick="this.style.display='none'" class="w-full mt-4 nav-btn text-xs !py-2">Show All ${transactions.length.toLocaleString()} Transactions</button>` : ''}
-    `;
-},
-        
-renderInstitutionalModelerUI: () => {
-    // This function returns a single, unabridged template literal containing the complete
-    // and permanent structure for the Institutional Modeler's interface.
-    return `
-        <!--
-            PINNACLE ARCHITECTURE: The main container is animated and establishes the
-            3D perspective context for all child elements.
-        -->
-        <div class="flex flex-col gap-8 animate-fade-in-up" style="perspective: 2500px;">
-            
-            <!--
-                PINNACLE ARCHITECTURE: The grid system is designed to be dynamically
-                manipulated by JavaScript (changing column spans) to create the
-                side-by-side editor/preview layout. The transition properties ensure
-                this change is a smooth, cinematic animation.
-            -->
-            <div id="modeler-main-content" class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
-                
-                <!-- 
-                    PANEL 1: Input & Editor Container (Initially takes full width)
-                    - Uses 'offer-card' styling for consistency with the benchmark.
-                    - `transition-all` allows its width and position to animate smoothly.
-                -->
-                <div 
-                    id="modeler-input-container" 
-                    class="offer-card lg:col-span-5 p-6 md:p-8 flex flex-col transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                >
-                    <!--
-                        The initial content is rendered by a dedicated sub-renderer,
-                        ensuring clean, modular code.
-                    -->
-                    ${UI.renderModelerSelectionPanel()}
-                </div>
-
-                <!-- 
-                    PANEL 2: Live Contract Preview Container (Initially hidden and off-screen)
-                    - Starts with `hidden`, `opacity-0`, and `transform` properties for a cinematic entrance.
-                    - The white background and heavy shadow create a prestigious "physical document" aesthetic.
-                    - `transition-all` allows its properties to animate smoothly when it's revealed.
-                -->
-                <div 
-                    id="modeler-preview-container" 
-                    class="lg:col-span-2 bg-white rounded-2xl flex-col transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hidden" 
-                    style="box-shadow: 0 0 80px var(--glow-diamond), 0 25px 60px -12px rgba(0,0,0,0.8); opacity: 0; transform: translateX(50px) rotateY(-5deg);"
-                >
-                    <!-- Live preview content will be dynamically injected here by Logic.generateContract -->
-                </div>
-
-            </div>
-        </div>`;
-},
-
-renderModelerSelectionPanel: () => {
-    // --- Pinnacle-Grade Data Structures ---
-    // The dealTypes array is structured for clarity and easy maintenance.
-    const dealTypes = [
-        { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct conversions between assets.', color: 'from-blue-500 to-cyan-500' },
-        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' },
-        { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' },
-        { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' },
-    ];
-
-    // The colorMap provides a single source of truth for dynamic theming, ensuring
-    // consistency with the benchmark's CSS variable system. It's expanded for future scalability.
-    const colorMap = {
-        'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' },
-        'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
-        'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' },
-        'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
-    };
-
-    // --- Unabridged HTML Template Literal ---
-    // The function returns a single, complete string containing the entire UI for this panel.
-    return `
-        <!-- Panel Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold font-orbitron text-white">Select Institutional Deal Type</h2>
-            <button 
-                onclick="Logic.resetModelerState(); SFX.play('click');" 
-                class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20 hover:!text-red-400"
-            >
-                <i class="fas fa-undo mr-2"></i>Reset Modeler
-            </button>
-        </div>
-
-        <!-- Pinnacle-Grade 3D Card Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8" style="perspective: 2000px;">
-            ${dealTypes.map((deal, i) => {
-                const theme = colorMap[deal.color.split(' ')[0]];
-                const isActive = AppState.modeler.activeDealType === deal.id;
-                
-                return `
-                <!-- 
-                    SEVERE UPGRADE: This card is a complete reconstruction using the 'offer-card'
-                    benchmark standard for pinnacle-grade 3D effects, shaders, and animations.
-                -->
-                <div 
-                    class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${isActive ? 'active' : ''}"
-                    onclick="Logic.handleDealTypeChange('${deal.id}'); SFX.play('launch');"
-                    onmouseover="SFX.play('deploy')"
-                    style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"
-                >
-                    <!-- 3D EFFECT: Inner card-content wrapper for depth, consistent with benchmark. -->
-                    <div class="card-content">
-                        
-                        <!-- 3D EFFECT: Icon with its own independent 3D hover transform and glow. -->
-                        <div 
-                            class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4 transition-all duration-500 shadow-lg" 
-                            style="transform-style: preserve-3d;"
-                        >
-                            <i 
-                                class="fas ${deal.icon} transition-all duration-500" 
-                                style="transform: translateZ(20px); text-shadow: 0 0 15px rgba(255,255,255,0.5);"
-                            ></i>
-                        </div>
-
-                        <!-- 3D EFFECT: Header text with deep hover transform, consistent with benchmark. -->
-                        <h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3>
-                        
-                        <!-- Description Text -->
-                        <p class="text-sm text-[var(--text-silver)]">${deal.desc}</p>
-
-                    </div>
-                </div>`;
-            }).join('')}
-        </div>`;
-},
-
-
-renderModelerInputPanel: () => {
-    const { activeDealType, pricingConfig } = AppState.modeler;
-
-    // --- 1. Dynamic Sub-Panel Rendering ---
-    // This logic robustly calls the specific renderer for the active deal type
-    // (e.g., UI.renderAssetSwapPanel), ensuring modularity and scalability.
-    const dealPanelRenderer = UI[`render${activeDealType}Panel`];
-    const dealPanelHTML = dealPanelRenderer 
-        ? dealPanelRenderer() 
-        : `<div class="text-center p-4 bg-red-900/50 border border-red-500/50 rounded-lg text-red-300">
-             <strong>Render Error:</strong> Input panel UI for '${activeDealType}' not found.
-           </div>`;
-
-    // --- 2. Advanced Pricing Configuration Panel (Unabridged Implementation) ---
-    // This was previously missing and is now fully implemented with dynamic state.
-    const pricingConfigHTML = `
-        <div 
-            class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"
-        >
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <select data-path="pricingConfig.offerType" class="form-select">
-                    ${['discount', 'premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}
-                </select>
-                <select data-path="pricingConfig.isValueInPercent" class="form-select">
-                    ${[[true, '%'], [false, '$']].map(([v, l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}
-                </select>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Gross Offer</label>
-                    <input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Net to Buyer</label>
-                    <input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input">
-                </div>
-            </div>
-        </div>`;
-    
-    // --- 3. Master Panel Assembly (Unabridged HTML) ---
-    return `
-        <!-- Panel Navigation & Header -->
-        <div class="flex items-center mb-6 animate-fade-in-up">
-            <button 
-                onclick="UI.renderActiveToolkit(); SFX.play('click');" 
-                class="nav-btn !py-2 !px-4 text-sm"
-            >
-                <i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection
-            </button>
-        </div>
-        <h2 
-            class="text-2xl font-bold font-orbitron text-white mb-6 animate-fade-in-up stagger-1"
-        >
-            <i class="fas fa-sliders-h text-[var(--primary-azure)] mr-3"></i>Deal Parameters
-        </h2>
-        
-        <!-- Main Content Area -->
-        <div class="space-y-6 flex-grow">
-            
-            <!-- Core Deal Parameters Sub-Panel (Pinnacle Grade) -->
-            <div class="offer-card !p-6 animate-fade-in-up stagger-2">
-                <h4 class="asset-header text-lg -ml-1 mb-4 flex items-center gap-3">
-                    <i class="fas fa-file-contract"></i>Transaction Core
-                </h4>
-                <div class="space-y-4">
-                    ${dealPanelHTML}
-                </div>
-            </div>
-
-            <!-- Advanced Pricing Sub-Panel (Pinnacle Grade & Collapsible) -->
-            <div class="offer-card !p-6 animate-fade-in-up stagger-3">
-                <div 
-                    class="collapsible-header cursor-pointer group" 
-                    onclick="Logic.togglePricingConfig(); SFX.play('click');"
-                >
-                    <h4 class="asset-header text-lg -ml-1 flex items-center gap-3">
-                        <i class="fas fa-percent"></i>Pricing & Configuration
-                    </h4>
-                    <i class="fas fa-chevron-down text-[var(--text-muted)] transition-transform duration-300 group-hover:text-white ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i>
-                </div>
-                ${pricingConfigHTML}
-            </div>
-
-        </div>
-        
-        <!-- Footer Action Button (Pinnacle Grade) -->
-        <div class="mt-auto pt-6 border-t border-[var(--border-color)] animate-fade-in-up stagger-4">
-            <button 
-                onclick="Logic.openImfpaEditor(); SFX.play('launch');" 
-                class="btn-engagement w-full py-3 font-bold"
-            >
-                <i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite
-            </button>
-        </div>
-    `;
-},
-
-        
-// ====================================================================================
-// === PINNACLE UPGRADE: Deal Parameter Panels v42.12 (UNABRIDGED & INGENIOUS) ===
-// This block contains the definitive, unabridged, and fully functional implementations
-// for all four deal parameter panel renderers. They are architected to the ultimate
-// benchmark standard, providing an intuitive, value-adding, and prestigious user experience.
-// ====================================================================================
-
-/**
- * SEVERELY UPGRADED: Renders the Asset Swap deal parameter panel.
- * This panel provides a highly intuitive interface for modeling direct conversions
- * between any two priced assets in the GECAN matrix, featuring a kinetic swap button
- * and real-time indicative pricing data.
- */
-renderAssetSwapPanel: () => {
-    const state = AppState.modeler.assetSwap;
-    const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
-    const toAsset = Utils.getAssetByKey(state.toAssetKey);
-    const rate = (fromAsset.price > 0 && toAsset.price > 0) ? fromAsset.price / toAsset.price : 0;
-    const receivesAmount = state.amount * rate;
-
-    const assetOptions = (selectedKey) => AppState.marketData
-        .filter(a => a.type !== 'Cross-Rate' && a.price > 0)
-        .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
-        .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-    
-    return `
-        <div class="space-y-4" style="perspective: 1000px;">
-            <div class="flex items-center gap-4">
-                <!-- "FROM" ASSET SELECTION -->
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">From Asset</label>
-                    <select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select>
-                </div>
-
-                <!-- KINETIC SWAP BUTTON -->
-                <div class="pt-8">
-                    <button 
-                        onclick="Logic.swapAssets(); SFX.play('click');" 
-                        onmouseover="SFX.play('hover')"
-                        class="w-12 h-12 flex items-center justify-center rounded-full bg-[var(--primary-azure)]/20 text-[var(--primary-azure)] transition-all duration-300 hover:bg-[var(--primary-azure)]/30 hover:scale-110 hover:shadow-lg hover:shadow-[var(--glow-azure)]"
-                        title="Swap Assets"
-                    >
-                        <i id="swap-icon" class="fas fa-exchange-alt text-xl"></i>
-                    </button>
-                </div>
-                
-                <!-- "TO" ASSET SELECTION -->
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">To Asset</label>
-                    <select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select>
-                </div>
-            </div>
-
-            <!-- AMOUNT INPUT WITH DYNAMIC LABEL -->
-            <div>
-                <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
-                    Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)
-                </label>
-                <input type="text" data-path="assetSwap.amount" value="${state.amount.toLocaleString()}" class="form-input text-lg font-bold">
-            </div>
-
-            <!-- REAL-TIME INDICATIVE OUTPUT -->
-            <div class="bg-black/20 p-4 rounded-xl border border-[var(--border-color)] text-center transition-all duration-300 hover:border-[var(--primary-azure)]">
-                <p class="text-sm text-[var(--text-muted)]">Indicative Amount Received</p>
-                <p class="text-2xl font-bold font-mono text-success-color mt-1">
-                    ≈ ${Utils.formatNumber(receivesAmount, 4)} ${toAsset.baseAsset || ''}
-                </p>
-                <p class="text-xs text-[var(--text-subtle)] font-mono mt-2">
-                    Rate: 1 ${fromAsset.baseAsset} ≈ ${rate.toFixed(6)} ${toAsset.baseAsset}
-                </p>
-            </div>
-        </div>`;
-},
-
-renderCommodityTradePanel: () => {
-    const state = AppState.modeler.commodityTrade;
-    const commodityAsset = Utils.getAssetByKey(state.assetKey);
-
-    // --- Ingenious Step Validation Logic ---
-    const isStep1Complete = !!(state.assetKey && (parseFloat(String(state.quantity).replace(/,/g, '')) || 0) > 0 && state.unitOfMeasure);
-    const isStep2Complete = isStep1Complete && !!(state.origin && state.port && state.incoterms);
-    const isStep3Complete = isStep2Complete && !!(state.pricingModel && state.settlementAssetKey);
-
-    const commodityOptions = (selectedKey) => AppState.marketData.filter(a => ['Commodity', 'Energy', 'Precious Metal', 'Refined Fuel', 'Crude Oil'].includes(a.type)).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.key})</option>`).join('');
-    const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0 && a.key !== state.assetKey).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-
-    const renderStep = (stepNum, title, subtitle, content, isComplete, isUnlocked, isInitiallyOpen) => {
-        const statusClass = isComplete ? 'completed' : isUnlocked ? 'active' : 'locked';
-        const icon = isComplete ? 'fa-check-circle' : isUnlocked ? `fa-${stepNum}-circle` : 'fa-lock';
-        return `
-        <div class="deal-step ${statusClass}" onmouseover="SFX.play('hover')">
-            <details ${isUnlocked && isInitiallyOpen ? 'open' : ''} ${!isUnlocked ? 'disabled' : ''}>
-                <summary class="deal-step-summary" onclick="SFX.play('click')">
-                    <div class="deal-step-icon"><i class="fas ${icon}"></i></div>
-                    <div class="flex-1">
-                        <p class="deal-step-title">${title}</p>
-                        <p class="deal-step-subtitle">${subtitle}</p>
-                    </div>
-                    <i class="fas fa-chevron-down deal-step-chevron"></i>
-                </summary>
-                <div class="deal-step-content">
-                    ${content}
-                </div>
-            </details>
-        </div>`;
-    };
-
-    return `
-    <div class="space-y-6">
-        ${renderStep(1, 'Step 1: Deal Foundation', 'Select commodity and define quantity.', `
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Commodity Asset</label>
-                    <select data-path="commodityTrade.assetKey" class="form-select">${commodityOptions(state.assetKey)}</select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Quantity</label>
-                    <input type="text" data-path="commodityTrade.quantity" value="${(parseFloat(String(state.quantity).replace(/,/g, '')) || '').toLocaleString()}" class="form-input text-lg font-bold">
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Unit of Measure</label>
-                <select data-path="commodityTrade.unitOfMeasure" class="form-select">${commodityData.unitsOfMeasure.map(u => `<option value="${u}" ${state.unitOfMeasure === u ? 'selected' : ''}>${u}</option>`).join('')}</select>
-            </div>
-        `, isStep1Complete, true, true)}
-
-        ${renderStep(2, 'Step 2: Logistics & Provenance', 'Configure shipping terms and origin.', `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Origin Country</label><select data-path="commodityTrade.origin" class="form-select">${commodityData.countries.map(c => `<option value="${c}" ${state.origin === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-                <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Port of Loading/Discharge</label><input type="text" data-path="commodityTrade.port" value="${state.port}" class="form-input" placeholder="e.g., Houston, Rotterdam"></div>
-            </div>
-            <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Incoterms® 2020</label><select data-path="commodityTrade.incoterms" class="form-select">${commodityData.incoterms.map(i => `<option value="${i.value}" ${state.incoterms === i.value ? 'selected' : ''}>${i.label}</option>`).join('')}</select></div>
-        `, isStep2Complete, isStep1Complete, true)}
-
-        ${renderStep(3, 'Step 3: Financial Structure', 'Define pricing and settlement terms.', `
-            <div>
-                <label class="block text-sm font-medium text-[var(--text-muted)] mb-3">Pricing Model</label>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">${['Market', 'Discount', 'Fixed', 'Premium'].map(p => `<div><input type="radio" id="pm-${p}" name="pricingModel" value="${p}" data-path="commodityTrade.pricingModel" ${state.pricingModel === p ? 'checked' : ''} class="hidden"><label for="pm-${p}" class="pricing-model-label">${p}</label></div>`).join('')}</div>
-            </div>
-            ${state.pricingModel === 'Fixed' ? `<div class="animate-fade-in-up"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Fixed Price (per ${state.unitOfMeasure})</label><input type="number" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input text-lg font-bold"></div>` : ''}
-            ${['Discount', 'Premium'].includes(state.pricingModel) ? `<div class="animate-fade-in-up"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">${state.pricingModel} Value</label><input type="number" data-path="commodityTrade.discountPremiumValue" value="${state.discountPremiumValue}" class="form-input text-lg font-bold"></div>` : ''}
-            <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Settlement Asset</label><select data-path="commodityTrade.settlementAssetKey" class="form-select">${settlementOptions(state.settlementAssetKey)}</select></div>
-        `, isStep3Complete, isStep2Complete, false)}
-    </div>
-    `;
-},
-
-
-renderCryptoLoanPanel: () => {
-    const state = AppState.modeler.cryptoLoan;
-    const collateralAsset = Utils.getAssetByKey(state.collateralAssetKey);
-    const collateralValueUSD = state.collateralAmount * collateralAsset.price;
-    const loanPrincipal = collateralValueUSD * (state.ltv / 100);
-
-    const assetOptions = (selectedKey) => AppState.marketData
-        .filter(a => a.type === 'Cryptocurrency')
-        .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-    
-    const currencyOptions = () => ['USD', 'EUR', 'HKD', 'USDT'].sort().map(c => `<option value="${c}" ${state.loanCurrency === c ? 'selected' : ''}>${c}</option>`).join('');
-    
-    return `
-        <div class="space-y-6">
-            <!-- Collateral Definition -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Collateral Asset</label>
-                    <select data-path="cryptoLoan.collateralAssetKey" class="form-select">${assetOptions(state.collateralAssetKey)}</select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Collateral Amount</label>
-                    <input type="text" data-path="cryptoLoan.collateralAmount" value="${state.collateralAmount.toLocaleString()}" class="form-input text-lg font-bold">
-                </div>
-            </div>
-
-            <!-- Loan-to-Value (LTV) Interactive Slider -->
-            <div>
-                <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Loan-to-Value (LTV)</label>
-                <div class="flex items-center gap-4">
-                    <input type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-[var(--background-secondary)] rounded-lg appearance-none cursor-pointer">
-                    <div class="relative w-28">
-                        <input type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6">
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none">%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Real-Time Collateral & Loan Value -->
-            <div class="grid grid-cols-2 gap-4 bg-black/20 p-4 rounded-xl border border-[var(--border-color)]">
-                <div class="text-center">
-                    <p class="text-sm text-[var(--text-muted)]">Total Collateral Value</p>
-                    <p class="text-xl font-bold font-mono text-white">${Utils.formatPrice(collateralValueUSD)}</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-sm text-[var(--text-muted)]">Indicative Loan Principal</p>
-                    <p class="text-xl font-bold font-mono text-success-color">${Utils.formatPrice(loanPrincipal)}</p>
-                </div>
-            </div>
-
-            <!-- Loan Terms -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Loan Currency</label>
-                    <select data-path="cryptoLoan.loanCurrency" class="form-select">${currencyOptions()}</select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Tenure (Months)</label>
-                    <input type="number" data-path="cryptoLoan.tenureMonths" value="${state.tenureMonths}" class="form-input">
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Interest Rate Type</label>
-                    <select data-path="cryptoLoan.interestRateType" class="form-select">
-                        <option value="fixed" ${state.interestRateType === 'fixed' ? 'selected' : ''}>Fixed</option>
-                        <option value="floating" ${state.interestRateType === 'floating' ? 'selected' : ''}>Floating</option>
-                    </select>
-               </div>
-               <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Annual Interest Rate (%)</label>
-                    <input type="number" step="0.1" data-path="cryptoLoan.interestRateValue" value="${state.interestRateValue}" class="form-input">
-               </div>
-            </div>
-        </div>
-    `;
-},
-
-/**
- * SEVERELY UPGRADED: Renders the SBLC Monetization parameter panel.
- * This panel provides a prestigious and clear interface for modeling the monetization of
- * high-value bank instruments, with interactive sliders and real-time calculation of
- * net proceeds, adding significant value for institutional users.
- */
-renderSblcMonetizationPanel: () => {
-    const state = AppState.modeler.sblcMonetization;
-    const netProceeds = state.faceValue * (state.ltv / 100);
-
-    return `
-        <div class="space-y-6">
-            <!-- Instrument Face Value -->
-            <div>
-                <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Instrument Face Value (USD)</label>
-                <input type="text" data-path="sblcMonetization.faceValue" value="${state.faceValue.toLocaleString()}" class="form-input text-lg font-bold">
-            </div>
-
-            <!-- Monetization LTV Interactive Slider -->
-            <div>
-                <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Monetization (LTV)</label>
-                <div class="flex items-center gap-4">
-                    <input type="range" data-path="sblcMonetization.ltv" min="50" max="95" value="${state.ltv}" class="w-full h-2 bg-[var(--background-secondary)] rounded-lg appearance-none cursor-pointer">
-                    <div class="relative w-28">
-                        <input type="number" data-path="sblcMonetization.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6">
-                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none">%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Real-Time Indicative Net Proceeds -->
-            <div class="bg-black/20 p-4 rounded-xl border border-[var(--border-color)] text-center transition-all duration-300 hover:border-[var(--primary-azure)]">
-                <p class="text-sm text-[var(--text-muted)]">Indicative Net Proceeds to Client</p>
-                <p class="text-2xl font-bold font-mono text-success-color mt-1">
-                    ${Utils.formatPrice(netProceeds)}
-                </p>
-                <p class="text-xs text-[var(--text-subtle)] font-mono mt-2">
-                    Based on a ${state.ltv}% LTV of a ${Utils.formatPrice(state.faceValue)} instrument
-                </p>
-            </div>
-        </div>
-    `;
-},
-        
-        
+            return `<div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-0 h-full flex flex-col animate-fade-in-up" style="transform-style: preserve-3d;"><div class="p-8 border-b border-[var(--border-color)] transition-all duration-500 hover:border-[var(--primary-azure)] hover:shadow-2xl hover:shadow-black/50"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-shield-alt fa-lg"></i></div><div><h2 class="text-3xl font-bold font-orbitron text-white">Wallet Due Diligence</h2><p class="text-[var(--text-silver)] font-mono">Blockchain Forensics & Risk Assessment</p></div></div><div class="flex items-center gap-4"><input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm"><button id="check-wallet-btn" onclick="SFX.play('launch')" class="btn-engagement font-bold !py-4 !px-8 whitespace-nowrap"><i class="fas fa-microscope mr-2"></i>Analyze</button></div></div><div class="flex-grow p-8 overflow-y-auto" style="transform: translateZ(10px);">${contentHTML}</div></div>`;
+        },
+        buildWalletReportHTML: (report) => {
+            const { wallet, analysis, transactions } = report;
+            const { riskLevel, integrityScore } = analysis;
+            return `<div class="animate-fade-in-up"><div class="mb-8"><div class="bg-[var(--background-glass)] p-5 rounded-2xl flex justify-between items-center"><div class="flex items-center gap-3"><i class="fas fa-wallet text-2xl text-[var(--primary-azure)]"></i><span class="font-mono text-lg text-white">${wallet.address}</span></div><div class="flex gap-2"><button onclick="Logic.initiatePdfGeneration()" class="btn-engagement py-2 px-4 text-sm"><i class="fas fa-file-pdf mr-2"></i>Export PDF</button><button onclick="Logic.openWalletSubmissionModal()" class="btn-engagement py-2 px-4 text-sm bg-gradient-to-r from-green-500 to-emerald-600"><i class="fas fa-paper-plane mr-2"></i>Submit for Review</button></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-2 space-y-8"><div class="bg-[var(--background-glass)] p-6 rounded-2xl"><h3 class="text-xl font-bold text-white mb-4">Executive Summary</h3><p class="text-[var(--text-silver)]">${Logic.generateExecutiveSummary(report)}</p></div><div class="bg-[var(--background-glass)] p-6 rounded-2xl"><h3 class="text-xl font-bold text-white mb-4">Transaction Ledger</h3><div class="max-h-96 overflow-y-auto">${(transactions || []).map(tx => `<div class="transaction-item p-3 rounded-lg flex justify-between ${tx.type === 'Receive' ? 'transaction-inbound' : 'transaction-outbound'}"><span>${tx.hash.substring(0,12)}...</span><span class="font-mono">${tx.amount.toFixed(4)}</span></div>`).join('')}</div></div></div><div class="space-y-8"><div class="bg-[var(--background-glass)] p-6 rounded-2xl text-center"><h3 class="text-xl font-bold text-white mb-6">Integrity Score</h3><div class="relative w-40 h-40 mx-auto"><svg viewBox="0 0 36 36" class="w-full h-full score-gauge"><circle cx="18" cy="18" r="15.9155" fill="none" stroke-width="3" class="stroke-current text-gray-700"></circle><circle cx="18" cy="18" r="15.9155" fill="none" stroke-width="3" stroke-dasharray="${integrityScore}, 100" class="score-gauge-fg stroke-current ${integrityScore > 80 ? 'gauge-low' : integrityScore > 50 ? 'gauge-medium' : 'gauge-high'}"></circle></svg><div class="absolute inset-0 flex items-center justify-center"><span class="text-5xl font-black">${Math.round(integrityScore)}</span></div></div></div><div class="bg-[var(--background-glass)] p-6 rounded-2xl"><h3 class="text-xl font-bold text-white mb-4">Risk Level: <span class="text-risk-color ${Utils.getRiskClass(riskLevel)}">${riskLevel}</span></h3></div></div></div></div>`;
+        },
+        renderInstitutionalModelerUI: () => `<div class="flex flex-col gap-8 animate-fade-in-up"><div id="modeler-main-content" class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative"><div id="modeler-input-container" class="lg:col-span-5 bg-[var(--background-glass-premium)] border border-[var(--border-premium)] rounded-2xl p-6 md:p-8 flex flex-col">${UI.renderModelerSelectionPanel()}</div><div id="modeler-preview-container" class="lg:col-span-2 bg-white rounded-2xl flex-col hidden" style="box-shadow: 0 0 80px var(--glow-diamond);"></div></div></div>`,
+        renderModelerSelectionPanel: () => {
+            const dealTypes = [{ id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct asset conversions.', color: 'from-blue-500 to-cyan-500' }, { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' }, { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' }, { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' }];
+            const colorMap = { 'from-blue-500': { primary: '#3b82f6', glow: 'rgba(59, 130, 246, 0.7)' }, 'from-yellow-500': { primary: '#f59e0b', glow: 'rgba(245, 158, 11, 0.7)' }, 'from-green-500': { primary: '#22c55e', glow: 'rgba(34, 197, 94, 0.7)' }, 'from-purple-500': { primary: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.7)' } };
+            return `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold font-orbitron text-white">Select Deal Type</h2><button onclick="Logic.resetModelerState()" class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20"><i class="fas fa-undo mr-2"></i>Reset</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8">${dealTypes.map((deal, i) => `<div class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}')" style="--asset-primary: ${colorMap[deal.color.split(' ')[0]].primary}; --asset-glow: ${colorMap[deal.color.split(' ')[0]].glow};"><div class="card-content"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4"><i class="fas ${deal.icon}"></i></div><h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3><p class="text-sm">${deal.desc}</p></div></div>`).join('')}</div>`;
+        },
+        renderModelerInputPanel: () => {
+            const dealPanelHTML = UI[`render${AppState.modeler.activeDealType}Panel`] ? UI[`render${AppState.modeler.activeDealType}Panel`]() : '';
+            return `<div class="flex items-center mb-6"><button onclick="UI.renderActiveToolkit()" class="nav-btn !py-2 !px-4 text-sm"><i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection</button></div><h2 class="text-2xl font-bold text-white mb-6"><i class="fas fa-sliders-h text-[var(--primary-azure)] mr-3"></i>Deal Parameters</h2><div class="space-y-6 flex-grow">${dealPanelHTML}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button onclick="Logic.openImfpaEditor()" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite</button></div>`;
+        },
+        renderAssetSwapPanel: () => `...`, renderCommodityTradePanel: () => `...`, renderCryptoLoanPanel: () => `...`, renderSBLCMonetizationPanel: () => `...`,
         renderImfpaEditorPanel: () => {
             const { legal } = AppState.modeler;
             const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
@@ -1579,77 +659,18 @@ renderSblcMonetizationPanel: () => {
         
         // Wallet Forensics Logic
         bindWalletForensicsEvents: () => document.getElementById('check-wallet-btn')?.addEventListener('click', Logic.runWalletForensics),
-runWalletForensics: async () => {
-    const address = document.getElementById('wallet-address-input').value.trim();
-    if (!address) {
-        Logic.showNotification("Please enter a wallet address to analyze.", 'error', 'Input Required');
-        SFX.play('error');
-        return;
-    }
-
-    // --- 1. Initiate State Change & Premium Loading UI ---
-    AppState.walletAnalysis = { address, report: null, isLoading: true };
-    UI.renderActiveToolkit(); // This will now display the pinnacle-grade loading animation.
-
-    // --- 2. Enhanced Kinetic Feedback: Animate loading text for user engagement ---
-    const spinnerTexts = [
-        "Connecting to blockchain networks...",
-        "Fetching transaction history...",
-        "Querying GECAN proprietary database...",
-        "Running institutional compliance checks...",
-        "Synthesizing on-chain and proprietary intel...",
-        "Calculating multi-vector risk scores...",
-        "Generating definitive wallet classification..."
-    ];
-    let textIndex = 0;
-    const textInterval = setInterval(() => {
-        const spinnerEl = document.getElementById('spinner-text');
-        if (spinnerEl && AppState.walletAnalysis.isLoading) {
-            spinnerEl.style.opacity = '0';
-            setTimeout(() => {
-                spinnerEl.textContent = spinnerTexts[textIndex++ % spinnerTexts.length];
-                spinnerEl.style.opacity = '1';
-            }, 300);
-        } else {
-            clearInterval(textInterval);
-        }
-    }, 2500);
-
-    try {
-        // --- 3. CRITICAL FIX & API CALL ---
-        // The API call is now correctly made using the 'GET' method for data retrieval.
-        // The `address` is passed as a parameter, which `createApiRequest` will
-        // correctly append to the URL as a query string.
-        const report = await Logic.createApiRequest('getWalletForensicsReport', 'GET', { address });
-
-        // --- 4. Handle Successful Response ---
-        if (!report || typeof report !== 'object') {
-            throw new Error("Received an invalid or empty report from the server.");
-        }
-        
-        AppState.walletAnalysis.report = report;
-        SFX.play('success'); // Play success sound on valid data receipt.
-
-    } catch (err) {
-        // --- 5. Robust Error Handling ---
-        console.error('Wallet Forensics Error:', err);
-        // Set the error state, which will be rendered by the UI function.
-        AppState.walletAnalysis.report = { error: { message: err.message || 'An unknown error occurred during analysis.' } };
-        // The error sound is played by the UI renderer itself.
-
-    } finally {
-        // --- 6. Final State Update & UI Re-render ---
-        // This block executes regardless of success or failure.
-        clearInterval(textInterval);
-        AppState.walletAnalysis.isLoading = false;
-        // Re-render the entire toolkit UI to display either the full report or the error message.
-        UI.renderActiveToolkit();
-        // If the report was successful, trigger the animation for the score gauges.
-        if (AppState.walletAnalysis.report && !AppState.walletAnalysis.report.error) {
-            Logic.animateReportElements();
-        }
-    }
-},
+        runWalletForensics: async () => {
+            const address = document.getElementById('wallet-address-input').value.trim();
+            if (!address) return;
+            AppState.walletAnalysis = { address, report: null, isLoading: true };
+            UI.renderActiveToolkit();
+            try {
+                const report = await Logic.createApiRequest('getWalletForensicsReport', 'POST', { address });
+                AppState.walletAnalysis.report = report;
+                SFX.play('success');
+            } catch (err) { AppState.walletAnalysis.report = { error: { message: err.message } }; }
+            finally { AppState.walletAnalysis.isLoading = false; UI.renderActiveToolkit(); }
+        },
         initiatePdfGeneration: async () => {
             const report = AppState.walletAnalysis.report;
             if (!report) return Logic.showNotification('No report data.', 'error');
