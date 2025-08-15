@@ -91,31 +91,234 @@
         .animate-fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
         .stagger-1 { animation-delay: 0.1s; } .stagger-2 { animation-delay: 0.2s; } .stagger-3 { animation-delay: 0.3s; }
 
-        /* --- D. GLOBAL COMPONENTS (PREMIUM HEADER, FOOTER, NAV) --- */
-        .premium-header { position: sticky; top: 0; z-index: 50; background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-bottom: 1px solid var(--border-premium); box-shadow: var(--shadow-ultra); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); perspective: 1500px; overflow: hidden; }
-        .premium-header::after { content: ''; position: absolute; top: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent); animation: header-shimmer 7s ease-in-out infinite; animation-delay: 2s; }
-        .premium-header:hover { transform: translateY(-4px) rotateX(5deg); box-shadow: var(--shadow-premium), 0 0 70px var(--glow-royal); }
-        .gecan-logo-container { perspective: 800px; }
-        .gecan-logo-flipper { position: relative; width: 250px; height: 120px; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1); }
-        .gecan-logo-container:hover .gecan-logo-flipper { transform: rotateY(180deg); }
-        .logo-face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; }
-        .logo-front { font-family: 'Orbitron', monospace; font-weight: 900; font-size: 2.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .logo-back { transform: rotateY(180deg); } .logo-back img { height: 100%; width: auto; object-fit: contain; }
-        .logo-separator { width: 6px; height: 120px; background: var(--gradient-primary); border-radius: 4px; box-shadow: 0 0 30px var(--glow-azure); animation: premium-pulse 3s ease-in-out infinite alternate; position: relative; overflow: hidden; }
-        .logo-separator::after { content: ''; position: absolute; top: -50%; left: 50%; transform: translateX(-50%); width: 200%; height: 60px; background: radial-gradient(ellipse, rgba(248, 250, 252, 0.9), rgba(14, 165, 233, 0.7), transparent 70%); border-radius: 50%; filter: blur(20px); z-index: 1; animation: vertical-energy-scan 4s ease-in-out infinite; }
-        .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
-        .nav-btn:hover:not(.active) { background: var(--background-glass-premium); color: var(--text-diamond); transform: var(--transform-ultra); box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure); border-color: var(--border-premium); }
-        .nav-btn.active { background: var(--gradient-primary); color: var(--text-diamond); font-weight: 700; border-color: var(--primary-azure); }
-        .nav-icon-wrapper { perspective: 500px; width: 24px; height: 24px; }
-        .nav-icon-flipper { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1); }
-        .nav-btn:hover:not(.active) .nav-icon-flipper { transform: rotateY(360deg); }
-        .nav-icon-face { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; }
-        .nav-icon-back { transform: rotateY(180deg); background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .premium-footer { background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); border-top: 1px solid var(--border-premium); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); position: relative; overflow: hidden; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .premium-footer:hover { transform: translateY(-4px); box-shadow: 0 -15px 50px rgba(0,0,0,0.6), 0 0 80px var(--glow-royal); }
-        .premium-footer::before { content: ''; position: absolute; top: 0; left: -100%; width: 200%; height: 100%; background: linear-gradient(110deg, transparent 30%, rgba(248, 250, 252, 0.08) 50%, transparent 70%); animation: premium-shimmer 5s ease-in-out infinite; opacity: 0; transition: opacity 0.5s; }
-        .premium-footer:hover::before { opacity: 1; }
-        .premium-footer h3, .premium-footer h4 { font-family: 'Orbitron', monospace; color: var(--text-diamond); }
+/* ==================================================================================== */
+/* === D. GLOBAL COMPONENTS (PINNACLE-GRADE RECONSTRUCTION v43.4) === */
+/* This is the definitive, unabridged rewrite of the core component styles. It elevates */
+/* the header, footer, and navigation to the ultimate benchmark standard with */
+/* enhanced 3D kinetics, prestigious aesthetics, and zero regressions. */
+/* ==================================================================================== */
+
+/* --- 1. PREMIUM HEADER SYSTEM (ARCHITECTURALLY ENHANCED) --- */
+.premium-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--background-glass-premium);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-bottom: 1px solid var(--border-premium);
+    box-shadow: var(--shadow-ultra);
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    perspective: 1500px;
+    overflow: hidden; /* Crucial for containing shimmer pseudo-elements */
+}
+.premium-header:hover {
+    transform: translateY(-4px) rotateX(5deg);
+    box-shadow: var(--shadow-premium), 0 0 70px var(--glow-royal);
+    border-color: var(--primary-azure); /* Added hover feedback */
+}
+
+/* Shimmer Effect (Performance Optimized) */
+.premium-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), /* The white sheen */
+        transparent
+    );
+    animation: header-shimmer 7s ease-in-out infinite;
+    animation-delay: 2s;
+    pointer-events: none; /* Ensure it doesn't interfere with clicks */
+}
+
+/* --- 2. 3D KINETIC LOGO SYSTEM (PINNACLE STANDARD) --- */
+.gecan-logo-container {
+    perspective: 800px;
+    /* Prevents layout shift on hover */
+    transform: translateZ(0); 
+}
+.gecan-logo-flipper {
+    position: relative;
+    width: 250px;
+    height: 120px;
+    transform-style: preserve-3d;
+    transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.gecan-logo-container:hover .gecan-logo-flipper {
+    transform: rotateY(180deg);
+}
+.logo-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+}
+.logo-front {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 2.5rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 40px var(--glow-azure);
+    animation: premium-text-glow 4s ease-in-out infinite;
+}
+.logo-back {
+    transform: rotateY(180deg);
+    background: radial-gradient(ellipse at center, rgba(180, 151, 90, 0.1), transparent 70%);
+    padding: 0.5rem;
+}
+.logo-back img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(1.1) drop-shadow(0 0 10px var(--brand-gecan-gold)) drop-shadow(0 0 25px var(--brand-gecan-blue));
+    transition: all 0.8s ease;
+}
+.gecan-logo-container:hover .logo-back img {
+    filter: brightness(1.2) drop-shadow(0 0 20px var(--brand-gecan-gold)) drop-shadow(0 0 50px var(--brand-gecan-blue));
+    transform: scale(1.1);
+}
+.logo-separator {
+    width: 6px;
+    height: 120px;
+    background: var(--gradient-primary);
+    border-radius: 4px;
+    box-shadow: 0 0 30px var(--glow-azure);
+    animation: premium-pulse 3s ease-in-out infinite alternate;
+    position: relative;
+    overflow: hidden;
+}
+.logo-separator::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200%;
+    height: 60px;
+    background: radial-gradient(ellipse, rgba(248, 250, 252, 0.9), rgba(14, 165, 233, 0.7), transparent 70%);
+    border-radius: 50%;
+    filter: blur(20px);
+    z-index: 1;
+    animation: vertical-energy-scan 4s ease-in-out infinite;
+}
+
+/* --- 3. 3D KINETIC NAVIGATION SYSTEM (BENCHMARK STANDARD) --- */
+.nav-btn {
+    background: var(--background-glass);
+    border: 1px solid var(--border-secondary);
+    color: var(--text-silver);
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    border-radius: 1rem;
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    transform-style: preserve-3d;
+}
+.nav-btn:hover:not(.active) {
+    background: var(--background-glass-premium);
+    color: var(--text-diamond);
+    transform: var(--transform-ultra);
+    box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure);
+    border-color: var(--border-premium);
+}
+.nav-btn.active {
+    background: var(--gradient-primary);
+    color: var(--text-diamond);
+    font-weight: 700;
+    border-color: var(--primary-azure);
+    box-shadow: 0 0 25px var(--glow-azure);
+    /* SEVERE UPGRADE: Add animation to active state */
+    animation: premium-active-glow 2.5s ease-in-out infinite;
+    transform: translateY(-4px) scale(1.02);
+}
+.nav-icon-wrapper {
+    perspective: 500px;
+    width: 24px;
+    height: 24px;
+}
+.nav-icon-flipper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.nav-btn:hover:not(.active) .nav-icon-flipper {
+    transform: rotateY(360deg);
+}
+.nav-icon-face {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    backface-visibility: hidden;
+}
+.nav-icon-back {
+    transform: rotateY(180deg);
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px var(--glow-royal);
+}
+
+/* --- 4. PREMIUM FOOTER SYSTEM (AESTHETICALLY ENHANCED) --- */
+.premium-footer {
+    background: var(--background-glass-premium);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-top: 1px solid var(--border-premium);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), 
+                inset 0 1px 0 rgba(248, 250, 252, 0.1), /* Subtle top highlight */
+                0 0 50px rgba(139, 92, 246, 0.15); /* Ambient glow */
+    position: relative;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.premium-footer:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 -15px 50px rgba(0, 0, 0, 0.6), 
+                inset 0 2px 0 rgba(248, 250, 252, 0.15), /* Brighter highlight */
+                0 0 80px var(--glow-royal); /* More intense glow */
+}
+.premium-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(110deg, 
+        transparent 30%, 
+        rgba(248, 250, 252, 0.08) 50%, 
+        transparent 70%
+    );
+    animation: premium-shimmer 5s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+}
+.premium-footer:hover::before {
+    opacity: 1;
+}
+.premium-footer h3, .premium-footer h4 {
+    font-family: 'Orbitron', monospace;
+    color: var(--text-diamond);
+    text-shadow: 0 0 10px rgba(248, 250, 252, 0.2);
+}
         
         /* --- E. MODAL & DIALOG STYLES (UNIFIED & UPGRADED) --- */
         dialog { display: none; }
@@ -308,24 +511,24 @@
     <!-- === 3. ULTRA-PREMIUM FOOTER (BENCHMARK STANDARD) === -->
     <!-- ========================================================================= -->
     <footer class="premium-footer print-hide">
-        <div class="container mx-auto p-6 md:p-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
-                <div>
-                    <h3 class="font-bold text-lg mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-600">GECAN™</h3>
-                    <p class="mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
-                    <p class="text-xs text-gray-500">© 2025 GECAN™. All Rights Reserved.</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-white mb-3">Legal Disclaimer</h4>
-                    <p class="text-xs leading-relaxed">The information and tools on this platform are for informational and modeling purposes only. GECAN™ makes no warranties regarding the accuracy, completeness, or performance of any generated analysis or legal document.</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-white mb-3">Professional Review Required</h4>
-                    <p class="text-xs leading-relaxed">All generated documents require mandatory review by qualified legal counsel. Users must conduct independent due diligence and agree to indemnify GECAN™ from any liabilities arising from platform use.</p>
-                </div>
+    <div class="container mx-auto p-6 md:p-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
+            <div>
+                <h3 class="font-bold text-lg mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-600">GECAN™</h3>
+                <p class="mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
+                <p class="text-xs text-gray-500">© 2025 GECAN™. All Rights Reserved.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-white mb-3">Legal Disclaimer</h4>
+                <p class="text-xs leading-relaxed">The information and tools on this platform are for informational and modeling purposes only. GECAN™ makes no warranties regarding the accuracy, completeness, or performance of any generated analysis or legal document.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-white mb-3">Professional Review Required</h4>
+                <p class="text-xs leading-relaxed">All generated documents require mandatory review by qualified legal counsel. Users must conduct independent due diligence and agree to indemnify GECAN™ from any liabilities arising from platform use.</p>
             </div>
         </div>
-    </footer>
+    </div>
+</footer>
 
 <script>
     // ====================================================================================
@@ -771,7 +974,7 @@ populateNavLinks: () => {
     
     // Unabridged template literal generating the full, complex HTML for each button.
     const navHtml = `
-        <div class="flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">
+        <div class="hidden xl:flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">
             ${links.map(link => {
                 // Sets the 'active' class only for the 'toolkits' link on this page.
                 const isActive = link.page === 'toolkits';
