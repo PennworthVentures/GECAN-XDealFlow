@@ -21,6 +21,126 @@
     <!-- ==================================================================================== -->
     <style>
 
+/* ==================================================================================== */
+/* === PINNACLE UPGRADE: Institutional Modeler Step-Panel CSS v42.12 === */
+/* ==================================================================================== */
+.deal-step {
+    background: var(--background-glass);
+    border: 1px solid var(--border-color);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+}
+.deal-step::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 1.5rem;
+    padding: 1px;
+    background: var(--gradient-primary);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: subtract;
+    mask-composite: subtract;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+.deal-step.active {
+    border-color: var(--primary-azure);
+    box-shadow: 0 0 30px var(--glow-azure);
+}
+.deal-step.active::before {
+    opacity: 0.5;
+}
+.deal-step.completed {
+    border-color: var(--success-color);
+}
+.deal-step.locked {
+    opacity: 0.5;
+    filter: saturate(0.5);
+    pointer-events: none;
+}
+.deal-step-summary {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    list-style: none; /* Hide default details marker */
+}
+.deal-step-summary::-webkit-details-marker {
+    display: none;
+}
+.deal-step-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin-right: 1.25rem;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--background-secondary);
+    color: var(--text-muted);
+}
+.deal-step.active .deal-step-icon {
+    background: var(--primary-azure);
+    color: white;
+    transform: scale(1.1) rotate(-10deg);
+    box-shadow: 0 0 20px var(--glow-azure);
+}
+.deal-step.completed .deal-step-icon {
+    background: var(--success-color);
+    color: white;
+}
+.deal-step-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-diamond);
+}
+.deal-step-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+.deal-step-chevron {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+.deal-step details[open] > .deal-step-summary .deal-step-chevron {
+    transform: rotate(180deg);
+}
+.deal-step-content {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    margin: 0 1.5rem;
+    padding-top: 1.5rem;
+}
+/* Pricing Model Radio Buttons */
+.pricing-model-label {
+    display: block;
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background: var(--background-secondary);
+}
+.pricing-model-label:hover {
+    border-color: var(--primary-azure);
+    color: var(--text-diamond);
+}
+input[type="radio"]:checked + .pricing-model-label {
+    background: var(--gradient-primary);
+    border-color: var(--primary-azure);
+    color: var(--text-diamond);
+    box-shadow: 0 0 15px var(--glow-azure);
+    transform: translateY(-2px);
+}
+
 /* ========================================================================= */
 /* === PINNACLE KINETIC ANIMATIONS for Wallet Forensics UI === */
 /* ========================================================================= */
@@ -1400,26 +1520,80 @@ renderAssetSwapPanel: () => {
         </div>`;
 },
 
-/**
- * SEVERELY UPGRADED: Renders the Commodity Trade deal parameter panel.
- * This function provides a brilliant, user-guided, step-by-step process for structuring
- * complex physical commodity trades, unlocking subsequent steps only upon completion of
- * prior ones. This adds immense industry value by preventing errors and ensuring logical deal construction.
- */
 renderCommodityTradePanel: () => {
-    // This function's previous version is now fully implemented and available in the provided code.
-    // The following is a placeholder to represent the completed state as requested.
-    // In the final integrated code, the full, unabridged implementation would be here.
-    return `<div>[Full, unabridged, and severely upgraded Commodity Trade Panel UI would be here, as previously provided in detail]</div>`;
+    const state = AppState.modeler.commodityTrade;
+    const commodityAsset = Utils.getAssetByKey(state.assetKey);
+
+    // --- Ingenious Step Validation Logic ---
+    const isStep1Complete = !!(state.assetKey && (parseFloat(String(state.quantity).replace(/,/g, '')) || 0) > 0 && state.unitOfMeasure);
+    const isStep2Complete = isStep1Complete && !!(state.origin && state.port && state.incoterms);
+    const isStep3Complete = isStep2Complete && !!(state.pricingModel && state.settlementAssetKey);
+
+    const commodityOptions = (selectedKey) => AppState.marketData.filter(a => ['Commodity', 'Energy', 'Precious Metal', 'Refined Fuel', 'Crude Oil'].includes(a.type)).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.key})</option>`).join('');
+    const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0 && a.key !== state.assetKey).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
+
+    const renderStep = (stepNum, title, subtitle, content, isComplete, isUnlocked, isInitiallyOpen) => {
+        const statusClass = isComplete ? 'completed' : isUnlocked ? 'active' : 'locked';
+        const icon = isComplete ? 'fa-check-circle' : isUnlocked ? `fa-${stepNum}-circle` : 'fa-lock';
+        return `
+        <div class="deal-step ${statusClass}" onmouseover="SFX.play('hover')">
+            <details ${isUnlocked && isInitiallyOpen ? 'open' : ''} ${!isUnlocked ? 'disabled' : ''}>
+                <summary class="deal-step-summary" onclick="SFX.play('click')">
+                    <div class="deal-step-icon"><i class="fas ${icon}"></i></div>
+                    <div class="flex-1">
+                        <p class="deal-step-title">${title}</p>
+                        <p class="deal-step-subtitle">${subtitle}</p>
+                    </div>
+                    <i class="fas fa-chevron-down deal-step-chevron"></i>
+                </summary>
+                <div class="deal-step-content">
+                    ${content}
+                </div>
+            </details>
+        </div>`;
+    };
+
+    return `
+    <div class="space-y-6">
+        ${renderStep(1, 'Step 1: Deal Foundation', 'Select commodity and define quantity.', `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Commodity Asset</label>
+                    <select data-path="commodityTrade.assetKey" class="form-select">${commodityOptions(state.assetKey)}</select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Quantity</label>
+                    <input type="text" data-path="commodityTrade.quantity" value="${(parseFloat(String(state.quantity).replace(/,/g, '')) || '').toLocaleString()}" class="form-input text-lg font-bold">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Unit of Measure</label>
+                <select data-path="commodityTrade.unitOfMeasure" class="form-select">${commodityData.unitsOfMeasure.map(u => `<option value="${u}" ${state.unitOfMeasure === u ? 'selected' : ''}>${u}</option>`).join('')}</select>
+            </div>
+        `, isStep1Complete, true, true)}
+
+        ${renderStep(2, 'Step 2: Logistics & Provenance', 'Configure shipping terms and origin.', `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Origin Country</label><select data-path="commodityTrade.origin" class="form-select">${commodityData.countries.map(c => `<option value="${c}" ${state.origin === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+                <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Port of Loading/Discharge</label><input type="text" data-path="commodityTrade.port" value="${state.port}" class="form-input" placeholder="e.g., Houston, Rotterdam"></div>
+            </div>
+            <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Incoterms® 2020</label><select data-path="commodityTrade.incoterms" class="form-select">${commodityData.incoterms.map(i => `<option value="${i.value}" ${state.incoterms === i.value ? 'selected' : ''}>${i.label}</option>`).join('')}</select></div>
+        `, isStep2Complete, isStep1Complete, true)}
+
+        ${renderStep(3, 'Step 3: Financial Structure', 'Define pricing and settlement terms.', `
+            <div>
+                <label class="block text-sm font-medium text-[var(--text-muted)] mb-3">Pricing Model</label>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">${['Market', 'Discount', 'Fixed', 'Premium'].map(p => `<div><input type="radio" id="pm-${p}" name="pricingModel" value="${p}" data-path="commodityTrade.pricingModel" ${state.pricingModel === p ? 'checked' : ''} class="hidden"><label for="pm-${p}" class="pricing-model-label">${p}</label></div>`).join('')}</div>
+            </div>
+            ${state.pricingModel === 'Fixed' ? `<div class="animate-fade-in-up"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Fixed Price (per ${state.unitOfMeasure})</label><input type="number" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input text-lg font-bold"></div>` : ''}
+            ${['Discount', 'Premium'].includes(state.pricingModel) ? `<div class="animate-fade-in-up"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">${state.pricingModel} Value</label><input type="number" data-path="commodityTrade.discountPremiumValue" value="${state.discountPremiumValue}" class="form-input text-lg font-bold"></div>` : ''}
+            <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Settlement Asset</label><select data-path="commodityTrade.settlementAssetKey" class="form-select">${settlementOptions(state.settlementAssetKey)}</select></div>
+        `, isStep3Complete, isStep2Complete, false)}
+    </div>
+    `;
 },
 
 
-/**
- * SEVERELY UPGRADED: Renders the Crypto-Collateralized Loan parameter panel.
- * This panel features highly interactive sliders for LTV and tenure, providing instant
- * visual and numerical feedback on loan terms and adding significant value through
- * intuitive, real-time modeling.
- */
 renderCryptoLoanPanel: () => {
     const state = AppState.modeler.cryptoLoan;
     const collateralAsset = Utils.getAssetByKey(state.collateralAssetKey);
