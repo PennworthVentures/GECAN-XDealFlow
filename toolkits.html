@@ -1547,32 +1547,14 @@ togglePricingConfig: () => {
 // This is the definitive, military-grade logic and UI for the entire contract workflow.
 // ========================================================================================
 
-// === MODAL ORCHESTRATION & PREMIUM UI RENDERING ===
-    openImfpaModal: () => {
-        const modal = document.getElementById('imfpa-modal');
-        if (!modal) return;
-
-        // Render premium dual-column architecture with enhanced animations
-        modal.innerHTML = UI.renderImfpaModal();
-        
-        // Apply premium entrance animation sequence
-        modal.style.opacity = '0';
-        modal.style.transform = 'scale(0.9) translateY(-20px)';
-        modal.showModal();
-        
-        // Premium animation cascade with orchestrated timing
-        requestAnimationFrame(() => {
-            modal.style.transition = 'all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1)';
-            modal.style.opacity = '1';
-            modal.style.transform = 'scale(1) translateY(0)';
-        });
-        
-        // Initialize premium UI state with enhanced responsiveness
-        Logic.refreshImfpaModalUI();
-        
-        // Premium audio feedback for high-end user experience
-        Logic.playPremiumSoundFeedback('modal-open');
-    },
+// --- A. SEVERELY OVERHAULED LOGIC ---
+            openImfpaModal: () => {
+    const modal = document.getElementById('imfpa-modal');
+    if (!modal) return;
+    modal.innerHTML = UI.renderImfpaModal(); // Renders the new dual-column structure
+    Logic.refreshImfpaModalUI(); // Populates it with content
+    modal.showModal();
+},
             refreshImfpaModalUI: () => {
     // This function's core job is to re-render the editor panel's content
     const editorColumn = document.querySelector('.imfpa-editor-column');
@@ -1809,65 +1791,47 @@ updateSynthesizeButtonState: () => {
     btn.classList.add(...(isReady ? readyClass : incompleteClass).split(' '));
 },
             
-/**
- * Adds a new group or a new signatory party based on the current agreement mode.
- * Pinnacle-Grade Logic: This is the single control point for adding new entities,
- * ensuring the correct workflow is always triggered.
- */
-addImfpaGroup: () => {
-    const isImfpa = AppState.modeler.legal.agreementType === 'IMFPA';
-
-    if (isImfpa) {
-        // IMFPA Mode: Add a new, distinct group for commission allocation.
-        AppState.modeler.legal.groups.push({
-            name: `Group ${AppState.modeler.legal.groups.length + 1}`,
-            percentage: 0,
-            parties: []
-        });
-    } else {
-        // NCNDA Mode: We don't add a "group". Instead, we call `addImfpaParty`
-        // and force it to add a party to the first (and only) hidden group.
-        // This maintains a consistent data structure while providing a decoupled UX.
-        Logic.addImfpaParty(0);
-    }
-    
-    // Refresh the entire modal UI to reflect the changes.
-    Logic.refreshImfpaModalUI();
-},
+            addImfpaGroup: () => { AppState.modeler.legal.groups.push({ name: `Group ${AppState.modeler.legal.groups.length + 1}`, percentage: 0, parties: [] }); Logic.refreshImfpaModalUI(); },
             removeImfpaGroup: (groupIndex) => { AppState.modeler.legal.groups.splice(groupIndex, 1); Logic.refreshImfpaModalUI(); },
             /**
-/**
- * Adds a new party to a SPECIFIED group.
- * This function is now a specialized utility called by the UI or by `addImfpaGroup`.
- * @param {number} groupIndex - The index of the group to add the party to.
+ * Adds a new party to the agreement.
+ * Pinnacle-Grade Logic: Intelligently handles both IMFPA (adds to a specific group)
+ * and NCNDA (adds to the master signatory list) modes.
+ * It sets 'detailsVisible' to true by default to immediately guide the user.
+ * @param {number} groupIndex - The index of the group to add the party to. In NCNDA mode, this is always 0.
  */
 addImfpaParty: (groupIndex) => {
-    const { legal } = AppState.modeler;
-
-    // Military-Grade Safeguard: If the target group doesn't exist (especially for NCNDA's first run), create it.
-    if (!legal.groups[groupIndex]) {
-        legal.groups[groupIndex] = {
-            name: 'NCNDA Signatories',
-            percentage: 100, // Not used in UI but good for data consistency
-            parties: []
-        };
+    // Military-Grade Safeguard: Ensure the target group exists before proceeding.
+    if (!AppState.modeler.legal.groups[groupIndex]) {
+        console.error(`Pinnacle Engine Error: Attempted to add party to non-existent group index ${groupIndex}.`);
+        return;
     }
 
     // Define the pristine, default state for a new party.
     const newPartyTemplate = {
         legalName: `New Party`,
-        role: 'Signatory', // More appropriate default for both modes
+        role: 'Intermediary',
         percentage: 0,
-        detailsVisible: true, // Auto-expand for immediate data entry
-        email: '', contactNumber: '',
-        passport: { number: '', issueDate: '', expiryDate: '', authority: '' },
-        payment: { method: 'Bank Wire', currency: 'USD', details: '' }
+        detailsVisible: true, // SEVERELY GUIDED UX: Auto-expand details for a new party.
+        email: '',
+        contactNumber: '',
+        passport: {
+            number: '',
+            issueDate: '',
+            expiryDate: '',
+            authority: ''
+        },
+        payment: {
+            method: 'Bank Wire',
+            currency: 'USD',
+            details: ''
+        }
     };
 
     // Add the new party to the specified group's `parties` array.
-    legal.groups[groupIndex].parties.push(newPartyTemplate);
+    AppState.modeler.legal.groups[groupIndex].parties.push(newPartyTemplate);
     
-    // Refresh the UI to show the new party card.
+    // Trigger a full UI refresh of the modal to render the new party card and update all counters and validation states.
     Logic.refreshImfpaModalUI();
 },
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
@@ -3057,73 +3021,35 @@ renderContractPreview: (legal, calc) => {
 renderImfpaEditorContent: () => {
     const { legal } = AppState.modeler;
     const isImfpa = legal.agreementType === 'IMFPA';
+    const mainSectionTitle = isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties';
+    const mainSectionIcon = isImfpa ? 'fa-sitemap' : 'fa-users';
 
-    // --- Pinnacle Grade, Context-Aware UI Generation ---
     return `
         <div class="space-y-6">
-            <!-- ========================================================= -->
-            <!-- === IMFPA-SPECIFIC SECTION: COMMISSION ALLOCATION === -->
-            <!-- This entire block is ONLY rendered when in IMFPA mode. -->
-            <!-- ========================================================= -->
+            <!-- Commission Allocation (IMFPA ONLY) -->
             <div id="commission-allocation-section" class="space-y-6 mb-6 ${isImfpa ? '' : 'hidden'}">
-                 <div class="flex justify-between items-center">
-                    <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3>
-                    <div class="text-right">
-                        <p class="text-xs text-premium-text-secondary">Total Pool</p>
-                        <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure"></p>
-                    </div>
-                 </div>
-                 <div class="flex justify-between items-center">
-                    <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg">
-                        <i class="fas fa-plus mr-1"></i>Add Group
-                    </button>
-                    <div class="flex items-center gap-2 text-xs">
-                        <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold">
-                        <label for="auto-balance-toggle">Auto-Balance</label>
-                    </div>
-                    <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
-                 </div>
-                 <div class="space-y-4" id="imfpa-groups-container">
-                    <!-- IMFPA groups are rendered here by renderImfpaGroups() -->
-                 </div>
+                 <div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-premium-text-secondary">Total Pool</p><p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure"></p></div></div>
+                 <div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div>
+                 <div class="space-y-4" id="imfpa-groups-container"></div>
             </div>
             
-            <!-- ========================================================= -->
-            <!-- === UNIVERSAL SECTION: SIGNATORY PARTIES === -->
-            <!-- The content of this section is dynamically controlled. -->
-            <!-- ========================================================= -->
+            <!-- Signatory Parties (ALWAYS VISIBLE) -->
             <div class="space-y-6 mb-6">
-                 <h3 class="imfpa-section-title"><i class="fas fa-users mr-3"></i>Signatory Parties</h3>
-                 <!-- This 'Add Party' button is ONLY visible in NCNDA mode -->
-                 <div id="imfpa-controls" class="${isImfpa ? 'hidden' : 'flex'} justify-between items-center">
-                    <button onclick="Logic.addImfpaParty(0)" class="btn-secondary px-3 py-1 text-sm rounded-lg">
-                        <i class="fas fa-plus mr-1"></i>Add Signatory Party
-                    </button>
-                 </div>
-                 <!-- This container is ONLY for NCNDA parties -->
-                 <div class="space-y-4" id="ncnda-parties-container">
-                    <!-- NCNDA parties are rendered here by renderImfpaGroups() -->
-                 </div>
+                 <h3 class="imfpa-section-title"><i class="fas ${mainSectionIcon} mr-3"></i>${mainSectionTitle}</h3>
+                 <div id="imfpa-controls" class="flex justify-between items-center ${isImfpa ? 'hidden' : 'flex'}"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Signatory Party</button></div>
+                 <div class="space-y-4" id="ncnda-parties-container"></div>
             </div>
 
-            <!-- ========================================================= -->
-            <!-- === UNIVERSAL SECTION: LEGAL FRAMEWORK === -->
-            <!-- This section is always visible, regardless of mode. -->
-            <!-- ========================================================= -->
+            <!-- Legal Framework (ALWAYS VISIBLE) -->
             <div class="space-y-6">
                 <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
-                <div class="bg-black/20 p-4 rounded-lg">
-                    <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label>
-                    <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input">
-                </div>
-                <div class="bg-black/20 p-4 rounded-lg">
-                    <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced SPA (Optional)</label>
-                    <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono">
-                </div>
+                <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
+                <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced SPA (Optional)</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
             </div>
         </div>
     `;
 },
+
 // ADD THIS NEW FUNCTION to the UI object
 renderContractPreviewPlaceholder: () => {
     return `
