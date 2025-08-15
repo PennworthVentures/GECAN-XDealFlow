@@ -1086,17 +1086,21 @@ renderModelerInputPanel: () => {
     const { activeDealType, pricingConfig } = AppState.modeler;
     const dealPanelRenderer = UI[`render${activeDealType}Panel`];
     const dealPanelHTML = dealPanelRenderer ? dealPanelRenderer() : `<div class="text-red-400">Error: UI for '${activeDealType}' not found.</div>`;
-    const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['Discount', 'Premium'].map(o => `<option value="${o.toLowerCase()}" ${pricingConfig.offerType === o.toLowerCase() ? 'selected' : ''}>${o}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, 'Value in %'], [false, 'Value in $']].map(([v, l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Gross Offer</label><input type="text" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue.toLocaleString()}" class="form-input"></div><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Net to Buyer</label><input type="text" data-path="pricingConfig.netValue" value="${pricingConfig.netValue.toLocaleString()}" class="form-input"></div></div></div>`;
+    const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['Discount', 'Premium'].map(o => `<option value="${o.toLowerCase()}" ${pricingConfig.offerType === o.toLowerCase() ? 'selected' : ''}>${o}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, 'Value in %'], [false, 'Value in $']].map(([v, l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Gross Offer</label><input type="text" data-path="pricingConfig.grossValue" value="${AppState.modeler.pricingConfig.grossValue.toLocaleString()}" class="form-input"></div><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Net to Buyer</label><input type="text" data-path="pricingConfig.netValue" value="${AppState.modeler.pricingConfig.netValue.toLocaleString()}" class="form-input"></div></div></div>`;
 
     return `
-        <div class="flex items-center mb-6 animate-fade-in-up"><button onclick="UI.renderActiveToolkit(); SFX.play('click');" class="nav-btn !py-2 !px-4 text-sm"><i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection</button></div>
+        <div class="flex items-center justify-between mb-6 animate-fade-in-up">
+            <button onclick="UI.renderActiveToolkit(); SFX.play('click');" class="nav-btn !py-2 !px-4 text-sm"><i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection</button>
+            <!-- NEW: Pinnacle-Grade Reset Button -->
+            <button onclick="Logic.resetAssetSwap(); SFX.play('click');" class="nav-btn !py-2 !px-4 text-sm hover:!bg-orange-500/20 hover:!text-orange-400"><i class="fas fa-sync-alt mr-2"></i>Reset Parameters</button>
+        </div>
         <h2 class="text-2xl font-bold font-orbitron text-white mb-6 animate-fade-in-up stagger-1"><i class="fas fa-sliders-h text-[var(--primary-azure)] mr-3"></i>Deal Parameters</h2>
         <div class="space-y-6 flex-grow">
             <div class="bg-black/20 p-6 rounded-2xl border border-[var(--border-color)] animate-fade-in-up stagger-2"><h4 class="text-lg font-semibold text-white mb-4 flex items-center gap-3"><i class="fas fa-file-contract text-[var(--primary-azure)]"></i>Transaction Core</h4><div class="space-y-4">${dealPanelHTML}</div></div>
             <div class="bg-black/20 p-6 rounded-2xl border border-[var(--border-color)] animate-fade-in-up stagger-3"><div class="collapsible-header cursor-pointer group" onclick="Logic.togglePricingConfig(); SFX.play('click');"><h4 class="text-lg font-semibold text-white flex items-center gap-3"><i class="fas fa-percent text-[var(--primary-azure)]"></i>Pricing & Configuration</h4><i class="fas fa-chevron-down text-[var(--text-muted)] transition-transform duration-300 ${pricingConfig.isVisible ? 'rotate-180' : ''} ml-auto"></i></div>${pricingConfigHTML}</div>
         </div>`;
 },
-        
+
 renderAssetSwapPanel: () => {
     const state = AppState.modeler.assetSwap;
     const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
@@ -1112,9 +1116,9 @@ renderModelerOutputPanel: (calculation) => {
             <div class="card-content">
                 <div class="flex items-start gap-3">
                     <div class="w-10 h-10 rounded-lg bg-[var(--background-secondary)] flex-shrink-0 flex items-center justify-center text-[var(--primary-azure)] text-xl transition-all duration-300 group-hover:scale-110"><i class="fas ${icon}"></i></div>
-                    <div class="flex-1">
+                    <div class="flex-1 min-w-0">
                         <p class="text-sm text-[var(--text-muted)] mb-1">${label}</p>
-                        <h4 class="asset-header !text-3xl !mb-0 -ml-1 ${isRate ? '!text-2xl' : ''}">${value}</h4>
+                        <h4 class="asset-header !text-3xl !mb-0 -ml-1 truncate ${isRate ? '!text-2xl' : ''}">${value}</h4>
                         <p class="text-xs text-[var(--text-subtle)] font-mono mt-1">${subtext}</p>
                     </div>
                 </div>
@@ -1571,16 +1575,20 @@ calculateModel: () => {
 },
         
 swapAssets: () => {
+    SFX.play('click');
     const swapState = AppState.modeler.assetSwap;
     const fromAsset = Utils.getAssetByKey(swapState.fromAssetKey);
     const toAsset = Utils.getAssetByKey(swapState.toAssetKey);
     const amount = parseFloat(String(swapState.amount).replace(/,/g, '')) || 0;
 
+    // --- Intelligent Value Preservation Engine ---
     if (fromAsset.price > 0 && toAsset.price > 0) {
         const totalUsdValue = amount * fromAsset.price;
+        // Calculate the new 'from' amount that equals the same total USD value.
         swapState.amount = totalUsdValue / toAsset.price;
     }
     
+    // Atomically swap the asset keys in the state.
     [swapState.fromAssetKey, swapState.toAssetKey] = [swapState.toAssetKey, swapState.fromAssetKey];
     
     const icon = document.getElementById('swap-icon');
@@ -1590,10 +1598,10 @@ swapAssets: () => {
         icon.style.animation = 'swap-icon-spin 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
     }
     
-    // CRITICAL FIX: This now triggers the full, correct re-render of both panels.
+    // Trigger a full re-render of both panels to reflect all state changes.
     Logic.handleDealTypeChange(AppState.modeler.activeDealType);
 },
-
+        
 togglePricingConfig: () => {
     AppState.modeler.pricingConfig.isVisible = !AppState.modeler.pricingConfig.isVisible;
     // We must re-render the entire input panel to get the expand/collapse animation.
@@ -1613,6 +1621,7 @@ calculateAssetSwap: () => {
     const toAsset = Utils.getAssetByKey(state.toAssetKey);
     const fromPriceUSD = fromAsset.price || 0;
     const toPriceUSD = toAsset.price || 0;
+    // CRITICAL FIX: The Base/Market Value is ALWAYS calculated from the "From" asset.
     const baseValueUSD = amount * fromPriceUSD;
     const rate = (fromPriceUSD > 0 && toPriceUSD > 0) ? fromPriceUSD / toPriceUSD : 0;
     const receivesAmount = amount * rate;
