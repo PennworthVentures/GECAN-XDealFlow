@@ -1694,11 +1694,21 @@ addImfpaParty: (groupIndex) => {
                     return; 
                 }
 
+                const previewContainer = document.getElementById('contract-preview-container');
+                const printContainer = document.getElementById('print-area');
+
+                if (!previewContainer || !printContainer) {
+                    console.error('CRITICAL UI FAILURE: The required #contract-preview-container or #print-area DOM elements are missing.');
+                    Utils.showNotification("A critical UI error prevented the document from being displayed.", 'error', 'UI Integration Fault');
+                    return;
+                }
+            
                 // --- 2. DYNAMIC LEGAL CLAUSE & METADATA SYNTHESIS ---
                 const agreementReference = `GECAN-IMFPA-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
                 const effectiveDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 const generatedDateTime = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
                 
+                // Generates elevated, transaction-specific legal language for the preamble.
                 let recitalsText = '';
                 switch(AppState.modeler.activeDealType) {
                     case 'AssetSwap':
@@ -1720,11 +1730,14 @@ addImfpaParty: (groupIndex) => {
                         recitalsText = `WHEREAS, the Contracting Parties have established a framework for cooperation in connection with a substantial international financial transaction of significant commercial value and strategic importance;`;
                 }
             
+                // --- 3. SEVERELY UPGRADED FEE DISTRIBUTION SCHEDULE SYNTHESIS (PREMIUM TABLE FORMAT) ---
                 const feeClauses = legal.groups.map((g) => {
                     const groupPayout = legal.totalCommission * (g.percentage / 100);
+            
                     const partiesRows = g.parties.map((p) => {
                         const partyValue = groupPayout * (p.percentage / 100);
                         const settlementDetailsText = p.payment.details || 'To be furnished through separate, encrypted KYC/KYB documentation exchange pursuant to regulatory requirements';
+            
                         return `
                         <tr>
                             <td>
@@ -1741,7 +1754,11 @@ addImfpaParty: (groupIndex) => {
                             </td>
                         </tr>`;
                     }).join('');
-                    const tableBody = g.parties.length > 0 ? partiesRows : `<tr class="no-parties-row"><td colspan="3">(No designated beneficiaries specified for this distribution group)</td></tr>`;
+            
+                    const tableBody = g.parties.length > 0
+                        ? partiesRows
+                        : `<tr class="no-parties-row"><td colspan="3">(No designated beneficiaries specified for this distribution group)</td></tr>`;
+            
                     return `
                     <div class="fee-group-container">
                         <div class="fee-group-header">
@@ -1756,11 +1773,14 @@ addImfpaParty: (groupIndex) => {
                                     <th style="width: 40%;">Remittance Instructions</th>
                                 </tr>
                             </thead>
-                            <tbody>${tableBody}</tbody>
+                            <tbody>
+                                ${tableBody}
+                            </tbody>
                         </table>
                     </div>`;
                 }).join('');
             
+                // --- 4. ENHANCED PARTY SIGNATURE BLOCK SYNTHESIS ---
                 const signatureBlocks = legal.groups.flatMap(g => g.parties).map((p, i) => `
                 <div class="p-signature-block" data-party-id="party-${i}" data-party-name="${p.legalName || 'Unnamed Party'}">
                     <p class="p-strong">FOR AND ON BEHALF OF: ${(p.legalName || '[LEGAL ENTITY NAME REQUIRED]').toUpperCase()}</p>
@@ -1773,42 +1793,82 @@ addImfpaParty: (groupIndex) => {
                     <div data-sig-type="seal" style="position: relative; height: 100px; margin-top: 10px;"><!-- Seal will be applied here --></div>
                 </div>`).join('\n');
             
+                // --- 5. COMPREHENSIVE PARTY DETAILS ANNEX SYNTHESIS (TABLE OUTPUT FORMAT) ---
                 const partyDetailsTable = legal.groups.flatMap(g => g.parties).map((p, i) => `
                 <div class="party-details-section">
                     <h4>CONTRACTING PARTY ${i+1} - COMPREHENSIVE DETAILS</h4>
                     <table class="party-details-table">
                         <tbody>
-                            <tr><td class="detail-label">Legal Entity Name:</td><td class="detail-value">${p.legalName || '[REQUIRED - NOT SPECIFIED]'}</td></tr>
-                            <tr><td class="detail-label">Functional Role & Capacity:</td><td class="detail-value">${p.role || '[ROLE NOT DESIGNATED]'}</td></tr>
-                            <tr><td class="detail-label">Primary Contact Email:</td><td class="detail-value">${p.email || '[EMAIL ADDRESS REQUIRED]'}</td></tr>
-                            <tr><td class="detail-label">Direct Contact Number:</td><td class="detail-value">${p.contactNumber || '[CONTACT NUMBER REQUIRED]'}</td></tr>
-                            <tr><td class="detail-label">Passport/ID Number:</td><td class="detail-value">${p.passport.number || '[IDENTIFICATION REQUIRED]'}</td></tr>
-                            <tr><td class="detail-label">Document Issue Date:</td><td class="detail-value">${p.passport.issueDate || '[DATE REQUIRED]'}</td></tr>
-                            <tr><td class="detail-label">Document Expiry Date:</td><td class="detail-value">${p.passport.expiryDate || '[DATE REQUIRED]'}</td></tr>
-                            <tr><td class="detail-label">Issuing Authority:</td><td class="detail-value">${p.passport.authority || '[AUTHORITY REQUIRED]'}</td></tr>
+                            <tr>
+                                <td class="detail-label">Legal Entity Name:</td>
+                                <td class="detail-value">${p.legalName || '[REQUIRED - NOT SPECIFIED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Functional Role & Capacity:</td>
+                                <td class="detail-value">${p.role || '[ROLE NOT DESIGNATED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Primary Contact Email:</td>
+                                <td class="detail-value">${p.email || '[EMAIL ADDRESS REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Direct Contact Number:</td>
+                                <td class="detail-value">${p.contactNumber || '[CONTACT NUMBER REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Passport/ID Number:</td>
+                                <td class="detail-value">${p.passport.number || '[IDENTIFICATION REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Document Issue Date:</td>
+                                <td class="detail-value">${p.passport.issueDate || '[DATE REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Document Expiry Date:</td>
+                                <td class="detail-value">${p.passport.expiryDate || '[DATE REQUIRED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Issuing Authority:</td>
+                                <td class="detail-value">${p.passport.authority || '[AUTHORITY REQUIRED]'}</td>
+                            </tr>
                         </tbody>
                     </table>
+                    
                     <h5>REMITTANCE & SETTLEMENT COORDINATES</h5>
                     <table class="payment-details-table">
                         <tbody>
-                            <tr><td class="detail-label">Fee Allocation Percentage:</td><td class="detail-value">(As specified in Article 3 - Fee Distribution Schedule)</td></tr>
-                            <tr><td class="detail-label">Preferred Payment Method:</td><td class="detail-value">${p.payment.method || '[METHOD NOT SPECIFIED]'}</td></tr>
-                            <tr><td class="detail-label">Settlement Currency:</td><td class="detail-value">${p.payment.currency || '[CURRENCY NOT SPECIFIED]'}</td></tr>
-                            <tr><td class="detail-label">Banking/Payment Details:</td><td class="detail-value">${p.payment.details || 'To be furnished through separate, secure KYC/KYB documentation exchange in compliance with AML/CTF regulations'}</td></tr>
+                            <tr>
+                                <td class="detail-label">Fee Allocation Percentage:</td>
+                                <td class="detail-value">(As specified in Article 3 - Fee Distribution Schedule)</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Preferred Payment Method:</td>
+                                <td class="detail-value">${p.payment.method || '[METHOD NOT SPECIFIED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Settlement Currency:</td>
+                                <td class="detail-value">${p.payment.currency || '[CURRENCY NOT SPECIFIED]'}</td>
+                            </tr>
+                            <tr>
+                                <td class="detail-label">Banking/Payment Details:</td>
+                                <td class="detail-value">${p.payment.details || 'To be furnished through separate, secure KYC/KYB documentation exchange in compliance with AML/CTF regulations'}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>`).join('\n\n');
             
-                // --- 3. MASTER DOCUMENT ASSEMBLY ---
+                // --- 6. MASTER DOCUMENT ASSEMBLY ---
                 const contractHTML = `
                 <div class="p-doc">
                     <style>
-                        .p-doc { font-family: 'Garamond', 'Times New Roman', serif; font-size: 11pt; line-height: 1.4; color: #000; padding: 1.5rem; }
+                        /* This embedded style block ensures the document is self-contained and renders perfectly for printing or PDF conversion. */
+                        .p-doc { font-family: 'Garamond', 'Times New Roman', serif; font-size: 11pt; line-height: 1.4; color: #000; }
                         .p-h1 { font-size: 18pt; font-weight: bold; color: #1A237E; border-bottom: 2px solid #b4975a; padding-bottom: 8pt; margin-bottom: 24pt; font-family: 'Helvetica Neue', Arial, sans-serif; }
                         .p-h2 { font-size: 14pt; font-weight: bold; color: #283593; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-top: 20pt; margin-bottom: 12pt; font-family: 'Helvetica Neue', Arial, sans-serif; page-break-after: avoid; }
                         .p-text { text-align: justify; margin-bottom: 11pt; }
                         .p-strong { font-weight: bold; color: #283593; }
                         .p-annex-start { page-break-before: always; }
+                        .p-watermark { display: block !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120pt; color: rgba(180, 151, 90, 0.08); font-weight: bold; z-index: -1000; pointer-events: none; font-family: 'Arial Black', sans-serif; }
                         
                         .fee-group-container { margin-top: 20pt; border: 1px solid #ccc; border-radius: 6pt; overflow: hidden; background: #fff; page-break-inside: avoid; }
                         .fee-group-header { background: #e8eaf6; padding: 8pt 12pt; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
@@ -1839,62 +1899,59 @@ addImfpaParty: (groupIndex) => {
 
                         .legal-footer { margin-top: 40pt; padding-top: 15pt; border-top: 2px solid #1A237E; font-size: 8pt; color: #555; text-align: center; page-break-inside: avoid; }
                     </style>
-
-                    <h1 class="p-h1">Irrevocable Master Fee Protection & NCND Agreement</h1>
+                    <div class="p-watermark">GECAN DRAFT</div>
+                    <h1 class="p-h1">Irrevocable Master Fee Protection & Non-Circumvention Non-Disclosure Agreement (IMFPA-NCNDA)</h1>
                     <p class="p-text"><strong>Reference:</strong> ${agreementReference}</p>
                     <p class="p-text"><strong>Effective Date:</strong> ${effectiveDate}</p>
-                    
+                    <p class="p-text"><strong>Governing Law:</strong> ${legal.jurisdiction || '[JURISDICTION TO BE SPECIFIED]'}</p>
+                    <p class="p-text">This Agreement is structured in accordance with the highest standards of international commercial practice, including but not limited to, principles promulgated by the International Chamber of Commerce (ICC), Paris, France.</p>
+
                     <h2 class="p-h2">PRELIMINARY RECITALS</h2>
                     <p class="p-text" style="font-style: italic;">${recitalsText}</p>
-                    
+                    <p class="p-text">NOW, THEREFORE, in consideration of the mutual covenants contained herein, the Parties agree to be legally bound by the terms and conditions set forth in this Agreement.</p>
+
                     <h2 class="p-h2">ARTICLE I: TRANSACTION & FEE POOL</h2>
-                    <p class="p-text">The subject matter of this Agreement is a transaction with a base value of <strong>${Utils.formatPrice(calc.baseValueUSD)}</strong>, which generates a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> (the "Fee Pool").</p>
+                    <p class="p-text">The subject matter of this Agreement is a transaction with an aggregate base value of <strong>${Utils.formatPrice(calc.baseValueUSD)}</strong>, which generates a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> (the "Fee Pool").</p>
 
                     <div class="p-annex-start">
-                        <h2 class="p-h2">ANNEX A: FEE DISTRIBUTION SCHEDULE</h2>
+                        <h2 class="p-h2">ANNEX A: IRREVOCABLE FEE DISTRIBUTION SCHEDULE</h2>
+                        <p class="p-text">The Fee Pool shall be irrevocably distributed directly from the designated Payer's transactional settlement account(s) to the respective Beneficiaries' accounts according to the following schedule:</p>
                         ${feeClauses}
                     </div>
 
                     <div class="p-annex-start">
-                        <h2 class="p-h2">ANNEX B: CONTRACTING PARTY DETAILS</h2>
+                        <h2 class="p-h2">ANNEX B: COMPREHENSIVE CONTRACTING PARTY DETAILS</h2>
+                        <p class="p-text">This Annex B forms an integral, binding, and enforceable component of the foregoing Agreement and contains comprehensive identification and payment coordination details for all Contracting Parties.</p>
                         ${partyDetailsTable}
                     </div>
                     
                     <div class="p-annex-start">
                         <h2 class="p-h2">EXECUTION & SIGNATURE PAGE</h2>
+                        <p class="p-text">IN WITNESS WHEREOF, the Contracting Parties have caused this Agreement to be executed by their respective duly authorized representatives as of the Effective Date first written above.</p>
                         ${signatureBlocks}
                     </div>
 
                     <div class="legal-footer">
                         <strong>CONFIDENTIAL & PROPRIETARY DOCUMENT</strong><br>
+                        This document contains legally privileged and confidential commercial information. Unauthorized disclosure, reproduction, or distribution is strictly prohibited.<br>
                         Document Reference: ${agreementReference} | Generated: ${generatedDateTime}
                     </div>
                 </div>`;
             
-                // --- 4. INTELLIGENT VIEW TRANSFORMATION ---
-                const mainContentArea = document.getElementById('imfpa-modal-main-content');
-                const printContainer = document.getElementById('print-area');
-                const actionBtn = document.getElementById('imfpa-primary-action-btn');
-
-                if (mainContentArea && printContainer && actionBtn) {
-                    printContainer.innerHTML = contractHTML;
-                    const executionSuiteHTML = UI.renderExecutionSuite(contractHTML);
-                    mainContentArea.innerHTML = UI.renderPostSynthesisView(executionSuiteHTML, contractHTML);
-
-                    actionBtn.innerHTML = `<i class="fas fa-edit mr-2"></i>Return to Data Editor`;
-                    actionBtn.onclick = () => {
-                        const modal = document.getElementById('imfpa-modal');
-                        modal.innerHTML = UI.renderImfpaModal();
-                        Logic.refreshImfpaModalUI();
-                    };
-                    actionBtn.classList.remove('from-premium-gold', 'to-yellow-600', 'border-premium-gold', 'from-gray-600', 'to-gray-800', 'border-gray-600');
-                    actionBtn.classList.add('from-blue-500', 'to-indigo-600', 'border-blue-500');
-
-                    Utils.showNotification('Document Synthesized. You are now in Execution View.', 'success', 'View Transformed');
-                } else {
-                    console.error('CRITICAL UI FAILURE: Could not find required elements for view transformation.');
-                    Utils.showNotification("A critical UI error prevented the view from updating.", 'error');
-                }
+                // --- 7. RENDER DOCUMENT & EXECUTION SUITE TO THE DOM ---
+                previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
+                printContainer.innerHTML = contractHTML; // Populate hidden div for clean printing
+                
+                previewContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+                
+                Utils.showNotification(
+                    'Premium legal contract generated successfully! Please review with legal counsel before execution.', 
+                    'success',
+                    'Document Synthesized'
+                );
             },
             
             getPrintStyles: () => {
@@ -2720,121 +2777,87 @@ renderYieldGraph: (calc) => {
 },
 
     // --- IMFPA & DOCUMENT EXECUTION SUITE RENDERERS (v6.0 Pinnacle Overhaul) ---
-renderImfpaModal: () => {
+    renderImfpaModal: () => {
     const { legal } = AppState.modeler;
     const isImfpa = legal.agreementType === 'IMFPA';
+    const mainSectionTitle = isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties';
+    const mainSectionIcon = isImfpa ? 'fa-sitemap' : 'fa-users';
 
-    // --- MILITARY-GRADE FINAL VALIDATION CHECK ---
+    // --- MILITARY-GRADE FINAL VALIDATION CHECK (NEW) ---
     const isReadyToSynthesize = Logic.validateImfpaData();
     const synthesizeButtonClass = isReadyToSynthesize 
-        ? 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow'
-        : 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed';
+        ? 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow' // Ready State (Premium Gold)
+        : 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed'; // Incomplete State (Muted Gray)
     const synthesizeButtonText = isReadyToSynthesize 
         ? 'Synthesize & Preview Full Document' 
-        : 'Complete All Required Fields (*)';
+        : 'Complete All Required Fields';
 
     return `
         <div class="dialog-content-wrapper">
             <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
-                <!-- ========================================================= -->
-                <!-- === PERSISTENT MODAL HEADER === -->
-                <!-- ========================================================= -->
-                <div class="flex justify-between items-start mb-4 imfpa-header flex-shrink-0">
+                <div class="flex justify-between items-start mb-4 imfpa-header print-hide">
                     <div>
                         <h2 class="text-3xl font-bold">Commission & Contract Suite</h2>
                         <p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p>
                     </div>
                     <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
                 </div>
+                <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
+                    <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
+                    <label class="agreement-toggle"><div class="toggle-switch"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}><span class="toggle-slider"></span></div></label>
+                    <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
+                </div>
 
-                <!-- ========================================================= -->
-                <!-- === DYNAMIC CONTENT AREA (THIS DIV WILL BE REPLACED) === -->
-                <!-- ========================================================= -->
-                <div id="imfpa-modal-main-content" class="flex-1 overflow-hidden">
-                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 h-full">
-                        <div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4 h-full">
-                            <div class="flex items-center justify-center gap-6 p-4 rounded-lg bg-black/20">
-                                <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
-                                <label class="agreement-toggle"><div class="toggle-switch"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}><span class="toggle-slider"></span></div></label>
-                                <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2">
+                    <div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4">
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-center">
+                                <h3 class="imfpa-section-title"><i class="fas ${mainSectionIcon} mr-3"></i>${mainSectionTitle}</h3>
+                                <div class="text-right ${isImfpa ? 'block' : 'hidden'}">
+                                    <p class="text-xs text-premium-text-secondary">Total Pool</p>
+                                    <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
+                                </div>
                             </div>
-                            <div class="space-y-6">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="imfpa-section-title"><i class="fas ${isImfpa ? 'fa-sitemap' : 'fa-users'} mr-3"></i>${isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties'}</h3>
-                                    <div class="text-right ${isImfpa ? 'block' : 'hidden'}">
-                                        <p class="text-xs text-premium-text-secondary">Total Pool</p>
-                                        <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
+                            <div id="imfpa-controls" class="flex justify-between items-center">
+                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory Party'}</button>
+                                <div class="flex items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}">
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold">
+                                        <label for="auto-balance-toggle">Auto-Balance</label>
                                     </div>
+                                    <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
                                 </div>
-                                <div id="imfpa-controls" class="flex justify-between items-center">
-                                    <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory Party'}</button>
-                                    <div class="flex items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}">
-                                        <div class="flex items-center gap-2 text-xs">
-                                            <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold">
-                                            <label for="auto-balance-toggle">Auto-Balance</label>
-                                        </div>
-                                        <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
-                                    </div>
-                                </div>
-                                <div class="space-y-4" id="imfpa-groups-container"></div>
                             </div>
-                            <div class="space-y-6">
-                                <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
-                                <div class="bg-black/20 p-4 rounded-lg">
-                                    <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label>
-                                    <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales">
-                                </div>
-                                <div class="bg-black/20 p-4 rounded-lg">
-                                    <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced Contract / SPA (Optional)</label>
-                                    <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345">
-                                </div>
+                            <div class="space-y-4" id="imfpa-groups-container"></div>
+                        </div>
+                        <div class="space-y-6">
+                            <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
+                            <div class="bg-black/20 p-4 rounded-lg">
+                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label>
+                                <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales">
+                            </div>
+                            <div class="bg-black/20 p-4 rounded-lg">
+                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced Contract / SPA (Optional)</label>
+                                <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345">
                             </div>
                         </div>
-                        <div class="lg:col-span-2 h-full flex flex-col">
-                            <h3 class="imfpa-section-title flex-shrink-0"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
-                            <div id="contract-live-preview" class="flex-grow h-full"></div>
-                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
+                        <div id="contract-live-preview" class="h-full"></div>
                     </div>
                 </div>
                 
-                <!-- ========================================================= -->
-                <!-- === PERSISTENT MODAL FOOTER === -->
-                <!-- ========================================================= -->
-                <div class="pt-6 border-t border-premium-border mt-auto flex-shrink-0">
-                    <button id="imfpa-primary-action-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r ${synthesizeButtonClass}" ${!isReadyToSynthesize ? 'disabled' : ''}>
+                <div class="pt-6 border-t border-premium-border mt-auto print-hide">
+                    <button id="synthesize-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r ${synthesizeButtonClass}" ${!isReadyToSynthesize ? 'disabled' : ''}>
                         <i class="fas fa-file-signature mr-2"></i>${synthesizeButtonText}
                     </button>
+                    <div id="contract-preview-container" class="mt-4 hidden"></div>
                 </div>
             </div>
         </div>
     `;
 },
-    
-/**
- * [NEW] Renders the intelligent two-panel post-synthesis view.
- * @param {string} executionSuiteHTML The HTML for the left-hand execution panel.
- * @param {string} contractHTML The full HTML of the synthesized contract for the right-hand preview.
- * @returns {string} The complete HTML structure for the two-panel layout.
- */
-renderPostSynthesisView: (executionSuiteHTML, contractHTML) => {
-    return `
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 h-full">
-        <!-- Left Panel: Execution Suite & Controls -->
-        <div class="lg:col-span-2 h-full flex flex-col overflow-y-auto pr-4">
-            <h3 class="imfpa-section-title flex-shrink-0"><i class="fas fa-tasks mr-3"></i>Execution Workflow</h3>
-            ${executionSuiteHTML}
-        </div>
-        <!-- Right Panel: Live Document Preview -->
-        <div class="lg:col-span-3 h-full overflow-hidden flex flex-col">
-            <h3 class="imfpa-section-title flex-shrink-0"><i class="fas fa-eye mr-3"></i>Live Document Preview</h3>
-            <div class="flex-grow overflow-y-auto bg-[#fcfcff] border border-premium-border rounded-lg shadow-inner">
-                ${contractHTML}
-            </div>
-        </div>
-    </div>
-    `;
-},
-    
 renderImfpaGroups: () => {
     const { legal } = AppState.modeler;
     const { groups, agreementType } = legal;
