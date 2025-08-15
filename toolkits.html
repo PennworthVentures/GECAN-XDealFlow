@@ -430,6 +430,90 @@ const SFX = {
                 </button>`;
         }).join('');
     },
+
+            renderDashboardUI: () => {
+    // --- Pinnacle-Grade Color & Glow Mapping ---
+    // Translates Tailwind CSS color names into the benchmark's CSS variable values.
+    const colorMap = {
+        'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' },
+        'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
+        'from-sky-500': { primary: 'var(--primary-azure)', glow: 'var(--glow-azure)' },
+        'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
+        'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' },
+        'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
+    };
+
+    return `
+        <!-- Main Content Wrapper with 3D Perspective -->
+        <div 
+            class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-8 h-full flex flex-col animate-fade-in-up" 
+            style="perspective: 2000px;"
+        >
+            
+            <!-- Premium Animated Header (Benchmark Standard) -->
+            <div class="text-center mb-12">
+                <h2 
+                    class="text-4xl font-bold font-orbitron bg-clip-text text-transparent bg-[var(--gradient-primary)] mb-4" 
+                    style="animation: premium-text-glow 4s ease-in-out infinite;"
+                >
+                    GECAN™ Intelligent Toolkits
+                </h2>
+                <p class="text-[var(--text-silver)] text-lg max-w-2xl mx-auto">
+                    Select a proprietary tool from the sidebar to begin your institutional-grade analysis. Each toolkit is powered by advanced algorithms and real-time data intelligence.
+                </p>
+            </div>
+            
+            <!-- Pinnacle-Grade 3D Card Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
+                ${Object.values(AppState.toolkits).filter(t => t.id !== 'Dashboard').map((t, index) => {
+                    const theme = colorMap[t.color.split(' ')[0]] || colorMap['from-sky-500'];
+                    return `
+                    <!-- 
+                        SEVERE UPGRADE: Pinnacle-grade card structure mirroring index.html.
+                        - Uses 'offer-card' class for 3D effects.
+                        - Injects asset-specific CSS variables for dynamic theming.
+                        - Integrates audio-kinetic feedback with SFX.play().
+                    -->
+                    <div 
+                        class="offer-card rounded-2xl p-8 cursor-pointer animate-fade-in-up stagger-${index + 1}"
+                        onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('launch');"
+                        onmouseover="SFX.play('deploy')"
+                        style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"
+                    >
+                        <!-- 3D EFFECT: Inner card-content wrapper for depth, consistent with benchmark. -->
+                        <div class="card-content">
+                            <div class="flex items-start gap-6">
+                                
+                                <!-- 3D EFFECT: Icon with its own independent 3D hover transform. -->
+                                <div 
+                                    class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl transition-all duration-500" 
+                                    style="transform-style: preserve-3d;"
+                                >
+                                    <i 
+                                        class="fas ${t.icon} transition-all duration-500" 
+                                        style="transform: translateZ(20px);"
+                                    ></i>
+                                </div>
+
+                                <div class="flex-1">
+                                    <!-- 3D EFFECT: Header text with deep hover transform, consistent with benchmark. -->
+                                    <h3 class="asset-header text-2xl font-bold text-white mb-3 -ml-1">${t.name}</h3>
+                                    <p class="text-[var(--text-silver)] leading-relaxed">${t.description}</p>
+                                    
+                                    <!-- Interactive "Launch" prompt appears on hover with kinetic arrow animation. -->
+                                    <div class="mt-4 flex items-center text-[var(--asset-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <span class="text-sm font-medium">Launch Toolkit</span>
+                                        <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>
+    `;
+},
             renderActiveToolkit: () => {
                 const container = document.getElementById('active-toolkit-container');
                 const renderFunc = UI[`render${AppState.activeToolkit}UI`];
