@@ -1698,6 +1698,37 @@ activateWorkspaceMode: () => {
     
     Utils.showNotification("Workspace Mode Activated. You can now edit details and see live updates.", 'success', 'Workspace Active');
 },
+
+            /**
+ * Extracts all @media print CSS rules from every stylesheet on the page.
+ * This is a critical function for generating high-fidelity, perfectly styled PDFs on the backend.
+ * Pinnacle-Grade Logic: It is hardened against cross-origin security errors.
+ * @returns {string} A single string containing all concatenated print CSS rules.
+ */
+getPrintStyles: () => {
+    let css = '';
+    // Iterate through all stylesheets loaded on the page
+    for (const sheet of document.styleSheets) {
+        try {
+            // Iterate through all rules in a single stylesheet
+            for (const rule of sheet.cssRules) {
+                // Check if the rule is a media rule AND specifically for 'print'
+                if (rule.type === CSSRule.MEDIA_RULE && rule.media.mediaText.includes('print')) {
+                    // If it matches, iterate through the rules *inside* the @media block
+                    for (const printRule of rule.cssRules) {
+                        // Append the text content of each rule to our master string
+                        css += printRule.cssText + '\n';
+                    }
+                }
+            }
+        } catch (e) {
+            // Military-Grade Safeguard: Catch and log potential security errors when accessing
+            // cross-origin stylesheets (e.g., from a CDN), preventing a total script failure.
+            console.warn("Pinnacle Engine Notice: Could not access stylesheet for print styles due to browser security policy (CORS). This is expected for external sheets.", sheet.href);
+        }
+    }
+    return css;
+},
             // Add this new function inside the `Logic` object
 validateImfpaData: () => {
     const { legal } = AppState.modeler;
