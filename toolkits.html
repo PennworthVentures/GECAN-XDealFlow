@@ -1090,14 +1090,13 @@ renderModelerInputPanel: () => {
 
     return `
         <div class="flex items-center justify-between mb-6 animate-fade-in-up">
-            <button onclick="UI.renderActiveToolkit(); SFX.play('click');" class="nav-btn !py-2 !px-4 text-sm"><i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection</button>
-            <!-- NEW: Pinnacle-Grade Reset Button -->
-            <button onclick="Logic.resetAssetSwap(); SFX.play('click');" class="nav-btn !py-2 !px-4 text-sm hover:!bg-orange-500/20 hover:!text-orange-400"><i class="fas fa-sync-alt mr-2"></i>Reset Parameters</button>
+            <button data-action="backToSelection" class="nav-btn !py-2 !px-4 text-sm"><i class="fas fa-chevron-left mr-2"></i>Back to Deal Selection</button>
+            <button data-action="resetParameters" class="nav-btn !py-2 !px-4 text-sm hover:!bg-orange-500/20 hover:!text-orange-400"><i class="fas fa-sync-alt mr-2"></i>Reset Parameters</button>
         </div>
         <h2 class="text-2xl font-bold font-orbitron text-white mb-6 animate-fade-in-up stagger-1"><i class="fas fa-sliders-h text-[var(--primary-azure)] mr-3"></i>Deal Parameters</h2>
         <div class="space-y-6 flex-grow">
             <div class="bg-black/20 p-6 rounded-2xl border border-[var(--border-color)] animate-fade-in-up stagger-2"><h4 class="text-lg font-semibold text-white mb-4 flex items-center gap-3"><i class="fas fa-file-contract text-[var(--primary-azure)]"></i>Transaction Core</h4><div class="space-y-4">${dealPanelHTML}</div></div>
-            <div class="bg-black/20 p-6 rounded-2xl border border-[var(--border-color)] animate-fade-in-up stagger-3"><div class="collapsible-header cursor-pointer group" onclick="Logic.togglePricingConfig(); SFX.play('click');"><h4 class="text-lg font-semibold text-white flex items-center gap-3"><i class="fas fa-percent text-[var(--primary-azure)]"></i>Pricing & Configuration</h4><i class="fas fa-chevron-down text-[var(--text-muted)] transition-transform duration-300 ${pricingConfig.isVisible ? 'rotate-180' : ''} ml-auto"></i></div>${pricingConfigHTML}</div>
+            <div class="bg-black/20 p-6 rounded-2xl border border-[var(--border-color)] animate-fade-in-up stagger-3"><div class="collapsible-header cursor-pointer group"><h4 class="text-lg font-semibold text-white flex items-center gap-3"><i class="fas fa-percent text-[var(--primary-azure)]"></i>Pricing & Configuration</h4><i class="fas fa-chevron-down text-[var(--text-muted)] transition-transform duration-300 ${pricingConfig.isVisible ? 'rotate-180' : ''} ml-auto"></i></div>${pricingConfigHTML}</div>
         </div>`;
 },
 
@@ -1105,62 +1104,20 @@ renderAssetSwapPanel: () => {
     const state = AppState.modeler.assetSwap;
     const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
     const assetOptions = (selectedKey) => AppState.marketData.filter(a => a.type !== 'Cross-Rate' && a.price > 0).sort((a, b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-    return `<div class="space-y-4"><div class="flex items-center gap-4"><div class="flex-1"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">From Asset</label><select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select></div><div class="pt-8"><button onclick="Logic.swapAssets();" class="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--primary-azure)]/20 text-[var(--primary-azure)] transition-all duration-300 hover:scale-110"><i id="swap-icon" class="fas fa-exchange-alt"></i></button></div><div class="flex-1"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">To Asset</label><select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select></div></div><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label><input type="text" data-path="assetSwap.amount" value="${(parseFloat(String(state.amount).replace(/,/g, '')) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div></div>`;
+    return `<div class="space-y-4"><div class="flex items-center gap-4"><div class="flex-1"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">From Asset</label><select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select></div><div class="pt-8"><button data-action="swapAssets" class="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--primary-azure)]/20 text-[var(--primary-azure)] transition-all duration-300 hover:scale-110"><i id="swap-icon" class="fas fa-exchange-alt"></i></button></div><div class="flex-1"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">To Asset</label><select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select></div></div><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label><input type="text" data-path="assetSwap.amount" value="${(parseFloat(String(state.amount).replace(/,/g, '')) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div></div>`;
 },
 
 renderModelerOutputPanel: (calculation) => {
-    if (!calculation) {
-        return `<div class="flex items-center justify-center h-full text-center text-[var(--text-muted)]"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
-    }
-
-    const { 
-        baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, 
-        netValueDescription, grossValueDescription, dealTitle,
-        rate, fromAsset, toAsset 
-    } = calculation;
-
+    if (!calculation) return `<div class="flex items-center justify-center h-full text-center text-[var(--text-muted)]"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
+    const { baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, netValueDescription, grossValueDescription, dealTitle, rate, fromAsset, toAsset } = calculation;
     const metricCard = (icon, label, value, subtext, themeColor, themeGlow) => `
-        <div 
-            class="offer-card !p-4 !rounded-xl" 
-            style="--asset-primary: ${themeColor}; --asset-glow: ${themeGlow};"
-            onmouseover="SFX.play('deploy')"
-        >
+        <div class="offer-card !p-4 !rounded-xl" style="--asset-primary: ${themeColor}; --asset-glow: ${themeGlow};" onmouseover="SFX.play('deploy')">
             <div class="card-content flex items-center gap-4">
-                <!-- 3D KINETIC ICON (Benchmark Transplant) -->
-                <div class="metrics-icon-container !w-12 !h-12 flex-shrink-0">
-                    <div class="metrics-icon-3d">
-                        <div class="icon-face icon-front !text-2xl" style="color: ${themeColor}; border-color: ${themeColor}55; text-shadow: 0 0 15px ${themeGlow};">
-                            <i class="fas ${icon}"></i>
-                        </div>
-                        <div class="icon-face icon-back" style="background: radial-gradient(ellipse at center, ${themeColor} 0%, transparent 70%); box-shadow: 0 0 20px ${themeGlow};"></div>
-                    </div>
-                </div>
-                <!-- PRESTIGIOUS VALUE DISPLAY -->
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm text-[var(--text-muted)] mb-1">${label}</p>
-                    <h4 class="asset-header !text-3xl !mb-0 -ml-1 truncate" style="--asset-gradient: linear-gradient(135deg, ${themeColor}, var(--text-diamond)); --asset-glow: ${themeGlow};">${value}</h4>
-                    <p class="text-xs text-[var(--text-subtle)] font-mono mt-1 truncate">${subtext}</p>
-                </div>
+                <div class="metrics-icon-container !w-12 !h-12 flex-shrink-0"><div class="metrics-icon-3d"><div class="icon-face icon-front !text-2xl" style="color: ${themeColor}; border-color: ${themeColor}55; text-shadow: 0 0 15px ${themeGlow};"><i class="fas ${icon}"></i></div><div class="icon-face icon-back" style="background: radial-gradient(ellipse at center, ${themeColor} 0%, transparent 70%);"></div></div></div>
+                <div class="flex-1 min-w-0"><p class="text-sm text-[var(--text-muted)] mb-1">${label}</p><h4 class="asset-header !text-3xl !mb-0 -ml-1 truncate" style="--asset-gradient: linear-gradient(135deg, ${themeColor}, var(--text-diamond));">${value}</h4><p class="text-xs text-[var(--text-subtle)] font-mono mt-1 truncate">${subtext}</p></div>
             </div>
         </div>`;
-
-    return `
-        <div class="flex flex-col h-full animate-fade-in-up">
-            <h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3">
-                <i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections
-            </h2>
-            <div class="space-y-4 flex-grow">
-                ${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle, 'var(--primary-azure)', 'var(--glow-azure)')}
-                ${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription, 'var(--success-color)', 'rgba(34, 197, 94, 0.7)')}
-                ${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription, 'var(--warning-color)', 'rgba(245, 158, 11, 0.7)')}
-                ${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable', 'var(--primary-amethyst)', 'var(--glow-amethyst)')}
-            </div>
-            <div class="mt-auto pt-6 border-t border-[var(--border-color)]">
-                <button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold">
-                    <i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite
-                </button>
-            </div>
-        </div>`;
+    return `<div class="flex flex-col h-full animate-fade-in-up"><h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2><div class="space-y-4 flex-grow">${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle, 'var(--primary-azure)', 'var(--glow-azure)')}${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription, 'var(--success-color)', 'rgba(34, 197, 94, 0.7)')}${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription, 'var(--warning-color)', 'rgba(245, 158, 11, 0.7)')}${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable', 'var(--primary-amethyst)', 'var(--glow-amethyst)')}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button data-action="openImfpaEditor" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite</button></div></div>`;
 },
 
 updateModelerUI: () => {
@@ -1661,26 +1618,18 @@ swapAssets: () => {
     const fromAsset = Utils.getAssetByKey(swapState.fromAssetKey);
     const toAsset = Utils.getAssetByKey(swapState.toAssetKey);
     const amount = parseFloat(String(swapState.amount).replace(/,/g, '')) || 0;
-
     if (fromAsset.price > 0 && toAsset.price > 0) {
         const totalUsdValue = amount * fromAsset.price;
         swapState.amount = totalUsdValue / toAsset.price;
     }
-    
     [swapState.fromAssetKey, swapState.toAssetKey] = [swapState.toAssetKey, swapState.fromAssetKey];
-    
     const icon = document.getElementById('swap-icon');
     if (icon) {
-        icon.style.animation = 'none';
-        void icon.offsetWidth; 
+        icon.style.animation = 'none'; void icon.offsetWidth; 
         icon.style.animation = 'swap-icon-spin 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
     }
-    
-    // --- CRITICAL WORKFLOW FIX ---
-    // Instead of a full re-render, we now surgically update the necessary panels,
-    // preserving the user's context and providing a seamless experience.
-    const inputContainer = document.getElementById('modeler-input-container');
-    inputContainer.innerHTML = UI.renderModelerInputPanel();
+    // CRITICAL: A full re-render of the input panel is needed to update the dynamic label.
+    document.getElementById('modeler-input-container').innerHTML = UI.renderModelerInputPanel();
     UI.updateModelerUI();
     Logic.bindActiveToolkitEvents();
 },
@@ -1714,12 +1663,12 @@ calculateAssetSwap: () => {
     const toAsset = Utils.getAssetByKey(state.toAssetKey);
     const fromPriceUSD = fromAsset.price || 0;
     const toPriceUSD = toAsset.price || 0;
-    // CRITICAL FIX: The Base/Market Value is ALWAYS calculated from the "From" asset.
-    const baseValueUSD = amount * fromPriceUSD;
+    const baseValueUSD = amount * fromPriceUSD; // CRITICAL FIX: Base value is always based on the 'From' asset.
     const rate = (fromPriceUSD > 0 && toPriceUSD > 0) ? fromPriceUSD / toPriceUSD : 0;
     const receivesAmount = amount * rate;
     return { amount, fromAsset, toAsset, baseValueUSD, rate, receivesAmount, dealTitle: `Swap ${Utils.formatNumber(amount)} ${fromAsset.baseAsset || 'N/A'} for ${toAsset.baseAsset || 'N/A'}` };
 },
+
         
 /**
  * NEW & CRITICAL: Resets the Asset Swap state to its intelligent defaults.
