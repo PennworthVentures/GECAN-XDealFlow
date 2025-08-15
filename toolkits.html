@@ -20,7 +20,16 @@
     <!-- === DEFINITIVE PINNACLE CSS (v41.0 - Unification & Severe Upgrade) === -->
     <!-- ==================================================================================== -->
     <style>
-        /* ========================================================================= */
+
+/* ========================================================================= */
+/* === PINNACLE KINETIC ANIMATION for Asset Swap Icon === */
+/* ========================================================================= */
+@keyframes swap-icon-spin { 
+    0% { transform: rotate(0deg) scale(1); } 
+    50% { transform: rotate(180deg) scale(1.2); color: var(--text-diamond); } 
+    100% { transform: rotate(360deg) scale(1); } 
+} 
+/* ========================================================================= */
 /* === PINNACLE KINETIC TRANSITIONS for Toolkit Switching === */
 /* ========================================================================= */
 #active-toolkit-container {
@@ -1550,6 +1559,44 @@ calculateModel: () => {
     return { ...dealCalc, baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, netValueDescription: `${netValue.toFixed(2)}${pricingConfig.isValueInPercent ? '%' : '$'} Net ${pricingConfig.offerType}`, grossValueDescription: `${grossValue.toFixed(2)}${pricingConfig.isValueInPercent ? '%' : '$'} Gross ${pricingConfig.offerType}` };
 },
         
+swapAssets: () => {
+    const swapState = AppState.modeler.assetSwap;
+    const fromAsset = Utils.getAssetByKey(swapState.fromAssetKey);
+    const toAsset = Utils.getAssetByKey(swapState.toAssetKey);
+    const amount = parseFloat(String(swapState.amount).replace(/,/g, '')) || 0;
+
+    // --- Intelligent Value Preservation Engine ---
+    // Instead of just swapping keys, we preserve the total USD value of the transaction.
+    if (fromAsset.price > 0 && toAsset.price > 0) {
+        const totalUsdValue = amount * fromAsset.price;
+        // Calculate the new 'from' amount that equals the same total USD value.
+        swapState.amount = totalUsdValue / toAsset.price;
+    }
+    
+    // Atomically swap the asset keys in the state.
+    [swapState.fromAssetKey, swapState.toAssetKey] = [swapState.toAssetKey, swapState.fromAssetKey];
+    
+    // --- Pinnacle-Grade Kinetic Feedback ---
+    const icon = document.getElementById('swap-icon');
+    if (icon) {
+        // Reset and trigger a high-fidelity CSS animation.
+        icon.style.animation = 'none';
+        // This line is a clever trick to force a browser reflow, allowing the animation to re-trigger.
+        void icon.offsetWidth; 
+        icon.style.animation = 'swap-icon-spin 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+    }
+    
+    // Trigger a full re-render of the UI to reflect all state changes.
+    Logic.updateModelerUI(true);
+},
+togglePricingConfig: () => {
+    // Directly mutate the state. The UI will react to this change.
+    AppState.modeler.pricingConfig.isVisible = !AppState.modeler.pricingConfig.isVisible;
+    
+    // Trigger a full re-render to apply the '.expanded' class and animate the panel.
+    Logic.updateModelerUI(true);
+},
+
 calculateAssetSwap: () => {
     const state = AppState.modeler.assetSwap;
     const amount = parseFloat(String(state.amount).replace(/,/g, '')) || 0;
