@@ -325,24 +325,29 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
     .p-watermark { display: block !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120pt; color: rgba(180, 151, 90, 0.08); font-weight: bold; z-index: -1000; pointer-events: none; font-family: 'Arial Black', sans-serif; }
 }
 
-        /* =================================================================================== */
-/* === PINNACLE WORKSPACE MODE ENGINE (MILITARY-GRADE v8.0) === */
-/* This engine powers the dual-column interactive contract suite. */
+/* =================================================================================== */
+/* === PINNACLE WORKSPACE ENGINE v9.1 (SYNTHESIZED & SUPERIOR) === */
+/* This engine GUARANTEES a maximized, dual-column interactive contract suite */
+/* by default on desktop, with a fully responsive mobile view. */
 /* =================================================================================== */
 
-/* --- A. WORKSPACE ACTIVATION --- */
-/* When the modal has this class, it transforms into a two-column layout */
-#imfpa-modal.workspace-active .imfpa-grid {
-    /* On large screens, create the two primary columns */
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* --- A. DUAL-COLUMN GRID (DESKTOP FIRST - NO ACTIVATION CLASS) --- */
+/* On large screens (1024px and wider), the grid is ALWAYS two columns. */
+/* This is the core of the fix, eliminating the flawed workflow. */
+@media (min-width: 1024px) {
+    .imfpa-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
-/* --- B. COLUMN STYLING --- */
+/* --- B. COLUMN STRUCTURE & SCROLLING --- */
 /* The left column (editor) styling */
 .imfpa-editor-column {
     display: flex;
     flex-direction: column;
-    max-height: calc(90vh - 12rem); /* Prevent overflow, adjust for header/footer */
+    /* Prevent overflow and allow independent scrolling */
+    max-height: calc(90vh - 12rem); 
 }
 
 /* The right column (document preview) styling */
@@ -350,13 +355,6 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
     display: flex;
     flex-direction: column;
     max-height: calc(90vh - 12rem);
-    /* Hide on mobile by default, shown when workspace is active on lg screens */
-    display: none; 
-}
-@media (min-width: 1024px) {
-    #imfpa-modal.workspace-active .imfpa-preview-column {
-        display: flex;
-    }
 }
 
 /* --- C. DYNAMIC FOOTER & ACTION BUTTONS --- */
@@ -365,44 +363,42 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* When workspace is active, the footer adapts its content */
-#imfpa-modal.workspace-active .synthesis-button-container {
+/* The execution suite is part of the default view but is hidden until synthesis is complete. */
+/* This is controlled by adding/removing the 'synthesis-complete' class on the modal itself. */
+.execution-suite-container {
+    display: none; /* Hidden by default */
+}
+#imfpa-modal.synthesis-complete .synthesis-button-container {
     display: none; /* Hide the initial "Synthesize" button */
 }
-#imfpa-modal:not(.workspace-active) .execution-suite-container {
-    display: none; /* Hide the "Sign" and "Dispatch" buttons initially */
+#imfpa-modal.synthesis-complete .execution-suite-container {
+    display: block; /* Show the "Sign" and "Dispatch" buttons */
 }
 
-/* --- D. ADAPTIVE MOBILE VIEW --- */
+/* --- D. SEVERELY GUIDED ADAPTIVE MOBILE VIEW (STACKED) --- */
 @media (max-width: 1023px) {
-    /* On mobile, the workspace is always a single, stacked column */
-    #imfpa-modal.workspace-active .imfpa-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-    
-    /* The preview column stacks BELOW the editor column on mobile */
-    #imfpa-modal.workspace-active .imfpa-preview-column {
-        display: flex; /* Ensure it's visible on mobile when active */
-        margin-top: 2rem; /* Add space between editor and preview */
+    .imfpa-preview-column {
+        /* Add clear separation between the editor and the preview when they stack vertically */
+        margin-top: 2rem; 
     }
 }
 
-/* --- E. AESTHETICS & TRANSITIONS --- */
+/* --- E. PINNACLE AESTHETICS & PREVIEW STYLING --- */
+/* The scrollable wrapper for the live document preview */
 #contract-document-wrapper {
-    /* Enhance the preview wrapper */
-    background: #f8fafc;
+    background: #f8fafc; /* A clean, paper-like background */
     border-radius: 1rem;
-    padding: 0.5rem; /* Padding around the document itself */
-    flex-grow: 1;
-    overflow-y: auto;
+    padding: 0.5rem; /* Padding around the virtual document */
+    flex-grow: 1; /* Allow it to take all available vertical space */
+    overflow-y: auto; /* Enable vertical scrolling */
     box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
     border: 1px solid var(--premium-border);
 }
 
+/* The virtual "A4 paper" document itself */
 .contract-document {
-    /* Styling for the virtual "paper" */
     font-family: 'Garamond', 'Times New Roman', serif;
-    font-size: 10pt; /* Slightly smaller for screen preview */
+    font-size: 10pt; /* Optimized for on-screen readability */
     line-height: 1.5;
     color: #1a202c;
     background: white;
@@ -410,7 +406,22 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
     margin: 0 auto;
     width: 100%;
     min-height: 29.7cm; /* A4 aspect ratio */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); /* A subtle drop shadow for depth */
+}
+
+/* Initial placeholder for the preview area before data is sufficient */
+#contract-live-preview-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    border: 2px dashed var(--premium-border);
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--premium-text-secondary);
+    transition: opacity 0.3s ease;
 }
     </style>
 </head>
@@ -1538,37 +1549,34 @@ togglePricingConfig: () => {
 
 // --- A. SEVERELY OVERHAULED LOGIC ---
             openImfpaModal: () => {
-                const modal = document.getElementById('imfpa-modal');
-                if (!modal) return console.error("CRITICAL: IMFPA modal container not found.");
-                if (AppState.modeler.legal.agreementType === undefined) AppState.modeler.legal.agreementType = 'IMFPA';
-                if (AppState.modeler.legal.autoBalance === undefined) AppState.modeler.legal.autoBalance = true;
-                modal.innerHTML = UI.renderImfpaModal();
-                Logic.refreshImfpaModalUI();
-                Logic.updateSynthesizeButtonState(); // <-- ADD THIS LINE AT THE END
-                modal.showModal();
-            },
+    const modal = document.getElementById('imfpa-modal');
+    if (!modal) return;
+    modal.innerHTML = UI.renderImfpaModal(); // Renders the new dual-column structure
+    Logic.refreshImfpaModalUI(); // Populates it with content
+    modal.showModal();
+},
             refreshImfpaModalUI: () => {
-    // Step 1: Re-render the primary dynamic content: the group and party cards.
-    // This function now intelligently handles both IMFPA and NCNDA modes.
-    UI.renderImfpaGroups();
+    // This function's core job is to re-render the editor panel's content
+    const editorColumn = document.querySelector('.imfpa-editor-column');
+    if (editorColumn) {
+        editorColumn.innerHTML = UI.renderImfpaEditorContent(); // Use new helper function
+    }
 
-    // Step 2: Re-bind event listeners to the modal container. This ensures that
-    // newly rendered input fields are immediately interactive.
+    // Re-bind event listeners after re-rendering
     const modalContent = document.getElementById('imfpa-modal');
-    if (modalContent) {
-        // A robust method to ensure listeners are not duplicated.
+    if (modalContent) { 
         modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
         modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
         modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
-        modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
+        modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal); 
     }
 
-    // Step 3: Run all necessary recalculations and validation checks.
-    // The order of these calls is critical for a smooth UI update.
-    Logic.updateImfpaCalculations();      // Recalculates percentages and monetary values.
-    Logic.updateContractPreview();        // Updates the live document preview on the right.
-    Logic.updateSynthesizeButtonState();  // Validates all data and updates the main action button's state and color.
+    // Run all necessary updates
+    Logic.updateImfpaCalculations(); 
+    Logic.updateContractPreview(); 
+    Logic.updateSynthesizeButtonState();
 },
+
             handleModelerInputChangeInModal: (e) => {
                 Logic.handleModelerInputChange(e);
                 Logic.updateImfpaCalculations();
@@ -1649,21 +1657,21 @@ togglePricingConfig: () => {
                 });
             },
             updateContractPreview: () => {
-    // This function now intelligently decides whether to show a simple preview
-    // or the full, live-updating document based on workspace mode.
-    const modal = document.getElementById('imfpa-modal');
-    if (modal && modal.classList.contains('workspace-active')) {
-        // If workspace is active, re-render the FULL document on every change.
-        Logic.generateContract();
+    // This function now exclusively handles the live preview.
+    const documentWrapper = document.getElementById('contract-document-wrapper');
+    if (!documentWrapper) return;
+    
+    // Check if data is sufficient to render a preview.
+    if (Logic.validateImfpaData()) {
+        const { legal } = AppState.modeler;
+        const agreementReference = `GECAN-${legal.agreementType}-... (Live Preview)`;
+        document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
+        documentWrapper.innerHTML = UI.renderContractDocument(agreementReference);
     } else {
-        // Otherwise, just show the simple text preview.
-        const previewContainer = document.getElementById('contract-live-preview');
-        if (previewContainer) {
-            previewContainer.innerHTML = UI.renderContractPreview(AppState.modeler.legal, Logic.calculateModel());
-        }
+        // If data is incomplete, show the placeholder.
+        documentWrapper.innerHTML = UI.renderContractPreviewPlaceholder();
     }
 },
-
             // ADD THIS NEW FUNCTION to the Logic object
 activateWorkspaceMode: () => {
     const modal = document.getElementById('imfpa-modal');
@@ -1829,23 +1837,53 @@ addImfpaParty: (groupIndex) => {
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
             togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
 generateContract: () => {
-    // This function is now simplified. Its ONLY job is to render the document HTML.
-    // The validation and UI transformations are handled by activateWorkspaceMode.
-    const { legal } = AppState.modeler;
-    const agreementReference = `GECAN-${legal.agreementType}-${Date.now()}`;
-    document.documentElement.style.setProperty('--agreement-reference', `"${agreementReference}"`);
-
-    const contractHTML = UI.renderContractDocument(agreementReference);
-
-    const documentWrapper = document.getElementById('contract-document-wrapper');
-    const printContainer = document.getElementById('print-area');
-
-    if (documentWrapper && printContainer) {
-        documentWrapper.innerHTML = contractHTML;
-        printContainer.innerHTML = contractHTML;
-    } else {
-        console.error("CRITICAL FAILURE: #contract-document-wrapper or #print-area not found.");
+    // This function is now the FINAL step that LOCKS the preview and shows execution buttons.
+    if (!Logic.validateImfpaData()) {
+        Utils.showNotification("Cannot finalize. Please ensure all required fields (*) are complete.", 'error');
+        return;
     }
+
+    const modal = document.getElementById('imfpa-modal');
+    const footerSuiteContainer = document.getElementById('execution-suite-footer');
+    const printContainer = document.getElementById('print-area');
+    const finalHtml = document.querySelector('#contract-document-wrapper .contract-document')?.outerHTML;
+
+    if (!modal || !footerSuiteContainer || !finalHtml || !printContainer) {
+        Utils.showNotification("A critical UI error occurred.", 'error');
+        return;
+    }
+
+    // 1. Lock the document in the print area.
+    printContainer.innerHTML = finalHtml;
+    
+    // 2. Add class to the modal to trigger CSS changes (hide synthesize button, show execution suite).
+    modal.classList.add('synthesis-complete');
+
+    // 3. Render the final execution suite in the footer.
+    footerSuiteContainer.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <button class="btn-secondary w-full py-2" onclick="Logic.unlockWorkspace()">
+                <i class="fas fa-edit mr-2"></i>Back to Editor
+            </button>
+            <button id="launch-signing-btn" class="execution-btn step-1 w-full" onclick="Logic.initiateSigningProcess()">
+                <i class="fas fa-pen-fancy mr-2"></i>Launch Signature Suite
+            </button>
+            <button id="send-for-signature-btn" class="execution-btn step-2 w-full opacity-50 pointer-events-none" onclick="Logic.sendForSignature()">
+                <i class="fas fa-paper-plane mr-2"></i>Lock & Dispatch
+            </button>
+        </div>
+    `;
+
+    Utils.showNotification("Document Synthesized & Finalized for Execution.", 'success', 'Synthesis Complete');
+},
+
+            // ADD THIS NEW, CRITICAL "UNLOCK" FUNCTION to your Logic object
+unlockWorkspace: () => {
+    const modal = document.getElementById('imfpa-modal');
+    if (modal) {
+        modal.classList.remove('synthesis-complete');
+    }
+    Utils.showNotification("Workspace unlocked. You can now continue editing.", 'info', 'Editor Mode');
 },
 
 
@@ -2653,14 +2691,14 @@ renderYieldGraph: (calc) => {
     const { legal } = AppState.modeler;
     const isImfpa = legal.agreementType === 'IMFPA';
     
-    // --- Pinnacle Grade Validation & Button Logic ---
+    // --- Pinnacle Grade Validation & Button Logic (Synthesized) ---
     const isReadyToSynthesize = Logic.validateImfpaData();
     const synthesizeButtonClass = isReadyToSynthesize 
         ? 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow'
         : 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed';
     const synthesizeButtonText = isReadyToSynthesize 
-        ? 'Activate Interactive Workspace' 
-        : 'Complete Core Details (*) to Activate';
+        ? 'Synthesize & Finalize Document' 
+        : 'Complete Core Details (*) to Synthesize';
 
     return `
         <div class="dialog-content-wrapper">
@@ -2672,7 +2710,7 @@ renderYieldGraph: (calc) => {
                     <div class="flex justify-between items-start mb-4 imfpa-header print-hide">
                         <div>
                             <h2 class="text-3xl font-bold">Interactive Contract Workspace</h2>
-                            <p class="text-premium-text-secondary">Edit details and preview the legal document in real-time.</p>
+                            <p class="text-premium-text-secondary">Edit details on the left and preview the legal document on the right.</p>
                         </div>
                         <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
                     </div>
@@ -2684,68 +2722,42 @@ renderYieldGraph: (calc) => {
                 </div>
 
                 <!-- ========================================================= -->
-                <!-- === RE-ARCHITECTED DUAL-COLUMN WORKSPACE GRID === -->
+                <!-- === DUAL-COLUMN WORKSPACE GRID (DEFAULT VIEW) === -->
                 <!-- ========================================================= -->
                 <div class="imfpa-grid flex-grow overflow-hidden gap-8">
                     
                     <!-- LEFT COLUMN: EDITOR PANEL -->
                     <div class="imfpa-editor-column overflow-y-auto pr-4">
-                        <!-- Commission Allocation (IMFPA ONLY) -->
-                        <div id="commission-allocation-section" class="space-y-6 mb-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}">
-                            <div class="flex justify-between items-center">
-                                <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3>
-                                <div class="text-right">
-                                    <p class="text-xs text-premium-text-secondary">Total Pool</p>
-                                    <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure"></p>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button>
-                                <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold">
-                                    <label for="auto-balance-toggle">Auto-Balance</label>
-                                </div>
-                                <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
-                            </div>
-                            <div class="space-y-4" id="imfpa-groups-container"></div>
-                        </div>
-                        
-                        <!-- Signatory Parties (ALWAYS VISIBLE) -->
-                        <div class="space-y-6 mb-6">
-                             <h3 class="imfpa-section-title"><i class="fas fa-users mr-3"></i>Signatory Parties</h3>
-                             <div id="imfpa-controls" class="flex justify-between items-center ${isImfpa ? 'hidden' : 'flex'}">
-                                 <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Signatory Party</button>
-                             </div>
-                             <div class="space-y-4" id="ncnda-parties-container"></div>
-                        </div>
-
-                        <!-- Legal Framework (ALWAYS VISIBLE) -->
-                        <div class="space-y-6">
-                            <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced SPA (Optional)</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
-                        </div>
+                        <!-- Content is rendered dynamically by the superior refreshImfpaModalUI -> renderImfpaEditorContent workflow -->
                     </div>
 
                     <!-- RIGHT COLUMN: DOCUMENT PREVIEW PANEL -->
                     <div class="imfpa-preview-column">
                         <h3 class="imfpa-section-title flex-shrink-0"><i class="fas fa-file-alt mr-3"></i>Live Document Preview</h3>
-                        <div id="contract-document-wrapper" class="flex-grow">
-                            <!-- Live contract document will be rendered here -->
+                        <div id="contract-document-wrapper">
+                            <div id="contract-live-preview-placeholder">
+                                <i class="fas fa-file-invoice-dollar fa-3x mb-4 text-premium-text-secondary/50"></i>
+                                <h4 class="font-bold text-premium-text-primary">Document Preview</h4>
+                                <p class="text-sm mt-2">The live contract preview will appear here once all required fields (*) on the left are completed.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- ========================================================= -->
-                <!-- === DYNAMIC FOOTER & ACTION BUTTONS === -->
+                <!-- === DYNAMIC FOOTER & ACTION BUTTONS (SYNTHESIZED LOGIC) === -->
                 <!-- ========================================================= -->
                 <div class="imfpa-footer pt-6 border-t border-premium-border mt-auto print-hide flex-shrink-0">
+                    <!-- This container holds the button for the initial state -->
                     <div class="synthesis-button-container">
-                         <button id="synthesize-btn" onclick="Logic.activateWorkspaceMode()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r ${synthesizeButtonClass}" ${!isReadyToSynthesize ? 'disabled' : ''}>
+                         <button id="synthesize-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r ${synthesizeButtonClass}" ${!isReadyToSynthesize ? 'disabled' : ''}>
                              <i class="fas fa-wand-magic-sparkles mr-2"></i>${synthesizeButtonText}
                          </button>
                     </div>
-                    <div class="execution-suite-container" id="execution-suite-footer"></div>
+                    <!-- This container holds the buttons for the finalized state -->
+                    <div class="execution-suite-container" id="execution-suite-footer">
+                        <!-- Execution buttons (Back to Editor, Sign, Dispatch) appear here after synthesis -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -3004,6 +3016,50 @@ renderContractPreview: (legal, calc) => {
         const commissionSummary = isImfpa ? `<p class="preview-p">The Parties acknowledge a total commission pool of <span class="preview-strong">${Utils.formatPrice(legal.totalCommission)}</span> to be distributed as per the configured allocation schedule.</p>` : '';
         return `<h1 class="preview-h1">${title}</h1><p class="preview-p"><span class="preview-strong">Reference:</span> GECAN-${legal.agreementType}-... (provisional)</p><p class="preview-p"><span class="preview-strong">Date:</span> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><p class="preview-p"><span class="preview-strong">Signatory Parties (${allParties.length}):</span> ${allParties.length > 0 ? `This agreement is entered into by and between ${allParties.map(p => p.legalName || '[Unnamed Party]').join(', ')}.` : 'Awaiting party details.'}</p>${commissionSummary}<p class="preview-p"><span class="preview-strong">Governing Law:</span> This Agreement shall be governed by the laws of ${legal.jurisdiction || '[Not Specified]'}.</p>`;
     },
+
+    // ADD THIS NEW FUNCTION to the UI object
+renderImfpaEditorContent: () => {
+    const { legal } = AppState.modeler;
+    const isImfpa = legal.agreementType === 'IMFPA';
+    const mainSectionTitle = isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties';
+    const mainSectionIcon = isImfpa ? 'fa-sitemap' : 'fa-users';
+
+    return `
+        <div class="space-y-6">
+            <!-- Commission Allocation (IMFPA ONLY) -->
+            <div id="commission-allocation-section" class="space-y-6 mb-6 ${isImfpa ? '' : 'hidden'}">
+                 <div class="flex justify-between items-center"><h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3><div class="text-right"><p class="text-xs text-premium-text-secondary">Total Pool</p><p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure"></p></div></div>
+                 <div class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Group</button><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div>
+                 <div class="space-y-4" id="imfpa-groups-container"></div>
+            </div>
+            
+            <!-- Signatory Parties (ALWAYS VISIBLE) -->
+            <div class="space-y-6 mb-6">
+                 <h3 class="imfpa-section-title"><i class="fas ${mainSectionIcon} mr-3"></i>${mainSectionTitle}</h3>
+                 <div id="imfpa-controls" class="flex justify-between items-center ${isImfpa ? 'hidden' : 'flex'}"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>Add Signatory Party</button></div>
+                 <div class="space-y-4" id="ncnda-parties-container"></div>
+            </div>
+
+            <!-- Legal Framework (ALWAYS VISIBLE) -->
+            <div class="space-y-6">
+                <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
+                <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
+                <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced SPA (Optional)</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
+            </div>
+        </div>
+    `;
+},
+
+// ADD THIS NEW FUNCTION to the UI object
+renderContractPreviewPlaceholder: () => {
+    return `
+        <div id="contract-live-preview-placeholder">
+            <i class="fas fa-file-invoice-dollar fa-3x mb-4 text-premium-text-secondary/50"></i>
+            <h4 class="font-bold text-premium-text-primary">Document Preview</h4>
+            <p class="text-sm mt-2">The live contract preview will appear here once all required fields (*) on the left are completed and you click "Synthesize".</p>
+        </div>
+    `;
+},
     
 
     // --- DYNAMIC MODAL RENDERERS ---
