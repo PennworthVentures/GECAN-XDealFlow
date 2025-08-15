@@ -20,6 +20,24 @@
     <!-- === DEFINITIVE PINNACLE CSS (v41.0 - Unification & Severe Upgrade) === -->
     <!-- ==================================================================================== -->
     <style>
+        /* ========================================================================= */
+/* === PINNACLE KINETIC TRANSITIONS for Toolkit Switching === */
+/* ========================================================================= */
+#active-toolkit-container {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+#active-toolkit-container.transitioning-out {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+}
+
+#active-toolkit-container.transitioning-in {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+    /* The animation back to default is handled by the base class styles */
+}
+        
         /* --- A. CORE THEME & VARIABLES (FROM INDEX.HTML BENCHMARK) --- */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
@@ -387,29 +405,119 @@
             }
         },
         renderToolkitMenu: () => {
-            const menuContainer = document.getElementById('toolkit-menu');
-            if (!menuContainer) return;
-            menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
-                const isActive = AppState.activeToolkit === t.id;
-                return `
-                <button onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('click');" onmouseover="SFX.play('hover')" class="nav-btn w-full text-left p-4 !rounded-xl group ${isActive ? 'active' : ''}">
-                    <div class="nav-icon-wrapper !w-12 !h-12">
-                        <div class="nav-icon-flipper">
-                            <div class="nav-icon-face nav-icon-front w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg group-hover:scale-110 transition-transform"><i class="fas ${t.icon}"></i></div>
-                            <div class="nav-icon-face nav-icon-back w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg" style="text-shadow: 0 0 15px rgba(255,255,255,0.8);"><i class="fas ${t.icon}"></i></div>
+    const menuContainer = document.getElementById('toolkit-menu');
+    if (!menuContainer) return;
+
+    menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
+        const isActive = AppState.activeToolkit === t.id;
+        
+        // This HTML structure is severely upgraded to mirror the complex, multi-layered
+        // component style of the index.html benchmark for maximum visual fidelity.
+        return `
+            <!-- TOOLKIT BUTTON: SEVERE UPGRADE - Pinnacle Grade Component -->
+            <button 
+                onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('click');" 
+                onmouseover="SFX.play('hover')"
+                class="nav-btn w-full text-left p-4 !rounded-xl group relative ${isActive ? 'active' : ''}"
+                style="perspective: 800px;"
+            >
+                <!-- NEW: Active State Indicator Bar (Animated) -->
+                <div class="absolute left-0 top-1/4 bottom-1/4 w-1.5 bg-[var(--gradient-primary)] rounded-r-full transition-all duration-500 ease-in-out shadow-lg shadow-[var(--glow-azure)] ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}"></div>
+
+                <!-- 3D Icon Flipper (Benchmark Standard) -->
+                <div class="nav-icon-wrapper !w-12 !h-12 ml-2">
+                    <div class="nav-icon-flipper">
+                        <!-- Front Face: Standard Icon -->
+                        <div class="nav-icon-face nav-icon-front w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas ${t.icon}"></i>
+                        </div>
+                        <!-- Back Face: Glowing Icon on Hover (Pinnacle Aesthetic) -->
+                        <div class="nav-icon-face nav-icon-back w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg" style="text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6);">
+                            <i class="fas ${t.icon}"></i>
                         </div>
                     </div>
-                    <div class="flex-1"><div class="font-semibold text-base">${t.name}</div><div class="text-xs opacity-75 mt-1">${t.description.split('.')[0]}</div></div>
-                    <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-opacity ml-auto"></i>
-                </button>`;
-            }).join('');
-        },
+                </div>
+
+                <!-- Text Content with 3D Depth -->
+                <div class="flex-1 transition-transform duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);">
+                    <div class="font-semibold text-base">${t.name}</div>
+                    <div class="text-xs opacity-75 mt-1">${t.description.split('.')[0]}</div>
+                </div>
+
+                <!-- Chevron Indicator with Kinetic Hover Effect -->
+                <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);"></i>
+            </button>`;
+    }).join('');
+},
         renderActiveToolkit: () => {
-            const container = document.getElementById('active-toolkit-container');
+    const container = document.getElementById('active-toolkit-container');
+    if (!container) {
+        console.error("CRITICAL RENDER FAILURE: #active-toolkit-container not found in DOM.");
+        return;
+    }
+
+    // --- 1. CINEMATIC TRANSITION: Fade Out Existing Content ---
+    // Instead of instantly replacing the HTML, we first apply a class to gracefully
+    // fade out the current toolkit, providing a smooth visual transition.
+    container.classList.add('transitioning-out');
+
+    // After the fade-out animation completes (300ms), we perform the DOM update.
+    setTimeout(() => {
+        try {
+            // --- 2. DYNAMIC CONTENT RENDERING ---
+            // Determine which specific UI rendering function to call based on the active toolkit state.
             const renderFunc = UI[`render${AppState.activeToolkit}UI`];
-            if (renderFunc) { container.innerHTML = renderFunc(); container.classList.remove('hidden'); Logic.bindActiveToolkitEvents(); }
-            UI.renderToolkitMenu();
-        },
+
+            if (typeof renderFunc === 'function') {
+                // If a valid renderer exists, generate the new HTML.
+                const newToolkitHTML = renderFunc();
+                // Replace the container's content with the newly generated toolkit UI.
+                container.innerHTML = newToolkitHTML;
+
+                // --- 3. BIND DYNAMIC EVENT LISTENERS ---
+                // It is critical to re-bind events *after* the new HTML is in the DOM.
+                Logic.bindActiveToolkitEvents();
+            } else {
+                // --- 4. ROBUST ERROR HANDLING (PINNACLE STANDARD) ---
+                // If a rendering function is missing for a toolkit, display a premium,
+                // user-friendly error message instead of failing silently or breaking the page.
+                const errorMessage = `
+                    <div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up bg-[var(--background-glass)] rounded-2xl border border-[var(--error-color)]">
+                        <div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50 relative">
+                            <i class="fas fa-exclamation-triangle fa-3x text-red-500" style="text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);"></i>
+                            <div class="absolute inset-0 rounded-full animate-ping bg-red-500 opacity-25"></div>
+                        </div>
+                        <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Render Engine Error</h3>
+                        <p class="text-[var(--text-silver)] max-w-md leading-relaxed">
+                            The UI rendering function for the '${AppState.activeToolkit}' toolkit could not be found. This module may be under development or a script error has occurred.
+                        </p>
+                    </div>`;
+                container.innerHTML = errorMessage;
+                SFX.play('error'); // Provide audio feedback for the error state.
+            }
+        } catch (error) {
+            console.error(`Fatal error during rendering of '${AppState.activeToolkit}':`, error);
+            // Display a critical failure message if the render function itself throws an error.
+            container.innerHTML = `<div class="text-center p-8 text-error-color"><h3>A critical error occurred while rendering this toolkit.</h3><p class="text-sm">${error.message}</p></div>`;
+        } finally {
+            // --- 5. CINEMATIC TRANSITION: Fade In New Content ---
+            // Remove the 'transitioning-out' class and add 'transitioning-in' to
+            // trigger the fade-in animation, revealing the new content smoothly.
+            container.classList.remove('hidden', 'transitioning-out');
+            container.classList.add('transitioning-in');
+
+            // Clean up the animation class after it completes to keep the DOM clean.
+            setTimeout(() => {
+                container.classList.remove('transitioning-in');
+            }, 300);
+        }
+    }, 300); // This timeout duration must match the CSS transition duration.
+
+    // --- 6. STATIC UI REFRESH ---
+    // The toolkit menu is outside the main container and can be re-rendered immediately
+    // to instantly reflect the active state change.
+    UI.renderToolkitMenu();
+},
         renderDashboardUI: () => {
             const colorMap = {
                 'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' }, 'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
