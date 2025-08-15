@@ -1481,6 +1481,7 @@ togglePricingConfig: () => {
                 Logic.handleModelerInputChange(e);
                 Logic.updateImfpaCalculations();
                 Logic.updateContractPreview();
+                Logic.updateSynthesizeButtonState(); // <-- ADD THIS LINE
             },
             toggleAgreementType: (isImfpa) => {
                 AppState.modeler.legal.agreementType = isImfpa ? 'IMFPA' : 'NCNDA';
@@ -1490,6 +1491,7 @@ togglePricingConfig: () => {
                 labels[0].classList.toggle('active', !isImfpa); labels[0].classList.toggle('text-gray-500', isImfpa);
                 labels[1].classList.toggle('active', isImfpa); labels[1].classList.toggle('text-gray-500', !isImfpa);
                 Logic.updateContractPreview();
+                Logic.updateSynthesizeButtonState(); // <-- ADD THIS LINE
             },
             updateImfpaCalculations: () => {
                 const { legal } = AppState.modeler;
@@ -1560,9 +1562,103 @@ togglePricingConfig: () => {
                 const calc = Logic.calculateModel();
                 previewContainer.innerHTML = UI.renderContractPreview(AppState.modeler.legal, calc);
             },
+
+            // Add this new function inside the `Logic` object
+validateImfpaData: () => {
+    const { legal } = AppState.modeler;
+    const allParties = legal.groups.flatMap(g => g.parties);
+    const isImfpa = legal.agreementType === 'IMFPA';
+
+    // Rule 1: Must have a jurisdiction
+    if (!legal.jurisdiction) return false;
+
+    // Rule 2: Must have at least two parties
+    if (allParties.length < 2) return false;
+
+    // Rule 3: All parties must have critical details
+    const allDetailsComplete = allParties.every(p => 
+        p.legalName && p.role && p.email && p.contactNumber && p.passport?.number && p.payment?.details
+    );
+    if (!allDetailsComplete) return false;
+
+    // Rule 4: If IMFPA, check commission allocations
+    if (isImfpa) {
+        if (legal.groups.length === 0) return false;
+        const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
+        if (Math.abs(totalGroupPct - 100) > 0.01) return false;
+
+        for (const group of legal.groups) {
+            if (group.parties.length === 0) return false; // Each group must have parties
+            const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+            if (Math.abs(totalPartyPct - 100) > 0.01) return false;
+        }
+    }
+
+    // If all checks pass, the data is valid
+    return true;
+},
+
+// Add this new function inside the `Logic` object
+updateSynthesizeButtonState: () => {
+    const isReady = Logic.validateImfpaData();
+    const btn = document.getElementById('synthesize-btn');
+    if (!btn) return;
+
+    btn.disabled = !isReady;
+    btn.innerHTML = `<i class="fas fa-file-signature mr-2"></i>${isReady ? 'Synthesize & Preview Full Document' : 'Complete All Required Fields (*)'}`;
+    
+    // Dynamically change the button's class for a premium color shift
+    const readyClass = 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow';
+    const incompleteClass = 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed';
+    
+    // Remove old classes before adding new ones
+    btn.classList.remove(...readyClass.split(' '), ...incompleteClass.split(' '));
+    btn.classList.add(...(isReady ? readyClass : incompleteClass).split(' '));
+},
+            
             addImfpaGroup: () => { AppState.modeler.legal.groups.push({ name: `Group ${AppState.modeler.legal.groups.length + 1}`, percentage: 0, parties: [] }); Logic.refreshImfpaModalUI(); },
             removeImfpaGroup: (groupIndex) => { AppState.modeler.legal.groups.splice(groupIndex, 1); Logic.refreshImfpaModalUI(); },
-            addImfpaParty: (groupIndex) => { if (!AppState.modeler.legal.groups[groupIndex]) return; AppState.modeler.legal.groups[groupIndex].parties.push({ legalName: `New Party`, role: 'Intermediary', percentage: 0, detailsVisible: true, email: '', contactNumber: '', passport: { number: '', issueDate: '', expiryDate: '', authority: '' }, payment: { method: 'Bank Wire', currency: 'USD', details: '' } }); Logic.refreshImfpaModalUI(); },
+            /**
+ * Adds a new party to the agreement.
+ * Pinnacle-Grade Logic: Intelligently handles both IMFPA (adds to a specific group)
+ * and NCNDA (adds to the master signatory list) modes.
+ * It sets 'detailsVisible' to true by default to immediately guide the user.
+ * @param {number} groupIndex - The index of the group to add the party to. In NCNDA mode, this is always 0.
+ */
+addImfpaParty: (groupIndex) => {
+    // Military-Grade Safeguard: Ensure the target group exists before proceeding.
+    if (!AppState.modeler.legal.groups[groupIndex]) {
+        console.error(`Pinnacle Engine Error: Attempted to add party to non-existent group index ${groupIndex}.`);
+        return;
+    }
+
+    // Define the pristine, default state for a new party.
+    const newPartyTemplate = {
+        legalName: `New Party`,
+        role: 'Intermediary',
+        percentage: 0,
+        detailsVisible: true, // SEVERELY GUIDED UX: Auto-expand details for a new party.
+        email: '',
+        contactNumber: '',
+        passport: {
+            number: '',
+            issueDate: '',
+            expiryDate: '',
+            authority: ''
+        },
+        payment: {
+            method: 'Bank Wire',
+            currency: 'USD',
+            details: ''
+        }
+    };
+
+    // Add the new party to the specified group's `parties` array.
+    AppState.modeler.legal.groups[groupIndex].parties.push(newPartyTemplate);
+    
+    // Trigger a full UI refresh of the modal to render the new party card and update all counters and validation states.
+    Logic.refreshImfpaModalUI();
+},
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
             togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
             generateContract: () => {
@@ -2427,17 +2523,21 @@ renderYieldGraph: (calc) => {
     renderImfpaModal: () => {
     const { legal } = AppState.modeler;
     const isImfpa = legal.agreementType === 'IMFPA';
-
-    // --- DYNAMIC, CONTEXT-AWARE TITLES (PINNACLE UX) ---
     const mainSectionTitle = isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties';
     const mainSectionIcon = isImfpa ? 'fa-sitemap' : 'fa-users';
+
+    // --- MILITARY-GRADE FINAL VALIDATION CHECK (NEW) ---
+    const isReadyToSynthesize = Logic.validateImfpaData();
+    const synthesizeButtonClass = isReadyToSynthesize 
+        ? 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow' // Ready State (Premium Gold)
+        : 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed'; // Incomplete State (Muted Gray)
+    const synthesizeButtonText = isReadyToSynthesize 
+        ? 'Synthesize & Preview Full Document' 
+        : 'Complete All Required Fields';
 
     return `
         <div class="dialog-content-wrapper">
             <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
-                <!-- ========================================================= -->
-                <!-- === PINNACLE HEADER & 3D AGREEMENT TOGGLE === -->
-                <!-- ========================================================= -->
                 <div class="flex justify-between items-start mb-4 imfpa-header print-hide">
                     <div>
                         <h2 class="text-3xl font-bold">Commission & Contract Suite</h2>
@@ -2447,42 +2547,22 @@ renderYieldGraph: (calc) => {
                 </div>
                 <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
                     <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
-                    <label class="agreement-toggle">
-                        <div class="toggle-switch">
-                            <input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}>
-                            <span class="toggle-slider"></span>
-                        </div>
-                    </label>
+                    <label class="agreement-toggle"><div class="toggle-switch"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}><span class="toggle-slider"></span></div></label>
                     <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
                 </div>
 
-                <!-- ========================================================= -->
-                <!-- === MAIN 2-COLUMN LAYOUT (SEVERELY GUIDED WORKFLOW) === -->
-                <!-- ========================================================= -->
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2">
-                    
-                    <!-- LEFT COLUMN: DYNAMIC CONTENT (lg:col-span-3) -->
                     <div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4">
-                        
-                        <!-- DYNAMIC SECTION: Changes based on Agreement Type -->
                         <div class="space-y-6">
                             <div class="flex justify-between items-center">
                                 <h3 class="imfpa-section-title"><i class="fas ${mainSectionIcon} mr-3"></i>${mainSectionTitle}</h3>
-                                <!-- Commission Pool Display (Only for IMFPA) -->
                                 <div class="text-right ${isImfpa ? 'block' : 'hidden'}">
                                     <p class="text-xs text-premium-text-secondary">Total Pool</p>
                                     <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
                                 </div>
                             </div>
-                            
-                            <!-- Party/Group Management Controls -->
                             <div id="imfpa-controls" class="flex justify-between items-center">
-                                <!-- "Add Party/Group" button text is now dynamic -->
-                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg">
-                                    <i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory Party'}
-                                </button>
-                                
-                                <!-- Auto-Balance & Total % (Only for IMFPA) -->
+                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory Party'}</button>
                                 <div class="flex items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}">
                                     <div class="flex items-center gap-2 text-xs">
                                         <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold">
@@ -2491,17 +2571,12 @@ renderYieldGraph: (calc) => {
                                     <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
                                 </div>
                             </div>
-
-                            <div class="space-y-4" id="imfpa-groups-container">
-                                <!-- Groups/Parties will be rendered here by JavaScript -->
-                            </div>
+                            <div class="space-y-4" id="imfpa-groups-container"></div>
                         </div>
-
-                        <!-- Legal Framework Section (Always Visible) -->
                         <div class="space-y-6">
                             <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
-                             <div class="bg-black/20 p-4 rounded-lg">
-                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction</label>
+                            <div class="bg-black/20 p-4 rounded-lg">
+                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label>
                                 <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales">
                             </div>
                             <div class="bg-black/20 p-4 rounded-lg">
@@ -2510,20 +2585,15 @@ renderYieldGraph: (calc) => {
                             </div>
                         </div>
                     </div>
-
-                    <!-- RIGHT COLUMN: DEDICATED LIVE PREVIEW (lg:col-span-2) -->
                     <div class="lg:col-span-2">
                         <h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
-                        <div id="contract-live-preview" class="h-full">
-                            <!-- Live preview will be rendered here by JavaScript -->
-                        </div>
+                        <div id="contract-live-preview" class="h-full"></div>
                     </div>
                 </div>
                 
-                <!-- PINNACLE FOOTER & ACTION BUTTON -->
                 <div class="pt-6 border-t border-premium-border mt-auto print-hide">
-                    <button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow">
-                        <i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Full Document
+                    <button id="synthesize-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r ${synthesizeButtonClass}" ${!isReadyToSynthesize ? 'disabled' : ''}>
+                        <i class="fas fa-file-signature mr-2"></i>${synthesizeButtonText}
                     </button>
                     <div id="contract-preview-container" class="mt-4 hidden"></div>
                 </div>
@@ -2543,8 +2613,15 @@ renderImfpaGroups: () => {
         }
         return groups.map((g, groupIndex) => `
             <div class="allocation-group-card p-4">
+                <!-- ========================================================= -->
+                <!-- === PINNACLE GROUP HEADER w/ REAL-TIME PARTY COUNTER === -->
+                <!-- ========================================================= -->
                 <div class="flex items-center gap-2 mb-3">
                     <input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-premium-text-primary" placeholder="Group Name">
+                    <!-- REAL-TIME PARTY COUNTER -->
+                    <span class="text-xs font-mono text-premium-text-secondary bg-black/20 px-2 py-1 rounded-md flex-shrink-0">
+                        ${g.parties.length} ${g.parties.length === 1 ? 'Party' : 'Parties'}
+                    </span>
                     <div class="relative w-32 flex-shrink-0"><input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div>
                     <button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex-shrink-0 flex items-center justify-center transition-colors duration-300 rounded-full hover:bg-red-500/10">×</button>
                 </div>
@@ -2559,24 +2636,15 @@ renderImfpaGroups: () => {
             </div>
         `).join('');
     }
-
     // --- B. SEVERELY GUIDED WORKFLOW FOR NCNDA-ONLY MODE ---
-    // In this mode, we treat the first group as the master list of signatories.
-    // The group card itself is hidden, and we only show the party cards.
     else {
-        // Ensure there is at least one "hidden" group to hold the signatories.
         if (!groups || groups.length === 0) {
-            // Silently create the default group if it doesn't exist.
             AppState.modeler.legal.groups.push({ name: 'NCNDA Signatories', percentage: 100, parties: [] });
         }
-        
         const signatoryList = AppState.modeler.legal.groups[0].parties;
-
         if (signatoryList.length === 0) {
             return `<p class="text-center text-premium-text-secondary py-4">No signatory parties defined. Click 'Add Signatory Party' to begin.</p>`;
         }
-        
-        // Render ONLY the party cards, using groupIndex 0.
         return signatoryList.map((p, partyIndex) => UI.renderImfpaParty(0, partyIndex)).join('');
     }
 },
@@ -2585,8 +2653,7 @@ renderImfpaParty: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
 
-    // --- MILITARY-GRADE REAL-TIME VALIDATION ENGINE ---
-    // This logic checks for the presence of critical details without revealing them.
+    // --- MILITARY-GRADE REAL-TIME VALIDATION ENGINE (v2.0) ---
     const hasRequiredDetails = party.email && party.contactNumber && party.passport?.number && party.payment?.details;
     const validationStatus = {
         icon: hasRequiredDetails ? 'fa-check-circle' : 'fa-exclamation-triangle',
@@ -2596,15 +2663,22 @@ renderImfpaParty: (groupIndex, partyIndex) => {
 
     return `
         <div class="allocation-party-card p-3">
-            <!-- ========================================================= -->
-            <!-- === PINNACLE PARTY HEADER (OPTIMIZED FOR ALL SCREENS) === -->
-            <!-- ========================================================= -->
             <div class="flex items-center gap-2">
+                <!-- ========================================================= -->
+                <!-- === PINNACLE PARTY HEADER w/ REAL-TIME VALIDATION BADGE === -->
+                <!-- ========================================================= -->
                 <!-- Legal Name Input (Main Identifier) -->
                 <input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-premium-text-primary" placeholder="Full Legal Name*">
                 
-                <!-- Percentage Input -->
-                <div class="relative w-24 flex-shrink-0">
+                <!-- REAL-TIME VALIDATION BADGE (NEW) -->
+                ${!hasRequiredDetails ? `
+                    <span class="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-1 rounded-md flex-shrink-0 animate-pulse">
+                        INCOMPLETE
+                    </span>
+                ` : ''}
+
+                <!-- Percentage Input (Hidden in NCNDA mode) -->
+                <div class="relative w-24 flex-shrink-0 ${AppState.modeler.legal.agreementType === 'IMFPA' ? 'block' : 'hidden'}">
                     <input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span>
                 </div>
@@ -2613,16 +2687,12 @@ renderImfpaParty: (groupIndex, partyIndex) => {
                 <button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex-shrink-0 flex items-center justify-center transition-colors duration-300 rounded-full hover:bg-red-500/10">×</button>
             </div>
 
-            <!-- ========================================================= -->
-            <!-- === SEVERELY GUIDED DETAILS MANAGEMENT (NEW WORKFLOW) === -->
-            <!-- ========================================================= -->
             <div class="mt-2 flex justify-between items-center">
-                <!-- Real-Time Validation Indicator -->
+                <!-- Validation Indicator Text -->
                 <div class="flex items-center gap-2 text-xs ${validationStatus.color}">
                     <i class="fas ${validationStatus.icon}"></i>
                     <span>${validationStatus.text}</span>
                 </div>
-
                 <!-- "Manage Details" Toggle Button -->
                 <a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1">
                     <i class="fas fa-user-cog"></i> 
@@ -2630,10 +2700,7 @@ renderImfpaParty: (groupIndex, partyIndex) => {
                     <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i>
                 </a>
             </div>
-
-            <!-- ========================================================= -->
-            <!-- === COLLAPSIBLE DETAILS PANEL (NO AUTO-EXPAND) === -->
-            <!-- ========================================================= -->
+            
             <div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}">
                 <div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div>
             </div>
