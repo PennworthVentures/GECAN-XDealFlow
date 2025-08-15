@@ -536,211 +536,68 @@ input[type="radio"]:checked + .pricing-model-label {
                 particlesJS('particles-js', { "particles": { "number": { "value": 50 }, "color": { "value": ["#0ea5e9", "#6366f1", "#8b5cf6"] }, "opacity": { "value": 0.6, "random": true }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#475569", "opacity": 0.4 }, "move": { "enable": true, "speed": 1, "random": true, "out_mode": "out" } }, "interactivity": { "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } } } });
             }
         },
-        renderToolkitMenu: () => {
-    const menuContainer = document.getElementById('toolkit-menu');
-    if (!menuContainer) return;
-
-    menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
-        const isActive = AppState.activeToolkit === t.id;
-        
-        // This HTML structure is severely upgraded to mirror the complex, multi-layered
-        // component style of the index.html benchmark for maximum visual fidelity.
-        return `
-            <!-- TOOLKIT BUTTON: SEVERE UPGRADE - Pinnacle Grade Component -->
-            <button 
-                onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('click');" 
-                onmouseover="SFX.play('hover')"
-                class="nav-btn w-full text-left p-4 !rounded-xl group relative ${isActive ? 'active' : ''}"
-                style="perspective: 800px;"
-            >
-                <!-- NEW: Active State Indicator Bar (Animated) -->
+    renderToolkitMenu: () => {
+        const menuContainer = document.getElementById('toolkit-menu');
+        if (!menuContainer) return;
+        menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
+            const isActive = AppState.activeToolkit === t.id;
+            return `
+            <button onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('click');" onmouseover="SFX.play('hover')" class="nav-btn w-full text-left p-4 !rounded-xl group relative ${isActive ? 'active' : ''}" style="perspective: 800px;">
                 <div class="absolute left-0 top-1/4 bottom-1/4 w-1.5 bg-[var(--gradient-primary)] rounded-r-full transition-all duration-500 ease-in-out shadow-lg shadow-[var(--glow-azure)] ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}"></div>
-
-                <!-- 3D Icon Flipper (Benchmark Standard) -->
                 <div class="nav-icon-wrapper !w-12 !h-12 ml-2">
                     <div class="nav-icon-flipper">
-                        <!-- Front Face: Standard Icon -->
-                        <div class="nav-icon-face nav-icon-front w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas ${t.icon}"></i>
-                        </div>
-                        <!-- Back Face: Glowing Icon on Hover (Pinnacle Aesthetic) -->
-                        <div class="nav-icon-face nav-icon-back w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg" style="text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6);">
-                            <i class="fas ${t.icon}"></i>
-                        </div>
+                        <div class="nav-icon-face nav-icon-front w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg group-hover:scale-110 transition-transform duration-300"><i class="fas ${t.icon}"></i></div>
+                        <div class="nav-icon-face nav-icon-back w-full h-full rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center text-xl text-white shadow-lg" style="text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 8px rgba(255,255,255,0.6);"><i class="fas ${t.icon}"></i></div>
                     </div>
                 </div>
-
-                <!-- Text Content with 3D Depth -->
-                <div class="flex-1 transition-transform duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);">
-                    <div class="font-semibold text-base">${t.name}</div>
-                    <div class="text-xs opacity-75 mt-1">${t.description.split('.')[0]}</div>
-                </div>
-
-                <!-- Chevron Indicator with Kinetic Hover Effect -->
+                <div class="flex-1 transition-transform duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);"><div class="font-semibold text-base">${t.name}</div><div class="text-xs opacity-75 mt-1">${t.description.split('.')[0]}</div></div>
                 <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" style="transform: translateZ(10px);"></i>
             </button>`;
-    }).join('');
-},
-        renderActiveToolkit: () => {
-    const container = document.getElementById('active-toolkit-container');
-    if (!container) {
-        console.error("CRITICAL RENDER FAILURE: #active-toolkit-container not found in DOM.");
-        return;
-    }
-
-    // --- 1. CINEMATIC TRANSITION: Fade Out Existing Content ---
-    // Instead of instantly replacing the HTML, we first apply a class to gracefully
-    // fade out the current toolkit, providing a smooth visual transition.
-    container.classList.add('transitioning-out');
-
-    // After the fade-out animation completes (300ms), we perform the DOM update.
-    setTimeout(() => {
-        try {
-            // --- 2. DYNAMIC CONTENT RENDERING ---
-            // Determine which specific UI rendering function to call based on the active toolkit state.
-            const renderFunc = UI[`render${AppState.activeToolkit}UI`];
-
-            if (typeof renderFunc === 'function') {
-                // If a valid renderer exists, generate the new HTML.
-                const newToolkitHTML = renderFunc();
-                // Replace the container's content with the newly generated toolkit UI.
-                container.innerHTML = newToolkitHTML;
-
-                // --- 3. BIND DYNAMIC EVENT LISTENERS ---
-                // It is critical to re-bind events *after* the new HTML is in the DOM.
-                Logic.bindActiveToolkitEvents();
-            } else {
-                // --- 4. ROBUST ERROR HANDLING (PINNACLE STANDARD) ---
-                // If a rendering function is missing for a toolkit, display a premium,
-                // user-friendly error message instead of failing silently or breaking the page.
-                const errorMessage = `
-                    <div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up bg-[var(--background-glass)] rounded-2xl border border-[var(--error-color)]">
-                        <div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50 relative">
-                            <i class="fas fa-exclamation-triangle fa-3x text-red-500" style="text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);"></i>
-                            <div class="absolute inset-0 rounded-full animate-ping bg-red-500 opacity-25"></div>
-                        </div>
-                        <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Render Engine Error</h3>
-                        <p class="text-[var(--text-silver)] max-w-md leading-relaxed">
-                            The UI rendering function for the '${AppState.activeToolkit}' toolkit could not be found. This module may be under development or a script error has occurred.
-                        </p>
-                    </div>`;
-                container.innerHTML = errorMessage;
-                SFX.play('error'); // Provide audio feedback for the error state.
+        }).join('');
+    },
+    renderActiveToolkit: () => {
+        const container = document.getElementById('active-toolkit-container');
+        if (!container) return;
+        container.classList.add('transitioning-out');
+        setTimeout(() => {
+            try {
+                const renderFunc = UI[`render${AppState.activeToolkit}UI`];
+                if (typeof renderFunc === 'function') {
+                    container.innerHTML = renderFunc();
+                    Logic.bindActiveToolkitEvents();
+                } else {
+                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up bg-[var(--background-glass)] rounded-2xl border border-[var(--error-color)]"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50 relative"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Render Engine Error</h3><p class="text-[var(--text-silver)]">UI rendering function for '${AppState.activeToolkit}' not found.</p></div>`;
+                    SFX.play('error');
+                }
+            } catch (error) {
+                console.error(`Fatal error rendering '${AppState.activeToolkit}':`, error);
+                container.innerHTML = `<div class="text-center p-8 text-error-color"><h3>A critical error occurred while rendering this toolkit.</h3><p class="text-sm">${error.message}</p></div>`;
+            } finally {
+                container.classList.remove('hidden', 'transitioning-out');
+                container.classList.add('transitioning-in');
+                setTimeout(() => container.classList.remove('transitioning-in'), 300);
             }
-        } catch (error) {
-            console.error(`Fatal error during rendering of '${AppState.activeToolkit}':`, error);
-            // Display a critical failure message if the render function itself throws an error.
-            container.innerHTML = `<div class="text-center p-8 text-error-color"><h3>A critical error occurred while rendering this toolkit.</h3><p class="text-sm">${error.message}</p></div>`;
-        } finally {
-            // --- 5. CINEMATIC TRANSITION: Fade In New Content ---
-            // Remove the 'transitioning-out' class and add 'transitioning-in' to
-            // trigger the fade-in animation, revealing the new content smoothly.
-            container.classList.remove('hidden', 'transitioning-out');
-            container.classList.add('transitioning-in');
+        }, 300);
+        UI.renderToolkitMenu();
+    },
 
-            // Clean up the animation class after it completes to keep the DOM clean.
-            setTimeout(() => {
-                container.classList.remove('transitioning-in');
-            }, 300);
-        }
-    }, 300); // This timeout duration must match the CSS transition duration.
-
-    // --- 6. STATIC UI REFRESH ---
-    // The toolkit menu is outside the main container and can be re-rendered immediately
-    // to instantly reflect the active state change.
-    UI.renderToolkitMenu();
-},
-        renderDashboardUI: () => {
-    // --- Pinnacle-Grade Color & Glow Matrix (Expanded for Future Toolkits) ---
-    // This centralized matrix provides a single source of truth for theming and ensures
-    // absolute consistency with the benchmark's color and glow variable system.
-    const colorMap = {
-        'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' },
-        'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
-        'from-sky-500': { primary: 'var(--primary-azure)', glow: 'var(--glow-azure)' },
-        'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
-        'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' },
-        'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
-        // Future-proofing: Add more potential toolkit colors here.
-        'from-indigo-500': { primary: 'var(--primary-royal)', glow: 'var(--glow-royal)' },
-        'from-amber-500': { primary: 'var(--brand-gecan-gold)', glow: 'var(--glow-gold)' },
-    };
-
-    // The function returns a single, unabridged template literal containing the complete UI.
-    return `
-        <!-- Main Content Wrapper with 3D Perspective -->
-        <div 
-            class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-8 h-full flex flex-col animate-fade-in-up" 
-            style="perspective: 2000px;"
-        >
-            
-            <!-- Premium Animated Header (Benchmark Standard) -->
-            <div class="text-center mb-12">
-                <h2 
-                    class="text-4xl font-bold font-orbitron bg-clip-text text-transparent bg-[var(--gradient-primary)] mb-4" 
-                    style="animation: premium-text-glow 4s ease-in-out infinite, fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1);"
-                >
-                    GECAN™ Intelligent Toolkits
-                </h2>
-                <p 
-                    class="text-[var(--text-silver)] text-lg max-w-2xl mx-auto"
-                    style="animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s; animation-fill-mode: backwards;"
-                >
-                    Select a proprietary tool from the sidebar to begin your institutional-grade analysis. Each toolkit is powered by advanced algorithms and real-time data intelligence.
-                </p>
-            </div>
-            
-            <!-- Pinnacle-Grade 3D Card Grid -->
+    renderDashboardUI: () => {
+        const colorMap = {
+            'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' }, 'from-red-500': { primary: 'var(--error-color)', glow: 'rgba(239, 68, 68, 0.7)' },
+            'from-sky-500': { primary: 'var(--primary-azure)', glow: 'var(--glow-azure)' }, 'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
+            'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' }, 'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' },
+        };
+        return `
+        <div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-8 h-full flex flex-col animate-fade-in-up" style="perspective: 2000px;">
+            <div class="text-center mb-12"><h2 class="text-4xl font-bold font-orbitron bg-clip-text text-transparent bg-[var(--gradient-primary)] mb-4" style="animation: premium-text-glow 4s ease-in-out infinite;">GECAN™ Intelligent Toolkits</h2><p class="text-[var(--text-silver)] text-lg max-w-2xl mx-auto">Select a proprietary tool to begin your institutional-grade analysis.</p></div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
                 ${Object.values(AppState.toolkits).filter(t => t.id !== 'Dashboard').map((t, index) => {
-                    const theme = colorMap[t.color.split(' ')[0]] || colorMap['from-sky-500']; // Robust fallback
-                    return `
-                    <!-- 
-                        SEVERE UPGRADE: Pinnacle-grade card structure mirroring index.html.
-                        - Uses 'offer-card' class for benchmark-aligned 3D effects & shaders.
-                        - Injects asset-specific CSS variables for dynamic theming.
-                        - Integrates audio-kinetic feedback with SFX.play().
-                    -->
-                    <div 
-                        class="offer-card rounded-2xl p-8 cursor-pointer animate-fade-in-up stagger-${index + 1}"
-                        onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('launch');"
-                        onmouseover="SFX.play('deploy')"
-                        style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"
-                    >
-                        <!-- 3D EFFECT: Inner card-content wrapper for depth, consistent with benchmark. -->
-                        <div class="card-content">
-                            <div class="flex items-start gap-6">
-                                
-                                <!-- 3D EFFECT: Icon with its own independent 3D hover transform. -->
-                                <div 
-                                    class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl transition-all duration-500 shadow-lg" 
-                                    style="transform-style: preserve-3d;"
-                                >
-                                    <i 
-                                        class="fas ${t.icon} transition-all duration-500" 
-                                        style="transform: translateZ(20px);"
-                                    ></i>
-                                </div>
-
-                                <div class="flex-1">
-                                    <!-- 3D EFFECT: Header text with deep hover transform, consistent with benchmark. -->
-                                    <h3 class="asset-header text-2xl font-bold text-white mb-3 -ml-1">${t.name}</h3>
-                                    <p class="text-[var(--text-silver)] leading-relaxed">${t.description}</p>
-                                    
-                                    <!-- Interactive "Launch" prompt with kinetic arrow animation. -->
-                                    <div class="mt-4 flex items-center text-[var(--asset-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <span class="text-sm font-medium">Launch Toolkit</span>
-                                        <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+                    const theme = colorMap[t.color.split(' ')[0]];
+                    return `<div class="offer-card rounded-2xl p-8 cursor-pointer animate-fade-in-up stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}'); SFX.play('launch');" onmouseover="SFX.play('deploy')" style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"><div class="card-content"><div class="flex items-start gap-6"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl transition-all duration-500" style="transform-style: preserve-3d;"><i class="fas ${t.icon}" style="transform: translateZ(20px);"></i></div><div class="flex-1"><h3 class="asset-header text-2xl font-bold text-white mb-3 -ml-1">${t.name}</h3><p class="text-[var(--text-silver)]">${t.description}</p><div class="mt-4 flex items-center text-[var(--asset-primary)] opacity-0 group-hover:opacity-100 transition-opacity"><span class="text-sm font-medium">Launch Toolkit</span><i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i></div></div></div></div></div>`;
                 }).join('')}
             </div>
-        </div>
-    `;
-},
+        </div>`;
+    },
 // ====================================================================================
 // === PINNACLE UPGRADE: UI.renderWalletForensicsUI v42.13 (DEFINITIVE SYNTAX FIX) ===
 // This is the definitive, unabridged rewrite of the Wallet Forensics toolkit's
@@ -749,104 +606,20 @@ input[type="radio"]:checked + .pricing-model-label {
 // is production-ready and free of regressions.
 // ====================================================================================
 
-/**
- * SEVERELY UPGRADED: Renders the complete Wallet Forensics toolkit UI.
- * This function constructs the entire interface, including the initial state,
- * loading animations, and the full report view, all styled to the pinnacle
- * `index.html` benchmark with deep 3D effects and premium aesthetics.
- * This version is architecturally corrected and free from inline style block errors.
- */
-renderWalletForensicsUI: () => {
-    const { address, isLoading, report } = AppState.walletAnalysis;
-    let contentHTML = '';
-
-    // --- State 1: Loading Animation (Pinnacle Grade) ---
-    if (isLoading) {
-        contentHTML = `
-        <div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up">
-            <div class="relative w-24 h-24 mb-8" style="perspective: 1000px;">
-                <!-- Orbital Rings for depth and motion -->
-                <div class="absolute inset-0 border-2 border-[var(--primary-azure)] rounded-full animate-spin" style="animation-duration: 2s;"></div>
-                <div class="absolute inset-2 border-2 border-[var(--primary-royal)] rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div>
-                <div class="absolute inset-4 border-2 border-[var(--primary-amethyst)] rounded-full animate-ping"></div>
-                <!-- Central Floating Icon -->
-                <div class="w-full h-full flex items-center justify-center" style="transform-style: preserve-3d; animation: icon-float 6s ease-in-out infinite;">
-                    <i class="fas fa-shield-alt text-4xl text-[var(--primary-azure)]" style="transform: translateZ(40px); text-shadow: 0 0 25px var(--glow-azure);"></i>
-                </div>
-            </div>
-            <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analyzing Wallet Provenance</h3>
-            <p id="spinner-text" class="text-[var(--text-silver)] mb-6 transition-opacity duration-300">Initializing GECAN Heuristic Engine v5.0...</p>
-            <div class="w-64 h-2 bg-[var(--background-secondary)] rounded-full overflow-hidden">
-                <div class="h-full bg-[var(--gradient-primary)] animate-pulse" style="animation: shimmer-progress 2s infinite;"></div>
-            </div>
-        </div>`;
-    } 
-    // --- State 2: Error Display (Pinnacle Grade) ---
-    else if (report?.error) {
-        SFX.play('error');
-        contentHTML = `
-        <div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up">
-            <div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50 relative">
-                <i class="fas fa-exclamation-triangle fa-3x text-red-500" style="text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);"></i>
-                <div class="absolute inset-0 rounded-full animate-ping bg-red-500 opacity-25"></div>
-            </div>
-            <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analysis Failed</h3>
-            <p class="text-[var(--text-silver)] max-w-md leading-relaxed">${report.error.message}</p>
-            <button onclick="Logic.runWalletForensics(); SFX.play('click');" class="btn-engagement mt-8 !py-3 !px-8">
-                <i class="fas fa-redo mr-2"></i>Retry Analysis
-            </button>
-        </div>`;
-    } 
-    // --- State 3: Report Rendered ---
-    else if (report) {
-        contentHTML = UI.buildWalletReportHTML(report);
-    } 
-    // --- State 4: Initial "Ready" State (Pinnacle Grade) ---
-    else {
-        contentHTML = `
-        <div class="h-full flex flex-col items-center justify-center text-center bg-[var(--background-glass)] rounded-2xl border-2 border-dashed border-[var(--border-color)] animate-fade-in-up p-8" style="perspective: 1000px;">
-            <div class="w-24 h-24 rounded-full bg-[var(--primary-azure)]/10 flex items-center justify-center mb-8 relative transition-transform duration-500 hover:scale-110" style="transform-style: preserve-3d; animation: icon-float 8s ease-in-out infinite;">
-                <i class="fas fa-search fa-3x text-[var(--primary-azure)] transition-all duration-500" style="transform: translateZ(30px); text-shadow: 0 0 20px var(--glow-azure);"></i>
-                <div class="absolute inset-0 rounded-full border-2 border-[var(--primary-azure)]/50" style="transform: rotateX(70deg);"></div>
-                <div class="absolute inset-0 rounded-full border-2 border-[var(--primary-azure)]/30" style="transform: rotateX(70deg) rotateY(60deg);"></div>
-            </div>
-            <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Ready for Analysis</h3>
-            <p class="text-[var(--text-silver)] max-w-md leading-relaxed mb-2">Enter a wallet address to begin comprehensive due diligence and provenance verification.</p>
-            <p class="text-xs text-[var(--text-muted)] font-mono">Powered by GECAN Proprietary Heuristic Engine v5.0</p>
-        </div>`;
-    }
-
-    // --- Master Container Assembly ---
-    // The entire toolkit is wrapped in a container that enables 3D transforms for its children.
-    return `
-        <div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-0 h-full flex flex-col animate-fade-in-up" style="transform-style: preserve-3d;">
-            
-            <!-- Premium Header with 3D Hover Effect -->
-            <div class="p-8 border-b border-[var(--border-color)] transition-all duration-500 hover:border-[var(--primary-azure)] hover:shadow-2xl hover:shadow-black/50" style="transform: translateZ(20px);">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-red-500/20">
-                        <i class="fas fa-shield-alt fa-lg"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-3xl font-bold font-orbitron text-white">Wallet Due Diligence & Provenance</h2>
-                        <p class="text-[var(--text-silver)] font-mono">Advanced Blockchain Forensics & Risk Assessment</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm">
-                    <button id="check-wallet-btn" onclick="Logic.runWalletForensics(); SFX.play('launch');" class="btn-engagement font-bold !py-4 !px-8 whitespace-nowrap">
-                        <i class="fas fa-microscope mr-2"></i>Analyze
-                    </button>
-                </div>
-            </div>
-
-            <!-- Dynamic Content Area with 3D Depth -->
-            <div class="flex-grow p-8 overflow-y-auto" style="transform: translateZ(10px);">
-                ${contentHTML}
-            </div>
-        </div>
-    `;
-},
+    renderWalletForensicsUI: () => {
+        const { address, isLoading, report } = AppState.walletAnalysis;
+        let contentHTML = '';
+        if (isLoading) {
+            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="relative w-24 h-24 mb-8" style="perspective: 1000px;"><div class="absolute inset-0 border-2 border-[var(--primary-azure)] rounded-full animate-spin" style="animation-duration: 2s;"></div><div class="absolute inset-2 border-2 border-[var(--primary-royal)] rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div><div class="w-full h-full flex items-center justify-center" style="transform-style: preserve-3d; animation: icon-float 6s ease-in-out infinite;"><i class="fas fa-shield-alt text-4xl text-[var(--primary-azure)]" style="transform: translateZ(40px); text-shadow: 0 0 25px var(--glow-azure);"></i></div></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analyzing Wallet Provenance</h3><p id="spinner-text" class="text-[var(--text-silver)] mb-6">Initializing GECAN Heuristic Engine...</p></div>`;
+        } else if (report?.error) {
+            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analysis Failed</h3><p class="text-[var(--text-silver)]">${report.error.message}</p><button onclick="Logic.runWalletForensics();" class="btn-engagement mt-8 !py-3 !px-8"><i class="fas fa-redo mr-2"></i>Retry</button></div>`;
+        } else if (report) {
+            contentHTML = UI.buildWalletReportHTML(report);
+        } else {
+            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center bg-[var(--background-glass)] rounded-2xl border-2 border-dashed border-[var(--border-color)] animate-fade-in-up p-8" style="perspective: 1000px;"><div class="w-24 h-24 rounded-full bg-[var(--primary-azure)]/10 flex items-center justify-center mb-8 relative hover:scale-110" style="transform-style: preserve-3d; animation: icon-float 8s ease-in-out infinite;"><i class="fas fa-search fa-3x text-[var(--primary-azure)]" style="transform: translateZ(30px); text-shadow: 0 0 20px var(--glow-azure);"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Ready for Analysis</h3><p class="text-[var(--text-silver)] max-w-md">Enter a wallet address for due diligence.</p></div>`;
+        }
+        return `<div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-0 h-full flex flex-col animate-fade-in-up" style="transform-style: preserve-3d;"><div class="p-8 border-b border-[var(--border-color)]" style="transform: translateZ(20px);"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-shield-alt fa-lg"></i></div><div><h2 class="text-3xl font-bold font-orbitron text-white">Wallet Due Diligence</h2><p class="text-[var(--text-silver)] font-mono">Blockchain Forensics & Risk Assessment</p></div></div><div class="flex items-center gap-4"><input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter wallet address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono"><button id="check-wallet-btn" onclick="SFX.play('launch')" class="btn-engagement font-bold !py-4 !px-8"><i class="fas fa-microscope mr-2"></i>Analyze</button></div></div><div class="flex-grow p-8 overflow-y-auto" style="transform: translateZ(10px);">${contentHTML}</div></div>`;
+    },
 // ====================================================================================
 // === PINNACLE UPGRADE: UI.buildWalletReportHTML System v42.7 (UNABRIDGED) ===
 // This is the definitive, unabridged, and fully functional implementation of the
