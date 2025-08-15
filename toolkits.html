@@ -1068,10 +1068,59 @@ renderInstitutionalModelerUI: () => {
 },
         
 renderModelerSelectionPanel: () => {
-    // ... [This function remains the same as the previously perfected version, ensuring no regressions] ...
-    const dealTypes = [{ id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct asset conversions.', color: 'from-blue-500 to-cyan-500' }, { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' }, { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' }, { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' }];
-    const colorMap = { 'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' }, 'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' }, 'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' }, 'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' } };
-    return `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold font-orbitron text-white">Select Institutional Deal Type</h2><button onclick="Logic.resetModelerState(); SFX.play('click');" class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20 hover:!text-red-400"><i class="fas fa-undo mr-2"></i>Reset Modeler</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8">${dealTypes.map((deal, i) => `<div class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}'); SFX.play('launch');" onmouseover="SFX.play('deploy')" style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"><div class="card-content"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4"><i class="fas ${deal.icon}"></i></div><h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3><p class="text-sm text-[var(--text-silver)]">${deal.desc}</p></div></div>`.replace('${theme.primary}', colorMap[deal.color.split(' ')[0]].primary).replace('${theme.glow}', colorMap[deal.color.split(' ')[0]].glow)).join('')}</div>`;
+    const dealTypes = [
+        { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct asset conversions.', color: 'from-blue-500 to-cyan-500' },
+        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' },
+        { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' },
+        { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' }
+    ];
+    
+    const colorMap = {
+        'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' },
+        'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
+        'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' },
+        'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' }
+    };
+
+    return `
+        <!-- Panel Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold font-orbitron text-white">Select Institutional Deal Type</h2>
+            <button 
+                onclick="Logic.resetModelerState(); SFX.play('click');" 
+                class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20 hover:!text-red-400"
+            >
+                <i class="fas fa-undo mr-2"></i>Reset Modeler
+            </button>
+        </div>
+
+        <!-- Pinnacle-Grade 3D Card Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            ${dealTypes.map((deal, i) => {
+                // --- DEFINITIVE FIX IS HERE ---
+                // The 'theme' constant is now correctly defined *inside* the map function's scope,
+                // making it accessible to the template literal. The erroneous string replacement
+                // has been removed and replaced with the correct direct variable injection.
+                const theme = colorMap[deal.color.split(' ')[0]];
+                const isActive = AppState.modeler.activeDealType === deal.id;
+                
+                return `
+                <div 
+                    class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${isActive ? 'active' : ''}"
+                    onclick="Logic.handleDealTypeChange('${deal.id}'); SFX.play('launch');"
+                    onmouseover="SFX.play('deploy')"
+                    style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"
+                >
+                    <div class="card-content">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4">
+                            <i class="fas ${deal.icon}"></i>
+                        </div>
+                        <h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3>
+                        <p class="text-sm text-[var(--text-silver)]">${deal.desc}</p>
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>`;
 },
         
 renderModelerInputPanel: () => {
