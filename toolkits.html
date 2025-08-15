@@ -1077,66 +1077,15 @@ renderInstitutionalModelerUI: () => {
 },
         
 renderModelerSelectionPanel: () => {
-    const dealTypes = [
-        { id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct asset conversions.', color: 'from-blue-500 to-cyan-500' },
-        { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' },
-        { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' },
-        { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' }
-    ];
-    
-    const colorMap = {
-        'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' },
-        'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' },
-        'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' },
-        'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' }
-    };
-
-    return `
-        <!-- Panel Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold font-orbitron text-white">Select Institutional Deal Type</h2>
-            <button 
-                onclick="Logic.resetModelerState(); SFX.play('click');" 
-                class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20 hover:!text-red-400"
-            >
-                <i class="fas fa-undo mr-2"></i>Reset Modeler
-            </button>
-        </div>
-
-        <!-- Pinnacle-Grade 3D Card Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            ${dealTypes.map((deal, i) => {
-                // --- DEFINITIVE FIX IS HERE ---
-                // The 'theme' constant is now correctly defined *inside* the map function's scope,
-                // making it accessible to the template literal. The erroneous string replacement
-                // has been removed and replaced with the correct direct variable injection.
-                const theme = colorMap[deal.color.split(' ')[0]];
-                const isActive = AppState.modeler.activeDealType === deal.id;
-                
-                return `
-                <div 
-                    class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${isActive ? 'active' : ''}"
-                    onclick="Logic.handleDealTypeChange('${deal.id}'); SFX.play('launch');"
-                    onmouseover="SFX.play('deploy')"
-                    style="--asset-primary: ${theme.primary}; --asset-glow: ${theme.glow};"
-                >
-                    <div class="card-content">
-                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4">
-                            <i class="fas ${deal.icon}"></i>
-                        </div>
-                        <h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3>
-                        <p class="text-sm text-[var(--text-silver)]">${deal.desc}</p>
-                    </div>
-                </div>`;
-            }).join('')}
-        </div>`;
+    const dealTypes = [{ id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct asset conversions.', color: 'from-blue-500 to-cyan-500' }, { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' }, { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' }, { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' }];
+    const colorMap = { 'from-blue-500': { primary: 'var(--primary-sapphire)', glow: 'var(--glow-sapphire)' }, 'from-yellow-500': { primary: 'var(--status-pending)', glow: 'rgba(245, 158, 11, 0.7)' }, 'from-green-500': { primary: 'var(--status-active)', glow: 'rgba(34, 197, 94, 0.7)' }, 'from-purple-500': { primary: 'var(--primary-amethyst)', glow: 'var(--glow-amethyst)' } };
+    return `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold font-orbitron text-white">Select Institutional Deal Type</h2><button onclick="Logic.resetModelerState(); SFX.play('click');" class="nav-btn !py-2 !px-4 text-sm hover:!bg-red-500/20 hover:!text-red-400"><i class="fas fa-undo mr-2"></i>Reset Modeler</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-8">${dealTypes.map((deal, i) => `<div class="offer-card rounded-2xl p-8 cursor-pointer stagger-${i + 1} ${AppState.modeler.activeDealType === deal.id ? 'active' : ''}" onclick="Logic.handleDealTypeChange('${deal.id}'); SFX.play('launch');" onmouseover="SFX.play('deploy')" style="--asset-primary: ${colorMap[deal.color.split(' ')[0]].primary}; --asset-glow: ${colorMap[deal.color.split(' ')[0]].glow};"><div class="card-content"><div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${deal.color} flex items-center justify-center text-white text-2xl mb-4"><i class="fas ${deal.icon}"></i></div><h3 class="asset-header text-xl font-bold -ml-1">${deal.name}</h3><p class="text-sm text-[var(--text-silver)]">${deal.desc}</p></div></div>`).join('')}</div>`;
 },
         
 renderModelerInputPanel: () => {
     const { activeDealType, pricingConfig } = AppState.modeler;
     const dealPanelRenderer = UI[`render${activeDealType}Panel`];
     const dealPanelHTML = dealPanelRenderer ? dealPanelRenderer() : `<div class="text-red-400">Error: UI for '${activeDealType}' not found.</div>`;
-
     const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['Discount', 'Premium'].map(o => `<option value="${o.toLowerCase()}" ${pricingConfig.offerType === o.toLowerCase() ? 'selected' : ''}>${o}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, 'Value in %'], [false, 'Value in $']].map(([v, l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div></div></div>`;
 
     return `
@@ -1162,11 +1111,12 @@ renderAssetSwapPanel: () => {
     return `<div class="space-y-4"><div class="flex items-center gap-4"><div class="flex-1"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">From Asset</label><select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select></div><div class="pt-8"><button onclick="Logic.swapAssets();" class="w-10 h-10 flex items-center justify-center rounded-full bg-[var(--primary-azure)]/20 text-[var(--primary-azure)] transition-all duration-300 hover:scale-110"><i id="swap-icon" class="fas fa-exchange-alt"></i></button></div><div class="flex-1"><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">To Asset</label><select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select></div></div><div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label><input type="text" data-path="assetSwap.amount" value="${(parseFloat(String(state.amount).replace(/,/g, '')) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div></div>`;
 },
 
+
 renderModelerOutputPanel: (calculation) => {
     if (!calculation) return `<div class="flex items-center justify-center h-full text-center text-[var(--text-muted)]"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
-    const { baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, netValueDescription, grossValueDescription, dealTitle, rate, receivesAmount, fromAsset, toAsset } = calculation;
+    const { baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, netValueDescription, grossValueDescription, dealTitle, rate, fromAsset, toAsset } = calculation;
     const metricCard = (icon, label, value, subtext, isRate = false) => `<div class="bg-black/20 p-4 rounded-2xl border border-[var(--border-color)] transition-all duration-300 hover:border-[var(--primary-azure)]"><p class="text-sm text-[var(--text-muted)] flex items-center gap-2 mb-1"><i class="fas ${icon} fa-fw"></i>${label}</p><p class="text-3xl font-bold font-mono text-white leading-none ${isRate ? 'text-2xl' : ''}">${value}</p><p class="text-xs text-[var(--text-subtle)] font-mono mt-1">${subtext}</p></div>`;
-    return `<div class="flex flex-col h-full animate-fade-in-up"><h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2><div class="space-y-4 flex-grow">${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle)}${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription)}${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription)}${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} ≈ ${Utils.formatNumber(receivesAmount,4)} ${toAsset.baseAsset}` : 'Price data unavailable for conversion.', true)}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Commission Manager</button></div></div>`;
+    return `<div class="flex flex-col h-full animate-fade-in-up"><h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2><div class="space-y-4 flex-grow">${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle)}${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription)}${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription)}${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable for conversion.', true)}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite</button></div></div>`;
 },
 
 /**
@@ -1520,12 +1470,32 @@ populateNavLinks: () => {
             const container = document.getElementById('modeler-input-container');
             if(container) container.addEventListener('input', Utils.debounce(Logic.handleModelerInputChange, 250));
         },
-        handleDealTypeChange: (newType) => {
-            AppState.modeler.activeDealType = newType;
-            const container = document.getElementById('modeler-input-container');
-            if (container) container.innerHTML = UI.renderModelerInputPanel();
-            Logic.bindInstitutionalModelerEvents();
-        },
+        
+handleDealTypeChange: (newDealType) => {
+    AppState.modeler.activeDealType = newDealType;
+
+    const inputContainer = document.getElementById('modeler-input-container');
+    const outputContainer = document.getElementById('modeler-output-container');
+    
+    // 1. Reconfigure grid for two-panel layout
+    inputContainer.classList.remove('lg:col-span-5');
+    inputContainer.classList.add('lg:col-span-3');
+
+    // 2. Render both panels with their respective content
+    inputContainer.innerHTML = UI.renderModelerInputPanel();
+    const calculation = Logic.calculateModel();
+    outputContainer.innerHTML = UI.renderModelerOutputPanel(calculation);
+
+    // 3. Trigger the cinematic "spring to life" animation
+    outputContainer.classList.remove('hidden');
+    setTimeout(() => {
+        outputContainer.style.opacity = '1';
+        outputContainer.style.transform = 'translateX(0px)';
+    }, 50); // Small delay to ensure the element is in the DOM before animating
+
+    // 4. Re-bind all necessary event listeners for the new UI
+    Logic.bindActiveToolkitEvents();
+},
         handleModelerInputChange: (e) => {
             const { dataset, value } = e.target;
             let current = AppState.modeler;
