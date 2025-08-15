@@ -149,35 +149,82 @@ body.mobile-sidebar-open { overflow: hidden; }
 .output-metric-card.base-value .value { color: var(--primary-azure); } .output-metric-card.net .value { color: var(--success-color); } .output-metric-card.commission .value { color: var(--warning-color); }
 
 /* ========================================================================= */
-/* === DEFINITIVE MODAL & FORM STYLES (PINNACLE STANDARD v5.1) === */
-/* This is the SINGLE SOURCE OF TRUTH for all dialogs and their forms. */
+/* === DEFINITIVE MODAL & CENTERING ENGINE (MILITARY-GRADE v6.0) === */
+/* This is the SINGLE SOURCE OF TRUTH for all dialogs. */
+/* It guarantees perfect centering and pinnacle-grade aesthetics. */
 /* ========================================================================= */
+
+/* --- A. UNIVERSAL DIALOG CONTAINER (THE CENTERING MECHANISM) --- */
 dialog {
-    padding: 0 !important; border: none !important; background: transparent !important;
-    overflow: visible !important; max-width: 90vw; width: auto;
+    /* Base resets for a clean slate */
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    max-width: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent scrollbars on the dialog itself */
 }
+
 dialog[open] {
-    display: flex !important; align-items: center !important; justify-content: center !important;
-    position: fixed !important; inset: 0 !important; z-index: 200 !important;
+    /* SUPREME CENTERING: Use Grid on the full-screen container */
+    display: grid !important;
+    place-items: center !important; /* Vertically and horizontally centers the child */
+    position: fixed !important; 
+    inset: 0 !important; 
+    z-index: 200 !important;
+    
+    /* DEFINITIVE PADDING FIX: Creates a visual boundary on all sides */
+    padding: 2rem;
+    
     animation: modal-backdrop-fade-in 0.5s ease forwards;
 }
+
+/* On smaller screens, reduce the boundary padding */
+@media (max-width: 768px) {
+    dialog[open] {
+        padding: 1rem;
+    }
+}
+
 dialog::backdrop {
     background: rgba(5, 5, 9, 0.85) !important;
-    backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
     animation: modal-backdrop-fade-in 0.5s ease forwards;
 }
+
+/* --- B. UNIVERSAL DIALOG CONTENT WRAPPER (THE VISIBLE MODAL) --- */
 .dialog-content-wrapper {
     background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%) !important;
-    border: 1px solid var(--border-premium) !important; box-shadow: var(--shadow-quantum) !important;
-    border-radius: 1.5rem !important; width: 100%; max-height: 90vh;
-    display: flex; flex-direction: column; overflow: hidden;
+    border: 1px solid var(--border-premium) !important;
+    box-shadow: var(--shadow-quantum) !important;
+    border-radius: 1.5rem !important;
+    
+    width: 100%; /* Takes up the full width of its parent dialog container */
+    max-height: calc(100vh - 4rem); /* Respects the dialog's padding */
+    
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* The wrapper handles its own boundaries */
+    
     animation: modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-#imfpa-modal { max-width: 80vw !important; }
-#submission-modal { max-width: 640px !important; }
-#signature-modal { max-width: 560px !important; }
-#finalization-modal { max-width: 560px !important; }
-#notification-modal { max-width: 520px !important; }
+
+@media (max-width: 768px) {
+    .dialog-content-wrapper {
+        max-height: calc(100vh - 2rem);
+    }
+}
+
+/* --- C. SPECIFIC MODAL WIDTHS (PINNACLE CONTROL) --- */
+/* We set the max-width on the WRAPPER, not the dialog, for precision. */
+#imfpa-modal .dialog-content-wrapper { max-width: 80rem; } /* For wide, two-column layouts */
+#submission-modal .dialog-content-wrapper { max-width: 40rem; }
+#signature-modal .dialog-content-wrapper { max-width: 35rem; }
+#finalization-modal .dialog-content-wrapper { max-width: 35rem; }
+#notification-modal .dialog-content-wrapper { max-width: 32rem; }
+
+/* --- D. PINNACLE ANIMATIONS --- */
 @keyframes modal-backdrop-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-content-scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .form-input, .form-select {
@@ -2384,25 +2431,40 @@ renderYieldGraph: (calc) => {
     return `
         <div class="dialog-content-wrapper">
             <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
-                <div class="flex justify-between items-start mb-6 imfpa-header">
+                <!-- ========================================================= -->
+                <!-- === PINNACLE HEADER & CLOSE (BENCHMARKED) === -->
+                <!-- ========================================================= -->
+                <div class="flex justify-between items-start mb-6 imfpa-header print-hide">
                     <div>
                         <h2 class="text-3xl font-bold">Commission & Contract Suite</h2>
                         <p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p>
                     </div>
-                    <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white">&times;</button>
+                    <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
                 </div>
 
+                <!-- ========================================================= -->
+                <!-- === 3D AGREEMENT TYPE TOGGLE (PINNACLE UX) === -->
+                <!-- ========================================================= -->
                 <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
                     <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}>
-                        <span class="toggle-slider"></span>
+                    <label class="agreement-toggle">
+                        <div class="toggle-switch">
+                            <input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}>
+                            <span class="toggle-slider"></span>
+                        </div>
                     </label>
                     <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
                 </div>
 
+                <!-- ========================================================= -->
+                <!-- === MAIN 2-COLUMN LAYOUT (SEVERELY GUIDED WORKFLOW) === -->
+                <!-- ========================================================= -->
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2">
+                    
+                    <!-- LEFT COLUMN: ALLOCATION & LEGAL FRAMEWORK (lg:col-span-3) -->
                     <div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4">
+                        
+                        <!-- Commission Allocation Section -->
                         <div id="commission-allocation-section" class="space-y-6 ${isImfpa ? 'animate-fade-in-up' : 'hidden'}">
                             <div class="flex justify-between items-center">
                                 <h3 class="imfpa-section-title"><i class="fas fa-sitemap mr-3"></i>Commission Allocation</h3>
@@ -2419,23 +2481,50 @@ renderYieldGraph: (calc) => {
                                 </div>
                                 <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
                             </div>
-                            <div class="space-y-4" id="imfpa-groups-container"></div>
+                            <div class="space-y-4" id="imfpa-groups-container">
+                                <!-- Groups will be rendered here by JavaScript -->
+                            </div>
                         </div>
+
+                        <!-- Legal Framework Section -->
                         <div class="space-y-6">
                             <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework & Parties</h3>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Governing Law</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input"></div>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Cross-Referenced SPA</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono"></div>
-                            <div class="bg-black/20 p-4 rounded-lg"><label class="block text-sm font-medium mb-2">Signatory Parties</label><div id="imfpa-legal-parties" class="space-y-2 text-sm text-premium-text-secondary min-h-[50px]"></div></div>
+                            <div class="bg-black/20 p-4 rounded-lg">
+                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction</label>
+                                <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales">
+                            </div>
+                            <div class="bg-black/20 p-4 rounded-lg">
+                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced Contract / SPA (Optional)</label>
+                                <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345">
+                            </div>
+                            <div class="bg-black/20 p-4 rounded-lg">
+                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Signatory Parties</label>
+                                <div id="imfpa-legal-parties" class="space-y-2 text-sm text-premium-text-secondary min-h-[50px]">
+                                    <!-- Signatories will be rendered here by JavaScript -->
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- RIGHT COLUMN: DEDICATED LIVE PREVIEW (lg:col-span-2) -->
                     <div class="lg:col-span-2">
                         <h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
-                        <div id="contract-live-preview"></div>
+                        <div id="contract-live-preview" class="h-full">
+                            <!-- Live preview will be rendered here by JavaScript -->
+                        </div>
                     </div>
                 </div>
+                
+                <!-- ========================================================= -->
+                <!-- === PINNACLE FOOTER & ACTION BUTTON === -->
+                <!-- ========================================================= -->
                 <div class="pt-6 border-t border-premium-border mt-auto print-hide">
-                    <button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow"><i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Full Document</button>
-                    <div id="contract-preview-container" class="mt-4 hidden"></div>
+                    <button onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow">
+                        <i class="fas fa-file-signature mr-2"></i>Synthesize & Preview Full Document
+                    </button>
+                    <div id="contract-preview-container" class="mt-4 hidden">
+                        <!-- Full contract and execution suite will be rendered here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -2443,8 +2532,49 @@ renderYieldGraph: (calc) => {
 },
 renderImfpaGroups: () => {
     const { groups } = AppState.modeler.legal;
-    if (!groups || groups.length === 0) return `<p class="text-center text-premium-text-secondary py-4">No allocation groups defined. Click 'Add Group' to begin.</p>`;
-    return groups.map((g, groupIndex) => `<div class="allocation-group-card p-4"><div class="flex items-center gap-2 mb-3"><input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-premium-text-primary" placeholder="Group Name"><div class="relative w-32"><input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div><button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex items-center justify-center transition">×</button></div><p id="imfpa-group-value-${groupIndex}" class="text-right text-premium-gold font-mono text-lg mb-4"></p><div class="space-y-2 pl-4 border-l-2 border-premium-border">${g.parties.map((p, partyIndex) => UI.renderImfpaParty(groupIndex, partyIndex)).join('')}<div class="flex justify-between items-center pt-2"><button onclick="Logic.addImfpaParty(${groupIndex})" class="text-premium-gold hover:text-yellow-300 text-xs font-semibold"><i class="fas fa-user-plus mr-1"></i>Add Party</button><div id="imfpa-group-total-${groupIndex}" class="text-right font-mono text-xs"></div></div></div></div>`).join('');
+    
+    // Pinnacle-grade handling for the empty state, providing clear user instruction.
+    if (!groups || groups.length === 0) {
+        return `<p class="text-center text-premium-text-secondary py-4">No allocation groups defined. Click 'Add Group' to begin.</p>`;
+    }
+
+    // Map through each group to render its premium card interface.
+    return groups.map((g, groupIndex) => {
+        return `
+            <!-- ALLOCATION GROUP CARD (PINNACLE UI v5.0) -->
+            <div class="allocation-group-card p-4">
+                <!-- Group Header: Name, Percentage, and Remove Button -->
+                <div class="flex items-center gap-2 mb-3">
+                    <input type="text" value="${g.name}" data-path="legal.groups[${groupIndex}].name" class="form-input bg-transparent border-0 flex-grow !p-1 focus:ring-0 font-semibold text-lg !text-premium-text-primary" placeholder="Group Name">
+                    
+                    <div class="relative w-32 flex-shrink-0">
+                        <input type="number" value="${g.percentage}" data-path="legal.groups[${groupIndex}].percentage" class="form-input text-right font-bold">
+                        <span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span>
+                    </div>
+                    
+                    <button onclick="Logic.removeImfpaGroup(${groupIndex})" class="text-red-500 hover:text-red-400 text-xl font-bold w-8 h-8 flex-shrink-0 flex items-center justify-center transition-colors duration-300 rounded-full hover:bg-red-500/10">×</button>
+                </div>
+                
+                <!-- Group Value Display (Dynamically updated by Logic) -->
+                <p id="imfpa-group-value-${groupIndex}" class="text-right text-premium-gold font-mono text-lg mb-4"></p>
+                
+                <!-- Nested Parties Container -->
+                <div class="space-y-2 pl-4 border-l-2 border-premium-border">
+                    ${g.parties.map((p, partyIndex) => UI.renderImfpaParty(groupIndex, partyIndex)).join('')}
+                    
+                    <!-- Group Footer: Add Party Button & Group Total -->
+                    <div class="flex justify-between items-center pt-2">
+                        <button onclick="Logic.addImfpaParty(${groupIndex})" class="text-premium-gold hover:text-yellow-300 text-xs font-semibold">
+                            <i class="fas fa-user-plus mr-1"></i>Add Party
+                        </button>
+                        
+                        <!-- Group Total Percentage (Dynamically updated by Logic) -->
+                        <div id="imfpa-group-total-${groupIndex}" class="text-right font-mono text-xs"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 },
 
 renderImfpaParty: (groupIndex, partyIndex) => {
