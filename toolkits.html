@@ -1549,36 +1549,44 @@ populateNavLinks: () => {
  */
 bindInstitutionalModelerEvents: () => {
     const inputContainer = document.getElementById('modeler-input-container');
-    if (inputContainer) {
-        // Use event delegation for maximum performance and reliability.
-        inputContainer.addEventListener('input', Utils.debounce((e) => {
-            if (e.target.matches('[data-path]')) {
-                Logic.handleModelerInputChange(e);
+    if (!inputContainer) return;
+
+    // Use event delegation for maximum performance and reliability.
+    inputContainer.addEventListener('input', Utils.debounce((e) => {
+        if (e.target.matches('[data-path]')) {
+            Logic.handleModelerInputChange(e);
+        }
+    }, 250)); // Debounce prevents excessive updates while typing.
+
+    // A single click listener manages all button actions within the panel.
+    inputContainer.addEventListener('click', (e) => {
+        const target = e.target.closest('button, .collapsible-header');
+        if (!target) return;
+
+        // Using a map for clean, scalable action handling.
+        const actions = {
+            'Logic.resetAssetSwap': () => { Logic.resetAssetSwap(); SFX.play('click'); },
+            'UI.renderActiveToolkit': () => { UI.renderActiveToolkit(); SFX.play('click'); },
+            'Logic.swapAssets': () => Logic.swapAssets(),
+            'Logic.togglePricingConfig': () => { Logic.togglePricingConfig(); SFX.play('click'); },
+            'Logic.openImfpaEditor': () => { Logic.openImfpaEditor(); SFX.play('launch'); },
+        };
+
+        for (const key in actions) {
+            if (target.getAttribute('onclick')?.includes(key)) {
+                actions[key]();
+                break;
             }
-        }, 250)); // Debounce prevents excessive updates while typing.
-
-        // Specific click listeners are also delegated.
-        inputContainer.addEventListener('click', (e) => {
-            const resetButton = e.target.closest('button[onclick*="Logic.resetAssetSwap"]');
-            const backButton = e.target.closest('button[onclick*="UI.renderActiveToolkit"]');
-            const swapButton = e.target.closest('button[onclick*="Logic.swapAssets"]');
-            const pricingToggle = e.target.closest('.collapsible-header');
-
-            if (resetButton) { Logic.resetAssetSwap(); SFX.play('click'); }
-            if (backButton) { UI.renderActiveToolkit(); SFX.play('click'); }
-            if (swapButton) { Logic.swapAssets(); } // SFX is handled in the function
-            if (pricingToggle) { Logic.togglePricingConfig(); SFX.play('click'); }
-        });
-    }
+        }
+    });
 },
 
         
 handleDealTypeChange: (newDealType) => {
     AppState.modeler.activeDealType = newDealType;
     if (newDealType === 'AssetSwap') {
-        Logic.resetAssetSwap(false); // Reset to smart defaults without re-rendering selection
+        Logic.resetAssetSwap(false); // Reset to smart defaults without full re-render
     } else {
-        // For other deal types, just render the panel
         const inputContainer = document.getElementById('modeler-input-container');
         const outputContainer = document.getElementById('modeler-output-container');
         inputContainer.classList.remove('lg:col-span-5');
@@ -1599,21 +1607,30 @@ handleModelerInputChange: (e) => {
     const { dataset, value, type } = e.target;
     const path = dataset.path;
     if (!path) return;
+
     let current = AppState.modeler;
     const keys = path.split(/[\.\[\]]+/).filter(Boolean);
     const finalKey = keys.pop();
     keys.forEach(key => current = current[key]);
+
     let processedValue = value;
-    if (type === 'text') {
-        processedValue = parseFloat(value.replace(/,/g, '')) || 0;
-    } else if (type === 'number' || type === 'range') {
+    if (type === 'text' || type === 'number') {
+        processedValue = parseFloat(String(value).replace(/,/g, '')) || 0;
+    } else if (type === 'range') {
         processedValue = parseFloat(value) || 0;
     } else if (typeof current[finalKey] === 'boolean') {
         processedValue = (value === 'true');
     }
     current[finalKey] = processedValue;
+    
+    // Always update the main projections panel.
     UI.updateModelerUI();
-    if (!document.getElementById('modeler-preview-container').classList.contains('hidden')) {
+    
+    // --- CRITICAL FIX IS HERE ---
+    // Only call the live contract preview update if the IMFPA editor is actually open
+    // and its preview container exists in the DOM.
+    const previewContainer = document.getElementById('modeler-preview-container');
+    if (previewContainer && !previewContainer.classList.contains('hidden')) {
         Logic.liveUpdateContractPreview();
     }
 },
@@ -1648,17 +1665,21 @@ swapAssets: () => {
     const fromAsset = Utils.getAssetByKey(swapState.fromAssetKey);
     const toAsset = Utils.getAssetByKey(swapState.toAssetKey);
     const amount = parseFloat(String(swapState.amount).replace(/,/g, '')) || 0;
+
     if (fromAsset.price > 0 && toAsset.price > 0) {
         const totalUsdValue = amount * fromAsset.price;
         swapState.amount = totalUsdValue / toAsset.price;
     }
+    
     [swapState.fromAssetKey, swapState.toAssetKey] = [swapState.toAssetKey, swapState.fromAssetKey];
+    
     const icon = document.getElementById('swap-icon');
     if (icon) {
         icon.style.animation = 'none';
         void icon.offsetWidth; 
         icon.style.animation = 'swap-icon-spin 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
     }
+    
     // Re-render both panels to reflect all state changes.
     const inputContainer = document.getElementById('modeler-input-container');
     inputContainer.innerHTML = UI.renderModelerInputPanel();
@@ -1674,6 +1695,20 @@ togglePricingConfig: () => {
         Logic.bindActiveToolkitEvents();
     }
     UI.updateModelerUI();
+},
+
+calculateAssetSwap: () => {
+    const state = AppState.modeler.assetSwap;
+    const amount = parseFloat(String(state.amount).replace(/,/g, '')) || 0;
+    const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
+    const toAsset = Utils.getAssetByKey(state.toAssetKey);
+    const fromPriceUSD = fromAsset.price || 0;
+    const toPriceUSD = toAsset.price || 0;
+    // CRITICAL FIX: The Base/Market Value is ALWAYS calculated from the "From" asset.
+    const baseValueUSD = amount * fromPriceUSD;
+    const rate = (fromPriceUSD > 0 && toPriceUSD > 0) ? fromPriceUSD / toPriceUSD : 0;
+    const receivesAmount = amount * rate;
+    return { amount, fromAsset, toAsset, baseValueUSD, rate, receivesAmount, dealTitle: `Swap ${Utils.formatNumber(amount)} ${fromAsset.baseAsset || 'N/A'} for ${toAsset.baseAsset || 'N/A'}` };
 },
         
 /**
@@ -1693,30 +1728,28 @@ resetAssetSwap: (fullRender = true) => {
     AppState.modeler.pricingConfig.netValue = 0;
 
     if (fullRender) {
-        // This is for the "Back to Deal Selection" button
         UI.renderActiveToolkit();
     } else {
-        // This is for the new "Reset Parameters" button
+        // This is called by handleDealTypeChange to avoid a render loop
         const inputContainer = document.getElementById('modeler-input-container');
+        inputContainer.classList.remove('lg:col-span-5');
+        inputContainer.classList.add('lg:col-span-3');
         inputContainer.innerHTML = UI.renderModelerInputPanel();
-        UI.updateModelerUI();
+        
+        const outputContainer = document.getElementById('modeler-output-container');
+        UI.updateModelerUI(); // This will call calculate and render output
+        
+        outputContainer.classList.remove('hidden');
+        setTimeout(() => {
+            outputContainer.style.opacity = '1';
+            outputContainer.style.transform = 'translateX(0px)';
+        }, 50);
+
         Logic.bindActiveToolkitEvents();
     }
 },
         
-calculateAssetSwap: () => {
-    const state = AppState.modeler.assetSwap;
-    const amount = parseFloat(String(state.amount).replace(/,/g, '')) || 0;
-    const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
-    const toAsset = Utils.getAssetByKey(state.toAssetKey);
-    const fromPriceUSD = fromAsset.price || 0;
-    const toPriceUSD = toAsset.price || 0;
-    // CRITICAL FIX: The Base/Market Value is ALWAYS calculated from the "From" asset.
-    const baseValueUSD = amount * fromPriceUSD;
-    const rate = (fromPriceUSD > 0 && toPriceUSD > 0) ? fromPriceUSD / toPriceUSD : 0;
-    const receivesAmount = amount * rate;
-    return { amount, fromAsset, toAsset, baseValueUSD, rate, receivesAmount, dealTitle: `Swap ${Utils.formatNumber(amount)} ${fromAsset.baseAsset || 'N/A'} for ${toAsset.baseAsset || 'N/A'}` };
-},
+
         
         openImfpaEditor: () => {
             const inputContainer = document.getElementById('modeler-input-container');
