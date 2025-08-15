@@ -1109,22 +1109,69 @@ renderAssetSwapPanel: () => {
 },
 
 renderModelerOutputPanel: (calculation) => {
-    if (!calculation) return `<div class="flex items-center justify-center h-full text-center text-[var(--text-muted)]"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
-    const { baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, netValueDescription, grossValueDescription, dealTitle, rate, fromAsset, toAsset } = calculation;
-    const metricCard = (icon, label, value, subtext, isRate = false) => `
-        <div class="offer-card !p-4 !rounded-xl" style="--asset-primary: var(--primary-azure); --asset-glow: var(--glow-azure);">
-            <div class="card-content">
-                <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-[var(--background-secondary)] flex-shrink-0 flex items-center justify-center text-[var(--primary-azure)] text-xl transition-all duration-300 group-hover:scale-110"><i class="fas ${icon}"></i></div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm text-[var(--text-muted)] mb-1">${label}</p>
-                        <h4 class="asset-header !text-3xl !mb-0 -ml-1 truncate ${isRate ? '!text-2xl' : ''}">${value}</h4>
-                        <p class="text-xs text-[var(--text-subtle)] font-mono mt-1">${subtext}</p>
+    if (!calculation) {
+        return `<div class="flex items-center justify-center h-full text-center text-[var(--text-muted)]"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
+    }
+
+    const { 
+        baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, 
+        netValueDescription, grossValueDescription, dealTitle,
+        rate, fromAsset, toAsset 
+    } = calculation;
+
+    /**
+     * Pinnacle-Grade Sub-Renderer for a single metric card.
+     * This is a complete reconstruction using the benchmark's 'offer-card' and a new
+     * 'metrics-item'-style 3D icon for the ultimate kinetic effect.
+     */
+    const metricCard = (icon, label, value, subtext, themeColor, themeGlow, isRate = false) => `
+        <div 
+            class="offer-card !p-4 !rounded-xl" 
+            style="--asset-primary: ${themeColor}; --asset-glow: ${themeGlow};"
+            onmouseover="SFX.play('deploy')"
+        >
+            <div class="card-content flex items-center gap-4">
+                <!-- 3D KINETIC ICON (Benchmark Transplant) -->
+                <div class="metrics-icon-container !w-12 !h-12 flex-shrink-0">
+                    <div class="metrics-icon-3d">
+                        <div class="icon-face icon-front !text-2xl" style="color: ${themeColor}; border-color: ${themeColor}55; text-shadow: 0 0 15px ${themeGlow};">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="icon-face icon-back" style="background: radial-gradient(ellipse at center, ${themeColor} 0%, transparent 70%); box-shadow: 0 0 20px ${themeGlow};"></div>
                     </div>
+                </div>
+
+                <!-- PRESTIGIOUS VALUE DISPLAY -->
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-[var(--text-muted)] mb-1">${label}</p>
+                    <h4 
+                        class="asset-header !text-3xl !mb-0 -ml-1 truncate" 
+                        style="--asset-gradient: linear-gradient(135deg, ${themeColor}, var(--text-diamond)); --asset-glow: ${themeGlow};"
+                    >
+                        ${value}
+                    </h4>
+                    <p class="text-xs text-[var(--text-subtle)] font-mono mt-1 truncate">${subtext}</p>
                 </div>
             </div>
         </div>`;
-    return `<div class="flex flex-col h-full animate-fade-in-up"><h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2><div class="space-y-4 flex-grow">${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle)}${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription)}${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription)}${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable for conversion.', true)}</div><div class="mt-auto pt-6 border-t border-[var(--border-color)]"><button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite</button></div></div>`;
+
+    return `
+        <div class="flex flex-col h-full animate-fade-in-up">
+            <h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3">
+                <i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections
+            </h2>
+            <div class="space-y-4 flex-grow">
+                ${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle, 'var(--primary-azure)', 'var(--glow-azure)')}
+                ${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription, 'var(--success-color)', 'rgba(34, 197, 94, 0.7)')}
+                ${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription, 'var(--warning-color)', 'rgba(245, 158, 11, 0.7)')}
+                ${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} for ${toAsset.baseAsset}` : 'Price data unavailable', 'var(--primary-amethyst)', 'var(--glow-amethyst)', true)}
+            </div>
+            <div class="mt-auto pt-6 border-t border-[var(--border-color)]">
+                <button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold">
+                    <i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Contract Suite
+                </button>
+            </div>
+        </div>`;
 },
 
 updateModelerUI: () => {
