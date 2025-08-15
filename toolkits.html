@@ -609,21 +609,103 @@
         </div>
     `;
 },
-        renderWalletForensicsUI: () => {
-            const { address, isLoading, report } = AppState.walletAnalysis;
-            let contentHTML = '';
-            if (isLoading) {
-                contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="relative w-24 h-24 mb-8"><div class="absolute inset-0 border-4 border-[var(--primary-azure)] rounded-full opacity-50"></div><div class="absolute inset-0 border-4 border-[var(--primary-azure)] rounded-full animate-ping"></div><i class="fas fa-shield-alt text-4xl text-[var(--primary-azure)] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="text-shadow: 0 0 20px var(--glow-azure);"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analyzing Wallet Provenance</h3><p class="text-[var(--text-silver)] mb-6">Initializing GECAN Heuristic Engine...</p></div>`;
-            } else if (report?.error) {
-                SFX.play('error');
-                contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analysis Failed</h3><p class="text-[var(--text-silver)] max-w-md">${report.error.message}</p><button onclick="Logic.runWalletForensics();" class="btn-engagement mt-8 !py-3 !px-8"><i class="fas fa-redo mr-2"></i>Retry Analysis</button></div>`;
-            } else if (report) {
-                contentHTML = UI.buildWalletReportHTML(report);
-            } else {
-                contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center bg-[var(--background-glass)] rounded-2xl border-2 border-dashed border-[var(--border-color)] animate-fade-in-up p-8" style="perspective: 1000px;"><div class="w-24 h-24 rounded-full bg-[var(--primary-azure)]/10 flex items-center justify-center mb-8 relative transition-transform duration-500 hover:scale-110" style="transform-style: preserve-3d; animation: icon-float 8s ease-in-out infinite;"><i class="fas fa-search fa-3x text-[var(--primary-azure)]" style="transform: translateZ(30px); text-shadow: 0 0 20px var(--glow-azure);"></i><div class="absolute inset-0 rounded-full border-2 border-[var(--primary-azure)]/50" style="transform: rotateX(70deg);"></div></div><h3 class="text-2xl font-bold font-orbitron text-white mb-4">Ready for Analysis</h3><p class="text-[var(--text-silver)] max-w-md">Enter a wallet address for comprehensive due diligence.</p></div>`;
-            }
-            return `<div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-0 h-full flex flex-col animate-fade-in-up" style="transform-style: preserve-3d;"><div class="p-8 border-b border-[var(--border-color)] transition-all duration-500 hover:border-[var(--primary-azure)] hover:shadow-2xl hover:shadow-black/50"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white"><i class="fas fa-shield-alt fa-lg"></i></div><div><h2 class="text-3xl font-bold font-orbitron text-white">Wallet Due Diligence</h2><p class="text-[var(--text-silver)] font-mono">Blockchain Forensics & Risk Assessment</p></div></div><div class="flex items-center gap-4"><input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm"><button id="check-wallet-btn" onclick="SFX.play('launch')" class="btn-engagement font-bold !py-4 !px-8 whitespace-nowrap"><i class="fas fa-microscope mr-2"></i>Analyze</button></div></div><div class="flex-grow p-8 overflow-y-auto" style="transform: translateZ(10px);">${contentHTML}</div></div>`;
-        },
+renderWalletForensicsUI: () => {
+    const { address, isLoading, report } = AppState.walletAnalysis;
+    let contentHTML = '';
+
+    // --- State 1: Loading Animation (Pinnacle Grade) ---
+    if (isLoading) {
+        contentHTML = `
+        <div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up">
+            <div class="relative w-24 h-24 mb-8" style="perspective: 1000px;">
+                <!-- Orbital Rings for depth and motion -->
+                <div class="absolute inset-0 border-2 border-[var(--primary-azure)] rounded-full animate-spin" style="animation-duration: 2s;"></div>
+                <div class="absolute inset-2 border-2 border-[var(--primary-royal)] rounded-full animate-spin" style="animation-duration: 2s; animation-direction: reverse;"></div>
+                <div class="absolute inset-4 border-2 border-[var(--primary-amethyst)] rounded-full animate-ping"></div>
+                <!-- Central Floating Icon -->
+                <div class="w-full h-full flex items-center justify-center" style="transform-style: preserve-3d; animation: icon-float 6s ease-in-out infinite;">
+                    <i class="fas fa-shield-alt text-4xl text-[var(--primary-azure)]" style="transform: translateZ(40px); text-shadow: 0 0 25px var(--glow-azure);"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analyzing Wallet Provenance</h3>
+            <p id="spinner-text" class="text-[var(--text-silver)] mb-6 transition-opacity duration-300">Initializing GECAN Heuristic Engine v5.0...</p>
+            <div class="w-64 h-2 bg-[var(--background-secondary)] rounded-full overflow-hidden">
+                <div class="h-full bg-[var(--gradient-primary)] animate-pulse" style="animation: shimmer-progress 2s infinite;"></div>
+            </div>
+        </div>`;
+    } 
+    // --- State 2: Error Display (Pinnacle Grade) ---
+    else if (report?.error) {
+        SFX.play('error');
+        contentHTML = `
+        <div class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in-up">
+            <div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8 border-2 border-red-500/50 relative">
+                <i class="fas fa-exclamation-triangle fa-3x text-red-500" style="text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);"></i>
+                <div class="absolute inset-0 rounded-full animate-ping bg-red-500 opacity-25"></div>
+            </div>
+            <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Analysis Failed</h3>
+            <p class="text-[var(--text-silver)] max-w-md leading-relaxed">${report.error.message}</p>
+            <button onclick="Logic.runWalletForensics(); SFX.play('click');" class="btn-engagement mt-8 !py-3 !px-8">
+                <i class="fas fa-redo mr-2"></i>Retry Analysis
+            </button>
+        </div>`;
+    } 
+    // --- State 3: Report Rendered ---
+    else if (report) {
+        contentHTML = UI.buildWalletReportHTML(report);
+    } 
+    // --- State 4: Initial "Ready" State (Pinnacle Grade) ---
+    else {
+        contentHTML = `
+        <div class="h-full flex flex-col items-center justify-center text-center bg-[var(--background-glass)] rounded-2xl border-2 border-dashed border-[var(--border-color)] animate-fade-in-up p-8" style="perspective: 1000px;">
+            <div class="w-24 h-24 rounded-full bg-[var(--primary-azure)]/10 flex items-center justify-center mb-8 relative transition-transform duration-500 hover:scale-110" style="transform-style: preserve-3d; animation: icon-float 8s ease-in-out infinite;">
+                <i class="fas fa-search fa-3x text-[var(--primary-azure)] transition-all duration-500" style="transform: translateZ(30px); text-shadow: 0 0 20px var(--glow-azure);"></i>
+                <div class="absolute inset-0 rounded-full border-2 border-[var(--primary-azure)]/50" style="transform: rotateX(70deg);"></div>
+                <div class="absolute inset-0 rounded-full border-2 border-[var(--primary-azure)]/30" style="transform: rotateX(70deg) rotateY(60deg);"></div>
+            </div>
+            <h3 class="text-2xl font-bold font-orbitron text-white mb-4">Ready for Analysis</h3>
+            <p class="text-[var(--text-silver)] max-w-md leading-relaxed mb-2">Enter a wallet address to begin comprehensive due diligence and provenance verification.</p>
+            <p class="text-xs text-[var(--text-muted)] font-mono">Powered by GECAN Proprietary Heuristic Engine v5.0</p>
+        </div>`;
+    }
+
+    // --- Master Container Assembly ---
+    // The entire toolkit is wrapped in a container that enables 3D transforms for its children.
+    return `
+        <div class="bg-[var(--background-glass)] backdrop-filter backdrop-blur-2xl border border-[var(--border-color)] rounded-2xl p-0 h-full flex flex-col animate-fade-in-up" style="transform-style: preserve-3d;">
+            
+            <!-- Premium Header with 3D Hover Effect -->
+            <div class="p-8 border-b border-[var(--border-color)] transition-all duration-500 hover:border-[var(--primary-azure)] hover:shadow-2xl hover:shadow-black/50" style="transform: translateZ(20px);">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-red-500/20">
+                        <i class="fas fa-shield-alt fa-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold font-orbitron text-white">Wallet Due Diligence & Provenance</h2>
+                        <p class="text-[var(--text-silver)] font-mono">Advanced Blockchain Forensics & Risk Assessment</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm">
+                    <button id="check-wallet-btn" onclick="SFX.play('launch')" class="btn-engagement font-bold !py-4 !px-8 whitespace-nowrap">
+                        <i class="fas fa-microscope mr-2"></i>Analyze
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Content Area with 3D Depth -->
+            <div class="flex-grow p-8 overflow-y-auto" style="transform: translateZ(10px);">
+                ${contentHTML}
+            </div>
+        </div>
+        
+        <!-- Additional CSS for new animations -->
+        <style>
+            @keyframes icon-float { 0%, 100% { transform: translateY(0px) rotateY(0deg); } 50% { transform: translateY(-10px) rotateY(15deg); } }
+            @keyframes shimmer-progress { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        </style>
+    `;
+},
         buildWalletReportHTML: (report) => {
             const { wallet, analysis, transactions } = report;
             const { riskLevel, integrityScore } = analysis;
