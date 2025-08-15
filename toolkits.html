@@ -1079,12 +1079,57 @@ buildWalletReport_TransactionLedger: (report) => {
     `;
 },
         
-        
-        
-        
-        renderInstitutionalModelerUI: () => `<div class="flex flex-col gap-8 animate-fade-in-up"><div id="modeler-main-content" class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative"><div id="modeler-input-container" class="lg:col-span-5 bg-[var(--background-glass-premium)] border border-[var(--border-premium)] rounded-2xl p-6 md:p-8 flex flex-col">${UI.renderModelerSelectionPanel()}</div><div id="modeler-preview-container" class="lg:col-span-2 bg-white rounded-2xl flex-col hidden" style="box-shadow: 0 0 80px var(--glow-diamond);"></div></div></div>`,
-        
-        
+renderInstitutionalModelerUI: () => {
+    // This function returns a single, unabridged template literal containing the complete
+    // and permanent structure for the Institutional Modeler's interface.
+    return `
+        <!--
+            PINNACLE ARCHITECTURE: The main container is animated and establishes the
+            3D perspective context for all child elements.
+        -->
+        <div class="flex flex-col gap-8 animate-fade-in-up" style="perspective: 2500px;">
+            
+            <!--
+                PINNACLE ARCHITECTURE: The grid system is designed to be dynamically
+                manipulated by JavaScript (changing column spans) to create the
+                side-by-side editor/preview layout. The transition properties ensure
+                this change is a smooth, cinematic animation.
+            -->
+            <div id="modeler-main-content" class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                
+                <!-- 
+                    PANEL 1: Input & Editor Container (Initially takes full width)
+                    - Uses 'offer-card' styling for consistency with the benchmark.
+                    - `transition-all` allows its width and position to animate smoothly.
+                -->
+                <div 
+                    id="modeler-input-container" 
+                    class="offer-card lg:col-span-5 p-6 md:p-8 flex flex-col transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                >
+                    <!--
+                        The initial content is rendered by a dedicated sub-renderer,
+                        ensuring clean, modular code.
+                    -->
+                    ${UI.renderModelerSelectionPanel()}
+                </div>
+
+                <!-- 
+                    PANEL 2: Live Contract Preview Container (Initially hidden and off-screen)
+                    - Starts with `hidden`, `opacity-0`, and `transform` properties for a cinematic entrance.
+                    - The white background and heavy shadow create a prestigious "physical document" aesthetic.
+                    - `transition-all` allows its properties to animate smoothly when it's revealed.
+                -->
+                <div 
+                    id="modeler-preview-container" 
+                    class="lg:col-span-2 bg-white rounded-2xl flex-col transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hidden" 
+                    style="box-shadow: 0 0 80px var(--glow-diamond), 0 25px 60px -12px rgba(0,0,0,0.8); opacity: 0; transform: translateX(50px) rotateY(-5deg);"
+                >
+                    <!-- Live preview content will be dynamically injected here by Logic.generateContract -->
+                </div>
+
+            </div>
+        </div>`;
+},
         renderModelerSelectionPanel: () => {
             const dealTypes = [{ id: 'AssetSwap', name: 'Asset Swap', icon: 'fa-exchange-alt', desc: 'Model direct asset conversions.', color: 'from-blue-500 to-cyan-500' }, { id: 'CommodityTrade', name: 'Commodity Trade', icon: 'fa-oil-can', desc: 'Structure physical commodity trades.', color: 'from-yellow-500 to-orange-500' }, { id: 'CryptoLoan', name: 'Crypto Loan', icon: 'fa-hand-holding-usd', desc: 'Originate crypto-collateralized loans.', color: 'from-green-500 to-emerald-500' }, { id: 'SBLCMonetization', name: 'SBLC Monetization', icon: 'fa-file-invoice-dollar', desc: 'Monetize standby letters of credit.', color: 'from-purple-500 to-violet-500' }];
             const colorMap = { 'from-blue-500': { primary: '#3b82f6', glow: 'rgba(59, 130, 246, 0.7)' }, 'from-yellow-500': { primary: '#f59e0b', glow: 'rgba(245, 158, 11, 0.7)' }, 'from-green-500': { primary: '#22c55e', glow: 'rgba(34, 197, 94, 0.7)' }, 'from-purple-500': { primary: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.7)' } };
