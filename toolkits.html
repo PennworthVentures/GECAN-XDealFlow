@@ -471,13 +471,63 @@
 
     // --- IV. LOGIC CONTROLLER (SEVERELY UPGRADED) ---
     const Logic = {
-        createApiRequest: async (action, method = 'POST', params = {}) => {
-            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, data: params }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' });
-            if (!response.ok) throw new Error(`API Network Error: Status ${response.status}`);
-            const result = await response.json();
-            if (result.success === false) throw new Error(result.error || 'Server reported an error.');
-            return result.data || result;
-        },
+        createApiRequest: async (action, method = 'GET', params = {}) => {
+    // Sanitize method to uppercase to prevent case-sensitivity issues.
+    const httpMethod = method.toUpperCase();
+    let url = `${API_URL}?action=${action}`;
+    
+    const options = {
+        method: httpMethod,
+        redirect: 'follow',
+        muteHttpExceptions: true // Required for Google Apps Script error handling
+    };
+
+    // --- CRITICAL FIX: GET/POST ROUTING LOGIC ---
+    // This block correctly formats the request based on the specified HTTP method.
+    if (httpMethod === 'GET') {
+        // For GET requests, parameters are appended to the URL as a query string.
+        Object.keys(params).forEach(key => {
+            url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`;
+        });
+    } else if (httpMethod === 'POST') {
+        // For POST requests, parameters are sent in the request body.
+        // Google Apps Script requires a specific format for the payload.
+        options.body = JSON.stringify({
+            action: action,
+            data: params
+        });
+        options.headers = {
+            'Content-Type': 'text/plain;charset=utf-8'
+        };
+    }
+
+    try {
+        const response = await fetch(url, options);
+
+        if (!response.ok) {
+            // Handles network-level errors (e.g., 404, 500).
+            throw new Error(`API Network Error: Status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Handles application-level errors returned by the backend script.
+        if (result.success === false) {
+            // Prioritizes a specific error message from the server, otherwise provides a default.
+            throw new Error(result.error || `Server reported an unspecified error for action: ${action}`);
+        }
+        
+        // On success, returns the 'data' property or the entire result as a fallback.
+        return result.data || result;
+
+    } catch (error) {
+        // Centralized error logging for easier debugging.
+        console.error(`API Request Failed for action '${action}' with method '${httpMethod}'. Error:`, error);
+        // Re-throw the error to be caught by the calling function's .catch() block.
+        // This allows for specific UI updates (e.g., showing an error message).
+        throw new Error(`API Error: ${error.message}`);
+    }
+},
         init: async () => {
             UI.init(); SFX.initialize(); Logic.setupEventListeners(); UI.renderToolkitMenu();
             try {
