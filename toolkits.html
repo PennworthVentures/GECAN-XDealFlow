@@ -1170,61 +1170,99 @@ buildWalletReportHTML: (report) => {
  */
 renderAssetSwapPanel: () => {
     const state = AppState.modeler.assetSwap;
+    const { pricingConfig } = AppState.modeler;
     const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
-    const toAsset = Utils.getAssetByKey(state.toAssetKey);
-    const rate = (fromAsset.price > 0 && toAsset.price > 0) ? fromAsset.price / toAsset.price : 0;
-    const receivesAmount = (parseFloat(String(state.amount).replace(/,/g, '')) || 0) * rate;
 
     const assetOptions = (selectedKey) => AppState.marketData
         .filter(a => a.type !== 'Cross-Rate' && a.price > 0)
         .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
         .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
+
+    return `
+        <h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3 animate-fade-in-up">
+            <i class="fas fa-sliders-h text-[var(--primary-azure)]"></i>Deal Parameters
+        </h2>
+        <div class="space-y-6 flex-grow">
+            <!-- Transaction Core Sub-Panel -->
+            <div class="offer-card !p-6 animate-fade-in-up stagger-1">
+                <h4 class="asset-header text-lg -ml-1 mb-4 flex items-center gap-3"><i class="fas fa-file-contract"></i>Transaction Core</h4>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">From Asset</label>
+                            <select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select>
+                        </div>
+                        <div class="pt-8">
+                            <button onclick="Logic.swapAssets(); SFX.play('click');" onmouseover="SFX.play('hover')" class="w-12 h-12 flex items-center justify-center rounded-full bg-[var(--primary-azure)]/20 text-[var(--primary-azure)] transition-all duration-300 hover:bg-[var(--primary-azure)]/30 hover:scale-110" title="Swap Assets"><i id="swap-icon" class="fas fa-exchange-alt text-xl"></i></button>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">To Asset</label>
+                            <select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label>
+                        <input type="text" data-path="assetSwap.amount" value="${(parseFloat(String(state.amount).replace(/,/g, '')) || 0).toLocaleString()}" class="form-input text-lg font-bold">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pricing & Configuration Sub-Panel -->
+            <div class="offer-card !p-6 animate-fade-in-up stagger-2">
+                <div class="collapsible-header cursor-pointer group" onclick="Logic.togglePricingConfig(); SFX.play('click');">
+                    <h4 class="asset-header text-lg -ml-1 flex items-center gap-3"><i class="fas fa-percent"></i>Pricing & Configuration</h4>
+                    <i class="fas fa-chevron-down text-[var(--text-muted)] transition-transform duration-300 group-hover:text-white ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i>
+                </div>
+                <div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <select data-path="pricingConfig.offerType" class="form-select">${['discount', 'premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select>
+                        <select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, 'Value in %'], [false, 'Value in $']].map(([v, l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div>
+                        <div><label class="block text-sm font-medium text-[var(--text-muted)] mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+},
+
+renderModelerOutputPanel: (calculation) => {
+    if (!calculation) {
+        // Render a placeholder if no calculation data is available
+        return `<div class="flex items-center justify-center h-full text-center text-[var(--text-muted)]"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
+    }
+
+    const { 
+        baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, 
+        netValueDescription, grossValueDescription, dealTitle,
+        rate, receivesAmount, fromAsset, toAsset 
+    } = calculation;
+
+    const metricCard = (icon, label, value, subtext, isRate = false) => `
+        <div class="offer-card !p-4 !rounded-xl">
+            <div class="card-content">
+                <p class="text-sm text-[var(--text-muted)] flex items-center gap-2 mb-1"><i class="fas ${icon} fa-fw"></i>${label}</p>
+                <p class="text-3xl font-bold font-mono text-white leading-none ${isRate ? 'text-2xl' : ''}">${value}</p>
+                <p class="text-xs text-[var(--text-subtle)] font-mono mt-1">${subtext}</p>
+            </div>
+        </div>`;
     
     return `
-        <div class="space-y-4" style="perspective: 1000px;">
-            <div class="flex items-center gap-4">
-                <!-- "FROM" ASSET SELECTION -->
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">From Asset</label>
-                    <select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select>
-                </div>
-
-                <!-- KINETIC SWAP BUTTON -->
-                <div class="pt-8">
-                    <button 
-                        onclick="Logic.swapAssets(); SFX.play('click');" 
-                        onmouseover="SFX.play('hover')"
-                        class="w-12 h-12 flex items-center justify-center rounded-full bg-[var(--primary-azure)]/20 text-[var(--primary-azure)] transition-all duration-300 hover:bg-[var(--primary-azure)]/30 hover:scale-110 hover:shadow-lg hover:shadow-[var(--glow-azure)]"
-                        title="Swap Assets"
-                    >
-                        <i id="swap-icon" class="fas fa-exchange-alt text-xl"></i>
-                    </button>
-                </div>
-                
-                <!-- "TO" ASSET SELECTION -->
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">To Asset</label>
-                    <select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select>
-                </div>
+        <div class="flex flex-col h-full animate-fade-in-up">
+            <h2 class="text-2xl font-bold font-orbitron text-white mb-6 flex items-center gap-3">
+                <i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections
+            </h2>
+            <div class="space-y-4 flex-grow">
+                ${metricCard('fa-tags', 'Base/Market Value', Utils.formatPrice(baseValueUSD), dealTitle)}
+                ${metricCard('fa-hand-holding-dollar', 'Net Value to Buyer', Utils.formatPrice(finalValueToBuyerUSD), netValueDescription)}
+                ${metricCard('fa-coins', 'Total Commission Pool', Utils.formatPrice(totalCommissionPool), grossValueDescription)}
+                ${metricCard('fa-sync-alt', 'Institutional Cross Rate', rate > 0 ? rate.toFixed(8) : '0.00000000', rate > 0 ? `1 ${fromAsset.baseAsset} ≈ ${receivesAmount.toFixed(4)} ${toAsset.baseAsset}` : 'Price data unavailable for conversion.', true)}
             </div>
-
-            <!-- AMOUNT INPUT WITH DYNAMIC LABEL -->
-            <div>
-                <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">
-                    Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)
-                </label>
-                <input type="text" data-path="assetSwap.amount" value="${(parseFloat(String(state.amount).replace(/,/g, '')) || 0).toLocaleString()}" class="form-input text-lg font-bold">
-            </div>
-
-            <!-- REAL-TIME INDICATIVE OUTPUT -->
-            <div class="bg-black/20 p-4 rounded-xl border border-[var(--border-color)] text-center transition-all duration-300 hover:border-[var(--primary-azure)]">
-                <p class="text-sm text-[var(--text-muted)]">Indicative Amount Received</p>
-                <p class="text-2xl font-bold font-mono text-success-color mt-1">
-                    ≈ ${Utils.formatNumber(receivesAmount, 4)} ${toAsset.baseAsset || ''}
-                </p>
-                <p class="text-xs text-[var(--text-subtle)] font-mono mt-2">
-                    Rate: 1 ${fromAsset.baseAsset} ≈ ${rate.toFixed(6)} ${toAsset.baseAsset}
-                </p>
+            <div class="mt-auto pt-6 border-t border-[var(--border-color)]">
+                <button onclick="Logic.openImfpaEditor(); SFX.play('launch');" class="btn-engagement w-full py-3 font-bold">
+                    <i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Commission Manager
+                </button>
             </div>
         </div>`;
 },
@@ -1594,7 +1632,67 @@ populateNavLinks: () => {
             current[keys.pop()] = value;
             Logic.liveUpdateContractPreview(); // Always update preview on any input change
         },
-        calculateModel: () => ({ baseValueUSD: 1000000, totalCommissionPool: 50000 }),
+        
+        
+calculateModel: () => {
+    const { activeDealType, pricingConfig } = AppState.modeler;
+    const calculationFunc = Logic[`calculate${activeDealType}`];
+    if (!calculationFunc) return null;
+
+    // 1. Get the base calculation from the specific deal type engine.
+    const dealCalc = calculationFunc();
+    if (!dealCalc) return null;
+    const { baseValueUSD } = dealCalc;
+
+    // 2. Parse pricing configuration with robust fallbacks.
+    const grossValue = parseFloat(pricingConfig.grossValue) || 0;
+    const netValue = parseFloat(pricingConfig.netValue) || 0;
+
+    // 3. Apply universal pricing logic to the base value.
+    const grossOffer = pricingConfig.isValueInPercent ? baseValueUSD * (grossValue / 100) : grossValue;
+    const netToBuyerOffer = pricingConfig.isValueInPercent ? baseValueUSD * (netValue / 100) : netValue;
+    
+    let finalValueToBuyerUSD, totalCommissionPool;
+    if (pricingConfig.offerType === 'discount') {
+        finalValueToBuyerUSD = baseValueUSD - netToBuyerOffer;
+        totalCommissionPool = grossOffer - netToBuyerOffer;
+    } else { // 'premium'
+        finalValueToBuyerUSD = baseValueUSD + netToBuyerOffer;
+        totalCommissionPool = grossOffer - netToBuyerOffer;
+    }
+    // Ensure commission pool cannot be negative.
+    totalCommissionPool = Math.max(0, totalCommissionPool);
+    AppState.modeler.legal.totalCommission = totalCommissionPool;
+
+    // 4. Return a single, massive, unabridged data object for the UI.
+    return {
+        ...dealCalc, // Includes all specific data like `rate`, `receivesAmount`, etc.
+        baseValueUSD,
+        finalValueToBuyerUSD,
+        totalCommissionPool,
+        netValueDescription: `${netValue.toFixed(2)}${pricingConfig.isValueInPercent ? '%' : '$'} Net ${pricingConfig.offerType}`,
+        grossValueDescription: `${grossValue.toFixed(2)}${pricingConfig.isValueInPercent ? '%' : '$'} Gross ${pricingConfig.offerType}`
+    };
+},
+        
+calculateAssetSwap: () => {
+    const state = AppState.modeler.assetSwap;
+    const amount = parseFloat(String(state.amount).replace(/,/g, '')) || 0;
+    const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
+    const toAsset = Utils.getAssetByKey(state.toAssetKey);
+
+    const fromPriceUSD = fromAsset.price || 0;
+    const toPriceUSD = toAsset.price || 0;
+    const baseValueUSD = amount * fromPriceUSD;
+    const rate = (fromPriceUSD > 0 && toPriceUSD > 0) ? fromPriceUSD / toPriceUSD : 0;
+    const receivesAmount = amount * rate;
+
+    return {
+        amount, fromAsset, toAsset, baseValueUSD, rate, receivesAmount,
+        dealTitle: `Swap ${Utils.formatNumber(amount)} ${fromAsset.baseAsset || 'N/A'} for ${toAsset.baseAsset || 'N/A'}`
+    };
+},
+        
         openImfpaEditor: () => {
             const inputContainer = document.getElementById('modeler-input-container');
             const previewContainer = document.getElementById('modeler-preview-container');
