@@ -1606,55 +1606,65 @@ resetCommodityTrade: () => {
             calculateCryptoLoan: () => {
                 const state = AppState.modeler.cryptoLoan;
                 const collateralAsset = Utils.getAssetByKey(state.collateralAssetKey);
+                // --- DEFINITIVE FIX: Fetch the complete asset object for the selected loan currency ---
+                const loanCurrencyAsset = Utils.getAssetByKey(state.loanCurrency);
 
-                if (!collateralAsset) return { isValid: false };
+                if (!collateralAsset || !loanCurrencyAsset) return { isValid: false };
 
-                // 1. Calculate Collateral Value and Gross Loan Principal
+                // 1. Calculate Collateral Value in USD (the universal baseline)
                 const collateralValueUSD = (parseFloat(state.collateralAmount) || 0) * (collateralAsset.price || 0);
-                const grossLoanPrincipal = collateralValueUSD * ((parseFloat(state.ltv) || 0) / 100);
 
-                // 2. Calculate Role-Based Origination Fee and Net Loan
-                let originationFee = 0;
-                let netLoanToBorrower = grossLoanPrincipal;
+                // 2. Calculate Gross Loan Principal in USD
+                const grossLoanPrincipalUSD = collateralValueUSD * ((parseFloat(state.ltv) || 0) / 100);
+
+                // 3. Determine the conversion rate to the selected Loan Currency
+                const usdToLoanCurrencyRate = loanCurrencyAsset.price || 1;
+
+                // 4. Convert all primary values to the selected Loan Currency for native calculations
+                const grossLoanPrincipalNative = grossLoanPrincipalUSD / usdToLoanCurrencyRate;
+
+                // 5. Calculate Role-Based Origination Fee and Net Loan (NATIVELY in the selected currency)
+                let originationFeeNative = 0;
+                let netLoanToBorrowerNative = grossLoanPrincipalNative;
 
                 if (state.userRole === 'Intermediary') {
-                    originationFee = grossLoanPrincipal * ((parseFloat(state.originationFeePercent) || 0) / 100);
-                    netLoanToBorrower = grossLoanPrincipal - originationFee;
+                    originationFeeNative = grossLoanPrincipalNative * ((parseFloat(state.originationFeePercent) || 0) / 100);
+                    netLoanToBorrowerNative = grossLoanPrincipalNative - originationFeeNative;
                 }
 
-                // 3. Calculate Repayment based on the GROSS Loan Amount
+                // 6. Calculate Repayment (NATIVELY in the selected currency)
                 const monthlyInterestRate = ((parseFloat(state.interestRateValue) || 0) / 100) / 12;
                 const tenure = parseInt(state.tenureMonths, 10) || 1;
-                const monthlyPayment = (monthlyInterestRate > 0)
-                    ? (grossLoanPrincipal * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, tenure)) / (Math.pow(1 + monthlyInterestRate, tenure) - 1)
-                    : grossLoanPrincipal / tenure;
-                const totalRepayment = monthlyPayment * tenure;
+                const monthlyPaymentNative = (monthlyInterestRate > 0)
+                    ? (grossLoanPrincipalNative * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, tenure)) / (Math.pow(1 + monthlyInterestRate, tenure) - 1)
+                    : grossLoanPrincipalNative / tenure;
+                const totalRepaymentNative = monthlyPaymentNative * tenure;
 
-                // 4. Generate Amortization Data for Graph
-                let balance = grossLoanPrincipal;
+                // 7. Generate Amortization Data (NATIVELY in the selected currency)
+                let balance = grossLoanPrincipalNative;
                 const amortizationData = [{ month: 0, balance: balance }];
                 for (let i = 1; i <= tenure; i++) {
                     const interestForMonth = balance * monthlyInterestRate;
-                    const principalForMonth = monthlyPayment - interestForMonth;
+                    const principalForMonth = monthlyPaymentNative - interestForMonth;
                     balance -= principalForMonth;
                     amortizationData.push({ month: i, balance: Math.max(0, balance) });
                 }
 
                 return {
                     isValid: true,
-                    primaryValue: netLoanToBorrower, // The most important value for the user
-                    primaryUnit: state.loanCurrency,
+                    primaryValue: netLoanToBorrowerNative,
+                    primaryUnit: loanCurrencyAsset.baseAsset,
                     dealTitle: `Loan against ${state.collateralAmount} ${collateralAsset.baseAsset}`,
-                    usdEquivalent: netLoanToBorrower,
-                    toAsset: { baseAsset: state.loanCurrency, price: 1 },
+                    usdEquivalent: netLoanToBorrowerNative * usdToLoanCurrencyRate,
+                    toAsset: loanCurrencyAsset,
                     
-                    // --- All new, rich data for the brilliant analysis panel ---
                     collateralValueUSD,
-                    grossLoanPrincipal,
-                    originationFee,
-                    netLoanToBorrower,
-                    totalRepayment,
-                    monthlyPayment,
+                    grossLoanPrincipalUSD, // Pass the USD value for transparent reporting
+                    grossLoanPrincipalNative,
+                    originationFeeNative,
+                    netLoanToBorrowerNative,
+                    totalRepaymentNative,
+                    monthlyPaymentNative,
                     amortizationData
                 };
             },
@@ -3222,14 +3232,18 @@ const UI = {
  * Renders the specific input fields for the Crypto Loan deal type.
  * @returns {string} The HTML for the Crypto Loan panel.
  */
-renderCryptoLoanPanel: () => {
+            renderCryptoLoanPanel: () => {
                 const state = AppState.modeler.cryptoLoan;
+                
+                // --- UNIVERSAL DYNAMIC ASSET SELECTOR ---
+                // This single function now powers both dropdowns with supreme flexibility.
                 const assetOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
-                const currencyOptions = () => ['USD', 'EUR', 'HKD', 'USDT'].sort().map(c => `<option value="${c}" ${state.loanCurrency === c ? 'selected' : ''}>${c}</option>`).join('');
 
                 const isCollateralDefined = state.collateralAssetKey && state.collateralAmount > 0;
                 const areTermsDefined = state.ltv > 0 && state.tenureMonths > 0 && state.interestRateValue > 0;
 
+                // --- UNABRIDGED COMMISSION INPUTS LOGIC ---
+                // The incomplete placeholder has been replaced with the full, definitive logic.
                 const commissionInputsHTML = state.userRole === 'Intermediary' ?
                     `<div class="mt-4 pt-4 border-t border-border-color">
                         <label class="block text-sm font-medium text-text-muted mb-2">Origination Fee (%)</label>
@@ -3253,17 +3267,19 @@ renderCryptoLoanPanel: () => {
                         <div id="ltv-sync-container">
                             <label class="block text-sm font-medium text-text-muted mb-2">Loan-to-Value (LTV)</label>
                             <div class="flex items-center gap-4">
-                                <!-- DEFINITIVE FIX: The faulty oninput handler has been REMOVED -->
                                 <input id="ltv-slider" type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer">
                                 <div class="relative w-28">
-                                    <!-- DEFINITIVE FIX: The faulty oninput handler has been REMOVED -->
                                     <input id="ltv-input" type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6">
                                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span>
                                 </div>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="block text-sm font-medium text-text-muted mb-2">Loan Currency</label><select data-path="cryptoLoan.loanCurrency" class="form-select">${currencyOptions()}</select></div>
+                            <div>
+                                <label class="block text-sm font-medium text-text-muted mb-2">Loan Currency</label>
+                                <!-- DEFINITIVE SYNTHESIS: Uses the universal assetOptions function -->
+                                <select data-path="cryptoLoan.loanCurrency" class="form-select">${assetOptions(state.loanCurrency)}</select>
+                            </div>
                             <div><label class="block text-sm font-medium text-text-muted mb-2">Tenure (Months)</label><input type="number" data-path="cryptoLoan.tenureMonths" value="${state.tenureMonths}" class="form-input"></div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -3389,39 +3405,44 @@ renderSBLCMonetizationPanel: () => {
                     if (!calc || !calc.isValid) {
                         return `<p class="text-center text-text-muted py-12">Please provide valid loan parameters.</p>`;
                     }
-                    const { primaryValue, primaryUnit, dealTitle, totalRepayment, monthlyPayment, originationFee, collateralValueUSD, netLoanToBorrower, grossLoanPrincipal, amortizationData } = calc;
+                    const { 
+                        primaryValue, primaryUnit, dealTitle, totalRepaymentNative, monthlyPaymentNative,
+                        originationFeeNative, collateralValueUSD, netLoanToBorrowerNative,
+                        grossLoanPrincipalUSD, grossLoanPrincipalNative, amortizationData 
+                    } = calc;
                     const state = AppState.modeler.cryptoLoan;
 
-                    // --- DEFINITIVE CURRENCY FIX: `primaryUnit` is now passed to all formatting functions. ---
+                    // --- DEFINITIVE CURRENCY FIX: All values are now the NATIVE, non-USD versions ---
                     primaryAnalysisCards = `
                         <div class="output-metric-card base-value">
                             <p class="label"><i class="fas fa-money-bill-wave"></i>Net Loan to Borrower</p>
-                            <p class="value">${Utils.formatPrice(primaryValue, primaryUnit)}</p>
+                            <p class="value">${Utils.formatNumber(netLoanToBorrowerNative, 2)} <span class="text-2xl">${primaryUnit}</span></p>
                             <p class="sub-value">${dealTitle}</p>
                         </div>
                         <div class="output-metric-card net">
                             <p class="label"><i class="fas fa-undo-alt"></i>Total Repayment</p>
-                            <p class="value">${Utils.formatPrice(totalRepayment, primaryUnit)}</p>
-                            <p class="sub-value">${Utils.formatPrice(monthlyPayment, primaryUnit)} / month for ${state.tenureMonths} months</p>
+                            <p class="value">${Utils.formatNumber(totalRepaymentNative, 2)} <span class="text-2xl">${primaryUnit}</span></p>
+                            <p class="sub-value">${Utils.formatNumber(monthlyPaymentNative, 2)} ${primaryUnit} / month</p>
                         </div>
                         <div class="output-metric-card commission">
                             <p class="label"><i class="fas fa-handshake"></i>Origination Fee / Commission</p>
-                            <p class="value">${Utils.formatPrice(originationFee, primaryUnit)}</p>
+                            <p class="value">${Utils.formatNumber(originationFeeNative, 2)} <span class="text-2xl">${primaryUnit}</span></p>
                             <p class="sub-value">${state.userRole === 'Intermediary' ? `${state.originationFeePercent}% of Gross Loan` : 'Direct to Principal'}</p>
                         </div>`;
                     
                     customAnalysisPanel = `
                     <div class="output-metric-card p-4 mt-4 border-l-4 border-primary-royal">
-                        <p class="label !mb-2 text-primary-royal"><i class="fas fa-stream"></i>Pinnacle Loan Analysis</p>
+                        <p class="label !mb-2 text-primary-royal"><i class="fas fa-stream"></i>Pinnacle Loan Analysis Report</p>
                         <div class="p-3 rounded-lg bg-background-light space-y-2 mb-4">
                             <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Total Collateral Value</span><span class="font-mono font-semibold">${Utils.formatPrice(collateralValueUSD)}</span></div>
-                            <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Gross Loan Principal (${state.ltv}%)</span><span class="font-mono font-semibold">${Utils.formatPrice(grossLoanPrincipal, primaryUnit)}</span></div>
-                            <div class="flex justify-between items-center text-red-400"><span class="text-sm">Origination Fee</span><span class="font-mono font-semibold">- ${Utils.formatPrice(originationFee, primaryUnit)}</span></div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Gross Loan (${state.ltv}%)</span><span class="font-mono font-semibold">${Utils.formatNumber(grossLoanPrincipalNative, 2)} ${primaryUnit}</span></div>
+                            <div class="flex justify-between items-center text-red-400"><span class="text-sm">Origination Fee</span><span class="font-mono font-semibold">- ${Utils.formatNumber(originationFeeNative, 2)} ${primaryUnit}</span></div>
                             <div class="border-t border-border-color my-1"></div>
-                            <div class="flex justify-between items-center text-white"><span class="text-sm font-bold">Net Disbursed to Borrower</span><span class="font-mono font-bold text-lg">${Utils.formatPrice(netLoanToBorrower, primaryUnit)}</span></div>
+                            <div class="flex justify-between items-center text-white"><span class="text-sm font-bold">Net Disbursed</span><span class="font-mono font-bold text-lg">${Utils.formatNumber(netLoanToBorrowerNative, 2)} ${primaryUnit}</span></div>
+                            <div class="text-right text-xs text-text-muted font-mono">(~${Utils.formatPrice(grossLoanPrincipalUSD)} Gross)</div>
                         </div>
                         <div>
-                            <h4 class="text-sm font-semibold text-text-secondary mb-2 text-center">Loan Amortization Schedule</h4>
+                            <h4 class="text-sm font-semibold text-text-secondary mb-2 text-center">Loan Amortization Schedule (${primaryUnit})</h4>
                             <div class="yield-graph-container h-32">${UI.renderAmortizationGraph(amortizationData)}</div>
                         </div>
                     </div>`;
