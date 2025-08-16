@@ -3357,28 +3357,39 @@ togglePricingConfig: () => {
             },
             // --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
 
-            initiateSigningProcess: () => {
-    const sigBlocks = document.querySelectorAll('#contract-document-wrapper .p-signature-block');
-    const selectEl = document.getElementById('signature-target-select');
-    if (!selectEl) return;
-    
-    selectEl.innerHTML = '<option value="">-- Select a Signatory --</option>';
-    sigBlocks.forEach((block, index) => {
-        const partyName = block.dataset.partyName;
-        const option = new Option(`${index + 1}: ${partyName}`, block.dataset.partyId);
-        selectEl.add(option);
-    });
+initiateSigningProcess: () => {
+                // DEFINITIVE FIX: The selector is now corrected to target the correct document viewer ID.
+                const sigBlocks = document.querySelectorAll('#contract-document-viewer .p-signature-block');
+                const selectEl = document.getElementById('signature-target-select');
+                if (!selectEl) {
+                    console.error("CRITICAL UI FAILURE: Signature target select element not found.");
+                    return;
+                }
+                
+                selectEl.innerHTML = '<option value="">-- Select a Signatory --</option>';
+                if (sigBlocks.length === 0) {
+                    console.warn("No signature blocks found in the generated document to populate the signatory list.");
+                }
+                
+                sigBlocks.forEach((block, index) => {
+                    const partyName = block.dataset.partyName;
+                    const partyId = block.dataset.partyId;
+                    if (partyName && partyId) {
+                        const option = new Option(`${String.fromCharCode(65 + index)}: ${partyName}`, partyId);
+                        selectEl.add(option);
+                    }
+                });
 
-    const modal = document.getElementById('signature-modal');
-    modal.showModal();
-    Logic.switchSignatureMode('draw');
-    
-    document.getElementById('signature-timestamp').textContent = new Date().toISOString();
-    document.getElementById('signature-location').textContent = 'Fetching...';
-    fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
-        document.getElementById('signature-location').textContent = `${data.city}, ${data.country_name} (IP: ${data.ip})`;
-    }).catch(() => { document.getElementById('signature-location').textContent = 'Location Not Available'; });
-},
+                const modal = document.getElementById('signature-modal');
+                modal.showModal();
+                Logic.switchSignatureMode('draw');
+                
+                document.getElementById('signature-timestamp').textContent = new Date().toISOString();
+                document.getElementById('signature-location').textContent = 'Fetching...';
+                fetch('https://ipapi.co/json/').then(res => res.json()).then(data => {
+                    document.getElementById('signature-location').textContent = `${data.city}, ${data.country_name} (IP: ${data.ip})`;
+                }).catch(() => { document.getElementById('signature-location').textContent = 'Location Not Available'; });
+            },
 
 switchSignatureMode: (mode) => {
     const panels = { draw: 'draw-mode-panel', upload: 'upload-mode-panel', seal: 'seal-mode-panel' };
@@ -3522,48 +3533,71 @@ processImageForTransparency: (imageDataUrl) => {
 },
 
 applySignature: async () => {
-    const modal = document.getElementById('signature-modal');
-    const mode = modal.dataset.activeMode;
-    const targetPartyId = document.getElementById('signature-target-select').value;
-    if (!targetPartyId) return Utils.showNotification("Please select a signatory.", 'error');
+                const modal = document.getElementById('signature-modal');
+                const mode = modal.dataset.activeMode;
+                const targetPartyId = document.getElementById('signature-target-select').value;
+                if (!targetPartyId) return Utils.showNotification("Please select a signatory.", 'error');
 
-    let dataUrl = '';
-    try {
-        if (mode === 'draw') {
-            if (window.signaturePad.isEmpty()) throw new Error("Please draw a signature.");
-            dataUrl = window.signaturePad.toDataURL('image/png');
-        } else {
-            const previewId = mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
-            const previewImg = document.getElementById(previewId);
-            if (!previewImg.src || previewImg.classList.contains('hidden')) throw new Error(`Please upload a ${mode === 'upload' ? 'signature' : 'seal'}.`);
-            dataUrl = await Logic.processImageForTransparency(previewImg.src);
-        }
+                let dataUrl = '';
+                try {
+                    if (mode === 'draw') {
+                        if (window.signaturePad.isEmpty()) throw new Error("Please draw a signature.");
+                        dataUrl = window.signaturePad.toDataURL('image/png');
+                    } else {
+                        const previewId = mode === 'upload' ? 'signature-upload-preview' : 'seal-upload-preview';
+                        const previewImg = document.getElementById(previewId);
+                        if (!previewImg.src || previewImg.classList.contains('hidden')) throw new Error(`Please upload a ${mode === 'upload' ? 'signature' : 'seal'}.`);
+                        dataUrl = await Logic.processImageForTransparency(previewImg.src);
+                    }
 
-        const dateOfExecution = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        const containersToUpdate = ['#contract-document-wrapper', '#print-area'];
+                    const dateOfExecution = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    // The containers now correctly reference the visible viewer and the hidden print area.
+                    const containersToUpdate = ['#contract-document-viewer', '#print-area'];
 
-        containersToUpdate.forEach(containerSelector => {
-            const container = document.querySelector(containerSelector);
-            if (!container) return;
-            const targetBlock = container.querySelector(`.p-signature-block[data-party-id="${targetPartyId}"]`);
-            if (!targetBlock) return;
+                    containersToUpdate.forEach(containerSelector => {
+                        const container = document.querySelector(containerSelector);
+                        if (!container) return;
+                        const targetBlock = container.querySelector(`.p-signature-block[data-party-id="${targetPartyId}"]`);
+                        if (!targetBlock) return;
 
-            if (mode === 'draw' || mode === 'upload') {
-                targetBlock.querySelector('[data-sig-type="signature"]').innerHTML = `<img src="${dataUrl}" class="p-signature-img" alt="Digital Signature">`;
-                targetBlock.querySelector('[data-sig-type="date"]').textContent = dateOfExecution;
-            } else if (mode === 'seal') {
-                targetBlock.querySelector('[data-sig-type="seal"]').innerHTML = `<img src="${dataUrl}" class="p-seal-img" alt="Corporate Seal">`;
-            }
-        });
+                        // Apply the signature or seal image to the document.
+                        if (mode === 'draw' || mode === 'upload') {
+                            const sigContainer = targetBlock.querySelector('[data-sig-type="signature"]');
+                            if (sigContainer) sigContainer.innerHTML = `<img src="${dataUrl}" class="p-signature-img" alt="Digital Signature">`;
+                            
+                            const dateContainer = targetBlock.querySelector('[data-sig-type="date"]');
+                            if (dateContainer) dateContainer.textContent = dateOfExecution;
+                        } else if (mode === 'seal') {
+                            const sealContainer = targetBlock.querySelector('[data-sig-type="seal"]');
+                            if (sealContainer) sealContainer.innerHTML = `<img src="${dataUrl}" class="p-seal-img" alt="Corporate Seal">`;
+                        }
+                        
+                        // --- SUPREME PINNACLE UPGRADE: The Cinematic Scroll-to-View Protocol ---
+                        // This only triggers for the visible container, not the hidden print area.
+                        if (containerSelector === '#contract-document-viewer') {
+                            setTimeout(() => {
+                                targetBlock.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center', // Centers the block vertically in the viewport.
+                                    inline: 'nearest'
+                                });
+                            }, 100); // A slight delay ensures the DOM has updated before scrolling.
+                        }
+                    });
 
-        modal.close();
-        Logic.resetSignatureInputs();
-        document.querySelector('#finalization-step-panel').classList.remove('opacity-50', 'pointer-events-none');
-        Utils.showNotification("Signature/seal applied successfully.", 'success');
-    } catch (error) {
-        Utils.showNotification(error.message, 'error', 'Application Failed');
-    }
-},
+                    modal.close();
+                    Logic.resetSignatureInputs();
+                    // This now correctly targets the element within the new Execution Suite.
+                    const finalizationPanel = document.querySelector('#finalization-step-panel');
+                    if (finalizationPanel) {
+                        finalizationPanel.classList.remove('locked');
+                        finalizationPanel.classList.add('active');
+                    }
+                    Utils.showNotification("Signature/seal applied successfully.", 'success');
+                } catch (error) {
+                    Utils.showNotification(error.message, 'error', 'Application Failed');
+                }
+            },
 
 resetSignatureInputs: () => {
     window.signaturePad?.clear();
