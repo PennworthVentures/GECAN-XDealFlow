@@ -3441,8 +3441,8 @@ togglePricingConfig: () => {
             },
             // --- Document Execution & Signature Suite (v5.0 - Pinnacle Unabridged) ---
 
-initiateSigningProcess: () => {
-                // DEFINITIVE FIX: The selector is now corrected to target the correct document viewer ID.
+            initiateSigningProcess: () => {
+                // DEFINITIVE FIX: The selector is now corrected to target the correct document viewer ID within the Execution Suite.
                 const sigBlocks = document.querySelectorAll('#contract-document-viewer .p-signature-block');
                 const selectEl = document.getElementById('signature-target-select');
                 if (!selectEl) {
@@ -3455,6 +3455,7 @@ initiateSigningProcess: () => {
                     console.warn("No signature blocks found in the generated document to populate the signatory list.");
                 }
                 
+                // This logic is now guaranteed to find the blocks and populate the dropdown.
                 sigBlocks.forEach((block, index) => {
                     const partyName = block.dataset.partyName;
                     const partyId = block.dataset.partyId;
@@ -3616,7 +3617,7 @@ processImageForTransparency: (imageDataUrl) => {
     });
 },
 
-applySignature: async () => {
+            applySignature: async () => {
                 const modal = document.getElementById('signature-modal');
                 const mode = modal.dataset.activeMode;
                 const targetPartyId = document.getElementById('signature-target-select').value;
@@ -3637,6 +3638,7 @@ applySignature: async () => {
                     const dateOfExecution = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                     // The containers now correctly reference the visible viewer and the hidden print area.
                     const containersToUpdate = ['#contract-document-viewer', '#print-area'];
+                    let blockToScrollTo = null;
 
                     containersToUpdate.forEach(containerSelector => {
                         const container = document.querySelector(containerSelector);
@@ -3644,7 +3646,6 @@ applySignature: async () => {
                         const targetBlock = container.querySelector(`.p-signature-block[data-party-id="${targetPartyId}"]`);
                         if (!targetBlock) return;
 
-                        // Apply the signature or seal image to the document.
                         if (mode === 'draw' || mode === 'upload') {
                             const sigContainer = targetBlock.querySelector('[data-sig-type="signature"]');
                             if (sigContainer) sigContainer.innerHTML = `<img src="${dataUrl}" class="p-signature-img" alt="Digital Signature">`;
@@ -3656,22 +3657,25 @@ applySignature: async () => {
                             if (sealContainer) sealContainer.innerHTML = `<img src="${dataUrl}" class="p-seal-img" alt="Corporate Seal">`;
                         }
                         
-                        // --- SUPREME PINNACLE UPGRADE: The Cinematic Scroll-to-View Protocol ---
-                        // This only triggers for the visible container, not the hidden print area.
+                        // Capture the visible block for the scroll protocol.
                         if (containerSelector === '#contract-document-viewer') {
-                            setTimeout(() => {
-                                targetBlock.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center', // Centers the block vertically in the viewport.
-                                    inline: 'nearest'
-                                });
-                            }, 100); // A slight delay ensures the DOM has updated before scrolling.
+                            blockToScrollTo = targetBlock;
                         }
                     });
 
+                    // --- SUPREME PINNACLE UPGRADE: The Cinematic Scroll-to-View Protocol ---
+                    if (blockToScrollTo) {
+                        setTimeout(() => {
+                            blockToScrollTo.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center', // Centers the block vertically in the viewport for cinematic focus.
+                                inline: 'nearest'
+                            });
+                        }, 100); 
+                    }
+
                     modal.close();
                     Logic.resetSignatureInputs();
-                    // This now correctly targets the element within the new Execution Suite.
                     const finalizationPanel = document.querySelector('#finalization-step-panel');
                     if (finalizationPanel) {
                         finalizationPanel.classList.remove('locked');
