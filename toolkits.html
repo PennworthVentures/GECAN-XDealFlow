@@ -1428,6 +1428,7 @@ updateModelerUI: (isFullRefresh = false) => {
             
                 const usdEquivalent = amountToGive * (fromAsset.price || 0);
                 const directRate = (toAsset.price > 0) ? (fromAsset.price || 0) / toAsset.price : 0;
+                const inverseRate = (fromAsset.price > 0) ? (toAsset.price || 0) / fromAsset.price : 0;
                 const primaryValue = amountToGive * directRate;
             
                 return { 
@@ -1435,9 +1436,13 @@ updateModelerUI: (isFullRefresh = false) => {
                     primaryUnit: toAsset.baseAsset,
                     dealTitle: `${Utils.formatNumber(amountToGive, 4)} ${fromAsset.baseAsset} to ${toAsset.baseAsset}`,
                     usdEquivalent: usdEquivalent,
-                    fromAsset: fromAsset, // Required for Pinnacle Swap Analysis panel
-                    toAsset: toAsset,     // CRITICAL: This was missing, causing the error.
-                    amountToGive: amountToGive, // Required for Pinnacle Swap Analysis panel
+                    fromAsset: fromAsset,
+                    toAsset: toAsset,
+                    amountToGive: amountToGive,
+                    // --- DEFINITIVE FIX IS HERE ---
+                    directRate: directRate,     // This value is now correctly included
+                    inverseRate: inverseRate,   // This value is now correctly included
+                    // -----------------------------
                     finalValueToBuyerUSD: 0,
                     totalCommissionPool: 0
                 };
@@ -3023,13 +3028,13 @@ renderSBLCMonetizationPanel: () => {
                 let primaryAnalysisCards = '';
             
                 if (AppState.modeler.activeDealType === 'AssetSwap') {
+                    // --- DEFINITIVE FIX IS HERE: `directRate` and `inverseRate` are now destructured ---
                     const { 
                         fromAsset, toAsset, amountToGive, baseValueInToAsset, 
                         finalValueToBuyerInToAsset, totalCommissionInToAsset, 
                         netValueDescription, grossValueDescription, directRate, inverseRate
                     } = calc;
-
-                    // --- THE TOP 3 CARDS (UNCHANGED AS REQUESTED) ---
+                    
                     primaryAnalysisCards = `
                         <div class="output-metric-card base-value">
                             <p class="label"><i class="fas fa-exchange-alt"></i>Base Settlement Value</p>
@@ -3047,7 +3052,6 @@ renderSBLCMonetizationPanel: () => {
                             <p class="sub-value">${grossValueDescription}</p>
                         </div>`;
 
-                    // --- SEVERELY ELEVATED & CONDITIONAL PINNACLE SWAP ANALYSIS ---
                     const { offerType, grossValue, netValue, isValueInPercent } = AppState.modeler.pricingConfig;
                     const isPricingActive = totalCommissionInToAsset > 0 || netValue != 0;
                     
@@ -3059,19 +3063,14 @@ renderSBLCMonetizationPanel: () => {
                         const netOfferText = `${Utils.formatNumber(netValue)}${isValueInPercent ? '%' : ''} Net ${offerType}`;
 
                         pricingBreakdownHTML = `
-                        <!-- Pricing & Commission Breakdown -->
                         <div class="mt-4 pt-4 border-t border-border-color space-y-4">
                             <p class="label !mb-2 text-primary-royal"><i class="fas fa-calculator"></i>Pricing & Commission Analysis</p>
-                            
-                            <!-- Settlement Calculation Flow -->
                             <div class="p-3 rounded-lg bg-background-light space-y-2">
                                 <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Base Settlement Value</span><span class="font-mono font-semibold">${Utils.formatNumber(baseValueInToAsset, 4)} ${toAsset.baseAsset}</span></div>
                                 <div class="flex justify-between items-center ${netOfferColor}"><span class="text-sm font-semibold flex items-center gap-2"><i class="fas ${netOfferIcon}"></i> ${netOfferText}</span><span class="font-mono font-semibold">${netOfferSign} ${Utils.formatNumber(baseValueInToAsset - finalValueToBuyerInToAsset, 4)} ${toAsset.baseAsset}</span></div>
                                 <div class="border-t border-border-color my-1"></div>
                                 <div class="flex justify-between items-center text-white"><span class="text-sm font-bold">Final Settlement</span><span class="font-mono font-bold text-lg">${Utils.formatNumber(finalValueToBuyerInToAsset, 4)} ${toAsset.baseAsset}</span></div>
                             </div>
-                            
-                            <!-- Commission Derivation Flow -->
                             <div class="p-3 rounded-lg bg-background-light space-y-2">
                                 <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Gross Offer (${grossValue}%)</span><span class="font-mono font-semibold">${Utils.formatNumber(baseValueInToAsset * (grossValue/100), 4)} ${toAsset.baseAsset}</span></div>
                                 <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Net Offer (${netValue}%)</span><span class="font-mono font-semibold">- ${Utils.formatNumber(baseValueInToAsset * (netValue/100), 4)} ${toAsset.baseAsset}</span></div>
@@ -3097,10 +3096,7 @@ renderSBLCMonetizationPanel: () => {
                                 </div>
                             </div>
                         </div>
-
                         ${pricingBreakdownHTML}
-
-                        <!-- Institutional Cross Rate Breakdown -->
                         <div class="mt-4 pt-4 border-t border-border-color text-center">
                              <p class="text-xs text-text-muted mb-1">Live Institutional Cross Rate</p>
                              <p class="text-lg font-bold font-mono text-primary-azure">
@@ -3109,7 +3105,6 @@ renderSBLCMonetizationPanel: () => {
                              <p class="text-xs font-mono text-text-muted mt-1">(1 ${toAsset.baseAsset} ≈ ${Utils.formatNumber(inverseRate, 8)} ${fromAsset.baseAsset})</p>
                         </div>
                     </div>`;
-
                 } else {
                     primaryAnalysisCards = `<p class="text-center text-text-muted">Analysis dashboard is optimized for Asset Swap. Please select that deal type.</p>`;
                 }
