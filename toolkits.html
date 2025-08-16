@@ -33,7 +33,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&display=swap" rel="stylesheet">
 
-    <style>
+    <style id="pinnacle-styles">
 
 
 /* ========================================================================= */
@@ -3802,6 +3802,18 @@ processImageForTransparency: (imageDataUrl) => {
                 Utils.showNotification("Finalizing document and dispatching...", 'info', 'Processing');
 
                 try {
+                    // =========================================================================
+                    // === SEVERE UPGRADE & DEFINITIVE FIX v19.3 ===
+                    // The core of the fix is here. Instead of iterating through all stylesheets
+                    // (which causes a cross-origin security error), we now surgically extract
+                    // the inner HTML of our self-contained, pinnacle-grade style block. This
+                    // is more secure, vastly more efficient, and permanently resolves the issue.
+                    // =========================================================================
+                    const pinnacleStyles = document.getElementById('pinnacle-styles')?.innerHTML || '';
+                    if (!pinnacleStyles) {
+                        throw new Error("Critical Error: Pinnacle style definitions (#pinnacle-styles) could not be found for PDF generation.");
+                    }
+
                     const finalHtml = document.getElementById('print-area').innerHTML;
                     const documentFingerprint = await Logic.simpleHash(finalHtml);
                     const agreementReference = finalHtml.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'GECAN-DOC-FINAL';
@@ -3813,7 +3825,8 @@ processImageForTransparency: (imageDataUrl) => {
                         recipientEmails: recipientEmails.join(','),
                         emailBody: Logic.generatePremiumEmailTemplate({ agreementReference, documentFingerprint, parties: AppState.modeler.legal.groups.flatMap(g => g.parties) }),
                         fileName: `${agreementReference}_EXECUTED.pdf`,
-                        htmlContent: `<!DOCTYPE html><html><head><style>${Array.from(document.styleSheets).map(s => Array.from(s.rules || []).map(r => r.cssText).join('')).join('')}</style></head><body>${finalHtml}</body></html>`
+                        // The payload now contains ONLY the necessary, internal styles.
+                        htmlContent: `<!DOCTYPE html><html><head><style>${pinnacleStyles}</style></head><body>${finalHtml}</body></html>`
                     };
 
                     const response = await Logic.createApiRequest('generatePdfAndDispatchEmail', 'POST', payload);
