@@ -1597,7 +1597,7 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
         // This engine is the definitive, production-grade standard for the Toolkits page.
         // ====================================================================================
         
-        const API_URL = "https://script.google.com/macros/s/AKfycby_U6tBwtdj4Sud-t94FFgTmb8YwNRyS3VJeHJIoZ3KEkhR9EfM8I3NuS0CYLsCWjzX/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbznljSTzFGDVU2eMLU6PZ_bXCOAv-pp39Crj0wNbOZ4ZZW1q8ywov-hVa2zAi-fjyuO/exec";
         
         // ====================================================================================
         // === SECTION 1: STATE & MODELS (v4.0 - DEFINITIVE & SEVERELY ENHANCED) ===
@@ -3797,42 +3797,75 @@ processImageForTransparency: (imageDataUrl) => {
                 return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
             },
 
+            /**
+             * [Supreme Docusign Dispatch Initiator v3.0 - Unabridged & Final]
+             * This is the definitive frontend function for initiating the Docusign e-signature workflow.
+             * Its sole responsibilities are:
+             * 1. To gather the final, pristine contract HTML and the complete list of signatories
+             *    (including name, email, and a unique ID for Docusign).
+             * 2. To convert the full HTML document (with styles) into a Base64-encoded string,
+             *    which is the required format for the Docusign API.
+             * 3. To construct a precise JSON payload containing all necessary data.
+             * 4. To dispatch this payload to the 'sendAgreementViaDocusign' endpoint on the
+             *    Google Apps Script backend.
+             * This function is the final, production-ready standard.
+             */
             executeFinalizationWorkflow: async () => {
+                const finalizationBtn = document.getElementById('proceed-finalize-btn');
+                if (finalizationBtn) {
+                    finalizationBtn.disabled = true;
+                    finalizationBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Dispatching...';
+                }
+                
                 document.getElementById('finalization-modal').close();
-                Utils.showNotification("Finalizing document and dispatching...", 'info', 'Processing');
+                Utils.showNotification("Contacting GECAN™ server & preparing secure Docusign envelope...", 'info', 'Processing Request');
 
                 try {
-                    // =========================================================================
-                    // === SEVERE UPGRADE & DEFINITIVE FIX v19.3 ===
-                    // The core of the fix is here. Instead of iterating through all stylesheets
-                    // (which causes a cross-origin security error), we now surgically extract
-                    // the inner HTML of our self-contained, pinnacle-grade style block. This
-                    // is more secure, vastly more efficient, and permanently resolves the issue.
-                    // =========================================================================
+                    // 1. Surgically Extract Final Document and Style Data
+                    const finalHtml = document.getElementById('print-area').innerHTML;
                     const pinnacleStyles = document.getElementById('pinnacle-styles')?.innerHTML || '';
-                    if (!pinnacleStyles) {
-                        throw new Error("Critical Error: Pinnacle style definitions (#pinnacle-styles) could not be found for PDF generation.");
+                    const fullHtmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${pinnacleStyles}</style></head><body>${finalHtml}</body></html>`;
+
+                    // 2. Meticulously Extract and Structure Signatory Data for Docusign
+                    const signatories = AppState.modeler.legal.groups.flatMap(g => g.parties).map((p, index) => ({
+                        name: p.legalName,
+                        email: p.email,
+                        recipientId: (index + 1).toString(), // Docusign requires a unique string ID for each recipient.
+                        routingOrder: '1', // '1' means all parties receive the signing request simultaneously.
+                        // This is the CRITICAL anchor text that the Docusign API will search for inside the HTML
+                        // to perfectly place the signature tab.
+                        anchorString: `data-party-id="party-${index}"` 
+                    }));
+
+                    // 3. Perform Final, Critical Validation Before Dispatch
+                    if (signatories.length === 0 || signatories.some(s => !s.email || s.email.trim() === '')) {
+                        throw new Error("Cannot dispatch via Docusign. One or more signatories is missing a valid email address in the 'Manage Details' section.");
                     }
 
-                    const finalHtml = document.getElementById('print-area').innerHTML;
-                    const documentFingerprint = await Logic.simpleHash(finalHtml);
-                    const agreementReference = finalHtml.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'GECAN-DOC-FINAL';
-                    const recipientEmails = AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => p.email).filter(Boolean);
-
+                    // 4. Construct the Pinnacle-Grade Payload for the Backend Orchestrator
                     const payload = {
-                        agreementReference,
-                        documentFingerprint,
-                        recipientEmails: recipientEmails.join(','),
-                        emailBody: Logic.generatePremiumEmailTemplate({ agreementReference, documentFingerprint, parties: AppState.modeler.legal.groups.flatMap(g => g.parties) }),
-                        fileName: `${agreementReference}_EXECUTED.pdf`,
-                        // The payload now contains ONLY the necessary, internal styles.
-                        htmlContent: `<!DOCTYPE html><html><head><style>${pinnacleStyles}</style></head><body>${finalHtml}</body></html>`
+                        // Docusign requires the document content to be Base64 encoded. btoa() is the native browser function for this.
+                        // The unescape(encodeURIComponent()) sequence is a military-grade technique to correctly handle Unicode characters.
+                        documentBase64: btoa(unescape(encodeURIComponent(fullHtmlContent))),
+                        documentName: `GECAN Agreement - ${finalHtml.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'Execution Copy'}.html`,
+                        emailSubject: `ACTION REQUIRED: Please Sign Your GECAN™ Agreement`,
+                        signatories: signatories // The structured array of all signing parties.
                     };
 
-                    const response = await Logic.createApiRequest('generatePdfAndDispatchEmail', 'POST', payload);
-                    Utils.showNotification(response, 'success', 'Document Dispatched');
+                    // 5. Dispatch the Payload to the Secure Backend API Gateway
+                    const response = await Logic.createApiRequest('sendAgreementViaDocusign', 'POST', payload);
+                    
+                    // Display the success confirmation from the server.
+                    Utils.showNotification(response.message, 'success', 'Envelope Sent via Docusign');
+
                 } catch (error) {
-                    Utils.showNotification(error.message, 'error', 'Dispatch Failed');
+                    Utils.showNotification(error.message, 'error', 'Docusign Dispatch Failed');
+                } finally {
+                    // Always re-enable the button, regardless of the outcome.
+                    if (finalizationBtn) {
+                        finalizationBtn.disabled = false;
+                        finalizationBtn.innerHTML = '<i class="fas fa-gavel mr-2"></i>Proceed with Finalization';
+                    }
                 }
             },
 
