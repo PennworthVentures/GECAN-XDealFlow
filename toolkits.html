@@ -3043,6 +3043,8 @@ generateContract: () => {
                         switch(AppState.modeler.activeDealType) {
                             case 'AssetSwap': transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving digital assets (specifically a contemplated exchange of approximately <strong>${Utils.formatNumber(AppState.modeler.assetSwap.amount)} ${calc.fromAsset.baseAsset}</strong> for <strong>${calc.toAsset.baseAsset}</strong>), precious metals and stones, energy products, financial instruments, and any other high-value commodities or related investment structures.`; break;
                             case 'CommodityTrade': const ct = AppState.modeler.commodityTrade; transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving physical commodities (specifically a contemplated trade of <strong>${Utils.formatNumber(ct.quantity)} ${ct.unitOfMeasure} of ${Utils.getAssetByKey(ct.assetKey).baseAsset}</strong>), energy products, financial instruments, and any other high-value commodities or related investment structures.`; break;
+                            case 'CryptoLoan': const cl = AppState.modeler.cryptoLoan; transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving a sophisticated credit facility secured by digital asset collateral, encompassing a principal loan amount of <strong>${Utils.formatPrice(calc.grossLoanPrincipalNative, cl.loanCurrency)}</strong> against pledged collateral consisting of <strong>${Utils.formatNumber(cl.collateralAmount)} units of ${Utils.getAssetByKey(cl.collateralAssetKey).baseAsset}</strong>, subject to regulatory compliance and risk management protocols.`; break;
+                            case 'SBLCMonetization': const sblc = AppState.modeler.sblcMonetization; transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving the monetization and financial optimization of a Standby Letter of Credit (SBLC) instrument bearing a face value of <strong>${Utils.formatPrice(sblc.faceValue, sblc.faceValueCurrency)}</strong>, issued by a prime banking institution and compliant with ICC UCP 600 standards.`; break;
                             default: transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving digital assets (including Bitcoin and Tether), precious metals and stones, energy products (crude oil and its derivatives), financial instruments, and any other high-value commodities or related investment structures.`;
                         }
                         return `
@@ -3098,28 +3100,29 @@ generateContract: () => {
                     <div class="p-annex-start">
                         <h2 class="p-h2">ANNEX A: IRREVOCABLE MASTER FEE PROTECTION AGREEMENT (IMFPA)</h2>
                         <p class="p-text">This Annex forms an integral, non-severable, and legally binding component of the foregoing Agreement.</p>
-                        <p class="p-text"><strong>C.1: UNCONDITIONAL & IRREVOCABLE PAYMENT OBLIGATION:</strong> The designated Payor makes an irrevocable and absolute undertaking to pay the full Aggregate Intermediary Commission for each and every successfully settled transaction under the main Agreement. This remittance shall be executed concurrently with the Payor's receipt of settlement, without delay, deduction, fee, or set-off of any nature whatsoever.</p>
-                        <p class="p-text"><strong>C.2: COMMISSION ALLOCATION & DISTRIBUTION LEDGER:</strong> The Aggregate Commission of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> generated from the Prospective Engagement shall be distributed as follows:</p>
+                        <p class="p-text"><strong>C.1: TRANSACTION & FEE POOL:</strong> The subject matter of this Agreement is a transaction with an aggregate base value of <strong>${Utils.formatPrice(calc.usdEquivalent)}</strong>, which generates a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> (the "Fee Pool").</p>
+                        <p class="p-text"><strong>C.2: UNCONDITIONAL & IRREVOCABLE PAYMENT OBLIGATION:</strong> The designated Payor makes an irrevocable and absolute undertaking to pay the full Aggregate Intermediary Commission for each successfully settled transaction. This remittance shall be executed concurrently with the Payor's receipt of settlement, without delay, deduction, fee, or set-off of any nature whatsoever.</p>
+                        <p class="p-text"><strong>C.3: COMMISSION ALLOCATION & DISTRIBUTION LEDGER:</strong> The Fee Pool shall be distributed as follows:</p>
                         ${legal.groups.map(g => {
                             const groupPayout = legal.totalCommission * ((parseFloat(g.percentage) || 0) / 100);
                             return `
                             <div class="fee-group-container">
                                 <div class="fee-group-header">
                                     <span class="fee-group-header-title">Distribution Group: "${g.name.toUpperCase()}"</span>
-                                    <span class="fee-group-header-value">${g.percentage.toFixed(2)}% (${Utils.formatPrice(groupPayout)})</span>
+                                    <span class="fee-group-header-value">${(g.percentage || 0).toFixed(2)}% (${Utils.formatPrice(groupPayout)})</span>
                                 </div>
                                 <table class="fee-distribution-table">
                                     <thead><tr><th style="width: 40%;">Beneficiary & Role</th><th style="width: 20%;">Allocation</th><th style="width: 40%;">Remittance Instructions</th></tr></thead>
                                     <tbody>
                                         ${g.parties.map(p => {
                                             const partyValue = groupPayout * ((parseFloat(p.percentage) || 0) / 100);
-                                            return `<tr><td><div class="beneficiary-name">${p.legalName}</div><div class="beneficiary-role">${p.role}</div></td><td><div class="allocation-value">${p.percentage.toFixed(2)}%</div><div class="text-muted">${Utils.formatPrice(partyValue)}</div></td><td><div class="settlement-method">${p.payment.method} (${p.payment.currency})</div><div class="settlement-details">${p.payment.details || 'To be furnished via secure KYC.'}</div></td></tr>`
+                                            return `<tr><td><div class="beneficiary-name">${p.legalName}</div><div class="beneficiary-role">${p.role}</div></td><td><div class="allocation-value">${(p.percentage || 0).toFixed(2)}%</div><div class="text-muted">${Utils.formatPrice(partyValue)}</div></td><td><div class="settlement-method">${p.payment.method} (${p.payment.currency})</div><div class="settlement-details">${p.payment.details || 'To be furnished via secure KYC.'}</div></td></tr>`
                                         }).join('')}
                                     </tbody>
                                 </table>
                             </div>`;
                         }).join('')}
-                        <p class="p-text"><strong>C.3: GOVERNING LEGAL PRINCIPLES & COMPLIANCE:</strong> The interpretation and spirit of this IMFPA shall be guided by the principles of international commercial practice as codified by the International Chamber of Commerce. Each Beneficiary is solely responsible for its own tax liabilities. The Beneficiaries agree to provide reasonable KYC documentation upon request for AML/CTF compliance.</p>
+                        <p class="p-text"><strong>C.4: GOVERNING LEGAL PRINCIPLES & COMPLIANCE:</strong> The interpretation and spirit of this IMFPA shall be guided by the principles of international commercial practice as codified by the International Chamber of Commerce. Each Beneficiary is solely responsible for its own tax liabilities. The Beneficiaries agree to provide reasonable KYC documentation upon request for AML/CTF compliance.</p>
                     </div>` : '';
 
                 // --- 5. COMPREHENSIVE PARTY DETAILS ANNEX SYNTHESIS ---
@@ -3129,7 +3132,7 @@ generateContract: () => {
                         <p class="p-text">This Annex forms an integral, binding, and enforceable component of the foregoing Agreement and contains comprehensive identification and payment coordination details for all Contracting Parties.</p>
                         ${legal.groups.flatMap(g => g.parties).map((p, i) => `
                         <div class="party-details-section">
-                            <h4>CONTRACTING PARTY ${String.fromCharCode(65 + i)} - COMPREHENSIVE DETAILS</h4>
+                            <h4>CONTRACTING PARTY ${String.fromCharCode(65 + i)} - ${p.legalName.toUpperCase()}</h4>
                             <table class="party-details-table">
                                 <tbody>
                                     <tr><td class="detail-label">Legal Entity Name:</td><td class="detail-value">${p.legalName || '[REQUIRED]'}</td></tr>
@@ -3153,7 +3156,7 @@ generateContract: () => {
                         <div class="p-signature-block" data-party-id="party-${i}" data-party-name="${p.legalName}">
                             <p class="p-strong">FOR AND ON BEHALF OF: ${p.legalName.toUpperCase()}</p>
                             <div class="p-signature-line" data-sig-type="signature"></div><p class="p-signature-label">By: (Authorized Signature)</p>
-                            <div class="p-signature-line" data-sig-type="print-name"></div><p class="p-signature-label">Name/Title: ${p.legalName} / ${p.role}</p>
+                            <div class="p-signature-line" data-sig-type="print-name">${p.legalName}</div><p class="p-signature-label">Name/Title: ${p.legalName} / ${p.role}</p>
                             <div class="p-signature-line" data-sig-type="date"></div><p class="p-signature-label">Date of Execution:</p>
                             <div data-sig-type="seal" style="position: relative; height: 100px; margin-top: 10px;"></div>
                         </div>`).join('')}
