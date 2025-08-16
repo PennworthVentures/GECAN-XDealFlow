@@ -1622,62 +1622,54 @@ resetCommodityTrade: () => {
  * and ensures a clean slate for the user.
  */
             resetModelerState: () => {
-                // Define the pristine, definitive default state with the specific assets and amount required.
+                // 1. Preserve the current view context BEFORE resetting the state. This is the critical fix.
+                const currentActiveDealType = AppState.modeler.activeDealType;
+
+                // 2. Define the pristine, default state for all parameters.
                 const defaultState = {
-                    activeDealType: 'AssetSwap',
+                    activeDealType: 'AssetSwap', // This will be overwritten by the preserved context
                     assetSwap: { 
                         amount: 30000, 
                         fromAssetKey: 'BTC-USD', 
                         toAssetKey: 'USDT-USD' 
                     },
-commodityTrade: {
-                    assetKey: 'EN590-1MT-USD',
-                    quantity: 1,
-                    unitOfMeasure: 'Metric Ton',
-                    pricingModel: 'PlattsMinus',
-                    priceAdjustmentValue: 0,
-                    fixedPrice: 0,
-                    isCommissionIncluded: false,
-                    commissionValue: 0,
-                    isMarkupInPercent: false,
-                    markupValue: 0,
-                    settlementAssetKey: 'USD'
-                },
+                    commodityTrade: {
+                        assetKey: 'EN590-1MT-USD',
+                        quantity: 1,
+                        unitOfMeasure: 'Metric Ton',
+                        pricingModel: 'PlattsMinus',
+                        priceAdjustmentValue: 0,
+                        fixedPrice: 0,
+                        isCommissionIncluded: false,
+                        commissionValue: 0,
+                        isMarkupInPercent: false,
+                        markupValue: 0,
+                        settlementAssetKey: 'USD'
+                    },
                     cryptoLoan: { 
-                        collateralAssetKey: 'BTC-USD', 
-                        collateralAmount: 10, 
-                        loanCurrency: 'USD', 
-                        ltv: 60, 
-                        interestRateType: 'fixed', 
-                        interestRateValue: 5.5, 
-                        tenureMonths: 12 
+                        collateralAssetKey: 'BTC-USD', collateralAmount: 10, loanCurrency: 'USD', 
+                        ltv: 60, interestRateType: 'fixed', interestRateValue: 5.5, tenureMonths: 12 
                     },
                     sblcMonetization: { 
-                        faceValue: 100000000, 
-                        ltv: 80 
+                        faceValue: 100000000, ltv: 80 
                     },
                     pricingConfig: { 
-                        isVisible: false, 
-                        offerType: 'discount', 
-                        grossValue: 0, 
-                        netValue: 0, 
-                        isValueInPercent: true 
+                        isVisible: false, offerType: 'discount', grossValue: 0, 
+                        netValue: 0, isValueInPercent: true 
                     },
                     legal: { 
-                        totalCommission: 0, 
-                        jurisdiction: 'Singapore, Dubai, England, Wales', 
-                        spaReferenceCode: '', 
-                        groups: [] 
+                        totalCommission: 0, jurisdiction: 'Singapore, Dubai, England, Wales', 
+                        spaReferenceCode: '', groups: [] 
                     }
                 };
 
-                // Perform a deep clone to ensure no lingering references. This is the most robust way to reset.
+                // Perform the deep clone to reset all parameters to their defaults.
                 AppState.modeler = JSON.parse(JSON.stringify(defaultState));
                 
-                // The flawed logic that previously overwrote these defaults has been permanently removed.
-                // The state is now guaranteed to be the desired BTC/USDT default.
+                // 3. Restore the preserved view context. This ensures the user stays on the correct panel.
+                AppState.modeler.activeDealType = currentActiveDealType;
                 
-                // Trigger a full UI re-render to reflect the correct reset state.
+                // Trigger a full UI re-render, which will now correctly display the reset version of the current panel.
                 Logic.updateModelerUI(true);
                 
                 // Provide user feedback.
