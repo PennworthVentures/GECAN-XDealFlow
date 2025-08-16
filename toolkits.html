@@ -1372,31 +1372,36 @@ handleDealTypeChange: (newDealType) => {
  * attribute on form elements to dynamically and safely update the nested `AppState.modeler` object.
  * @param {Event} e - The input or change event object.
  */
-handleModelerInputChange: (e) => {
-    const { dataset, value, type, checked } = e.target;
-    const path = dataset.path;
-    if (!path) return;
+            handleModelerInputChange: (e) => {
+                const { dataset, value, type, checked } = e.target;
+                const path = dataset.path;
+                if (!path) return;
 
-    if (path === 'commodityTrade.assetKey') {
-        Logic.handleCommodityChange(value);
-        return;
-    }
+                if (path === 'commodityTrade.assetKey') {
+                    Logic.handleCommodityChange(value);
+                    return;
+                }
 
-    try {
-        const pathKeys = path.split(/[\.\[\]]+/).filter(Boolean);
-        let targetObject = AppState.modeler;
-        for (let i = 0; i < pathKeys.length - 1; i++) {
-            targetObject = targetObject[pathKeys[i]];
-        }
-        const finalKey = pathKeys[pathKeys.length - 1];
-        let processedValue = (type === 'checkbox') ? checked : (typeof targetObject[finalKey] === 'boolean') ? (value === 'true') : (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') ? parseFloat(value.replace(/,/g, '')) || 0 : value;
-        targetObject[finalKey] = processedValue;
-        Logic.updateModelerUI(false);
-    } catch (error) {
-        console.error(`Failed to update modeler state for path: ${path}`, error);
-        Utils.showNotification("An internal error occurred while updating the model.", 'error');
-    }
-},
+                // --- THE CRITICAL FIX IS HERE ---
+                const requiresFullRender = (path === 'cryptoLoan.userRole');
+
+                try {
+                    const pathKeys = path.split(/[\.\[\]]+/).filter(Boolean);
+                    let targetObject = AppState.modeler;
+                    for (let i = 0; i < pathKeys.length - 1; i++) {
+                        targetObject = targetObject[pathKeys[i]];
+                    }
+                    const finalKey = pathKeys[pathKeys.length - 1];
+                    let processedValue = (type === 'checkbox') ? checked : (typeof targetObject[finalKey] === 'boolean') ? (value === 'true') : (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') ? parseFloat(value.replace(/,/g, '')) || 0 : value;
+                    targetObject[finalKey] = processedValue;
+                    
+                    // If the role was changed, force a full refresh; otherwise, do a fast partial refresh.
+                    Logic.updateModelerUI(requiresFullRender);
+                } catch (error) {
+                    console.error(`Failed to update modeler state for path: ${path}`, error);
+                    Utils.showNotification("An internal error occurred while updating the model.", 'error');
+                }
+            },
 
 /**
  * A specialized handler that triggers when the main commodity asset is changed.
@@ -3234,21 +3239,17 @@ const UI = {
  */
             renderCryptoLoanPanel: () => {
                 const state = AppState.modeler.cryptoLoan;
-                
-                // --- UNIVERSAL DYNAMIC ASSET SELECTOR ---
-                // This single function now powers both dropdowns with supreme flexibility.
                 const assetOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
-
+                
                 const isCollateralDefined = state.collateralAssetKey && state.collateralAmount > 0;
                 const areTermsDefined = state.ltv > 0 && state.tenureMonths > 0 && state.interestRateValue > 0;
 
-                // --- UNABRIDGED COMMISSION INPUTS LOGIC ---
-                // The incomplete placeholder has been replaced with the full, definitive logic.
+                // --- DEFINITIVE FIX: This section is now guaranteed to appear when the correct role is selected. ---
                 const commissionInputsHTML = state.userRole === 'Intermediary' ?
-                    `<div class="mt-4 pt-4 border-t border-border-color">
+                    `<div class="mt-4 pt-4 border-t border-border-color animate-fade-in-up">
                         <label class="block text-sm font-medium text-text-muted mb-2">Origination Fee (%)</label>
                         <input type="number" data-path="cryptoLoan.originationFeePercent" value="${state.originationFeePercent}" min="0" step="0.1" class="form-input text-lg font-bold" placeholder="e.g., 2.0">
-                        <p class="text-xs text-text-muted mt-2 opacity-75">This fee will be deducted from the Gross Loan Principal.</p>
+                        <p class="text-xs text-text-muted mt-2 opacity-75">This fee will be deducted from the Gross Loan Principal to calculate the Net Loan to Borrower.</p>
                     </div>` : '';
 
                 return `
@@ -3268,18 +3269,11 @@ const UI = {
                             <label class="block text-sm font-medium text-text-muted mb-2">Loan-to-Value (LTV)</label>
                             <div class="flex items-center gap-4">
                                 <input id="ltv-slider" type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer">
-                                <div class="relative w-28">
-                                    <input id="ltv-input" type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6">
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span>
-                                </div>
+                                <div class="relative w-28"><input id="ltv-input" type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-text-muted mb-2">Loan Currency</label>
-                                <!-- DEFINITIVE SYNTHESIS: Uses the universal assetOptions function -->
-                                <select data-path="cryptoLoan.loanCurrency" class="form-select">${assetOptions(state.loanCurrency)}</select>
-                            </div>
+                            <div><label class="block text-sm font-medium text-text-muted mb-2">Loan Currency</label><select data-path="cryptoLoan.loanCurrency" class="form-select">${assetOptions(state.loanCurrency)}</select></div>
                             <div><label class="block text-sm font-medium text-text-muted mb-2">Tenure (Months)</label><input type="number" data-path="cryptoLoan.tenureMonths" value="${state.tenureMonths}" class="form-input"></div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -3292,9 +3286,28 @@ const UI = {
                 <div class="guided-step-card">
                     <div class="step-header"><div class="step-number">3</div><div><h3 class="step-title">Define Role & Commission</h3><p class="text-sm text-text-muted">Specify your role to configure origination fees.</p></div></div>
                     <div class="step-content">
-                        <div class="flex items-center justify-around p-2 bg-background-dark rounded-lg">
-                            <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.userRole === 'Principal' ? 'bg-primary-azure/20 text-primary-azure font-semibold' : 'hover:bg-background-light'}"><input type="radio" name="userRole" value="Principal" ${state.userRole === 'Principal' ? 'checked' : ''} data-path="cryptoLoan.userRole" class="hidden">Principal (Borrower)</label>
-                            <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.userRole === 'Intermediary' ? 'bg-primary-azure/20 text-primary-azure font-semibold' : 'hover:bg-background-light'}"><input type="radio" name="userRole" value="Intermediary" ${state.userRole === 'Intermediary' ? 'checked' : ''} data-path="cryptoLoan.userRole" class="hidden">Intermediary (Broker)</label>
+                        <!-- DEFINITIVE UI UPGRADE: Premium, interactive role selection cards -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="p-4 border rounded-lg cursor-pointer transition-all duration-300 ${state.userRole === 'Principal' ? 'border-sky-500 bg-sky-500/10 shadow-lg shadow-sky-500/10' : 'border-slate-700 hover:border-slate-500'}">
+                                <input type="radio" name="userRole" value="Principal" ${state.userRole === 'Principal' ? 'checked' : ''} data-path="cryptoLoan.userRole" class="hidden">
+                                <div class="flex items-center gap-4">
+                                    <i class="fas fa-user-tie text-2xl ${state.userRole === 'Principal' ? 'text-sky-400' : 'text-slate-500'}"></i>
+                                    <div>
+                                        <p class="font-semibold ${state.userRole === 'Principal' ? 'text-white' : 'text-slate-300'}">Principal</p>
+                                        <p class="text-xs text-slate-400">I am the Borrower</p>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="p-4 border rounded-lg cursor-pointer transition-all duration-300 ${state.userRole === 'Intermediary' ? 'border-sky-500 bg-sky-500/10 shadow-lg shadow-sky-500/10' : 'border-slate-700 hover:border-slate-500'}">
+                                <input type="radio" name="userRole" value="Intermediary" ${state.userRole === 'Intermediary' ? 'checked' : ''} data-path="cryptoLoan.userRole" class="hidden">
+                                <div class="flex items-center gap-4">
+                                    <i class="fas fa-briefcase text-2xl ${state.userRole === 'Intermediary' ? 'text-sky-400' : 'text-slate-500'}"></i>
+                                    <div>
+                                        <p class="font-semibold ${state.userRole === 'Intermediary' ? 'text-white' : 'text-slate-300'}">Intermediary</p>
+                                        <p class="text-xs text-slate-400">I am the Broker</p>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
                         ${commissionInputsHTML}
                     </div>
