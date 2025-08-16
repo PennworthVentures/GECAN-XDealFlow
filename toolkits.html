@@ -1895,16 +1895,24 @@ generateExecutiveSummary: (report) => {
                 Logic.updateModelerUI(true);
                 const inputContainer = document.getElementById('modeler-input-container');
                 if (inputContainer) {
-                    // This is the persistent parent listener. It never gets destroyed.
+                    
+                    // Create a single, powerful, debounced function for all state updates.
+                    const debouncedStateUpdate = Utils.debounce((event) => {
+                        if (event.target.matches('[data-path]')) {
+                            Logic.handleModelerInputChange(event);
+                        }
+                    }, 300); // A 300ms delay provides a professional feel.
+
+                    // The persistent parent listener. It never gets destroyed.
                     inputContainer.addEventListener('input', (e) => {
-                        // --- THE SUPREME, DELEGATED SLIDER SYNC LOGIC ---
+                        // --- HIGH-PRIORITY, INSTANTANEOUS ACTIONS ---
+                        // The slider sync logic is executed instantly for a smooth feel.
                         if (e.target.matches('#ltv-slider, #ltv-input, #sblc-ltv-slider, #sblc-ltv-input')) {
                             const container = e.target.closest('#ltv-sync-container, #sblc-ltv-sync-container');
                             if (container) {
                                 const slider = container.querySelector('input[type="range"]');
                                 const numberInput = container.querySelector('input[type="number"]');
                                 if (slider && numberInput) {
-                                    // Instantly synchronize both elements, regardless of which one was changed.
                                     if (e.target === slider) {
                                         numberInput.value = slider.value;
                                     } else {
@@ -1914,14 +1922,12 @@ generateExecutiveSummary: (report) => {
                             }
                         }
                         
-                        // Debounced logic for general state updates
-                        Utils.debounce(() => {
-                            if (e.target.matches('[data-path]')) {
-                                Logic.handleModelerInputChange(e);
-                            }
-                        }, 250)();
+                        // --- DEBOUNCED STATE UPDATES & RE-CALCULATIONS ---
+                        // All other inputs trigger the debounced update to prevent excessive re-renders.
+                        debouncedStateUpdate(e);
                     });
 
+                    // 'change' events (for selects, radios) should also trigger state updates.
                     inputContainer.addEventListener('change', (e) => {
                         if (e.target.matches('[data-path]')) {
                             Logic.handleModelerInputChange(e);
