@@ -1078,63 +1078,62 @@ bankRatingDetails: {
         };
 
         // ====================================================================================
-        // === SECTION 2: UTILITIES (v4.0 - DEFINITIVE & BENCHMARKED) ===
+        // === SECTION 2: UTILITIES (v5.0 - SUPREME & DEFINITIVE SYNTHESIS) ===
         // ====================================================================================
         const Utils = {
+            /**
+             * [SUPREME & DEFINITIVE v3.0 - PINNACLE NOTIFICATION ENGINE]
+             * This is the definitive, fully re-architected notification engine. It solves the
+             * critical centering bug by programmatically generating the correct, unabridged HTML
+             * structure, including the mandatory `.dialog-content-wrapper`, every time it is
+             * called. It massively elevates the UI to a brilliant, animated, and prestigious
+             * standard with dynamic colors and icons, ensuring perfect consistency with the
+             * rest of the pinnacle-grade application.
+             */
             showNotification: (message, type = 'info', title = null) => {
-    const modal = document.getElementById('notification-modal');
-    if (!modal) {
-        console.error("Notification modal not found in DOM!");
-        // Fallback for critical errors when the modal itself is missing.
-        alert(`[${type.toUpperCase()}] ${title ? title + ': ' : ''}${message}`);
-        return;
-    }
-
-    const content = document.getElementById('notification-modal-content');
-    const header = document.getElementById('notification-header');
-    const iconContainer = document.getElementById('notification-icon-container');
-    const icon = document.getElementById('notification-icon');
-    const titleEl = document.getElementById('notification-title');
-    const subtitleEl = document.getElementById('notification-subtitle');
-    const messageEl = document.getElementById('notification-message');
-    const okBtn = document.getElementById('notification-ok-btn');
-
-    // A single source of truth for notification types.
-    const types = {
-        success: { iconClass: 'fa-check-circle', defaultTitle: 'Success', subtitle: 'The operation completed successfully.', baseClass: 'green' },
-        error: { iconClass: 'fa-exclamation-triangle', defaultTitle: 'Error', subtitle: 'An error has occurred.', baseClass: 'red' },
-        warning: { iconClass: 'fa-exclamation-circle', defaultTitle: 'Warning', subtitle: 'Please review this message.', baseClass: 'yellow' },
-        info: { iconClass: 'fa-info-circle', defaultTitle: 'Information', subtitle: 'System Notification.', baseClass: 'blue' }
-    };
-
-    const config = types[type] || types.info;
-
-    // Apply dynamic content
-    titleEl.textContent = title || config.defaultTitle;
-    subtitleEl.textContent = config.subtitle;
-    messageEl.textContent = message;
-    icon.className = `fas ${config.iconClass} fa-2x`;
-
-    // Apply dynamic styling using Tailwind classes for consistency and maintainability.
-    const colorClasses = {
-        header: `bg-${config.baseClass}-500/10 border-${config.baseClass}-500/20`,
-        icon: `bg-gradient-to-br from-${config.baseClass}-400 to-${config.baseClass}-600`,
-        button: `bg-gradient-to-r from-${config.baseClass}-500 to-${config.baseClass}-700 border-${config.baseClass}-500`
-    };
-
-    // Remove old color classes before adding new ones
-    header.className = `p-6 flex items-center gap-4 border-b ${colorClasses.header}`;
-    iconContainer.className = `w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-400 ${colorClasses.icon}`;
-    okBtn.className = `btn-primary px-8 py-2 font-bold shadow-lg ${colorClasses.button}`;
-    
-    // Attach a one-time event listener to the OK button to close the modal.
-    okBtn.onclick = () => modal.close();
-    
-    // Show the modal.
-    if (!modal.hasAttribute('open')) {
-        modal.showModal();
-    }
-},
+                const modal = document.getElementById('notification-modal');
+                if (!modal) {
+                    console.error("CRITICAL FAILURE: Notification modal container not found!");
+                    alert(`[${type.toUpperCase()}] ${title || ''}: ${message}`);
+                    return;
+                }
+                const types = {
+                    success: { icon: 'fa-check-circle', defaultTitle: 'Success', color: 'green', subtitle: 'Operation completed successfully.' },
+                    error: { icon: 'fa-times-circle', defaultTitle: 'Error', color: 'red', subtitle: 'An error has occurred.' },
+                    warning: { icon: 'fa-exclamation-triangle', defaultTitle: 'Warning', color: 'yellow', subtitle: 'Please review this carefully.' },
+                    info: { icon: 'fa-info-circle', defaultTitle: 'Information', color: 'sky', subtitle: 'System Notification.' }
+                };
+                const config = types[type] || types.info;
+                const modalHTML = `
+                <div class="dialog-content-wrapper">
+                    <div class="p-6 md:p-8 flex flex-col text-white">
+                        <div class="submission-icon-header bg-gradient-to-br from-${config.color}-500 to-${config.color}-700 shadow-${config.color}-500/30">
+                            <i class="fas ${config.icon} fa-3x"></i>
+                        </div>
+                        <div class="text-center animate-fade-in-up stagger-1">
+                            <h2 class="text-3xl font-bold">${title || config.defaultTitle}</h2>
+                            <p class="mt-2 text-text-secondary">${config.subtitle}</p>
+                        </div>
+                        <div class="my-6 text-center text-text-secondary leading-relaxed animate-fade-in-up stagger-2">
+                            ${message}
+                        </div>
+                        <div class="mt-auto animate-fade-in-up stagger-3">
+                            <button id="notification-ok-btn" class="btn-primary w-full py-3 font-semibold bg-gradient-to-r from-${config.color}-500 to-${config.color}-700 border-${config.color}-600">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+                modal.innerHTML = modalHTML;
+                if (!modal.hasAttribute('open')) { modal.showModal(); }
+                const okBtn = document.getElementById('notification-ok-btn');
+                if(okBtn) { okBtn.onclick = () => modal.close(); }
+            },
+            
+            /**
+             * [High-Precision] For displaying full, unabbreviated currency values.
+             * The standard for all detailed financial reports and breakdowns.
+             */
             formatPrice: (amount, currency = 'USD') => {
                 if (typeof amount !== 'number' || isNaN(amount)) return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(0);
                 return new Intl.NumberFormat('en-US', { 
@@ -1144,12 +1143,38 @@ bankRatingDetails: {
                     maximumFractionDigits: 2 
                 }).format(amount);
             },
+
+            /**
+             * [High-Precision] For displaying full, unabbreviated non-currency numbers.
+             */
             formatNumber: (num, decimals = 2) => {
                 if (typeof num !== 'number' || isNaN(num)) return 'N/A';
-                if (Math.abs(num) >= 1e12) return (num / 1e12).toFixed(decimals) + 'T'; if (Math.abs(num) >= 1e9) return (num / 1e9).toFixed(decimals) + 'B';
-                if (Math.abs(num) >= 1e6) return (num / 1e6).toFixed(decimals) + 'M';
-                return (num || 0).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+                return (num || 0).toLocaleString(undefined, { 
+                    minimumFractionDigits: decimals, 
+                    maximumFractionDigits: decimals 
+                });
             },
+            
+            /**
+             * [NEW & SYNTHESIZED] For brilliant, high-level summary values.
+             * Abbreviates large numbers to M, B, T for superior clarity on summary cards.
+             */
+            formatAbbreviated: (num, currency = '', decimals = 2) => {
+                if (typeof num !== 'number' || isNaN(num)) return `0 ${currency}`;
+                const sign = num < 0 ? "-" : "";
+                const absNum = Math.abs(num);
+                const prefix = currency === 'USD' ? '$' : '';
+                const suffix = currency && currency !== 'USD' ? ` ${currency}` : '';
+
+                if (absNum >= 1e12) return `${sign}${prefix}${(absNum / 1e12).toFixed(decimals)}T${suffix}`;
+                if (absNum >= 1e9) return `${sign}${prefix}${(absNum / 1e9).toFixed(decimals)}B${suffix}`;
+                if (absNum >= 1e6) return `${sign}${prefix}${(absNum / 1e6).toFixed(decimals)}M${suffix}`;
+                
+                // Fallback to high-precision for smaller numbers
+                return Utils.formatPrice(num, currency);
+            },
+
+            // --- Preserved Stable Utilities (Zero Regressions) ---
             debounce: (func, wait) => { let timeout; return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func(...args), wait); }; },
             getAssetByKey: (key) => AppState.marketData.find(a => a.key === key) || { price: 0, baseAsset: 'N/A', quoteAsset: 'N/A', key, type: 'Unknown' },
             getRiskClass: (level) => `risk-${level || 'MEDIUM'}`,
@@ -1162,7 +1187,6 @@ bankRatingDetails: {
                 return new Date(timestamp).toLocaleDateString();
             }
         };
-
         // ====================================================================================
         // === SECTION 3: CORE LOGIC CONTROLLER (v4.0 - DEFINITIVE & UNABRIDGED) ===
         // ====================================================================================
