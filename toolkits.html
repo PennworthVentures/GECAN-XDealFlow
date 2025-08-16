@@ -2883,7 +2883,8 @@ const UI = {
                     .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
                     .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
                 
-                const fromAsset = Utils.getByKey(state.fromAssetKey);
+                // --- DEFINITIVE FIX: Corrected function name from getByKey to getAssetByKey ---
+                const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
 
                 // --- Intelligent State Determination ---
                 const areAssetsDefined = state.fromAssetKey && state.toAssetKey && (state.fromAssetKey !== state.toAssetKey);
