@@ -2740,7 +2740,7 @@ togglePricingConfig: () => {
                 // 1. Recalculate and commit any auto-balanced values to the AppState first.
                 Logic.updateImfpaCalculations();
                 
-                // 2. Surgically update all dependent DOM elements by reading directly from the now-perfect AppState.
+                // 2. Surgically update all DOM readouts based on the now-perfect AppState.
                 const { legal } = AppState.modeler;
                 const { groups, totalCommission } = legal;
 
@@ -2765,7 +2765,6 @@ togglePricingConfig: () => {
                         groupTotalEl.className = `text-right font-mono text-xs ${Math.abs(totalPartyPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
                     }
                     
-                    // Update each party's validation badge and indicator surgically.
                     g.parties.forEach((party, partyIndex) => {
                         const isSufficient = party.legalName && party.legalName.trim() !== '' && party.email && party.email.trim() !== '' && party.contactNumber && party.contactNumber.trim() !== '';
                         const badge = document.getElementById(`party-badge-${groupIndex}-${partyIndex}`);
@@ -2785,8 +2784,18 @@ togglePricingConfig: () => {
                         }
                     });
                 });
+
+                // 3. DEFINITIVE FIX: Surgically update the active stage's "Acknowledge & Proceed" button.
+                const activeStageName = legal.activeStage;
+                if (activeStageName && !legal.stages[activeStageName]) {
+                    const proceedBtn = document.getElementById(`proceed-btn-${activeStageName}`);
+                    if (proceedBtn) {
+                        const isStageValid = Logic.validateStageData(activeStageName);
+                        proceedBtn.disabled = !isStageValid;
+                    }
+                }
                 
-                // 3. Surgically update the Live Preview and the main action buttons.
+                // 4. Surgically update the Live Preview and the main action buttons.
                 Logic.updateContractPreview();
                 Logic.updateSynthesizeButtonState();
             },
@@ -4768,17 +4777,18 @@ renderImfpaModal: () => {
                     const isComplete = legal.stages[name];
                     const isActive = legal.activeStage === name;
                     const isLocked = currentStageIndex > 0 && !legal.stages[stageOrder[currentStageIndex - 1]];
-                    const isDataValid = Logic.validateStageData(name);
 
                     const stageClasses = `synthesis-stage ${isActive ? 'active' : ''} ${isComplete ? 'completed' : ''} ${isLocked ? 'locked' : ''} ${extraClasses}`;
 
-                    // --- DEFINITIVE FIX FOR REVIEWABILITY ---
-                    // The "Acknowledge" button is now the only element that disappears upon completion.
-                    // The core content is ALWAYS rendered, allowing users to review and modify it.
+                    // --- SUPREME SYNTHESIS & DEFINITIVE FIX ---
+                    // 1. The "Acknowledge" button is now the only element that disappears upon completion.
+                    // 2. The core content is ALWAYS rendered, allowing users to review and modify it.
+                    // 3. The button now has a unique ID for surgical updates and its disabled state is
+                    //    now exclusively controlled in real-time by the Logic engine.
                     const stageFooterHTML = isComplete
                         ? `<div class="completion-summary">${summaryGenerator()}</div>`
                         : `<div class="stage-footer">
-                                <button class="proceed-btn" onclick="Logic.completeStage('${name}')" ${!isDataValid ? 'disabled' : ''}>
+                                <button id="proceed-btn-${name}" class="proceed-btn" onclick="Logic.completeStage('${name}')">
                                     <i class="fas fa-check-circle mr-2"></i>Acknowledge & Proceed
                                 </button>
                            </div>`;
