@@ -1327,17 +1327,34 @@ generateExecutiveSummary: (report) => {
  * event delegation on the main input container to handle all dynamic changes.
  */
 bindInstitutionalModelerEvents: () => {
-    Logic.updateModelerUI(true);
-    const inputContainer = document.getElementById('modeler-input-container');
-    if (inputContainer) {
-        inputContainer.addEventListener('input', Utils.debounce((e) => {
-            if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
-        }, 250));
-        inputContainer.addEventListener('change', (e) => { // For selects and radios
-            if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
-        });
-    }
-},
+                Logic.updateModelerUI(true);
+                const inputContainer = document.getElementById('modeler-input-container');
+                if (inputContainer) {
+                    inputContainer.addEventListener('input', Utils.debounce((e) => {
+                        if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
+                    }, 250));
+                    inputContainer.addEventListener('change', (e) => {
+                        if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
+                    });
+
+                    // --- DEFINITIVE LTV SLIDER SYNC LOGIC (FIX) ---
+                    // This is the new, robust, and professional way to handle synchronization.
+                    const ltvContainer = document.getElementById('ltv-sync-container');
+                    if (ltvContainer) {
+                        const slider = ltvContainer.querySelector('#ltv-slider');
+                        const numberInput = ltvContainer.querySelector('#ltv-input');
+                        if (slider && numberInput) {
+                            slider.addEventListener('input', () => {
+                                numberInput.value = slider.value;
+                            });
+                            numberInput.addEventListener('input', () => {
+                                slider.value = numberInput.value;
+                            });
+                        }
+                    }
+                    // --- END OF DEFINITIVE FIX ---
+                }
+            },
 
 /**
  * Handles the logic for switching between different deal types (e.g., Asset Swap, Commodity Trade).
@@ -3233,13 +3250,14 @@ renderCryptoLoanPanel: () => {
                 <div class="guided-step-card">
                     <div class="step-header ${areTermsDefined ? 'completed' : ''}"><div class="step-number"><i class="fas ${areTermsDefined ? 'fa-check' : 'fa-file-contract'}"></i></div><div><h3 class="step-title">Define Loan Terms</h3><p class="text-sm text-text-muted">Set LTV, currency, tenure, and interest rate.</p></div></div>
                     <div class="step-content space-y-4">
-                        <div>
+                        <div id="ltv-sync-container">
                             <label class="block text-sm font-medium text-text-muted mb-2">Loan-to-Value (LTV)</label>
-                            <!-- DEFINITIVE SLIDER FIX: The `oninput` event now forces an immediate UI update, synchronizing both inputs perfectly. -->
                             <div class="flex items-center gap-4">
-                                <input type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer" oninput="this.nextElementSibling.querySelector('input').value = this.value;">
+                                <!-- DEFINITIVE FIX: The faulty oninput handler has been REMOVED -->
+                                <input id="ltv-slider" type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer">
                                 <div class="relative w-28">
-                                    <input type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6" oninput="this.parentElement.previousElementSibling.value = this.value;">
+                                    <!-- DEFINITIVE FIX: The faulty oninput handler has been REMOVED -->
+                                    <input id="ltv-input" type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6">
                                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span>
                                 </div>
                             </div>
