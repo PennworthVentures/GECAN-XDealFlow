@@ -1408,26 +1408,42 @@ handleDealTypeChange: (newDealType) => {
                 const path = dataset.path;
                 if (!path) return;
 
+                // Handle special cases that require unique logic before the main update
                 if (path === 'commodityTrade.assetKey') {
-                    Logic.handleCommodityChange(value);
+                    Logic.handleCommodM odityChange(value);
                     return;
                 }
 
-                // --- THE CRITICAL FIX IS HERE ---
-                const requiresFullRender = (path === 'cryptoLoan.userRole');
+                // --- THE SUPREME, SYNTHESIZED RE-RENDER LOGIC ---
+                // This definitive array is the single source of truth for determining
+                // which state changes are critical enough to require a full UI refresh.
+                const fullRenderPaths = [
+                    'cryptoLoan.userRole',
+                    'sblcMonetization.bankNameInput',
+                    'sblcMonetization.isBankRatingManual',
+                    'sblcMonetization.userRole',
+                    'commodityTrade.pricingModel',
+                    'commodityTrade.isCommissionIncluded'
+                ];
+                const requiresFullRender = fullRenderPaths.includes(path);
 
                 try {
+                    // Universal state update logic (preserved for stability)
                     const pathKeys = path.split(/[\.\[\]]+/).filter(Boolean);
                     let targetObject = AppState.modeler;
                     for (let i = 0; i < pathKeys.length - 1; i++) {
                         targetObject = targetObject[pathKeys[i]];
                     }
                     const finalKey = pathKeys[pathKeys.length - 1];
-                    let processedValue = (type === 'checkbox') ? checked : (typeof targetObject[finalKey] === 'boolean') ? (value === 'true') : (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') ? parseFloat(value.replace(/,/g, '')) || 0 : value;
+                    let processedValue = (type === 'checkbox') ? checked 
+                                       : (typeof targetObject[finalKey] === 'boolean') ? (value === 'true') 
+                                       : (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') ? parseFloat(String(value).replace(/,/g, '')) || 0 
+                                       : value;
                     targetObject[finalKey] = processedValue;
                     
-                    // If the role was changed, force a full refresh; otherwise, do a fast partial refresh.
+                    // The intelligent engine call: performs a full or partial update as needed.
                     Logic.updateModelerUI(requiresFullRender);
+
                 } catch (error) {
                     console.error(`Failed to update modeler state for path: ${path}`, error);
                     Utils.showNotification("An internal error occurred while updating the model.", 'error');
