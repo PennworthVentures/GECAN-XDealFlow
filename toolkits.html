@@ -2474,7 +2474,24 @@ openImfpaModal: () => {
 
             setActiveSynthesisStage: (stageName) => {
                 const { legal } = AppState.modeler;
-                legal.activeStage = (legal.activeStage === stageName) ? '' : stageName; // Toggle behavior
+                
+                // 1. Update the application state with the new active stage.
+                // The toggle behavior (clicking an open stage to close it) is preserved.
+                legal.activeStage = (legal.activeStage === stageName) ? '' : stageName;
+                
+                // 2. Locate the master container for the modal. This is the critical target.
+                const modal = document.getElementById('imfpa-modal');
+                if (!modal) {
+                    console.error("CRITICAL FAILURE: Cannot find IMFPA modal container to re-render.");
+                    return;
+                }
+
+                // 3. Force a complete re-render of the modal's inner content.
+                // This redraws the entire stage structure, correctly applying the `.active` class.
+                modal.innerHTML = UI.renderImfpaModal();
+                
+                // 4. Immediately re-hydrate the new UI with dynamic content and listeners.
+                // This is essential to ensure all functionality (previews, calculations) remains live.
                 Logic.refreshImfpaModalUI();
             },
             refreshImfpaModalUI: () => {
