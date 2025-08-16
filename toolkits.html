@@ -721,7 +721,7 @@ const commodityData = {
                 'D6-GAL-USD': { uom: 'Gallon', spec: 'Virgin D6 Fuel Oil' },
                 'WTI-BBL-USD': { uom: 'Barrel', spec: 'West Texas Intermediate Crude' },
                 'JET-A1-MT-USD': { uom: 'Metric Ton', spec: 'Aviation Turbine Fuel' },
-                'AU-KG-USD': { uom: 'Kilogram', spec: '99.99% Au Bullion' }, // Corrected from T-OZ for consistency
+                'AU-KG-USD': { uom: 'Kilogram', spec: '99.99% Au Bullion' },
                 'GOLD-T-OZ-USD': { uom: 'Troy Ounce', spec: '99.99% Au Bullion' },
             },
             unitsOfMeasure: ['Barrel', 'Metric Ton', 'Troy Ounce', 'Kilogram', 'Pound', 'Gallon', 'Liter', 'Cubic Meter', 'Short Ton', 'Long Ton', 'Tonne', 'MMBtu', 'Bushel'].sort(),
@@ -1478,7 +1478,6 @@ updateModelerUI: (isFullRefresh = false) => {
             calculateCommodityTrade: () => {
                 const state = AppState.modeler.commodityTrade;
                 
-                // --- DEFINITIVE FIX: Fetch live data at the point of calculation ---
                 const commodityAsset = Utils.getAssetByKey(state.assetKey);
                 const settlementAsset = Utils.getAssetByKey(state.settlementAssetKey);
 
@@ -1487,26 +1486,20 @@ updateModelerUI: (isFullRefresh = false) => {
                 const marketPriceUSD = commodityAsset.price || 0;
                 let netPricePerUnitUSD = 0;
 
-                // Step 1: Calculate Net Price to Buyer (in USD) with absolute clarity
                 if (state.pricingModel === 'Fixed') {
                     netPricePerUnitUSD = parseFloat(state.fixedPrice) || 0;
                 } else {
                     const adjustment = parseFloat(state.priceAdjustmentValue) || 0;
-                    if (state.pricingModel === 'PlattsMinus') {
-                        netPricePerUnitUSD = marketPriceUSD - adjustment;
-                    } else { // PlattsPlus
-                        netPricePerUnitUSD = marketPriceUSD + adjustment;
-                    }
+                    netPricePerUnitUSD = (state.pricingModel === 'PlattsMinus') ? marketPriceUSD - adjustment : marketPriceUSD + adjustment;
                 }
 
                 let finalPricePerUnitUSD = 0;
                 let commissionPerUnitUSD = 0;
 
-                // Step 2: Calculate Commission and Final Price based on workflow
                 if (state.isCommissionIncluded) {
                     finalPricePerUnitUSD = netPricePerUnitUSD;
                     commissionPerUnitUSD = parseFloat(state.commissionValue) || 0;
-                } else { // Commission is an added markup
+                } else {
                     const markupValue = parseFloat(state.markupValue) || 0;
                     const markupAmount = state.isMarkupInPercent ? netPricePerUnitUSD * (markupValue / 100) : markupValue;
                     finalPricePerUnitUSD = netPricePerUnitUSD + markupAmount;
@@ -1514,33 +1507,24 @@ updateModelerUI: (isFullRefresh = false) => {
                 }
 
                 const quantity = parseFloat(state.quantity) || 0;
-
-                // Step 3: Calculate Totals
                 const totalFinalValueUSD = finalPricePerUnitUSD * quantity;
                 const totalCommissionUSD = commissionPerUnitUSD * quantity;
                 
-                // Step 4: Convert to Settlement Asset
                 const conversionRate = settlementAsset.price || 1;
                 const primaryValue = totalFinalValueUSD / conversionRate;
                 const totalCommissionInSettlement = totalCommissionUSD / conversionRate;
-                const finalPricePerUnitInSettlement = finalPricePerUnitUSD / conversionRate;
-
-                // This is the USD equivalent of the FINAL price, used for the IMFPA
-                const usdEquivalentForIMFPA = totalFinalValueUSD; 
 
                 return { 
                     primaryValue: primaryValue,
                     primaryUnit: settlementAsset.baseAsset,
                     dealTitle: `${Utils.formatNumber(quantity)} ${state.unitOfMeasure} of ${commodityAsset.baseAsset}`,
-                    usdEquivalent: usdEquivalentForIMFPA,
+                    usdEquivalent: totalFinalValueUSD,
                     toAsset: settlementAsset,
-                    
                     totalCommissionInSettlement,
                     commissionPerUnitUSD,
                     netPricePerUnitUSD,
                     finalPricePerUnitUSD,
                     marketPriceUSD,
-
                     finalValueToBuyerUSD: 0,
                     totalCommissionPool: 0
                 };
@@ -3054,7 +3038,6 @@ const UI = {
             renderCommodityTradePanel: () => {
                 const state = AppState.modeler.commodityTrade;
                 
-                // --- DEFINITIVE FIX: Actively fetch live data during render ---
                 const commodityAsset = Utils.getAssetByKey(state.assetKey);
                 const currentUnitOfMeasure = (commodityData.specifications[state.assetKey]?.uom) || state.unitOfMeasure;
                 const liveMarketPrice = commodityAsset.price || 0;
@@ -3072,7 +3055,6 @@ const UI = {
                     else if (!isPriceDefined) selector = (state.pricingModel === 'Fixed') ? '[data-path="commodityTrade.fixedPrice"]' : '[data-path="commodityTrade.priceAdjustmentValue"]';
                     else if (!isCommissionDefined) selector = state.isCommissionIncluded ? '[data-path="commodityTrade.commissionValue"]' : '[data-path="commodityTrade.markupValue"]';
                     else selector = '[data-path="commodityTrade.settlementAssetKey"]';
-                    
                     const elToFocus = document.querySelector(selector);
                     if (elToFocus) {
                         elToFocus.focus();
@@ -3080,9 +3062,27 @@ const UI = {
                     }
                 }, 100);
 
+                // --- DEFINITIVE FIX: The missing commission input logic is now fully restored. ---
                 const commissionInputsHTML = state.isCommissionIncluded ?
-                    `<div>...</div>` : // Placeholder for brevity, original logic is preserved
-                    `<div class="grid grid-cols-2 gap-4">...</div>`;
+                    `<div>
+                        <label class="block text-sm font-medium text-text-muted mb-2">Commission Included Per ${currentUnitOfMeasure}</label>
+                        <input type="number" data-path="commodityTrade.commissionValue" value="${state.commissionValue}" class="form-input text-lg font-bold ${!isCommissionDefined ? 'highlight-focus' : ''}">
+                        <p class="text-xs text-text-muted mt-2">The Net Price already contains this commission amount.</p>
+                    </div>` :
+                    `<div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-2">Add Mark-Up</label>
+                            <input type="number" data-path="commodityTrade.markupValue" value="${state.markupValue}" class="form-input text-lg font-bold ${!isCommissionDefined ? 'highlight-focus' : ''}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-2">Mark-Up Type</label>
+                            <select data-path="commodityTrade.isMarkupInPercent" class="form-select">
+                                <option value="false" ${!state.isMarkupInPercent ? 'selected':''}>Fixed Amount</option>
+                                <option value="true" ${state.isMarkupInPercent ? 'selected':''}>Percentage (%)</option>
+                            </select>
+                        </div>
+                        <p class="text-xs text-text-muted mt-2 col-span-2">This markup will be added to the Net Price to create the Final Price.</p>
+                    </div>`;
 
                 return `
                 <!-- Step 1: Define Commodity & Quantity -->
@@ -3115,11 +3115,10 @@ const UI = {
                         </div>
                         ${state.pricingModel === 'Fixed' ? 
                             `<div><label class="block text-sm font-medium text-text-muted mb-2">Fixed Price per ${currentUnitOfMeasure}</label><input type="number" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input text-lg font-bold ${!isPriceDefined ? 'highlight-focus' : ''}"></div>` :
-                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Price Adjustment (USD)</label><input type="number" data-path="commodityTrade.priceAdjustmentValue" value="${state.priceAdjustmentValue}" class="form-input text-lg font-bold ${!isPriceDefined ? 'highlight-focus' : ''}"></div>`
+                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Price Adjustment (per ${currentUnitOfMeasure})</label><input type="number" data-path="commodityTrade.priceAdjustmentValue" value="${state.priceAdjustmentValue}" class="form-input text-lg font-bold ${!isPriceDefined ? 'highlight-focus' : ''}"></div>`
                         }
                     </div>
                 </div>
-                
 
                 <!-- Step 3: Configure Commission -->
                 <div class="guided-step-card">
