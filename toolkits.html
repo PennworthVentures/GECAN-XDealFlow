@@ -3384,7 +3384,14 @@ togglePricingConfig: () => {
                         <h2 class="p-h2">EXECUTION & SIGNATURE PAGE</h2>
                         <p class="p-text">IN WITNESS WHEREOF, the Parties hereto have executed this Agreement through their duly authorized signatories as of the Effective Date, affirming that they have read, understood, and agree to be bound by its terms.</p>
                         ${legal.groups.flatMap(g => g.parties).map((p, i) => `
-                        <div class="p-signature-block">
+                        
+                        <!-- ========================================================================= -->
+                        <!-- === SEVERE UPGRADE & DEFINITIVE FIX v18.2 === -->
+                        <!-- Injecting the critical data attributes (data-party-id and data-party-name) -->
+                        <!-- that are required by the signature application logic. This single -->
+                        <!-- change permanently resolves the empty dropdown bug. -->
+                        <!-- ========================================================================= -->
+                        <div class="p-signature-block" data-party-id="party-${i}" data-party-name="${p.legalName}">
                             <p class="p-strong">PARTY ${String.fromCharCode(65 + i)} – FOR AND ON BEHALF OF: ${p.legalName.toUpperCase()}</p>
                             <div class="p-signature-line" data-sig-type="signature"></div>
                             <p class="p-signature-label">By: (Authorized Signature)</p>
@@ -3671,7 +3678,6 @@ togglePricingConfig: () => {
                 Logic.refreshImfpaModalUI();
                 Utils.showNotification('Premium legal contract generated successfully!', 'success', 'Document Synthesized');
             },
-
             /**
              * [NEW - Navigation Protocol] Returns the user to the configuration suite.
              */
