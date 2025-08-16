@@ -3400,42 +3400,253 @@ togglePricingConfig: () => {
                 const finalContractHTML = `
                 <div class="p-doc" style="--agreement-reference: '${agreementReference.replace(/'/g, '')}';">
                     <style>
-                        .p-doc { font-family: 'Garamond', 'Times New Roman', serif; font-size: 11pt; line-height: 1.45; color: #000; }
-                        @page { size: A4; margin: 2.5cm; @top-left { content: var(--agreement-reference); font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 8pt; color: #666; } @top-right { content: "STRICTLY PRIVATE & CONFIDENTIAL"; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 8pt; color: #666; font-weight: bold; } @bottom-center { content: "Page " counter(page) " of " counter(pages); font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 9pt; color: #666; } }
-                        .p-h1 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 18pt; font-weight: bold; color: #1A237E; border-bottom: 2.5px solid #b4975a; padding-bottom: 10pt; margin-bottom: 28pt; text-align: center; letter-spacing: 0.5px; }
-                        .p-h2 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14pt; font-weight: bold; color: #283593; border-bottom: 1px solid #ccc; padding-bottom: 5pt; margin-top: 24pt; margin-bottom: 14pt; page-break-after: avoid; }
-                        .p-text { text-align: justify; margin-bottom: 12pt; }
-                        .p-strong { font-weight: bold; color: #283593; }
-                        .p-annex-start { page-break-before: always; }
-                        .p-watermark { display: block !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120pt; color: rgba(180, 151, 90, 0.07); font-weight: bold; z-index: -1000; pointer-events: none; font-family: 'Arial Black', sans-serif; }
-                        .p-party-table { width: 100%; border-collapse: collapse; margin-bottom: 20pt; border: 1px solid #aab7c4; }
-                        .p-party-table th, .p-party-table td { padding: 10pt 12pt; text-align: left; vertical-align: top; border-bottom: 1px solid #dde2e7; }
-                        .p-party-table th { background-color: #e8eaf6; color: #1A237E; font-weight: bold; font-family: 'Helvetica Neue', sans-serif; font-size: 10pt; }
-                        .p-party-table .party-label { font-weight: bold; color: #283593; }
-                        .p-party-table .party-name { font-weight: bold; }
-                        .p-party-table .party-role { font-size: 10pt; color: #555; font-style: italic; }
-                        .fee-group-container { margin-top: 20pt; page-break-inside: avoid; }
-                        .fee-group-header { background: #e8eaf6; padding: 8pt 12pt; border: 1px solid #aab7c4; border-bottom: none; display: flex; justify-content: space-between; align-items: center; }
-                        .fee-group-header-title { font-size: 10pt; font-weight: bold; color: #1A237E; text-transform: uppercase; }
-                        .fee-group-header-value { font-family: 'Courier New', monospace; font-size: 11pt; font-weight: bold; color: #1A237E; }
-                        .fee-distribution-table { width: 100%; border-collapse: collapse; border: 1px solid #aab7c4; }
-                        .fee-distribution-table th, .fee-distribution-table td { padding: 8pt 12pt; text-align: left; vertical-align: top; border-bottom: 1px solid #ddd; font-size: 9pt; }
-                        .fee-distribution-table th { font-weight: bold; font-size: 8pt; color: #283593; text-transform: uppercase; background-color: #f9f9f9; border-bottom: 1px solid #aab7c4; }
-                        .beneficiary-name { font-weight: bold; font-size: 10pt; color: #000; }
-                        .beneficiary-role { font-style: italic; color: #555; }
-                        .allocation-value { font-family: 'Courier New', monospace; font-weight: bold; color: #1A237E; }
-                        .settlement-details { font-family: 'Courier New', monospace; font-size: 8pt; color: #555; word-break: break-all; }
-                        .party-details-section { margin-top: 24pt; page-break-inside: avoid; }
-                        .party-details-section h4 { background: #1A237E; color: white; padding: 8pt 12pt; margin: 0; font-size: 10pt; text-transform: uppercase; font-family: 'Helvetica Neue', sans-serif; }
-                        .party-details-table { width: 100%; border: 1px solid #ccc; border-collapse: collapse; margin-bottom: 12pt; }
-                        .party-details-table td { padding: 7pt 9pt; border: 1px solid #ccc; font-size: 10pt; }
-                        .detail-label { background: #f9f9f9; font-weight: bold; width: 35%; }
-                        .detail-value { font-family: 'Courier New', monospace; }
-                        .p-signature-block { margin-top: 40pt; padding-top: 20pt; page-break-inside: avoid; display: block; border-top: 1px solid #ccc; }
-                        .p-signature-line { border-bottom: 1px solid #000; margin-top: 35pt; margin-bottom: 6pt; min-height: 25px; }
-                        .p-signature-label { font-size: 9pt; color: #555; }
-                        .p-seal-area { height: 100px; margin-top: 10px; }
-                        .legal-footer { margin-top: 40pt; padding-top: 15pt; border-top: 2.5px solid #1A237E; font-size: 8pt; color: #555; text-align: center; page-break-inside: avoid; }
+                        /* --- SUPREME PINNACLE LEGAL DOCUMENT STYLES (v19.1 - FINAL) --- */
+                        .p-doc { 
+                            font-family: 'Garamond', 'Times New Roman', serif; 
+                            font-size: 11pt; 
+                            line-height: 1.45; 
+                            color: #000; 
+                        }
+                        /* --- Military-Grade Page Headers & Footers --- */
+                        @page {
+                            size: A4; 
+                            margin: 2.5cm;
+                            @top-left { 
+                                content: var(--agreement-reference); 
+                                font-family: 'Helvetica Neue', Arial, sans-serif; 
+                                font-size: 8pt; 
+                                color: #666; 
+                            }
+                            @top-right { 
+                                content: "STRICTLY PRIVATE & CONFIDENTIAL"; 
+                                font-family: 'Helvetica Neue', Arial, sans-serif; 
+                                font-size: 8pt; 
+                                color: #666; 
+                                font-weight: bold; 
+                            }
+                            @bottom-center { 
+                                content: "Page " counter(page) " of " counter(pages); 
+                                font-family: 'Helvetica Neue', Arial, sans-serif; 
+                                font-size: 9pt; 
+                                color: #666; 
+                            }
+                        }
+                        /* --- Supreme Typographic Hierarchy --- */
+                        .p-h1 { 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                            font-size: 18pt; 
+                            font-weight: bold; 
+                            color: #1A237E; 
+                            border-bottom: 2.5px solid #b4975a; 
+                            padding-bottom: 10pt; 
+                            margin-bottom: 28pt; 
+                            text-align: center; 
+                            letter-spacing: 0.5px; 
+                        }
+                        .p-h2 { 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                            font-size: 14pt; 
+                            font-weight: bold; 
+                            color: #283593; 
+                            border-bottom: 1px solid #ccc; 
+                            padding-bottom: 5pt; 
+                            margin-top: 24pt; 
+                            margin-bottom: 14pt; 
+                            page-break-after: avoid; 
+                        }
+                        .p-text { 
+                            text-align: justify; 
+                            margin-bottom: 12pt; 
+                        }
+                        .p-strong { 
+                            font-weight: bold; 
+                            color: #283593; 
+                        }
+                        .p-annex-start { 
+                            page-break-before: always; 
+                        }
+                        .p-watermark { 
+                            display: block !important; 
+                            position: fixed; 
+                            top: 50%; left: 50%; 
+                            transform: translate(-50%, -50%) rotate(-45deg); 
+                            font-size: 120pt; 
+                            color: rgba(180, 151, 90, 0.07); 
+                            font-weight: bold; z-index: -1000; 
+                            pointer-events: none; 
+                            font-family: 'Arial Black', sans-serif; 
+                        }
+                        
+                        /* --- Premium Party Table Styles --- */
+                        .p-party-table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                            margin-bottom: 20pt; 
+                            border: 1px solid #aab7c4; 
+                        }
+                        .p-party-table th, .p-party-table td { 
+                            padding: 10pt 12pt; 
+                            text-align: left; 
+                            vertical-align: top; 
+                            border-bottom: 1px solid #dde2e7; 
+                        }
+                        .p-party-table th { 
+                            background-color: #e8eaf6; 
+                            color: #1A237E; 
+                            font-weight: bold; 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                            font-size: 10pt; 
+                        }
+                        .p-party-table .party-label { 
+                            font-weight: bold; 
+                            color: #283593; 
+                        }
+                        .p-party-table .party-name { 
+                            font-weight: bold; 
+                        }
+                        .p-party-table .party-role { 
+                            font-size: 10pt; 
+                            color: #555; 
+                            font-style: italic; 
+                        }
+                        
+                        /* --- Elevated Fee Distribution Table Styles --- */
+                        .fee-group-container { 
+                            margin-top: 20pt; 
+                            page-break-inside: avoid; 
+                        }
+                        .fee-group-header { 
+                            background: #e8eaf6; 
+                            padding: 8pt 12pt; 
+                            border: 1px solid #aab7c4; 
+                            border-bottom: none; 
+                            display: flex; 
+                            justify-content: space-between; 
+                            align-items: center; 
+                        }
+                        .fee-group-header-title { 
+                            font-size: 10pt; 
+                            font-weight: bold; 
+                            color: #1A237E; 
+                            text-transform: uppercase; 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                        }
+                        .fee-group-header-value { 
+                            font-family: 'Courier New', monospace; 
+                            font-size: 11pt; 
+                            font-weight: bold; 
+                            color: #1A237E; 
+                        }
+                        .fee-distribution-table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                            border: 1px solid #aab7c4; 
+                        }
+                        .fee-distribution-table th, .fee-distribution-table td { 
+                            padding: 8pt 12pt; 
+                            text-align: left; 
+                            vertical-align: top; 
+                            border-bottom: 1px solid #ddd; 
+                            font-size: 9pt; 
+                        }
+                        .fee-distribution-table th { 
+                            font-weight: bold; 
+                            font-size: 8pt; 
+                            color: #283593; 
+                            text-transform: uppercase; 
+                            background-color: #f9f9f9; 
+                            border-bottom: 1px solid #aab7c4; 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                        }
+                        .beneficiary-name { 
+                            font-weight: bold; 
+                            font-size: 10pt; 
+                            color: #000; 
+                        }
+                        .beneficiary-role { 
+                            font-style: italic; 
+                            color: #555; 
+                        }
+                        .allocation-value { 
+                            font-family: 'Courier New', monospace; 
+                            font-weight: bold; 
+                            color: #1A237E; 
+                        }
+                        .settlement-details { 
+                            font-family: 'Courier New', monospace; 
+                            font-size: 8pt; 
+                            color: #555; 
+                            word-break: break-all; 
+                        }
+
+                        /* --- Elevated Annex & Signature Styles --- */
+                        .party-details-section { 
+                            margin-top: 24pt; 
+                            page-break-inside: avoid; 
+                        }
+                        .party-details-section h4 { 
+                            background: #1A237E; 
+                            color: white; 
+                            padding: 8pt 12pt; 
+                            margin: 0; 
+                            font-size: 10pt; 
+                            text-transform: uppercase; 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                        }
+                        .party-details-table { 
+                            width: 100%; 
+                            border: 1px solid #ccc; 
+                            border-collapse: collapse; 
+                            margin-bottom: 12pt; 
+                        }
+                        .party-details-table td { 
+                            padding: 7pt 9pt; 
+                            border: 1px solid #ccc; 
+                            font-size: 10pt; 
+                        }
+                        .detail-label { 
+                            background: #f9f9f9; 
+                            font-weight: bold; 
+                            width: 35%; 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                        }
+                        .detail-value { 
+                            font-family: 'Courier New', monospace; 
+                        }
+                        .p-signature-block { 
+                            margin-top: 40pt; 
+                            padding-top: 20pt; 
+                            page-break-inside: avoid; 
+                            display: block; 
+                            border-top: 1px solid #ccc; 
+                        }
+                        .p-signature-line { 
+                            border-bottom: 1px solid #000; 
+                            margin-top: 35pt; 
+                            margin-bottom: 6pt; 
+                            min-height: 25px; 
+                        }
+                        .p-signature-label { 
+                            font-size: 9pt; 
+                            color: #555; 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                        }
+                        .p-seal-area { 
+                            height: 100px; 
+                            margin-top: 10px; 
+                        }
+
+                        /* --- Legal Footer --- */
+                        .legal-footer { 
+                            margin-top: 40pt; 
+                            padding-top: 15pt; 
+                            border-top: 2.5px solid #1A237E; 
+                            font-size: 8pt; 
+                            color: #555; 
+                            text-align: center; 
+                            page-break-inside: avoid; 
+                            font-family: 'Helvetica Neue', Arial, sans-serif; 
+                        }
                     </style>
                     <div class="p-watermark">GECAN DRAFT</div>
                     <h1 class="p-h1">${documentTitle}</h1>
