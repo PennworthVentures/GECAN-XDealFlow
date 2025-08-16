@@ -1256,15 +1256,33 @@ calculateModel: () => {
  * Calculates the specifics for an Asset Swap deal.
  * @returns {object} An object containing the calculated metrics for the swap.
  */
-calculateAssetSwap: () => {
-    const { amount, fromAssetKey, toAssetKey } = AppState.modeler.assetSwap;
-    const fromAsset = Utils.getAssetByKey(fromAssetKey);
-    const toAsset = Utils.getAssetByKey(toAssetKey);
-    const baseValueUSD = (parseFloat(amount) || 0) * (fromAsset.price || 0);
-    const rate = (fromAsset.price > 0 && toAsset.price > 0) ? fromAsset.price / toAsset.price : 0;
-    const dealTitle = `Swap ${Utils.formatNumber(amount, 2)} ${fromAsset.baseAsset} for ${toAsset.baseAsset}`;
-    return { baseValueUSD, fromAsset, toAsset, rate, dealTitle };
-},
+            calculateAssetSwap: () => {
+                const { amount, fromAssetKey, toAssetKey } = AppState.modeler.assetSwap;
+                const fromAsset = Utils.getAssetByKey(fromAssetKey);
+                const toAsset = Utils.getAssetByKey(toAssetKey);
+                const amountToGive = parseFloat(String(amount).replace(/,/g, '')) || 0;
+            
+                // The base value in USD remains the universal denominator for commission calculations.
+                const baseValueUSD = amountToGive * (fromAsset.price || 0);
+            
+                // Pinnacle-Grade Cross-Rate Calculation
+                const directRate = (toAsset.price > 0) ? (fromAsset.price || 0) / toAsset.price : 0;
+                const inverseRate = (fromAsset.price > 0) ? (toAsset.price || 0) / fromAsset.price : 0;
+                const amountToReceive = amountToGive * directRate;
+            
+                const dealTitle = `Swap ${fromAsset.baseAsset} for ${toAsset.baseAsset}`;
+            
+                return { 
+                    baseValueUSD, 
+                    fromAsset, 
+                    toAsset, 
+                    amountToGive,
+                    amountToReceive,
+                    directRate,
+                    inverseRate,
+                    dealTitle 
+                };
+            },
 
 /**
  * Calculates the specifics for a physical Commodity Trade deal.
@@ -2673,15 +2691,35 @@ const UI = {
  * Renders the specific input fields for the Asset Swap deal type.
  * @returns {string} The HTML for the Asset Swap panel.
  */
-renderAssetSwapPanel: () => {
-    const state = AppState.modeler.assetSwap;
-    const assetOptions = (selectedKey) => AppState.marketData
-        .filter(a => a.type !== 'Cross-Rate' && a.price > 0)
-        .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
-        .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
-    const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
-    return `<div class="flex items-center gap-4"><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">From Asset</label><select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select></div><div class="pt-8"><button onclick="Logic.swapAssets()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-azure/20 text-primary-azure hover:bg-primary-azure/30 transition-all duration-300" title="Swap Assets"><i id="swap-icon" class="fas fa-exchange-alt"></i></button></div><div class="flex-1"><label class="block text-sm font-medium text-text-muted mb-2">To Asset</label><select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select></div></div><div><label class="block text-sm font-medium text-text-muted mb-2">Amount to Swap (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label><input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div>`;
-},
+            renderAssetSwapPanel: () => {
+                const state = AppState.modeler.assetSwap;
+                const assetOptions = (selectedKey) => AppState.marketData
+                    .filter(a => a.type !== 'Cross-Rate' && a.price > 0)
+                    .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
+                    .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
+                const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
+                
+                return `
+                <div class="flex items-center gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-text-muted mb-2">From Asset (You Give)</label>
+                        <select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select>
+                    </div>
+                    <div class="pt-8">
+                        <button onclick="Logic.swapAssets()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-azure/20 text-primary-azure hover:bg-primary-azure/30 transition-all duration-300" title="Swap Assets">
+                            <i id="swap-icon" class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-text-muted mb-2">To Asset (You Receive)</label>
+                        <select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-muted mb-2">Amount to Give (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label>
+                    <input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold">
+                </div>`;
+            },
 
 /**
  * SEVERELY ENHANCED: Renders the multi-step, interactive UI for structuring a physical commodity trade.
@@ -2748,18 +2786,82 @@ renderSBLCMonetizationPanel: () => {
  * @param {object|null} calc - The full calculation object from Logic.calculateModel().
  * @returns {string} The HTML for the output/analysis panel.
  */
-renderModelerOutputPanel: (calc) => {
-    if (!calc) return `<div class="flex items-center justify-center h-full text-center text-text-muted"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
-    let customOutput = '';
-    if (AppState.modeler.activeDealType === 'AssetSwap') {
-        const { fromAsset, toAsset, rate } = calc; const rateDisplay = rate > 0 ? rate.toFixed(8) : 'N/A';
-        customOutput = `<div class="output-metric-card"><p class="label"><i class="fas fa-sync-alt"></i>Institutional Cross Rate</p><p class="value">${rateDisplay}</p><p class="sub-value">1 ${fromAsset.baseAsset} ≈ ${rateDisplay} ${toAsset.baseAsset}</p></div>`;
-    } else if (AppState.modeler.activeDealType === 'CryptoLoan') {
-        const monthlyPayment = calc.totalRepayment / (calc.tenureMonths || 1);
-        customOutput = `<div class="output-metric-card"><p class="label"><i class="fas fa-hand-holding-usd"></i>Loan Principal</p><p class="value">${Utils.formatPrice(calc.loanPrincipal, calc.loanCurrency)}</p><p class="sub-value">Total Repayment: ${Utils.formatPrice(calc.totalRepayment, calc.loanCurrency)}</p></div><div class="output-metric-card mt-4"><p class="label"><i class="fas fa-calendar-alt"></i>Monthly Repayment</p><p class="value">${Utils.formatPrice(monthlyPayment, calc.loanCurrency)}</p><p class="sub-value">${calc.tenureMonths}-month tenure @ ${calc.interestRateValue}% fixed</p></div><div class="mt-4"><h4 class="text-sm font-semibold text-text-secondary mb-2">Projected Loan Balance Over Time</h4><div class="yield-graph-container h-40">${UI.renderYieldGraph(calc)}</div></div>`;
-    }
-    return `<div class="flex flex-col h-full animate-fade-in-up"><h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2><div class="space-y-4 flex-grow"><div class="output-metric-card base-value"><p class="label"><i class="fas fa-tags"></i>Base/Market Value</p><p class="value">${Utils.formatPrice(calc.baseValueUSD)}</p><p class="sub-value">${calc.dealTitle}</p></div><div class="output-metric-card net"><p class="label"><i class="fas fa-hand-holding-dollar"></i>Net Value to Buyer</p><p class="value">${Utils.formatPrice(calc.finalValueToBuyerUSD)}</p><p class="sub-value">${calc.netValueDescription}</p></div><div class="output-metric-card commission"><p class="label"><i class="fas fa-coins"></i>Total Commission Pool</p><p class="value">${Utils.formatPrice(calc.totalCommissionPool)}</p><p class="sub-value">${calc.grossValueDescription}</p></div>${customOutput}</div><div class="mt-auto pt-6 border-t border-border-color"><button onclick="Logic.openImfpaModal()" class="btn-primary w-full py-3 font-bold"><i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Commission Manager</button></div></div>`;
-},
+            renderModelerOutputPanel: (calc) => {
+                if (!calc) return `<div class="flex items-center justify-center h-full text-center text-text-muted"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
+            
+                let customAnalysisPanel = ''; // This will hold the specific analysis UI
+            
+                // --- INTELLIGENT WORKFLOW: RENDER ANALYSIS BASED ON DEAL TYPE ---
+                if (AppState.modeler.activeDealType === 'AssetSwap') {
+                    const { fromAsset, toAsset, amountToGive, amountToReceive, directRate, inverseRate, baseValueUSD } = calc;
+                    customAnalysisPanel = `
+                    <div class="output-metric-card p-4 mt-4 border-l-4 border-primary-royal">
+                        <p class="label !mb-2 text-primary-royal"><i class="fas fa-sync-alt"></i>Pinnacle Swap Analysis</p>
+                        
+                        <!-- Transaction Flow -->
+                        <div class="space-y-3">
+                            <div class="p-3 rounded-lg bg-background-light border border-red-500/30">
+                                <div class="flex justify-between items-center text-xs text-red-400 font-semibold"><span>GIVING</span><i class="fas fa-arrow-up"></i></div>
+                                <div class="flex justify-between items-baseline mt-1">
+                                    <span class="text-xl font-bold font-mono text-white">${Utils.formatNumber(amountToGive, 4)} ${fromAsset.baseAsset}</span>
+                                    <span class="text-sm text-text-muted font-mono">~${Utils.formatPrice(baseValueUSD)}</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-background-light border border-green-500/30">
+                                <div class="flex justify-between items-center text-xs text-green-400 font-semibold"><span>RECEIVING</span><i class="fas fa-arrow-down"></i></div>
+                                <div class="flex justify-between items-baseline mt-1">
+                                    <span class="text-xl font-bold font-mono text-white">${Utils.formatNumber(amountToReceive, 4)} ${toAsset.baseAsset}</span>
+                                    <span class="text-sm text-text-muted font-mono">~${Utils.formatPrice(baseValueUSD)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Rate Display -->
+                        <div class="mt-4 pt-4 border-t border-border-color text-center">
+                             <p class="text-xs text-text-muted mb-1">Live Institutional Market Rate</p>
+                             <p class="text-lg font-bold font-mono text-primary-azure">
+                                1 ${fromAsset.baseAsset} <i class="fas fa-equals text-xs mx-2"></i> ${Utils.formatNumber(directRate, 8)} ${toAsset.baseAsset}
+                             </p>
+                             <p class="text-xs font-mono text-text-muted mt-1">(1 ${toAsset.baseAsset} ≈ ${Utils.formatNumber(inverseRate, 8)} ${fromAsset.baseAsset})</p>
+                             <p class="text-[10px] text-text-subtle mt-2 font-mono">(Rate derived via USD cross-rate)</p>
+                        </div>
+                    </div>`;
+                } else if (AppState.modeler.activeDealType === 'CryptoLoan') {
+                    const monthlyPayment = calc.totalRepayment / (calc.tenureMonths || 1);
+                    customAnalysisPanel = `<div class="output-metric-card mt-4"><p class="label"><i class="fas fa-calendar-alt"></i>Monthly Repayment</p><p class="value">${Utils.formatPrice(monthlyPayment, calc.loanCurrency)}</p><p class="sub-value">${calc.tenureMonths}-month tenure @ ${calc.interestRateValue}% fixed</p></div><div class="mt-4"><h4 class="text-sm font-semibold text-text-secondary mb-2">Projected Loan Balance Over Time</h4><div class="yield-graph-container h-40">${UI.renderYieldGraph(calc)}</div></div>`;
+                }
+            
+                return `
+                <div class="flex flex-col h-full animate-fade-in-up">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2>
+                    <div class="space-y-4 flex-grow">
+                        <div class="output-metric-card base-value">
+                            <p class="label"><i class="fas fa-tags"></i>Base Value (USD Equivalent)</p>
+                            <p class="value">${Utils.formatPrice(calc.baseValueUSD)}</p>
+                            <p class="sub-value">${calc.dealTitle}</p>
+                        </div>
+                        <div class="output-metric-card net">
+                            <p class="label"><i class="fas fa-hand-holding-dollar"></i>Net Value to Buyer</p>
+                            <p class="value">${Utils.formatPrice(calc.finalValueToBuyerUSD)}</p>
+                            <p class="sub-value">${calc.netValueDescription}</p>
+                        </div>
+                        <div class="output-metric-card commission">
+                            <p class="label"><i class="fas fa-coins"></i>Total Commission Pool</p>
+                            <p class="value">${Utils.formatPrice(calc.totalCommissionPool)}</p>
+                            <p class="sub-value">${calc.grossValueDescription}</p>
+                        </div>
+                        
+                        <!-- The intelligent, deal-specific analysis panel is injected here -->
+                        ${customAnalysisPanel}
+                        
+                    </div>
+                    <div class="mt-auto pt-6 border-t border-border-color">
+                        <button onclick="Logic.openImfpaModal()" class="btn-primary w-full py-3 font-bold">
+                            <i class="fas fa-file-signature mr-2"></i>Launch IMFPA & Commission Manager
+                        </button>
+                    </div>
+                </div>`;
+            },
 
 /**
  * Renders a simple SVG yield graph for the Crypto Loan model.
