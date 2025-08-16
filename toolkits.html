@@ -2475,23 +2475,27 @@ openImfpaModal: () => {
             setActiveSynthesisStage: (stageName) => {
                 const { legal } = AppState.modeler;
                 
-                // 1. Update the application state with the new active stage.
-                // The toggle behavior (clicking an open stage to close it) is preserved.
+                // 1. Pre-calculate the data. This is the critical fix.
+                const calc = Logic.calculateModel();
+                if (!calc) {
+                    Utils.showNotification("Cannot switch view: deal parameters are incomplete.", 'error');
+                    return;
+                }
+                
+                // 2. Update the application state with the new active stage.
                 legal.activeStage = (legal.activeStage === stageName) ? '' : stageName;
                 
-                // 2. Locate the master container for the modal. This is the critical target.
+                // 3. Locate the master container for the modal.
                 const modal = document.getElementById('imfpa-modal');
                 if (!modal) {
                     console.error("CRITICAL FAILURE: Cannot find IMFPA modal container to re-render.");
                     return;
                 }
 
-                // 3. Force a complete re-render of the modal's inner content.
-                // This redraws the entire stage structure, correctly applying the `.active` class.
-                modal.innerHTML = UI.renderImfpaModal();
+                // 4. Force a complete re-render, now passing the pre-calculated data.
+                modal.innerHTML = UI.renderImfpaModal(calc);
                 
-                // 4. Immediately re-hydrate the new UI with dynamic content and listeners.
-                // This is essential to ensure all functionality (previews, calculations) remains live.
+                // 5. Immediately re-hydrate the new UI with dynamic content and listeners.
                 Logic.refreshImfpaModalUI();
             },
             refreshImfpaModalUI: () => {
@@ -4470,13 +4474,23 @@ renderYieldGraph: (calc) => {
 },
 
     // --- IMFPA & DOCUMENT EXECUTION SUITE RENDERERS (v6.0 Pinnacle Overhaul) ---
-            renderImfpaModal: () => {
+                        renderImfpaModal: (calc) => { // Now accepts calc as a parameter
                 const { legal } = AppState.modeler;
                 const isImfpa = legal.agreementType === 'IMFPA';
                 const isReadyToSynthesize = Logic.validateImfpaData();
-                const calc = Logic.calculateModel();
+                
+                // If calc wasn't passed, calculate it now (for initial open).
+                // This makes the function robust for both initial open and re-renders.
+                if (!calc) {
+                    calc = Logic.calculateModel();
+                    // Final safeguard if calculation fails on initial load
+                    if (!calc) {
+                        console.error("Critical calculation failure on modal render.");
+                        // Return a safe fallback UI
+                        return `<div class="dialog-content-wrapper"><div class="p-8 text-center text-red-400">Critical Error: Could not calculate deal parameters.</div></div>`;
+                    }
+                }
 
-                // This function renders each collapsible stage of the guided workflow.
                 const renderStage = (stageName, number, icon, title, content) => {
                     const isActive = legal.activeStage === stageName;
                     return `
@@ -4490,7 +4504,6 @@ renderYieldGraph: (calc) => {
                     </div>`;
                 };
 
-                // --- Content for Stage 1: Review Parameters ---
                 const reviewContent = `
                     <div class="p-4 rounded-lg bg-background-dark border border-border-color">
                         <div class="flex justify-between items-center">
@@ -4506,7 +4519,6 @@ renderYieldGraph: (calc) => {
                         </div>
                     </div>`;
 
-                // --- Content for Stage 2: Configure Document ---
                 const configureContent = `
                     <div class="space-y-4">
                         <div><label class="block text-sm font-medium mb-2 submission-label">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales"></div>
@@ -4522,7 +4534,6 @@ renderYieldGraph: (calc) => {
                         </div>
                     </div>`;
 
-                // --- Content for Stage 3: Allocate Commissions & Parties ---
                 const allocateContent = `
                     <div class="space-y-4">
                         <div id="imfpa-controls" class="flex justify-between items-center">
@@ -4566,7 +4577,7 @@ renderYieldGraph: (calc) => {
                         
                         <div class="pt-6 border-t border-premium-border mt-auto flex-shrink-0">
                             <button id="synthesize-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold" ${!isReadyToSynthesize ? 'disabled' : ''}>
-                                <i class="fas fa-file-export mr-2"></i>${isReadyToSynthesize ? 'Synthesize & Execute Document' : 'Complete All Required Fields'}
+                                <i class="fas fa-file-export mr-2"></i>${isReadyToSynthesize ? 'Synthesize & Execute Document' : 'Complete All Required Fields (*)'}
                             </button>
                             <div id="contract-preview-container" class="mt-4 hidden"></div>
                         </div>
