@@ -839,28 +839,31 @@ dialog::backdrop {
 #notification-modal .dialog-content-wrapper { max-width: 32rem; }
 
 /* =================================================================================== */
-/* === DEFINITIVE IMFPA MODAL SIZING & SCROLLING ENGINE (PINNACLE STANDARD v3.0) === */
-/* This engine guarantees a max-efficiency, fully responsive, and scrollable view for
-   the Commission & Contract Suite, resolving all clipping and overflow issues. */
+/* === DEFINITIVE IMMERSIVE VIEW & SCROLLING ENGINE (PINNACLE STANDARD v4.0) === */
+/* This engine locks the modal boundaries to the screen edges for maximum optimization,
+   while enabling seamless internal scrolling for a true application-like experience. */
 /* =================================================================================== */
 #imfpa-modal .dialog-content-wrapper { 
     /* 1. Use max-width for widescreen efficiency. */
     max-width: 90rem;
     
-    /* 2. CRITICAL FIX: Use max-height, not fixed height. This allows the modal to
-       shrink for smaller content while respecting viewport boundaries. */
-    max-height: calc(100vh - 4rem); /* Respects the dialog's padding */
+    /* 2. CRITICAL FIX: Use `height` instead of `max-height`. This forces the modal to
+       expand vertically to fill the available space, creating the locked-in effect. */
+    height: calc(100vh - 4rem); /* Respects the dialog's padding */
 
-    /* 3. PINNACLE WORKFLOW: Force the wrapper to behave as a flex column. This is
-       the key to controlling the header, body, and footer sections independently. */
+    /* 3. PINNACLE WORKFLOW: Enforce a flex column layout. This is the foundation that
+       allows us to lock the header and footer. */
     display: flex;
     flex-direction: column;
+    
+    /* 4. Ensure no overflow on the main wrapper itself. */
+    overflow: hidden;
 }
 
-/* On smaller screens, adjust the max-height for the reduced padding. */
+/* On smaller screens, adjust the height for the reduced padding. */
 @media (max-width: 768px) {
     #imfpa-modal .dialog-content-wrapper {
-        max-height: calc(100vh - 2rem);
+        height: calc(100vh - 2rem);
     }
 }
 
@@ -4527,7 +4530,8 @@ renderImfpaModal: () => {
                 return `
                 <div class="dialog-content-wrapper">
                     <!-- ========================================================= -->
-                    <!-- === 1. PINNACLE MODAL HEADER (FIXED) === -->
+                    <!-- === 1. PINNACLE MODAL HEADER (LOCKED) === -->
+                    <!-- flex-shrink: 0 prevents this section from shrinking. -->
                     <!-- ========================================================= -->
                     <div class="p-6 md:p-8 border-b border-premium-border flex-shrink-0">
                         <div class="flex justify-between items-start mb-4 imfpa-header">
@@ -4543,7 +4547,9 @@ renderImfpaModal: () => {
                     
                     <!-- ========================================================= -->
                     <!-- === 2. PINNACLE MODAL BODY (SCROLLABLE) === -->
-                    <!-- CRITICAL FIX: This wrapper allows the central content to scroll. -->
+                    <!-- CRITICAL UPGRADE: This wrapper is now the scroll container. -->
+                    <!-- flex-1 allows it to take all available space. -->
+                    <!-- overflow-y-auto makes it scroll if content exceeds space. -->
                     <!-- ========================================================= -->
                     <div class="flex-1 overflow-y-auto p-6 md:p-8">
                         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -4560,7 +4566,8 @@ renderImfpaModal: () => {
                     </div>
 
                     <!-- ========================================================= -->
-                    <!-- === 3. PINNACLE MODAL FOOTER (FIXED) === -->
+                    <!-- === 3. PINNACLE MODAL FOOTER (LOCKED) === -->
+                    <!-- flex-shrink: 0 prevents this section from shrinking. -->
                     <!-- ========================================================= -->
                     <div class="p-6 md:p-8 border-t border-premium-border flex-shrink-0 bg-[var(--background-dark)]/50">
                         <button id="synthesize-btn" class="btn-primary w-full py-3 font-bold transition-all duration-300">
