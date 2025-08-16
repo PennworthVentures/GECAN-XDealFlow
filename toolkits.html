@@ -36,6 +36,86 @@
     <style>
 
 /* ========================================================================= */
+/* === PINNACLE WALLET FORENSICS UI & ANIMATION ENGINE (v5.0) === */
+/* ========================================================================= */
+.heuristic-engine-container {
+    perspective: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.engine-core-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    transform-style: preserve-3d;
+    animation: core-rotate 45s linear infinite;
+}
+
+@keyframes core-rotate {
+    from { transform: rotateY(0deg) rotateX(10deg); }
+    to { transform: rotateY(360deg) rotateX(10deg); }
+}
+
+.engine-core {
+    position: absolute;
+    inset: 25%;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, var(--primary-azure), var(--background-dark) 70%);
+    box-shadow: 0 0 15px var(--glow-azure), 0 0 30px var(--glow-azure), inset 0 0 10px rgba(255, 255, 255, 0.2);
+    display: grid;
+    place-items: center;
+    animation: core-pulse 3s ease-in-out infinite alternate;
+    transform: translateZ(0px);
+}
+
+.engine-core i {
+    font-size: 3rem;
+    color: var(--text-diamond);
+    text-shadow: 0 0 10px white, 0 0 20px var(--glow-azure);
+}
+
+@keyframes core-pulse {
+    to { transform: translateZ(0px) scale(1.1); box-shadow: 0 0 25px var(--glow-sapphire), 0 0 50px var(--glow-sapphire), inset 0 0 15px rgba(255, 255, 255, 0.3); }
+}
+
+.data-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid;
+    border-color: transparent transparent var(--primary-azure) var(--primary-azure);
+    transform-style: preserve-3d;
+    animation: ring-spin var(--duration, 10s) linear infinite;
+}
+
+.data-ring-1 { --duration: 12s; transform: rotateX(70deg) rotateZ(20deg) scale(1.0); }
+.data-ring-2 { --duration: 15s; transform: rotateX(70deg) rotateZ(80deg) scale(1.2); border-color: transparent var(--primary-royal) transparent var(--primary-royal); }
+.data-ring-3 { --duration: 9s;  transform: rotateX(70deg) rotateZ(140deg) scale(1.4); border-color: var(--primary-amethyst) transparent var(--primary-amethyst) transparent; }
+
+@keyframes ring-spin {
+    from { transform: rotateX(70deg) rotateZ(var(--start-z, 0deg)) rotateY(0deg); }
+    to { transform: rotateX(70deg) rotateZ(var(--start-z, 0deg)) rotateY(360deg); }
+}
+
+/* Analysis-in-progress state */
+.analyzing .engine-core-wrapper { animation-duration: 5s; }
+.analyzing .engine-core { animation-duration: 0.8s; }
+.analyzing .data-ring { animation-duration: 2s; }
+
+.engine-text-content {
+    margin-top: 1rem;
+    position: relative;
+    z-index: 10;
+}
+
+/* ========================================================================= */
 /* === SUPREME COMMODITY WORKFLOW AESTHETICS (v5.0) === */
 /* ========================================================================= */
 .pricing-option, .commission-option {
@@ -2906,22 +2986,70 @@ const UI = {
      * It intelligently displays the initial prompt, the premium loading state, or the full, detailed report.
      * @returns {string} The complete HTML for the Wallet Forensics toolkit interface.
      */
-    renderWalletForensicsUI: () => {
-        const { address, isLoading, report } = AppState.walletAnalysis;
-        let contentHTML = '';
+            renderWalletForensicsUI: () => {
+                const { address, isLoading, report } = AppState.walletAnalysis;
+                let contentHTML = '';
 
-        if (isLoading) {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center animate-fade-in-up"><div class="relative mb-8"><div class="w-24 h-24 border-4 border-primary-azure border-t-transparent rounded-full animate-spin"></div><div class="absolute inset-0 rounded-full animate-ping bg-primary-azure opacity-20"></div></div><h3 class="text-2xl font-bold text-white mb-4">Analyzing Wallet On-Chain...</h3><p id="spinner-text" class="text-text-secondary mb-6 transition-opacity duration-300">Initializing GECAN Heuristic Engine v5.0...</p><div class="w-64 h-2 bg-background-secondary rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-primary-azure to-primary-royal" style="width: 100%; animation: shimmer 2s infinite linear; background-size: 400% 100%;"></div></div></div>`;
-        } else if (report?.error || report?.success === false) {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-scale-in"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold text-white mb-4">Analysis Failed</h3><p class="text-text-secondary max-w-md leading-relaxed">${report.error?.message || 'An unknown server error occurred. Please try again.'}</p><button onclick="Logic.runWalletForensics()" class="btn-primary mt-6 px-6 py-3 rounded-lg"><i class="fas fa-redo mr-2"></i>Retry Analysis</button></div>`;
-        } else if (report) {
-            contentHTML = UI.buildWalletReportHTML(report);
-        } else {
-            contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center glass rounded-2xl border-2 border-dashed border-border-color animate-fade-in-up"><div class="w-24 h-24 rounded-full bg-primary-azure/10 flex items-center justify-center mb-8 animate-float"><i class="fas fa-search-dollar fa-3x text-primary-azure"></i></div><h3 class="text-2xl font-bold text-white mb-4">Ready for Analysis</h3><p class="text-text-secondary max-w-md leading-relaxed mb-2">Enter a wallet address to begin comprehensive due diligence and provenance analysis.</p><p class="text-xs text-text-muted">Powered by GECAN Proprietary Heuristic Engine v5.0</p></div>`;
-        }
+                // --- Loading State: Intensified Heuristic Engine Animation ---
+                if (isLoading) {
+                    contentHTML = `
+                    <div class="heuristic-engine-container analyzing">
+                        <div class="engine-core-wrapper">
+                            <div class="engine-core"><i class="fas fa-shield-alt"></i></div>
+                            <div class="data-ring data-ring-1"></div>
+                            <div class="data-ring data-ring-2"></div>
+                            <div class="data-ring data-ring-3"></div>
+                        </div>
+                        <div class="engine-text-content mt-8">
+                            <h3 class="text-2xl font-bold text-white mb-4">Analyzing On-Chain Data...</h3>
+                            <p id="spinner-text" class="text-text-secondary mb-6 transition-opacity duration-300">Connecting to GECAN Heuristic Engine v5.0...</p>
+                        </div>
+                    </div>`;
+                // --- Report / Error States ---
+                } else if (report?.error || report?.success === false) {
+                    contentHTML = `<div class="h-full flex flex-col items-center justify-center text-center p-8 animate-scale-in"><div class="w-24 h-24 rounded-full bg-red-500/10 flex items-center justify-center mb-8"><i class="fas fa-exclamation-triangle fa-3x text-red-500"></i></div><h3 class="text-2xl font-bold text-white mb-4">Analysis Failed</h3><p class="text-text-secondary max-w-md leading-relaxed">${report.error?.message || 'An unknown server error occurred. Please try again.'}</p><button onclick="Logic.runWalletForensics()" class="btn-primary mt-6 px-6 py-3 rounded-lg"><i class="fas fa-redo mr-2"></i>Retry Analysis</button></div>`;
+                } else if (report) {
+                    contentHTML = UI.buildWalletReportHTML(report);
+                // --- Ready State: Animated Heuristic Engine Core ---
+                } else {
+                    contentHTML = `
+                    <div class="heuristic-engine-container">
+                        <div class="engine-core-wrapper">
+                            <div class="engine-core"><i class="fas fa-search-dollar"></i></div>
+                            <div class="data-ring data-ring-1"></div>
+                            <div class="data-ring data-ring-2"></div>
+                            <div class="data-ring data-ring-3"></div>
+                        </div>
+                        <div class="engine-text-content">
+                            <h3 class="text-3xl font-bold text-white mb-2">Ready for Analysis</h3>
+                            <p class="text-text-secondary max-w-lg mx-auto leading-relaxed">
+                                Enter a wallet address to engage the GECAN™ intelligence network. Our system executes comprehensive on-chain due diligence and cross-references against our proprietary provenance ledger.
+                            </p>
+                            <p class="text-xs text-text-muted mt-4 font-mono">Powered by GECAN Proprietary Heuristic Engine v5.0</p>
+                        </div>
+                    </div>`;
+                }
 
-        return `<div class="glass rounded-2xl p-0 h-full flex flex-col animate-fade-in-up"><div class="p-8 border-b border-border-color"><div class="flex items-center gap-4 mb-6"><div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center flex-shrink-0"><i class="fas fa-shield-alt text-white fa-lg"></i></div><div><h2 class="text-3xl font-bold text-white">Wallet Due Diligence & Provenance</h2><p class="text-text-secondary">Advanced blockchain forensics and risk assessment</p></div></div><div class="flex flex-col sm:flex-row items-center gap-4"><input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm"><button id="check-wallet-btn" class="btn-primary font-bold py-4 px-8 rounded-xl whitespace-nowrap w-full sm:w-auto"><i class="fas fa-microscope mr-2"></i>Analyze</button></div></div><div class="flex-grow p-8 overflow-y-auto">${contentHTML}</div></div>`;
-    },
+                return `
+                <div class="glass rounded-2xl p-0 h-full flex flex-col animate-fade-in-up">
+                    <div class="p-8 border-b border-border-color">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center flex-shrink-0"><i class="fas fa-shield-alt text-white fa-lg"></i></div>
+                            <div>
+                                <h2 class="text-3xl font-bold text-white">Wallet Due Diligence & Provenance</h2>
+                                <p class="text-text-secondary">Advanced Blockchain Forensics & Risk Assessment</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <input type="text" id="wallet-address-input" value="${address || ''}" placeholder="Enter BTC, ETH, or TRON address..." class="flex-grow form-input p-4 text-white rounded-xl font-mono text-sm">
+                            <button id="check-wallet-btn" class="btn-primary font-bold py-4 px-8 rounded-xl whitespace-nowrap w-full sm:w-auto">
+                                <i class="fas fa-microscope mr-2"></i>Analyze
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex-grow p-8 overflow-y-auto">${contentHTML}</div>
+                </div>`;
+            },
 
     /**
      * Builds the complete HTML for a generated Wallet Forensics report.
