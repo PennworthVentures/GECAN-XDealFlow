@@ -2720,12 +2720,75 @@ togglePricingConfig: () => {
                 if (!e.target.matches('[data-path]')) return;
                 const path = e.target.dataset.path;
 
-                Logic.invalidateStagesFromPath(path);
+                // 1. Invalidate stages if necessary. This returns true if the UI structure must change.
+                const wasInvalidated = Logic.invalidateStagesFromPath(path);
                 
+                // 2. Instantly commit the user's change to the AppState.
                 Logic.handleModelerInputChange(e); 
+
+                // 3. Intelligently choose the correct update protocol.
+                if (wasInvalidated) {
+                    // If a stage was reset (a structural change), use the powerful but seamless full refresh.
+                    Logic.refreshImfpaModalUI();
+                } else {
+                    // Otherwise, for a simple data change, use the lightweight, non-disruptive surgical update.
+                    Logic.updateDynamicUIElements();
+                }
+            },
+
+            updateDynamicUIElements: () => {
+                // 1. Recalculate and commit any auto-balanced values to the AppState first.
+                Logic.updateImfpaCalculations();
                 
-                // Use the single, flawless refresh protocol for every change.
-                Logic.refreshImfpaModalUI();
+                // 2. Surgically update all dependent DOM elements by reading directly from the now-perfect AppState.
+                const { legal } = AppState.modeler;
+                const { groups, totalCommission } = legal;
+
+                const totalPoolEl = document.getElementById('imfpa-total-commission-pool');
+                if (totalPoolEl) totalPoolEl.textContent = Utils.formatPrice(totalCommission);
+                
+                const totalGroupPct = groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
+                const totalAllocatedEl = document.getElementById('imfpa-total-allocated');
+                if (totalAllocatedEl) {
+                    totalAllocatedEl.textContent = `Allocated: ${totalGroupPct.toFixed(2)}%`;
+                    totalAllocatedEl.className = `text-right font-mono text-sm ${Math.abs(totalGroupPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
+                }
+
+                groups.forEach((g, groupIndex) => {
+                    const groupValueEl = document.getElementById(`imfpa-group-value-${groupIndex}`);
+                    if (groupValueEl) groupValueEl.textContent = Utils.formatPrice(totalCommission * ((parseFloat(g.percentage) || 0) / 100));
+                    
+                    const totalPartyPct = g.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+                    const groupTotalEl = document.getElementById(`imfpa-group-total-${groupIndex}`);
+                    if (groupTotalEl) {
+                        groupTotalEl.textContent = `Group Total: ${totalPartyPct.toFixed(2)}%`;
+                        groupTotalEl.className = `text-right font-mono text-xs ${Math.abs(totalPartyPct - 100) < 0.01 ? 'text-success-color' : 'text-error-color'}`;
+                    }
+                    
+                    // Update each party's validation badge and indicator surgically.
+                    g.parties.forEach((party, partyIndex) => {
+                        const isSufficient = party.legalName && party.legalName.trim() !== '' && party.email && party.email.trim() !== '' && party.contactNumber && party.contactNumber.trim() !== '';
+                        const badge = document.getElementById(`party-badge-${groupIndex}-${partyIndex}`);
+                        const indicator = document.getElementById(`party-indicator-${groupIndex}-${partyIndex}`);
+                        if (badge && indicator) {
+                            if (isSufficient) {
+                                badge.className = 'text-xs font-bold px-2 py-1 rounded-md flex-shrink-0 bg-green-500/20 text-green-400';
+                                badge.textContent = 'SUFFICIENT';
+                                indicator.className = 'flex items-center gap-2 text-xs text-success-color';
+                                indicator.innerHTML = `<i class="fas fa-check-circle"></i><span>Core Details Valid</span>`;
+                            } else {
+                                badge.className = 'text-xs font-bold px-2 py-1 rounded-md flex-shrink-0 bg-red-500/20 text-red-400 animate-pulse';
+                                badge.textContent = 'INCOMPLETE';
+                                indicator.className = 'flex items-center gap-2 text-xs text-error-color';
+                                indicator.innerHTML = `<i class="fas fa-exclamation-triangle"></i><span>Core Details Required</span>`;
+                            }
+                        }
+                    });
+                });
+                
+                // 3. Surgically update the Live Preview and the main action buttons.
+                Logic.updateContractPreview();
+                Logic.updateSynthesizeButtonState();
             },
             
             invalidateStagesFromPath: (path) => {
