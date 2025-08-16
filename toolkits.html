@@ -1433,10 +1433,18 @@ legal: {
                     },
                     // New Article Configuration State
                     articles: {
-                        arbitration: true,
-                        forceMajeure: true,
+                        // Core Covenants (Generally non-negotiable, but offered for supreme control)
+                        covenantOfNonCircumvention: true,
+                        covenantOfNonDisclosure: true,
+                        // Enforcement & Liability (The "teeth" of the agreement)
+                        breachAndRemedies: true,
                         indemnification: true,
-                        confidentiality: true
+                        disputeResolution: true, // Arbitration
+                        // Operational Clauses
+                        durationAndSurvival: true,
+                        generalProvisions: true, // Includes entire agreement, electronic signatures etc.
+                        // Contingencies
+                        forceMajeure: false // Often optional, so default to false
                     }
                 }
             }
@@ -4811,7 +4819,7 @@ renderImfpaModal: () => {
                     </div>`;
                 };
                 
-                const stageDefinitions = [
+const stageDefinitions = [
                     {
                         name: 'review', icon: 'fa-search-dollar', title: 'Review Parameters',
                         contentGenerator: () => `<div class="p-4 rounded-lg bg-background-dark border border-border-color"><div class="flex justify-between items-center"><h4 class="font-semibold text-text-secondary">Deal Summary</h4><button class="text-xs text-sky-400 hover:underline" onclick="Logic.closeImfpaModal()">Edit Parameters</button></div><p class="text-sm text-text-platinum mt-2">${calc.dealTitle || 'N/A'}</p><div class="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p class="text-text-muted">Base Settlement</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.baseValueInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div><div><p class="text-text-muted">Net to Buyer</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.finalValueToBuyerInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div><div><p class="text-text-muted">Commission Pool</p><p class="font-mono font-semibold text-yellow-400">${Utils.formatPrice(legal.totalCommission)}</p></div><div><p class="text-text-muted">Effective Rate</p><p class="font-mono font-semibold">${calc.netValueDescription || 'N/A'}</p></div></div></div>`,
@@ -4819,7 +4827,46 @@ renderImfpaModal: () => {
                     },
                     {
                         name: 'configure', icon: 'fa-file-signature', title: 'Configure Document',
-                        contentGenerator: () => `<div class="space-y-4"><div><label class="block text-sm font-medium mb-2 submission-label">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales"></div><div><label class="block text-sm font-medium mb-2 submission-label">Cross-Referenced Contract / SPA (Optional)</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345"></div><div class="pt-2"><p class="text-sm font-semibold text-text-secondary mb-3">Configure Legal Articles</p><div class="grid grid-cols-2 gap-3"><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.arbitration" ${legal.articles.arbitration ? 'checked':''}><span>Arbitration Clause</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.forceMajeure" ${legal.articles.forceMajeure ? 'checked':''}><span>Force Majeure</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.indemnification" ${legal.articles.indemnification ? 'checked':''}><span>Indemnification</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.confidentiality" ${legal.articles.confidentiality ? 'checked':''}><span>Confidentiality</span></label></div></div></div>`,
+                        contentGenerator: () => `
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 submission-label">Governing Law & Jurisdiction*</label>
+                                    <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 submission-label">Cross-Referenced Contract / SPA (Optional)</label>
+                                    <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345">
+                                </div>
+                                
+                                <!-- SUPREME UPGRADE: Logically Grouped Legal Articles -->
+                                <div class="space-y-4 pt-2">
+                                    <div>
+                                        <p class="text-sm font-semibold text-text-secondary mb-3">I. Core Covenants (Foundational Pillars)</p>
+                                        <div class="grid grid-cols-1 gap-3">
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.covenantOfNonCircumvention" ${legal.articles.covenantOfNonCircumvention ? 'checked':''}><span>Covenant of Non-Circumvention</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.covenantOfNonDisclosure" ${legal.articles.covenantOfNonDisclosure ? 'checked':''}><span>Covenant of Non-Disclosure</span></label>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-sm font-semibold text-text-secondary mb-3">II. Enforcement & Liability (Legal Teeth)</p>
+                                        <div class="grid grid-cols-1 gap-3">
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.breachAndRemedies" ${legal.articles.breachAndRemedies ? 'checked':''}><span>Breach, Remedies & Damages</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.indemnification" ${legal.articles.indemnification ? 'checked':''}><span>Indemnification Clause</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.disputeResolution" ${legal.articles.disputeResolution ? 'checked':''}><span>Dispute Resolution (Arbitration)</span></label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <p class="text-sm font-semibold text-text-secondary mb-3">III. Operational & Contingency Clauses</p>
+                                        <div class="grid grid-cols-1 gap-3">
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.durationAndSurvival" ${legal.articles.durationAndSurvival ? 'checked':''}><span>Duration & Survival Clause</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.forceMajeure" ${legal.articles.forceMajeure ? 'checked':''}><span>Force Majeure</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.generalProvisions" ${legal.articles.generalProvisions ? 'checked':''}><span>General Provisions (Boilerplate)</span></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`,
                         summaryGenerator: () => `<strong>Document Configured:</strong> Governed by the laws of <span class="font-semibold text-white">${legal.jurisdiction || 'N/A'}</span>.`
                     },
                     {
