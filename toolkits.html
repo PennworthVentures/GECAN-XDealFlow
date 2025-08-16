@@ -742,7 +742,16 @@ cryptoLoan: {
                     userRole: 'Principal', // 'Principal' or 'Intermediary'
                     originationFeePercent: 2.0 // Broker's commission
                 },
-                sblcMonetization: { faceValue: 100000000, ltv: 80 },
+sblcMonetization: { 
+                    faceValue: 100000000, 
+                    faceValueCurrency: 'USD',
+                    ltv: 80,
+                    // --- NEW INTELLIGENT WORKFLOW STATE ---
+                    bankRating: 'Top-Tier', // 'Top-Tier', 'Standard', 'Non-Standard'
+                    userRole: 'Monetizer', // 'Monetizer' or 'Intermediary'
+                    bankTransmissionFeePercent: 1.5,
+                    brokerFeePercent: 2.0
+                },
                 pricingConfig: { isVisible: false, offerType: 'discount', grossValue: 0, netValue: 0, isValueInPercent: true },
                 legal: { totalCommission: 0, jurisdiction: 'Singapore, Dubai, England, Wales', spaReferenceCode: '', groups: [] }
             }
@@ -1671,17 +1680,57 @@ resetCommodityTrade: () => {
  * @returns {object} An object containing the calculated metrics for the monetization deal.
  */
             calculateSBLCMonetization: () => {
-                const { faceValue, ltv } = AppState.modeler.sblcMonetization;
-                const monetizedValue = (parseFloat(faceValue) || 0) * ((parseFloat(ltv) || 0) / 100);
+                const state = AppState.modeler.sblcMonetization;
+                const currencyAsset = Utils.getAssetByKey(state.faceValueCurrency);
+
+                if (!currencyAsset) return { isValid: false };
+
+                // 1. Establish Universal Baseline (USD Equivalent)
+                const faceValueNative = parseFloat(state.faceValue) || 0;
+                const usdToNativeRate = currencyAsset.price || 1;
+                const faceValueUSD = faceValueNative * usdToNativeRate;
+
+                // 2. Calculate Risk-Adjusted LTV
+                const ltvModifiers = { 'Top-Tier': 1.0, 'Standard': 0.9, 'Non-Standard': 0.75 };
+                const maxLTV = 90; // The platform's hard cap
+                const adjustedMaxLTV = maxLTV * (ltvModifiers[state.bankRating] || 0.75);
+                const effectiveLTV = Math.min(parseFloat(state.ltv) || 0, adjustedMaxLTV);
+
+                // 3. Calculate Gross Monetized Value (in both currencies)
+                const grossMonetizedUSD = faceValueUSD * (effectiveLTV / 100);
+                const grossMonetizedNative = grossMonetizedUSD / usdToNativeRate;
+
+                // 4. Calculate All Fees (based on Gross Monetized Value)
+                const bankFeePercent = parseFloat(state.bankTransmissionFeePercent) || 0;
+                const brokerFeePercent = state.userRole === 'Intermediary' ? (parseFloat(state.brokerFeePercent) || 0) : 0;
                 
-                return { 
-                    primaryValue: monetizedValue,
-                    primaryUnit: 'USD',
-                    dealTitle: `LTV on ${Utils.formatPrice(faceValue)} SBLC`,
-                    usdEquivalent: monetizedValue,
-                    toAsset: { baseAsset: 'USD', price: 1 }, // Mock `toAsset` for compatibility
-                    finalValueToBuyerUSD: 0,
-                    totalCommissionPool: 0
+                const bankFeeNative = grossMonetizedNative * (bankFeePercent / 100);
+                const brokerFeeNative = grossMonetizedNative * (brokerFeePercent / 100);
+                const totalFeesNative = bankFeeNative + brokerFeeNative;
+
+                // 5. Calculate Final Net Disbursed Amount
+                const netMonetizedNative = grossMonetizedNative - totalFeesNative;
+
+                // 6. Calculate Key Performance Indicators (KPIs)
+                const effectiveMonetizationRate = (netMonetizedNative / faceValueNative) * 100;
+
+                return {
+                    isValid: true,
+                    primaryValue: netMonetizedNative,
+                    primaryUnit: currencyAsset.baseAsset,
+                    dealTitle: `Monetization of ${currencyAsset.baseAsset} ${Utils.formatNumber(faceValueNative, 0)} SBLC`,
+                    usdEquivalent: netMonetizedNative * usdToNativeRate, // For IMFPA
+                    toAsset: currencyAsset,
+                    
+                    // --- All new, rich data for the brilliant analysis panel ---
+                    faceValueNative,
+                    effectiveLTV,
+                    grossMonetizedNative,
+                    bankFeeNative,
+                    brokerFeeNative,
+                    totalFeesNative,
+                    netMonetizedNative,
+                    effectiveMonetizationRate
                 };
             },
 
@@ -1727,9 +1776,16 @@ cryptoLoan: {
                     userRole: 'Principal', // 'Principal' or 'Intermediary'
                     originationFeePercent: 2.0 // Broker's commission
                 },
-                    sblcMonetization: { 
-                        faceValue: 100000000, ltv: 80 
-                    },
+sblcMonetization: { 
+                    faceValue: 100000000, 
+                    faceValueCurrency: 'USD',
+                    ltv: 80,
+                    // --- NEW INTELLIGENT WORKFLOW STATE ---
+                    bankRating: 'Top-Tier', // 'Top-Tier', 'Standard', 'Non-Standard'
+                    userRole: 'Monetizer', // 'Monetizer' or 'Intermediary'
+                    bankTransmissionFeePercent: 1.5,
+                    brokerFeePercent: 2.0
+                },
                     pricingConfig: { 
                         isVisible: false, offerType: 'discount', grossValue: 0, 
                         netValue: 0, isValueInPercent: true 
@@ -3311,9 +3367,73 @@ const UI = {
  * @returns {string} The HTML for the SBLC Monetization panel.
  */
 renderSBLCMonetizationPanel: () => {
-    const state = AppState.modeler.sblcMonetization;
-    return `<div><label class="block text-sm font-medium text-text-muted mb-2">Instrument Face Value (USD)</label><input type="text" data-path="sblcMonetization.faceValue" value="${state.faceValue.toLocaleString()}" class="form-input text-lg font-bold"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Monetization (LTV)</label><div class="flex items-center gap-4"><input type="range" data-path="sblcMonetization.ltv" min="50" max="95" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer"><div class="relative w-28"><input type="number" data-path="sblcMonetization.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div></div></div>`;
-},
+                const state = AppState.modeler.sblcMonetization;
+                const assetOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
+
+                const isInstrumentDefined = state.faceValue > 0 && state.faceValueCurrency;
+                const areTermsDefined = state.ltv > 0;
+                
+                const ltvModifiers = { 'Top-Tier': 1.0, 'Standard': 0.9, 'Non-Standard': 0.75 };
+                const maxLTV = Math.floor(90 * (ltvModifiers[state.bankRating] || 0.75));
+
+                const feeInputsHTML = `
+                    <div class="mt-4 pt-4 border-t border-border-color space-y-4 animate-fade-in-up">
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-2">Bank Transmission & Handling Fee (%)</label>
+                            <input type="number" data-path="sblcMonetization.bankTransmissionFeePercent" value="${state.bankTransmissionFeePercent}" min="0" step="0.1" class="form-input text-lg font-bold">
+                        </div>
+                        ${state.userRole === 'Intermediary' ? `
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-2">Brokerage / Intermediary Fee (%)</label>
+                            <input type="number" data-path="sblcMonetization.brokerFeePercent" value="${state.brokerFeePercent}" min="0" step="0.1" class="form-input text-lg font-bold">
+                        </div>` : ''}
+                    </div>`;
+
+                return `
+                <!-- Step 1: Define Instrument -->
+                <div class="guided-step-card">
+                    <div class="step-header ${isInstrumentDefined ? 'completed' : ''}"><div class="step-number"><i class="fas ${isInstrumentDefined ? 'fa-check' : 'fa-file-invoice'}"></i></div><div><h3 class="step-title">Define Instrument</h3><p class="text-sm text-text-muted">Specify the SBLC's value, currency, and bank rating.</p></div></div>
+                    <div class="step-content space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium text-text-muted mb-2">Aggregate Face Value</label><input type="text" data-path="sblcMonetization.faceValue" value="${(parseFloat(state.faceValue) || 0).toLocaleString()}" class="form-input text-lg font-bold"></div>
+                            <div><label class="block text-sm font-medium text-text-muted mb-2">Instrument Currency</label><select data-path="sblcMonetization.faceValueCurrency" class="form-select">${assetOptions(state.faceValueCurrency)}</select></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-2">Issuing Bank Rating</label>
+                            <div class="flex items-center justify-around p-2 bg-background-dark rounded-lg">${['Top-Tier', 'Standard', 'Non-Standard'].map(r => `<label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.bankRating === r ? 'bg-primary-azure/20 text-primary-azure font-semibold' : 'hover:bg-background-light'}"><input type="radio" name="bankRating" value="${r}" ${state.bankRating === r ? 'checked' : ''} data-path="sblcMonetization.bankRating" class="hidden">${r}</label>`).join('')}</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 2: Define Role & Fees -->
+                <div class="guided-step-card">
+                    <div class="step-header"><div class="step-number">2</div><div><h3 class="step-title">Define Role & Fees</h3><p class="text-sm text-text-muted">Specify your role and associated fees.</p></div></div>
+                    <div class="step-content">
+                        <div class="grid grid-cols-2 gap-4">
+                            <label class="p-4 border rounded-lg cursor-pointer transition-all duration-300 ${state.userRole === 'Monetizer' ? 'border-sky-500 bg-sky-500/10' : 'border-slate-700 hover:border-slate-500'}">
+                                <input type="radio" name="sblcUserRole" value="Monetizer" ${state.userRole === 'Monetizer' ? 'checked' : ''} data-path="sblcMonetization.userRole" class="hidden">
+                                <div class="flex items-center gap-4"><i class="fas fa-landmark text-2xl ${state.userRole === 'Monetizer' ? 'text-sky-400' : 'text-slate-500'}"></i><div><p class="font-semibold">Monetizer / Principal</p><p class="text-xs text-slate-400">I am sourcing the capital.</p></div></div>
+                            </label>
+                            <label class="p-4 border rounded-lg cursor-pointer transition-all duration-300 ${state.userRole === 'Intermediary' ? 'border-sky-500 bg-sky-500/10' : 'border-slate-700 hover:border-slate-500'}">
+                                <input type="radio" name="sblcUserRole" value="Intermediary" ${state.userRole === 'Intermediary' ? 'checked' : ''} data-path="sblcMonetization.userRole" class="hidden">
+                                <div class="flex items-center gap-4"><i class="fas fa-briefcase text-2xl ${state.userRole === 'Intermediary' ? 'text-sky-400' : 'text-slate-500'}"></i><div><p class="font-semibold">Intermediary / Broker</p><p class="text-xs text-slate-400">I am facilitating the deal.</p></div></div>
+                            </label>
+                        </div>
+                        ${feeInputsHTML}
+                    </div>
+                </div>
+                <!-- Step 3: Define Monetization Terms -->
+                <div class="guided-step-card">
+                    <div class="step-header ${areTermsDefined ? 'completed' : ''}"><div class="step-number"><i class="fas ${areTermsDefined ? 'fa-check' : 'fa-hand-holding-usd'}"></i></div><div><h3 class="step-title">Define Monetization Terms</h3><p class="text-sm text-text-muted">Set the Loan-to-Value (LTV) for the instrument.</p></div></div>
+                    <div class="step-content">
+                        <label class="block text-sm font-medium text-text-muted mb-2">Loan-to-Value (LTV)</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" data-path="sblcMonetization.ltv" min="10" max="${maxLTV}" value="${Math.min(state.ltv, maxLTV)}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer">
+                            <div class="relative w-28"><input type="number" data-path="sblcMonetization.ltv" value="${Math.min(state.ltv, maxLTV)}" max="${maxLTV}" class="form-input text-lg text-center font-bold pr-6"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div>
+                        </div>
+                        <p class="text-xs text-text-muted mt-2 text-center">Max LTV for a <span class="font-bold text-sky-400">${state.bankRating}</span> bank is approx. <span class="font-bold text-sky-400">${maxLTV}%</span>.</p>
+                    </div>
+                </div>`;
+            },
 
 /**
  * Renders the main output panel, dynamically displaying results for the active model.
@@ -3407,6 +3527,50 @@ renderSBLCMonetizationPanel: () => {
                         </div>
                     </div>`;
 
+} else if (AppState.modeler.activeDealType === 'SBLCMonetization') {
+                    if (!calc || !calc.isValid) {
+                        return `<p class="text-center text-text-muted py-12">Please provide valid SBLC parameters.</p>`;
+                    }
+                    const { primaryValue, primaryUnit, dealTitle, effectiveLTV, grossMonetizedNative, bankFeeNative, brokerFeeNative, totalFeesNative, netMonetizedNative, effectiveMonetizationRate } = calc;
+
+                    primaryAnalysisCards = `
+                        <div class="output-metric-card base-value">
+                            <p class="label"><i class="fas fa-money-check-alt"></i>Net Disbursed Amount</p>
+                            <p class="value">${Utils.formatNumber(netMonetizedNative, 2)} <span class="text-2xl">${primaryUnit}</span></p>
+                            <p class="sub-value">${dealTitle}</p>
+                        </div>
+                        <div class="output-metric-card net">
+                            <p class="label"><i class="fas fa-chart-pie"></i>Effective Monetization Rate</p>
+                            <p class="value">${effectiveMonetizationRate.toFixed(2)}%</p>
+                            <p class="sub-value">Net disbursed vs. instrument face value</p>
+                        </div>
+                        <div class="output-metric-card commission">
+                            <p class="label"><i class="fas fa-file-invoice"></i>Total Fees & Costs</p>
+                            <p class="value">${Utils.formatNumber(totalFeesNative, 2)} <span class="text-2xl">${primaryUnit}</span></p>
+                            <p class="sub-value">Bank Handling + Brokerage Fees</p>
+                        </div>`;
+                    
+                    customAnalysisPanel = `
+                    <div class="output-metric-card p-4 mt-4 border-l-4 border-primary-royal">
+                        <p class="label !mb-2 text-primary-royal"><i class="fas fa-stream"></i>Pinnacle Monetization Analysis</p>
+                        
+                        <div class="p-3 rounded-lg bg-background-light space-y-2 mb-4">
+                            <div class="text-sm font-semibold text-text-secondary mb-2">Monetization Calculation</div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Instrument Face Value</span><span class="font-mono font-semibold">${Utils.formatNumber(calc.faceValueNative, 2)} ${primaryUnit}</span></div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Gross Monetized Value (${effectiveLTV.toFixed(1)}% LTV)</span><span class="font-mono font-semibold">${Utils.formatNumber(grossMonetizedNative, 2)} ${primaryUnit}</span></div>
+                            <div class="flex justify-between items-center text-red-400"><span class="text-sm">(-) Total Fees & Costs</span><span class="font-mono font-semibold">${Utils.formatNumber(totalFeesNative, 2)} ${primaryUnit}</span></div>
+                            <div class="border-t border-border-color my-1"></div>
+                            <div class="flex justify-between items-center text-white"><span class="text-sm font-bold">Net Disbursed Amount</span><span class="font-mono font-bold text-lg">${Utils.formatNumber(netMonetizedNative, 2)} ${primaryUnit}</span></div>
+                        </div>
+
+                        <div class="p-3 rounded-lg bg-background-light space-y-2 mb-4">
+                            <div class="text-sm font-semibold text-text-secondary mb-2">Fee Structure Breakdown</div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Bank Transmission Fee</span><span class="font-mono font-semibold">${Utils.formatNumber(bankFeeNative, 2)} ${primaryUnit}</span></div>
+                            <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Brokerage Fee</span><span class="font-mono font-semibold">${Utils.formatNumber(brokerFeeNative, 2)} ${primaryUnit}</span></div>
+                            <div class="border-t border-border-color my-1"></div>
+                            <div class="flex justify-between items-center text-yellow-400"><span class="text-sm font-bold">Total Fees</span><span class="font-mono font-bold text-lg">${Utils.formatNumber(totalFeesNative, 2)} ${primaryUnit}</span></div>
+                        </div>
+                    </div>`;
 } else if (AppState.modeler.activeDealType === 'CryptoLoan') {
                     if (!calc || !calc.isValid) {
                         return `<p class="text-center text-text-muted py-12">Please provide valid loan parameters.</p>`;
