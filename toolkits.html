@@ -1615,6 +1615,10 @@ resetCommodityTrade: () => {
                 const collateralValueUSD = (parseFloat(state.collateralAmount) || 0) * (collateralAsset.price || 0);
                 const grossLoanPrincipalUSD = collateralValueUSD * ((parseFloat(state.ltv) || 0) / 100);
                 const usdToLoanCurrencyRate = loanCurrencyAsset.price || 1;
+                
+                // --- DEFINITIVE UPGRADE: Calculate collateral value in the selected loan currency ---
+                const collateralValueInLoanCurrency = collateralValueUSD / usdToLoanCurrencyRate;
+
                 const grossLoanPrincipalNative = grossLoanPrincipalUSD / usdToLoanCurrencyRate;
 
                 let originationFeeNative = 0;
@@ -1628,8 +1632,6 @@ resetCommodityTrade: () => {
                 const tenure = parseInt(state.tenureMonths, 10) || 1;
                 const monthlyPaymentNative = (monthlyInterestRate > 0) ? (grossLoanPrincipalNative * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, tenure)) / (Math.pow(1 + monthlyInterestRate, tenure) - 1) : grossLoanPrincipalNative / tenure;
                 const totalRepaymentNative = monthlyPaymentNative * tenure;
-
-                // --- DEFINITIVE CALCULATION UPGRADE: Calculate total interest paid ---
                 const totalInterestPaidNative = totalRepaymentNative - grossLoanPrincipalNative;
 
                 let balance = grossLoanPrincipalNative;
@@ -1648,13 +1650,14 @@ resetCommodityTrade: () => {
                     usdEquivalent: netLoanToBorrowerNative * usdToLoanCurrencyRate,
                     toAsset: loanCurrencyAsset,
                     collateralValueUSD,
+                    collateralValueInLoanCurrency, // Pass the new, critical data point
                     grossLoanPrincipalUSD,
                     grossLoanPrincipalNative,
                     originationFeeNative,
                     netLoanToBorrowerNative,
                     totalRepaymentNative,
                     monthlyPaymentNative,
-                    totalInterestPaidNative, // Pass the new, critical data point
+                    totalInterestPaidNative,
                     amortizationData
                 };
             },
@@ -3405,9 +3408,9 @@ renderSBLCMonetizationPanel: () => {
                     }
                     const { 
                         primaryUnit, dealTitle, totalRepaymentNative, monthlyPaymentNative,
-                        originationFeeNative, collateralValueUSD, netLoanToBorrowerNative,
-                        grossLoanPrincipalUSD, grossLoanPrincipalNative, totalInterestPaidNative, 
-                        amortizationData 
+                        originationFeeNative, collateralValueUSD, collateralValueInLoanCurrency, // Destructure the new value
+                        netLoanToBorrowerNative, grossLoanPrincipalUSD, grossLoanPrincipalNative, 
+                        totalInterestPaidNative, amortizationData 
                     } = calc;
                     const state = AppState.modeler.cryptoLoan;
 
@@ -3432,17 +3435,22 @@ renderSBLCMonetizationPanel: () => {
                     <div class="output-metric-card p-4 mt-4 border-l-4 border-primary-royal">
                         <p class="label !mb-2 text-primary-royal"><i class="fas fa-stream"></i>Pinnacle Loan Analysis Report</p>
                         
-                        <!-- Loan Origination Breakdown -->
                         <div class="p-3 rounded-lg bg-background-light space-y-2 mb-4">
                             <div class="text-sm font-semibold text-text-secondary mb-2">Loan Origination Breakdown</div>
-                            <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Total Collateral Value</span><span class="font-mono font-semibold">${Utils.formatPrice(collateralValueUSD)}</span></div>
+                            <!-- DEFINITIVE CURRENCY FIX: Display collateral in loan currency with USD equivalent -->
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-text-muted">Total Collateral Value</span>
+                                <span class="font-mono font-semibold text-right">
+                                    ${Utils.formatNumber(collateralValueInLoanCurrency, 2)} ${primaryUnit}
+                                    <br><span class="text-xs text-text-muted">(${Utils.formatPrice(collateralValueUSD)})</span>
+                                </span>
+                            </div>
                             <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Gross Loan Principal (${state.ltv}%)</span><span class="font-mono font-semibold">${Utils.formatNumber(grossLoanPrincipalNative, 2)} ${primaryUnit}</span></div>
                             <div class="flex justify-between items-center text-red-400"><span class="text-sm">(-) Origination Fee</span><span class="font-mono font-semibold">${Utils.formatNumber(originationFeeNative, 2)} ${primaryUnit}</span></div>
                             <div class="border-t border-border-color my-1"></div>
                             <div class="flex justify-between items-center text-white"><span class="text-sm font-bold">Net Disbursed to Borrower</span><span class="font-mono font-bold text-lg">${Utils.formatNumber(netLoanToBorrowerNative, 2)} ${primaryUnit}</span></div>
                         </div>
 
-                        <!-- Repayment Analysis Breakdown -->
                         <div class="p-3 rounded-lg bg-background-light space-y-2 mb-4">
                             <div class="text-sm font-semibold text-text-secondary mb-2">Repayment Analysis</div>
                             <div class="flex justify-between items-center"><span class="text-sm text-text-muted">Total Payments (${state.tenureMonths} mos)</span><span class="font-mono font-semibold">${Utils.formatNumber(totalRepaymentNative, 2)} ${primaryUnit}</span></div>
