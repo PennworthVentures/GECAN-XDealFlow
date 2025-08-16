@@ -59,7 +59,13 @@
     pointer-events: none;
 }
 
-.synthesis-stage:not(.locked):not(.completed):hover {
+.synthesis-stage.is-allocation-stage:not(.locked):not(.completed):hover {
+    transform: scale(1.02); /* A simple, prestigious scale effect */
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5), 0 0 0 1px var(--primary-azure);
+    border-color: var(--primary-azure);
+}
+
+.synthesis-stage:not(.locked):not(.completed):not(.is-allocation-stage):hover {
     transform: perspective(1200px) rotateX(5deg) rotateY(-4deg) scale(1.03);
     box-shadow: 0 30px 60px -15px rgba(0,0,0,0.6), 0 0 0 1px var(--primary-azure);
     border-color: var(--primary-azure);
@@ -2658,10 +2664,12 @@ togglePricingConfig: () => {
                 const { legal } = AppState.modeler;
                 const stageOrder = ['review', 'configure', 'allocate'];
                 const currentStageIndex = stageOrder.indexOf(stageName);
-                
-                // A stage can only be opened if it's the very first one, or if the previous one is complete.
+
+                // A stage is only truly locked if a PREVIOUS stage is incomplete.
                 const isLocked = (currentStageIndex > 0 && !legal.stages[stageOrder[currentStageIndex - 1]]);
-                if (isLocked) {
+                
+                // CRITICAL FIX: A completed stage is NEVER locked.
+                if (isLocked && !legal.stages[stageName]) {
                     Utils.showNotification('Please complete the previous step to proceed.', 'warning');
                     return;
                 }
@@ -2704,7 +2712,19 @@ togglePricingConfig: () => {
                 const modal = document.getElementById('imfpa-modal');
                 if (!modal || !modal.hasAttribute('open')) return;
                 const activeElement = document.activeElement, activeElementPath = activeElement?.dataset.path, selectionStart = activeElement?.selectionStart, selectionEnd = activeElement?.selectionEnd;
+                
+                // Store the scroll position of the main content area before re-rendering.
+                const scrollableContent = modal.querySelector('.overflow-y-auto');
+                const scrollTop = scrollableContent ? scrollableContent.scrollTop : 0;
+
                 modal.innerHTML = UI.renderImfpaModal();
+
+                // Restore the scroll position after re-rendering.
+                const newScrollableContent = modal.querySelector('.overflow-y-auto');
+                if (newScrollableContent) {
+                    newScrollableContent.scrollTop = scrollTop;
+                }
+
                 if (activeElementPath) { const newActiveElement = modal.querySelector(`[data-path="${activeElementPath}"]`); if (newActiveElement) { newActiveElement.focus(); if (typeof selectionStart === 'number') { newActiveElement.setSelectionRange(selectionStart, selectionEnd); } } }
                 Logic.updateImfpaCalculations();
                 Logic.updateContractPreview();
@@ -2913,7 +2933,26 @@ addImfpaParty: (groupIndex) => {
     Logic.refreshImfpaModalUI();
 },
             removeImfpaParty: (groupIndex, partyIndex) => { if (AppState.modeler.legal.groups[groupIndex]?.parties[partyIndex]) { AppState.modeler.legal.groups[groupIndex].parties.splice(partyIndex, 1); Logic.refreshImfpaModalUI(); } },
-            togglePartyDetails: (groupIndex, partyIndex) => { const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex]; if (party) { party.detailsVisible = !party.detailsVisible; Logic.refreshImfpaModalUI(); } },
+            
+            togglePartyDetails: (groupIndex, partyIndex) => {
+                const party = AppState.modeler.legal.groups?.[groupIndex]?.parties?.[partyIndex];
+                if (!party) return;
+
+                // 1. Update the state directly.
+                party.detailsVisible = !party.detailsVisible;
+
+                // 2. Perform a surgical, non-destructive DOM update.
+                const detailsContainer = document.getElementById(`party-details-content-${groupIndex}-${partyIndex}`);
+                const chevronIcon = document.getElementById(`party-details-chevron-${groupIndex}-${partyIndex}`);
+
+                if (detailsContainer) {
+                    detailsContainer.classList.toggle('expanded', party.detailsVisible);
+                }
+                if (chevronIcon) {
+                    chevronIcon.classList.toggle('rotate-180', party.detailsVisible);
+                }
+            },
+
             
             
             /**
@@ -4693,7 +4732,7 @@ renderImfpaModal: () => {
                 
                 // --- Pinnacle Stage Renderer v2.0 ---
                 const renderStage = (stageConfig) => {
-                    const { name, number, icon, title, contentGenerator, summaryGenerator } = stageConfig;
+                    const { name, number, icon, title, contentGenerator, summaryGenerator, extraClasses = '' } = stageConfig;
                     const stageOrder = ['review', 'configure', 'allocate'];
                     const currentStageIndex = stageOrder.indexOf(name);
 
@@ -4702,7 +4741,7 @@ renderImfpaModal: () => {
                     const isLocked = currentStageIndex > 0 && !legal.stages[stageOrder[currentStageIndex - 1]];
                     const isDataValid = Logic.validateStageData(name);
 
-                    const stageClasses = `synthesis-stage ${isActive ? 'active' : ''} ${isComplete ? 'completed' : ''} ${isLocked ? 'locked' : ''}`;
+                    const stageClasses = `synthesis-stage ${isActive ? 'active' : ''} ${isComplete ? 'completed' : ''} ${isLocked ? 'locked' : ''} ${extraClasses}`;
 
                     let stageContentHTML = '';
                     if (isComplete) {
@@ -4743,9 +4782,10 @@ renderImfpaModal: () => {
                         summaryGenerator: () => `<strong>Document Configured:</strong> Governed by the laws of <span class="font-semibold text-white">${legal.jurisdiction || 'N/A'}</span>.`
                     },
                     {
-                        name: 'allocate', number: 3, icon: 'fa-sitemap', title: isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties',
+                        name: 'allocate', number: 3, icon: isImfpa ? 'fa-sitemap' : 'fa-users', title: isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties',
                         contentGenerator: () => `<div class="space-y-4"><div id="imfpa-controls" class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory'}</button><div class="text-right ${isImfpa ? 'block' : 'hidden'}"><p class="text-xs text-premium-text-secondary">Total Pool</p><p id="imfpa-total-commission-pool" class="text-xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p></div></div><div class="flex justify-end items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}"><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.refreshImfpaModalUI();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-sky-500 bg-slate-700 border-slate-600 focus:ring-sky-600"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container">${UI.renderImfpaGroups()}</div></div>`,
-                        summaryGenerator: () => `<strong>Parties Defined:</strong> A total of <span class="font-semibold text-white">${legal.groups.flatMap(g => g.parties).length}</span> signatories have been configured.`
+                        summaryGenerator: () => `<strong>Parties Defined:</strong> A total of <span class="font-semibold text-white">${legal.groups.flatMap(g => g.parties).length}</span> signatories have been configured.`,
+                        extraClasses: 'is-allocation-stage' // This is the critical class for the CSS fix
                     }
                 ];
 
@@ -4831,73 +4871,31 @@ renderImfpaGroups: () => {
 renderImfpaParty: (groupIndex, partyIndex) => {
     const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
     const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
-
-    // --- MILITARY-GRADE MULTI-STAGE VALIDATION ENGINE (v3.0) ---
     const isSufficient = party.legalName && party.email && party.contactNumber;
-    const isComplete = isSufficient && party.role && party.passport?.number && party.passport?.authority && party.passport?.issueDate && party.passport?.expiryDate && party.payment?.method && party.payment?.currency && party.payment?.details;
-    
     let validationStatus;
-    if (isComplete) {
-        validationStatus = {
-            badgeClass: 'bg-green-500/20 text-green-400',
-            badgeText: 'COMPLETE',
-            indicatorClass: 'text-success-color',
-            indicatorIcon: 'fa-check-double',
-            indicatorText: 'All Details Provided'
-        };
-    } else if (isSufficient) {
-        validationStatus = {
-            badgeClass: 'bg-blue-500/20 text-blue-400',
-            badgeText: 'SUFFICIENT',
-            indicatorClass: 'text-primary-azure',
-            indicatorIcon: 'fa-check-circle',
-            indicatorText: 'Core Details Sufficient'
-        };
+    if (isSufficient) {
+        validationStatus = { badgeClass: 'bg-green-500/20 text-green-400', badgeText: 'DETAILS VALID', indicatorClass: 'text-success-color', indicatorIcon: 'fa-check-circle', indicatorText: 'Core Details Sufficient' };
     } else {
-        validationStatus = {
-            badgeClass: 'bg-red-500/20 text-red-400 animate-pulse',
-            badgeText: 'INCOMPLETE',
-            indicatorClass: 'text-error-color',
-            indicatorIcon: 'fa-exclamation-triangle',
-            indicatorText: 'Core Details Required'
-        };
+        validationStatus = { badgeClass: 'bg-red-500/20 text-red-400 animate-pulse', badgeText: 'INCOMPLETE', indicatorClass: 'text-error-color', indicatorIcon: 'fa-exclamation-triangle', indicatorText: 'Core Details Required' };
     }
 
+    // CRITICAL UPGRADE: Add unique IDs for targeted DOM manipulation.
     return `
         <div class="allocation-party-card p-3">
             <div class="flex items-center gap-2">
-                <!-- ========================================================= -->
-                <!-- === PINNACLE PARTY HEADER w/ DYNAMIC STATUS BADGE === -->
-                <!-- ========================================================= -->
                 <input type="text" value="${party.legalName || ''}" data-path="${base}.legalName" class="form-input bg-transparent border-0 flex-grow !p-1 !text-sm focus:ring-0 !text-premium-text-primary" placeholder="Full Legal Name*">
-                
-                <!-- DYNAMIC STATUS BADGE (NEW) -->
-                <span class="text-xs font-bold px-2 py-1 rounded-md flex-shrink-0 ${validationStatus.badgeClass}">
-                    ${validationStatus.badgeText}
-                </span>
-
-                <div class="relative w-24 flex-shrink-0 ${AppState.modeler.legal.agreementType === 'IMFPA' ? 'block' : 'hidden'}">
-                    <input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span>
-                </div>
-                
+                <span class="text-xs font-bold px-2 py-1 rounded-md flex-shrink-0 ${validationStatus.badgeClass}">${validationStatus.badgeText}</span>
+                <div class="relative w-24 flex-shrink-0 ${AppState.modeler.legal.agreementType === 'IMFPA' ? 'block' : 'hidden'}"><input type="number" value="${party.percentage}" data-path="${base}.percentage" class="form-input !text-sm text-right"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-premium-text-secondary pointer-events-none">%</span></div>
                 <button onclick="Logic.removeImfpaParty(${groupIndex}, ${partyIndex})" class="text-text-muted hover:text-red-500 text-lg w-6 h-6 flex-shrink-0 flex items-center justify-center transition-colors duration-300 rounded-full hover:bg-red-500/10">×</button>
             </div>
-
             <div class="mt-2 flex justify-between items-center">
-                <!-- Dynamic Indicator Text -->
-                <div class="flex items-center gap-2 text-xs ${validationStatus.indicatorClass}">
-                    <i class="fas ${validationStatus.indicatorIcon}"></i>
-                    <span>${validationStatus.indicatorText}</span>
-                </div>
+                <div class="flex items-center gap-2 text-xs ${validationStatus.indicatorClass}"><i class="fas ${validationStatus.indicatorIcon}"></i><span>${validationStatus.indicatorText}</span></div>
                 <a onclick="Logic.togglePartyDetails(${groupIndex}, ${partyIndex})" class="text-xs text-primary-amethyst cursor-pointer hover:underline flex items-center gap-1">
-                    <i class="fas fa-user-cog"></i> 
-                    Manage Details 
-                    <i class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i>
+                    <i class="fas fa-user-cog"></i> Manage Details 
+                    <i id="party-details-chevron-${groupIndex}-${partyIndex}" class="fas fa-chevron-down text-xs transition-transform ${party.detailsVisible ? 'rotate-180' : ''} ml-auto"></i>
                 </a>
             </div>
-            
-            <div class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}">
+            <div id="party-details-content-${groupIndex}-${partyIndex}" class="collapsible-content ${party.detailsVisible ? 'expanded' : ''}">
                 <div>${UI.renderImfpaPartyDetails(groupIndex, partyIndex)}</div>
             </div>
         </div>
