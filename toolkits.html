@@ -1233,24 +1233,55 @@ updateModelerUI: (isFullRefresh = false) => {
  * and commission calculations.
  * @returns {object|null} A comprehensive object with all calculated deal metrics, or null if calculation fails.
  */
-calculateModel: () => {
-    const { activeDealType, pricingConfig } = AppState.modeler;
-    const calculationFunc = Logic[`calculate${activeDealType}`];
-    if (!calculationFunc) return null;
-    const dealCalc = calculationFunc();
-    if (!dealCalc) return null;
-    const { baseValueUSD } = dealCalc;
-    const grossValue = parseFloat(pricingConfig.grossValue) || 0;
-    const netValue = parseFloat(pricingConfig.netValue) || 0;
-    const grossOffer = pricingConfig.isValueInPercent ? baseValueUSD * (grossValue / 100) : grossValue;
-    const netToBuyerOffer = pricingConfig.isValueInPercent ? baseValueUSD * (netValue / 100) : netValue;
-    let finalValueToBuyerUSD, totalCommissionPool;
-    if(pricingConfig.offerType === 'discount') { finalValueToBuyerUSD = baseValueUSD - netToBuyerOffer; totalCommissionPool = grossOffer - netToBuyerOffer; } 
-    else { finalValueToBuyerUSD = baseValueUSD + netToBuyerOffer; totalCommissionPool = grossOffer - netToBuyerOffer; }
-    totalCommissionPool = Math.max(0, totalCommissionPool);
-    AppState.modeler.legal.totalCommission = totalCommissionPool;
-    return { ...dealCalc, baseValueUSD, finalValueToBuyerUSD, totalCommissionPool, netValueDescription: `${Utils.formatNumber(pricingConfig.netValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Net ${pricingConfig.offerType}`, grossValueDescription: `${Utils.formatNumber(pricingConfig.grossValue)}${pricingConfig.isValueInPercent ? '%' : '$'} Gross ${pricingConfig.offerType}` };
-},
+            calculateModel: () => {
+                const { activeDealType, pricingConfig } = AppState.modeler;
+                const calculationFunc = Logic[`calculate${activeDealType}`];
+                if (!calculationFunc) return null;
+            
+                // Step 1: Get the base calculation from the specific deal modeler (e.g., AssetSwap)
+                const dealCalc = calculationFunc();
+                if (!dealCalc) return null;
+            
+                const { baseValueUSD } = dealCalc;
+            
+                // Step 2: Retrieve and parse pricing configuration with safeguards
+                const grossConfigValue = parseFloat(String(pricingConfig.grossValue).replace(/,/g, '')) || 0;
+                const netConfigValue = parseFloat(String(pricingConfig.netValue).replace(/,/g, '')) || 0;
+            
+                // Step 3: Calculate the actual monetary value of the gross and net offers
+                const grossOfferAmount = pricingConfig.isValueInPercent 
+                    ? baseValueUSD * (grossConfigValue / 100) 
+                    : grossConfigValue;
+                
+                const netToBuyerAmount = pricingConfig.isValueInPercent 
+                    ? baseValueUSD * (netConfigValue / 100) 
+                    : netConfigValue;
+            
+                // Step 4: Apply the discount/premium to determine the final value and commission
+                let finalValueToBuyerUSD;
+                if (pricingConfig.offerType === 'discount') {
+                    finalValueToBuyerUSD = baseValueUSD - netToBuyerAmount;
+                } else { // 'premium'
+                    finalValueToBuyerUSD = baseValueUSD + netToBuyerAmount;
+                }
+            
+                // The commission pool is always the difference between the gross and net offers.
+                // Math.max ensures it's never negative due to erroneous input.
+                const totalCommissionPool = Math.max(0, grossOfferAmount - netToBuyerAmount);
+                
+                // Step 5: Update the legal state with the calculated commission for the IMFPA suite
+                AppState.modeler.legal.totalCommission = totalCommissionPool;
+            
+                // Step 6: Return a complete, accurate, and comprehensive calculation object
+                return {
+                    ...dealCalc,
+                    baseValueUSD,
+                    finalValueToBuyerUSD,
+                    totalCommissionPool,
+                    netValueDescription: `${Utils.formatNumber(pricingConfig.netValue)}% Net ${pricingConfig.offerType}`,
+                    grossValueDescription: `${Utils.formatNumber(pricingConfig.grossValue)}% Gross ${pricingConfig.offerType}`
+                };
+            },
 
 /**
  * Calculates the specifics for an Asset Swap deal.
@@ -2697,6 +2728,8 @@ const UI = {
                     .filter(a => a.type !== 'Cross-Rate' && a.price > 0)
                     .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
                     .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
+                
+                // This lookup is the key to the dynamic label.
                 const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
                 
                 return `
