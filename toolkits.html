@@ -1892,29 +1892,19 @@ generateExecutiveSummary: (report) => {
  * event delegation on the main input container to handle all dynamic changes.
  */
             bindInstitutionalModelerEvents: () => {
-                // This initial call is critical to render the panel correctly on first load.
                 Logic.updateModelerUI(true);
-                
                 const inputContainer = document.getElementById('modeler-input-container');
                 if (inputContainer) {
-                    
-                    // Create a single, powerful, debounced function for all state updates.
-                    const debouncedStateUpdate = Utils.debounce((event) => {
-                        if (event.target.matches('[data-path]')) {
-                            Logic.handleModelerInputChange(event);
-                        }
-                    }, 300); // A 300ms delay provides a professional feel.
-
-                    // The persistent parent listener. It never gets destroyed.
+                    // This is the persistent parent listener. It never gets destroyed.
                     inputContainer.addEventListener('input', (e) => {
-                        // --- HIGH-PRIORITY, INSTANTANEOUS ACTIONS ---
-                        // The slider sync logic is executed instantly for a smooth feel.
+                        // --- THE SUPREME, DELEGATED SLIDER SYNC LOGIC ---
                         if (e.target.matches('#ltv-slider, #ltv-input, #sblc-ltv-slider, #sblc-ltv-input')) {
                             const container = e.target.closest('#ltv-sync-container, #sblc-ltv-sync-container');
                             if (container) {
                                 const slider = container.querySelector('input[type="range"]');
                                 const numberInput = container.querySelector('input[type="number"]');
                                 if (slider && numberInput) {
+                                    // Instantly synchronize both elements, regardless of which one was changed.
                                     if (e.target === slider) {
                                         numberInput.value = slider.value;
                                     } else {
@@ -1924,12 +1914,14 @@ generateExecutiveSummary: (report) => {
                             }
                         }
                         
-                        // --- DEBOUNCED STATE UPDATES & RE-CALCULATIONS ---
-                        // All other inputs trigger the debounced update to prevent excessive re-renders.
-                        debouncedStateUpdate(e);
+                        // Debounced logic for general state updates
+                        Utils.debounce(() => {
+                            if (e.target.matches('[data-path]')) {
+                                Logic.handleModelerInputChange(e);
+                            }
+                        }, 250)();
                     });
 
-                    // 'change' events (for selects, radios) should also trigger state updates immediately, not debounced.
                     inputContainer.addEventListener('change', (e) => {
                         if (e.target.matches('[data-path]')) {
                             Logic.handleModelerInputChange(e);
@@ -2482,28 +2474,7 @@ openImfpaModal: () => {
 
             setActiveSynthesisStage: (stageName) => {
                 const { legal } = AppState.modeler;
-                
-                // 1. Pre-calculate the data. This is the critical fix.
-                const calc = Logic.calculateModel();
-                if (!calc) {
-                    Utils.showNotification("Cannot switch view: deal parameters are incomplete.", 'error');
-                    return;
-                }
-                
-                // 2. Update the application state with the new active stage.
-                legal.activeStage = (legal.activeStage === stageName) ? '' : stageName;
-                
-                // 3. Locate the master container for the modal.
-                const modal = document.getElementById('imfpa-modal');
-                if (!modal) {
-                    console.error("CRITICAL FAILURE: Cannot find IMFPA modal container to re-render.");
-                    return;
-                }
-
-                // 4. Force a complete re-render, now passing the pre-calculated data.
-                modal.innerHTML = UI.renderImfpaModal(calc);
-                
-                // 5. Immediately re-hydrate the new UI with dynamic content and listeners.
+                legal.activeStage = (legal.activeStage === stageName) ? '' : stageName; // Toggle behavior
                 Logic.refreshImfpaModalUI();
             },
             refreshImfpaModalUI: () => {
@@ -4482,23 +4453,13 @@ renderYieldGraph: (calc) => {
 },
 
     // --- IMFPA & DOCUMENT EXECUTION SUITE RENDERERS (v6.0 Pinnacle Overhaul) ---
-                        renderImfpaModal: (calc) => { // Now accepts calc as a parameter
+            renderImfpaModal: () => {
                 const { legal } = AppState.modeler;
                 const isImfpa = legal.agreementType === 'IMFPA';
                 const isReadyToSynthesize = Logic.validateImfpaData();
-                
-                // If calc wasn't passed, calculate it now (for initial open).
-                // This makes the function robust for both initial open and re-renders.
-                if (!calc) {
-                    calc = Logic.calculateModel();
-                    // Final safeguard if calculation fails on initial load
-                    if (!calc) {
-                        console.error("Critical calculation failure on modal render.");
-                        // Return a safe fallback UI
-                        return `<div class="dialog-content-wrapper"><div class="p-8 text-center text-red-400">Critical Error: Could not calculate deal parameters.</div></div>`;
-                    }
-                }
+                const calc = Logic.calculateModel();
 
+                // This function renders each collapsible stage of the guided workflow.
                 const renderStage = (stageName, number, icon, title, content) => {
                     const isActive = legal.activeStage === stageName;
                     return `
@@ -4512,6 +4473,7 @@ renderYieldGraph: (calc) => {
                     </div>`;
                 };
 
+                // --- Content for Stage 1: Review Parameters ---
                 const reviewContent = `
                     <div class="p-4 rounded-lg bg-background-dark border border-border-color">
                         <div class="flex justify-between items-center">
@@ -4527,6 +4489,7 @@ renderYieldGraph: (calc) => {
                         </div>
                     </div>`;
 
+                // --- Content for Stage 2: Configure Document ---
                 const configureContent = `
                     <div class="space-y-4">
                         <div><label class="block text-sm font-medium mb-2 submission-label">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales"></div>
@@ -4542,6 +4505,7 @@ renderYieldGraph: (calc) => {
                         </div>
                     </div>`;
 
+                // --- Content for Stage 3: Allocate Commissions & Parties ---
                 const allocateContent = `
                     <div class="space-y-4">
                         <div id="imfpa-controls" class="flex justify-between items-center">
@@ -4585,7 +4549,7 @@ renderYieldGraph: (calc) => {
                         
                         <div class="pt-6 border-t border-premium-border mt-auto flex-shrink-0">
                             <button id="synthesize-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold" ${!isReadyToSynthesize ? 'disabled' : ''}>
-                                <i class="fas fa-file-export mr-2"></i>${isReadyToSynthesize ? 'Synthesize & Execute Document' : 'Complete All Required Fields (*)'}
+                                <i class="fas fa-file-export mr-2"></i>${isReadyToSynthesize ? 'Synthesize & Execute Document' : 'Complete All Required Fields'}
                             </button>
                             <div id="contract-preview-container" class="mt-4 hidden"></div>
                         </div>
