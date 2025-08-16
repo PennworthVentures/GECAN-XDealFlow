@@ -35,6 +35,129 @@
 
     <style>
 /* ========================================================================= */
+/* === PINNACLE GUIDED WORKFLOW & 3D UI ENGINE (v1.0) === */
+/* ========================================================================= */
+.guided-step-card {
+    background: rgba(30, 41, 59, 0.7); /* bg-slate-800/70 */
+    border: 1px solid var(--border-secondary);
+    border-radius: 1.25rem; /* rounded-2xl */
+    padding: 1.5rem; /* p-6 */
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform-style: preserve-3d;
+    position: relative;
+    overflow: hidden;
+}
+
+.guided-step-card:before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 50% 0, rgba(14, 165, 233, 0.15), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 1;
+}
+
+.guided-step-card:hover {
+    transform: perspective(1000px) rotateX(5deg) rotateY(-3deg) scale(1.03);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border-color: var(--primary-azure);
+}
+
+.guided-step-card:hover:before {
+    opacity: 1;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* gap-4 */
+    margin-bottom: 1rem; /* mb-4 */
+    position: relative;
+    z-index: 2;
+}
+
+.step-number {
+    width: 2.5rem; /* w-10 */
+    height: 2.5rem; /* h-10 */
+    border-radius: 9999px; /* rounded-full */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700; /* font-bold */
+    font-size: 1.125rem; /* text-lg */
+    color: var(--text-diamond);
+    background: var(--background-secondary);
+    border: 2px solid var(--border-premium);
+    transition: all 0.4s ease;
+}
+
+.step-header.completed .step-number {
+    background: linear-gradient(135deg, var(--success-color), #16a34a);
+    border-color: var(--success-color);
+    animation: pulse-success 2s infinite;
+}
+
+@keyframes pulse-success {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.step-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 700; /* font-bold */
+    color: var(--text-platinum);
+}
+
+.step-content {
+    position: relative;
+    z-index: 2;
+}
+
+/* Intelligent Focus Highlighting */
+.form-select.highlight-focus,
+.form-input.highlight-focus {
+    border-color: var(--primary-azure);
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), 
+                inset 0 0 0 50px var(--background-secondary),
+                0 0 25px rgba(14, 165, 233, 0.5);
+    animation: focus-glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes focus-glow {
+    from { box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 0 0 50px var(--background-secondary), 0 0 15px rgba(14, 165, 233, 0.3); }
+    to { box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 0 0 50px var(--background-secondary), 0 0 35px rgba(14, 165, 233, 0.6); }
+}
+
+.swap-icon-container {
+    padding-top: 1.75rem; /* pt-7 to align with label */
+    transition: transform 0.4s ease;
+}
+
+.swap-icon-container:hover {
+    transform: scale(1.2) rotate(-15deg);
+}
+
+.swap-icon-button {
+    width: 2.75rem; /* w-11 */
+    height: 2.75rem; /* h-11 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: rgba(14, 165, 233, 0.2);
+    color: var(--primary-azure);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid var(--primary-azure);
+}
+
+.swap-icon-button:hover {
+    background-color: rgba(14, 165, 233, 0.3);
+    box-shadow: 0 0 20px var(--glow-azure);
+}
+        
+/* ========================================================================= */
 /* === PINNACLE CSS ENGINE v4.0 (BENCHMARKED & UNIFIED) === */
 /* This stylesheet is the definitive standard for the Toolkits page, */
 /* ensuring visual consistency with the entire GECAN platform. */
@@ -2715,13 +2838,39 @@ const UI = {
      * Renders the main input panel for the Modeler, including the collapsible pricing configuration.
      * @returns {string} The HTML for the input panel.
      */
-    renderModelerInputPanel: () => {
-    const { activeDealType, pricingConfig } = AppState.modeler;
-    const dealPanelRenderer = UI[`render${activeDealType}Panel`];
-    const dealPanelHTML = dealPanelRenderer ? dealPanelRenderer() : `<p class="text-error-color">Error: Input panel for ${activeDealType} not found.</p>`;
-    const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['discount','premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, '%'], [false, '$']].map(([v,l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div></div></div>`;
-    return `<h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-sliders-h text-primary-azure"></i>Deal Parameters</h2><div class="space-y-6"><div class="p-4 rounded-lg bg-background-dark border border-border-color"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-file-contract text-primary-azure"></i>Transaction Core</h4><div class="space-y-4 mt-4">${dealPanelHTML}</div></div><div class="p-4 rounded-lg bg-background-dark border border-border-color"><div class="flex justify-between items-center cursor-pointer" onclick="Logic.togglePricingConfig()"><h4 class="text-lg font-semibold text-white flex items-center gap-2"><i class="fas fa-percent text-primary-azure"></i>Pricing & Configuration</h4><i class="fas fa-chevron-down transition-transform ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i></div>${pricingConfigHTML}</div></div>`;
-},
+            renderModelerInputPanel: () => {
+                const { activeDealType, pricingConfig } = AppState.modeler;
+                
+                // This function call is now wrapped in a check to ensure it only runs for Asset Swaps
+                const dealPanelHTML = (activeDealType === 'AssetSwap') 
+                    ? UI.renderAssetSwapPanel() 
+                    : `<p class="text-error-color text-center p-4">Guided workflow is optimized for Asset Swap. Please select that deal type.</p>`;
+
+                const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['discount','premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, '%'], [false, '$']].map(([v,l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div></div></div>`;
+                
+                return `
+                <h2 class="text-3xl font-bold text-white mb-6 flex items-center gap-4">
+                    <i class="fas fa-sliders-h text-primary-azure"></i>Deal Parameters
+                </h2>
+                <div class="space-y-6 flex-grow flex flex-col">
+                    ${dealPanelHTML}
+                    
+                    <!-- Step 3: Optional Pricing Configuration -->
+                    <div class="guided-step-card mt-auto">
+                        <div class="step-header cursor-pointer" onclick="Logic.togglePricingConfig()">
+                            <div class="step-number">3</div>
+                            <div class="flex-grow">
+                                <h3 class="step-title">Configure Pricing</h3>
+                                <p class="text-sm text-text-muted">Optional: Add institutional discounts or premiums.</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-xl text-text-muted transition-transform ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i>
+                        </div>
+                        <div class="step-content">
+                            ${pricingConfigHTML}
+                        </div>
+                    </div>
+                </div>`;
+            },
 
     /**
  * Renders the specific input fields for the Asset Swap deal type.
@@ -2734,28 +2883,71 @@ const UI = {
                     .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
                     .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
                 
-                const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
+                const fromAsset = Utils.getByKey(state.fromAssetKey);
+
+                // --- Intelligent State Determination ---
+                const areAssetsDefined = state.fromAssetKey && state.toAssetKey && (state.fromAssetKey !== state.toAssetKey);
+                const isAmountDefined = parseFloat(String(state.amount).replace(/,/g, '')) > 0;
+
+                const fromAssetFocus = !areAssetsDefined ? 'highlight-focus' : '';
+                const toAssetFocus = !areAssetsDefined ? 'highlight-focus' : '';
+                const amountFocus = areAssetsDefined && !isAmountDefined ? 'highlight-focus' : '';
                 
+                // Use a timeout to apply focus after the element is rendered in the DOM
+                setTimeout(() => {
+                    const elToFocus = document.querySelector('.highlight-focus');
+                    if (elToFocus) {
+                        elToFocus.focus();
+                        elToFocus.select();
+                    }
+                }, 100);
+
                 return `
-                <div class="flex items-center gap-4">
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-text-muted mb-2">From Asset (To Purchase)</label>
-                        <select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select>
+                <!-- Step 1: Define Assets -->
+                <div class="guided-step-card">
+                    <div class="step-header ${areAssetsDefined ? 'completed' : ''}">
+                        <div class="step-number">
+                            <i class="fas ${areAssetsDefined ? 'fa-check' : 'fa-exchange-alt'}"></i>
+                        </div>
+                        <div>
+                            <h3 class="step-title">Define Assets</h3>
+                            <p class="text-sm text-text-muted">Select the assets for the transaction.</p>
+                        </div>
                     </div>
-                    <div class="pt-8">
-                        <button onclick="Logic.swapAssets()" class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-azure/20 text-primary-azure hover:bg-primary-azure/30 transition-all duration-300" title="Swap Assets">
-                            <i id="swap-icon" class="fas fa-exchange-alt"></i>
-                        </button>
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-text-muted mb-2">To Asset (Settlement Protocol)</label>
-                        <select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select>
+                    <div class="step-content flex items-start gap-2">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-text-muted mb-2">From Asset (To Purchase)</label>
+                            <select data-path="assetSwap.fromAssetKey" class="form-select ${fromAssetFocus}">${assetOptions(state.fromAssetKey)}</select>
+                        </div>
+                        <div class="swap-icon-container">
+                            <button onclick="Logic.swapAssets()" class="swap-icon-button" title="Swap Assets">
+                                <i id="swap-icon" class="fas fa-exchange-alt text-lg"></i>
+                            </button>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-text-muted mb-2">To Asset (Settlement Protocol)</label>
+                            <select data-path="assetSwap.toAssetKey" class="form-select ${toAssetFocus}">${assetOptions(state.toAssetKey)}</select>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-text-muted mb-2">Amount to Purchase (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label>
-                    <input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold">
-                </div>`;
+
+                <!-- Step 2: Specify Quantity -->
+                <div class="guided-step-card">
+                    <div class="step-header ${isAmountDefined ? 'completed' : ''}">
+                         <div class="step-number">
+                            <i class="fas ${isAmountDefined ? 'fa-check' : 'fa-coins'}"></i>
+                        </div>
+                        <div>
+                            <h3 class="step-title">Specify Quantity</h3>
+                            <p class="text-sm text-text-muted">Enter the amount of the asset to be purchased.</p>
+                        </div>
+                    </div>
+                    <div class="step-content">
+                        <label class="block text-sm font-medium text-text-muted mb-2">Amount to Purchase (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label>
+                        <input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold ${amountFocus}">
+                    </div>
+                </div>
+                `;
             },
 
 /**
