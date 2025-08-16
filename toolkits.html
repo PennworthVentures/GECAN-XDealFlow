@@ -35,6 +35,39 @@
 
     <style>
 
+/* = a====================================================================== */
+/* === PINNACLE SUBMISSION PROTOCOL UI (v2.0 - MASSIVE UPGRADE) === */
+/* ========================================================================= */
+.submission-icon-header {
+    width: 80px;
+    height: 80px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, var(--primary-azure), var(--primary-royal));
+    box-shadow: 0 0 30px var(--glow-azure), 0 0 50px var(--glow-royal);
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+.form-input-container {
+    position: relative;
+}
+.form-input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    pointer-events: none;
+}
+.form-input-with-icon {
+    padding-left: 3.5rem !important;
+}
+
 /* ========================================================================= */
 /* === PINNACLE DASHBOARD & SIDEBAR UI ENGINE v2.0 (MASSIVE UPGRADE) === */
 /* ========================================================================= */
@@ -3321,87 +3354,93 @@ const UI = {
         /**
      * [NEW & BENCHMARKED] Renders the referral ID validation modal, reused from index.html logic.
      */
-    renderReferralValidationSuite: (title, subtitle) => {
-    return `
-        <div class="submission-dialog-content p-8 space-y-6">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold">${title}</h2>
-                <p class="mt-2">${subtitle}</p>
-            </div>
-            <div>
-                <input type="text" id="referral-id-input" placeholder="Enter Partner Referral ID" class="submission-form-input text-center font-mono tracking-widest p-4">
-            </div>
-            <div id="referral-error" class="text-center bg-red-500/10 p-3 rounded-lg hidden"></div>
-            <div class="flex flex-col sm:flex-row gap-4 pt-2">
-                <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3">Cancel</button>
-                <button id="validate-referral-btn" class="btn-primary w-full py-3 font-semibold">
-                    <i class="fas fa-key mr-2"></i>Validate & Proceed
-                </button>
-            </div>
-        </div>`;
-},
+            renderReferralValidationSuite: (title, subtitle) => {
+                // --- DEFINITIVE FIX: The entire content is now wrapped in the mandatory .dialog-content-wrapper ---
+                return `
+                <div class="dialog-content-wrapper">
+                    <div class="p-8 space-y-6 flex flex-col text-white">
+                        <div class="submission-icon-header animate-fade-in-up">
+                            <i class="fas fa-shield-alt fa-3x"></i>
+                        </div>
+                        <div class="text-center animate-fade-in-up stagger-1">
+                            <h2 class="text-3xl font-bold">${title}</h2>
+                            <p class="mt-2 text-text-secondary">${subtitle}</p>
+                        </div>
+                        <div class="animate-fade-in-up stagger-2">
+                            <div class="form-input-container">
+                                <i class="fas fa-key form-input-icon"></i>
+                                <input type="text" id="referral-id-input" placeholder="Enter Partner Referral ID" class="form-input form-input-with-icon text-center font-mono tracking-widest p-4 text-lg">
+                            </div>
+                        </div>
+                        <div id="referral-error" class="text-center bg-red-900/50 border border-red-500/50 p-3 rounded-lg hidden animate-fade-in-up"></div>
+                        <div class="flex flex-col sm:flex-row gap-4 pt-4 animate-fade-in-up stagger-3">
+                            <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3 font-semibold">Cancel</button>
+                            <button id="validate-referral-btn" class="btn-primary w-full py-3 font-semibold">
+                                <i class="fas fa-arrow-right mr-2"></i>Validate & Proceed
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            },
 
     /**
      * [NEW & BENCHMARKED] Renders the official wallet submission form after successful validation.
      */
-    renderWalletSubmissionSuite: (referralInfo) => {
-    const { report } = AppState.walletAnalysis;
-    return `
-        <div class="submission-dialog-content max-w-3xl">
-            <form id="wallet-submission-form">
-                <!-- Header -->
-                <div class="p-6 border-b border-border-color flex justify-between items-start flex-shrink-0">
-                    <div>
-                        <h2 class="text-2xl font-bold">Official Wallet Submission</h2>
-                        <p class="mt-1">Confirm details for official GECAN ledger entry.</p>
-                    </div>
-                    <button type="button" onclick="document.getElementById('submission-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors">×</button>
-                </div>
-
-                <!-- Scrollable Content -->
-                <div class="p-6 space-y-6 overflow-y-auto">
-                    <fieldset>
-                        <legend>Transaction Context</legend>
-                        <div class="space-y-4">
-                            <div><label>Wallet Address to be Submitted</label><input type="text" class="submission-form-input" value="${report.wallet.address}" readonly></div>
-                            <div><label>Target Offer ID (If Applicable)</label><select id="submission-offer-id" class="submission-form-select"></select></div>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Your Details (Submitter)</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label>Your Full Name*</label><input type="text" id="submitter-name" class="submission-form-input" placeholder="e.g., Jane Smith" required></div>
-                            <div><label>Your Role*</label><input type="text" id="submitter-role" class="submission-form-input" placeholder="e.g., Mandate, Broker" required></div>
-                            <div><label>Your Contact Email*</label><input type="email" id="submitter-email" class="submission-form-input" placeholder="you@example.com" required></div>
-                            <div><label>Your Contact Phone*</label><input type="tel" id="submitter-phone" class="submission-form-input" placeholder="+1 555 123 4567" required></div>
-                        </div>
-                    </fieldset>
-
-                    <fieldset>
-                        <legend>Alleged Wallet Controller</legend>
-                        <div class="space-y-4">
-                            <div><label>Principal / Entity Name*</label><input type="text" id="controller-name" class="submission-form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required></div>
-                            <div class="recommendation-box">
-                                <h4>Recommendation</h4>
-                                <p>For expedited review, it is highly recommended to provide the alleged controller's Customer Information Sheet (CIS) and Proof of Funds (POF) via secure email to <strong>compliance@gecan.co</strong> after submission.</p>
+            renderWalletSubmissionSuite: (referralInfo) => {
+                const { report } = AppState.walletAnalysis;
+                // --- DEFINITIVE FIX: The entire content is now wrapped in the mandatory .dialog-content-wrapper ---
+                return `
+                <div class="dialog-content-wrapper" style="max-width: 48rem;">
+                    <form id="wallet-submission-form" class="flex flex-col h-full">
+                        <!-- Header -->
+                        <div class="p-6 border-b border-border-color flex justify-between items-start flex-shrink-0">
+                            <div>
+                                <h2 class="text-2xl font-bold flex items-center gap-3"><i class="fas fa-paper-plane text-primary-azure"></i>Official Wallet Submission</h2>
+                                <p class="mt-1 text-text-secondary">Confirm details for official GECAN ledger entry.</p>
                             </div>
+                            <button type="button" onclick="document.getElementById('submission-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors">×</button>
                         </div>
-                    </fieldset>
-                    
-                    <div><label>Referring Partner</label><input type="text" class="submission-form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly></div>
-                </div>
 
-                <!-- Footer / Actions -->
-                <div class="p-6 border-t border-border-color mt-auto flex flex-col sm:flex-row gap-4 flex-shrink-0">
-                    <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3">Cancel Submission</button>
-                    <button type="submit" id="confirm-submission-btn" class="btn-primary w-full py-3 font-semibold bg-gradient-to-r from-success-color to-emerald-600 border-success-color">
-                        <i class="fas fa-check-circle mr-2"></i>Confirm & Submit to Ledger
-                    </button>
-                </div>
-            </form>
-        </div>`;
-},
+                        <!-- Scrollable Content -->
+                        <div class="p-6 space-y-6 overflow-y-auto">
+                            <fieldset class="p-4 border border-border-color rounded-lg"><legend class="px-2 font-semibold text-text-secondary">Transaction Context</legend>
+                                <div class="space-y-4">
+                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Wallet Address to be Submitted</label><input type="text" class="form-input font-mono" value="${report.wallet.address}" readonly></div>
+                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Target Offer ID (If Applicable)</label><select id="submission-offer-id" class="form-select"></select></div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="p-4 border border-border-color rounded-lg"><legend class="px-2 font-semibold text-text-secondary">Your Details (Submitter)</legend>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Full Name*</label><input type="text" id="submitter-name" class="form-input" placeholder="e.g., Jane Smith" required></div>
+                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Role*</label><input type="text" id="submitter-role" class="form-input" placeholder="e.g., Mandate, Broker" required></div>
+                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Contact Email*</label><input type="email" id="submitter-email" class="form-input" placeholder="you@example.com" required></div>
+                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Contact Phone*</label><input type="tel" id="submitter-phone" class="form-input" placeholder="+1 555 123 4567" required></div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="p-4 border border-border-color rounded-lg"><legend class="px-2 font-semibold text-text-secondary">Alleged Wallet Controller</legend>
+                                <div class="space-y-4">
+                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Principal / Entity Name*</label><input type="text" id="controller-name" class="form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required></div>
+                                    <div class="p-3 rounded-lg bg-sky-900/50 border border-sky-500/30 text-xs text-sky-300">
+                                        <p><strong>Recommendation:</strong> For expedited review, provide the alleged controller's CIS and POF via secure email to <strong>compliance@gecan.co</strong> after submission.</p>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            
+                            <div><label class="block text-sm font-medium mb-2 text-text-muted">Referring Partner</label><input type="text" class="form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly></div>
+                        </div>
+
+                        <!-- Footer / Actions -->
+                        <div class="p-6 border-t border-border-color mt-auto flex flex-col sm:flex-row gap-4 flex-shrink-0">
+                            <button type="button" onclick="document.getElementById('submission-modal').close()" class="btn-secondary w-full py-3 font-semibold">Cancel Submission</button>
+                            <button type="submit" id="confirm-submission-btn" class="btn-primary w-full py-3 font-semibold bg-gradient-to-r from-green-500 to-green-700 border-green-500">
+                                <i class="fas fa-check-circle mr-2"></i>Confirm & Submit to Ledger
+                            </button>
+                        </div>
+                    </form>
+                </div>`;
+            },
     /**
      * Renders the main container for the Institutional Modeler toolkit, including the deal type selection.
      * @returns {string} The HTML structure for the modeler interface.
