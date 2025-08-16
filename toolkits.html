@@ -570,7 +570,7 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
             walletAnalysis: { address: null, report: null, isLoading: false },
             modeler: {
                 activeDealType: 'AssetSwap', 
-                assetSwap: { amount: 1000000, fromAssetKey: '', toAssetKey: '' },
+                assetSwap: { amount: 30000, fromAssetKey: 'BTC-USD', toAssetKey: 'USDT-USD' },
                 commodityTrade: { assetKey: 'WTI-BBL-USD', quantity: 100000, unitOfMeasure: 'Barrel', qualitySpec: 'API Gravity: 40-42, Sulfur Content: <0.42%', origin: 'USA', port: 'Houston', incoterms: 'FOB', procedures: '• Standard TTV Procedures\n• SGS/Intertek Inspection\n• Payment via SBLC/DLC', pricingModel: 'Discount', fixedPrice: 0, discountPremiumValue: 4, discountPremiumIsInPercent: true, settlementAssetKey: 'USD' },
                 cryptoLoan: { collateralAssetKey: 'BTC-USD', collateralAmount: 10, loanCurrency: 'USD', ltv: 60, interestRateType: 'fixed', interestRateValue: 5.5, tenureMonths: 12 },
                 sblcMonetization: { faceValue: 100000000, ltv: 80 },
@@ -701,8 +701,24 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
         if (themeJson) { try { UI.renderParticles(JSON.parse(themeJson)); } catch (e) {} }
         if (!marketData || !Array.isArray(marketData)) throw new Error("Market data invalid.");
         AppState.marketData = marketData.filter(a => a.status === 'OK' || a.status === 'MANUAL').map(a => ({ ...a, price: parseFloat(a.price) || 0 }));
-        const swappable = AppState.marketData.filter(a => a.type !== 'Cross-Rate' && a.price > 0);
-        if (swappable.length >= 2) { AppState.modeler.assetSwap.fromAssetKey = swappable[0].key; AppState.modeler.assetSwap.toAssetKey = swappable[1].key; }
+const allAssets = AppState.marketData;
+        const btcExists = allAssets.some(a => a.key === 'BTC-USD');
+        const usdtExists = allAssets.some(a => a.key === 'USDT-USD');
+
+        if (btcExists && usdtExists) {
+            // If both required assets are available, we ensure the state is correctly set.
+            // This is robust even if the AppState default was different.
+            AppState.modeler.assetSwap.fromAssetKey = 'BTC-USD';
+            AppState.modeler.assetSwap.toAssetKey = 'USDT-USD';
+        } else {
+            // Military-Grade Fallback: If BTC or USDT are not available in the API data,
+            // fall back to the first two swappable assets to prevent a blank/broken state.
+            const swappable = allAssets.filter(a => a.type !== 'Cross-Rate' && a.price > 0);
+            if (swappable.length >= 2) {
+                AppState.modeler.assetSwap.fromAssetKey = swappable[0].key;
+                AppState.modeler.assetSwap.toAssetKey = swappable[1].key;
+            }
+        }
         
         AppState.isInitialized = true;
         document.getElementById('initial-loader').style.display = 'none';
@@ -1287,22 +1303,20 @@ updateModelerUI: (isFullRefresh = false) => {
                 const toAsset = Utils.getAssetByKey(toAssetKey);
                 const amountToGive = parseFloat(String(amount).replace(/,/g, '')) || 0;
             
-                // The USD equivalent is now correctly treated as a background value for commissions.
                 const usdEquivalent = amountToGive * (fromAsset.price || 0);
-            
-                // The direct cross-rate calculates the true swap outcome.
                 const directRate = (toAsset.price > 0) ? (fromAsset.price || 0) / toAsset.price : 0;
-                
-                // THE NEW, ACCURATE PRIMARY VALUE: The actual amount of the 'To Asset' received.
                 const primaryValue = amountToGive * directRate;
             
                 return { 
-                    primaryValue: primaryValue,                      // e.g., 907435.16
-                    primaryUnit: toAsset.baseAsset,                  // e.g., "SGD"
+                    primaryValue: primaryValue,
+                    primaryUnit: toAsset.baseAsset,
                     dealTitle: `${Utils.formatNumber(amountToGive, 4)} ${fromAsset.baseAsset} to ${toAsset.baseAsset}`,
-                    usdEquivalent: usdEquivalent,                    // The value used ONLY for commissions.
-                    finalValueToBuyerUSD: 0, // Placeholder, will be calculated in the master function
-                    totalCommissionPool: 0   // Placeholder, will be calculated in the master function
+                    usdEquivalent: usdEquivalent,
+                    fromAsset: fromAsset, // Required for Pinnacle Swap Analysis panel
+                    toAsset: toAsset,     // CRITICAL: This was missing, causing the error.
+                    amountToGive: amountToGive, // Required for Pinnacle Swap Analysis panel
+                    finalValueToBuyerUSD: 0,
+                    totalCommissionPool: 0
                 };
             },
 
@@ -1310,143 +1324,143 @@ updateModelerUI: (isFullRefresh = false) => {
  * Calculates the specifics for a physical Commodity Trade deal.
  * @returns {object} An object containing the calculated metrics for the trade.
  */
-calculateCommodityTrade: () => {
-    const { quantity, assetKey, pricingModel, fixedPrice, discountPremiumValue, settlementAssetKey, discountPremiumIsInPercent } = AppState.modeler.commodityTrade;
-    const asset = Utils.getAssetByKey(assetKey);
-    const settlementAsset = Utils.getAssetByKey(settlementAssetKey);
-    let effectivePricePerUnit = asset.price || 0, priceDerivation = 'Market Price';
-    const discPremVal = parseFloat(discountPremiumValue) || 0;
-    if (pricingModel === 'Fixed') { effectivePricePerUnit = parseFloat(fixedPrice) || 0; priceDerivation = `Fixed at ${Utils.formatPrice(fixedPrice)}`; }
-    else if (pricingModel === 'Premium') { const premiumAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal; effectivePricePerUnit += premiumAmount; priceDerivation = `Market + ${Utils.formatPrice(premiumAmount)}`; }
-    else if (pricingModel === 'Discount') { const discountAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal; effectivePricePerUnit -= discountAmount; priceDerivation = `Market - ${Utils.formatPrice(discountAmount)}`; }
-    const baseValueUSD = (parseFloat(quantity) || 0) * effectivePricePerUnit;
-    const dealTitle = `${Utils.formatNumber(quantity)} units of ${asset.baseAsset}`;
-    let settlementAmount = baseValueUSD / (settlementAsset.price || 1);
-    return { baseValueUSD, dealTitle, priceDerivation, effectivePricePerUnit, settlementAmount, settlementAsset };
-},
-
+            calculateCommodityTrade: () => {
+                const { quantity, assetKey, pricingModel, fixedPrice, discountPremiumValue, settlementAssetKey, discountPremiumIsInPercent } = AppState.modeler.commodityTrade;
+                const asset = Utils.getAssetByKey(assetKey);
+                const settlementAsset = Utils.getAssetByKey(settlementAssetKey);
+                let effectivePricePerUnit = asset.price || 0;
+                const discPremVal = parseFloat(discountPremiumValue) || 0;
+                if (pricingModel === 'Fixed') { effectivePricePerUnit = parseFloat(fixedPrice) || 0; }
+                else if (pricingModel === 'Premium') { const premiumAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal; effectivePricePerUnit += premiumAmount; }
+                else if (pricingModel === 'Discount') { const discountAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discountAmount; effectivePricePerUnit -= discountAmount; }
+                
+                const usdEquivalent = (parseFloat(quantity) || 0) * effectivePricePerUnit;
+                const primaryValue = usdEquivalent / (settlementAsset.price || 1);
+            
+                return {
+                    primaryValue: primaryValue,
+                    primaryUnit: settlementAsset.baseAsset,
+                    dealTitle: `${Utils.formatNumber(quantity)} units of ${asset.baseAsset}`,
+                    usdEquivalent: usdEquivalent,
+                    toAsset: settlementAsset, // Ensure `toAsset` exists for compatibility
+                    finalValueToBuyerUSD: 0,
+                    totalCommissionPool: 0
+                };
+            },
 /**
  * Calculates the specifics for a Crypto-Collateralized Loan.
  * @returns {object} An object containing the calculated metrics for the loan.
  */
-calculateCryptoLoan: () => {
-    const { collateralAmount, collateralAssetKey, ltv, loanCurrency, tenureMonths, interestRateValue } = AppState.modeler.cryptoLoan;
-    
-    const collateralAsset = Utils.getAssetByKey(collateralAssetKey);
-    
-    // Calculate the total value of the collateral in USD.
-    const collateralValueUSD = (parseFloat(collateralAmount) || 0) * (parseFloat(collateralAsset.price) || 0);
-    
-    // Calculate the loan principal based on the Loan-to-Value (LTV) percentage.
-    const loanPrincipal = collateralValueUSD * ((parseFloat(ltv) || 0) / 100);
-    
-    // Calculate the total simple interest over the loan term.
-    const totalInterest = loanPrincipal * ((parseFloat(interestRateValue) || 0) / 100) * ((parseInt(tenureMonths, 10) || 1) / 12);
-    
-    const totalRepayment = loanPrincipal + totalInterest;
-
-    return {
-        baseValueUSD: loanPrincipal, // For consistency, the base value of a loan is its principal.
-        loanPrincipal,
-        totalRepayment,
-        loanCurrency,
-        tenureMonths,
-        interestRateValue,
-        dealTitle: `Loan against ${collateralAsset.baseAsset}`
-    };
-},
+            calculateCryptoLoan: () => {
+                const { collateralAmount, collateralAssetKey, ltv, loanCurrency, tenureMonths, interestRateValue } = AppState.modeler.cryptoLoan;
+                const collateralAsset = Utils.getAssetByKey(collateralAssetKey);
+                const collateralValueUSD = (parseFloat(collateralAmount) || 0) * (parseFloat(collateralAsset.price) || 0);
+                const loanPrincipal = collateralValueUSD * ((parseFloat(ltv) || 0) / 100);
+                const totalRepayment = loanPrincipal + (loanPrincipal * ((parseFloat(interestRateValue) || 0) / 100) * ((parseInt(tenureMonths, 10) || 1) / 12));
+            
+                return {
+                    primaryValue: loanPrincipal,
+                    primaryUnit: loanCurrency,
+                    dealTitle: `Loan against ${collateralAsset.baseAsset}`,
+                    usdEquivalent: loanPrincipal, // For a USD loan, the value and equivalent are the same.
+                    toAsset: { baseAsset: loanCurrency, price: 1 }, // Mock `toAsset` for compatibility
+                    // Additional properties for the custom analysis panel
+                    totalRepayment: totalRepayment,
+                    tenureMonths: tenureMonths,
+                    interestRateValue: interestRateValue,
+                    loanCurrency: loanCurrency,
+                    finalValueToBuyerUSD: 0,
+                    totalCommissionPool: 0
+                };
+            },
             /**
  * Calculates the specifics for SBLC Monetization.
  * @returns {object} An object containing the calculated metrics for the monetization deal.
  */
-calculateSBLCMonetization: () => {
-    const { faceValue, ltv } = AppState.modeler.sblcMonetization;
-    
-    // Calculate the monetized value based on the instrument's face value and the Loan-to-Value (LTV) percentage.
-    const baseValueUSD = (parseFloat(faceValue) || 0) * ((parseFloat(ltv) || 0) / 100);
-    
-    const dealTitle = `LTV on ${Utils.formatPrice(faceValue)} SBLC`;
-
-    return { 
-        baseValueUSD, // For consistency, the base value is the total capital unlocked.
-        dealTitle 
-    };
-},
+            calculateSBLCMonetization: () => {
+                const { faceValue, ltv } = AppState.modeler.sblcMonetization;
+                const monetizedValue = (parseFloat(faceValue) || 0) * ((parseFloat(ltv) || 0) / 100);
+                
+                return { 
+                    primaryValue: monetizedValue,
+                    primaryUnit: 'USD',
+                    dealTitle: `LTV on ${Utils.formatPrice(faceValue)} SBLC`,
+                    usdEquivalent: monetizedValue,
+                    toAsset: { baseAsset: 'USD', price: 1 }, // Mock `toAsset` for compatibility
+                    finalValueToBuyerUSD: 0,
+                    totalCommissionPool: 0
+                };
+            },
 
 /**
  * Resets the entire Institutional Modeler state to its default configuration.
  * This function performs a deep-clone reset to prevent any reference-related bugs
  * and ensures a clean slate for the user.
  */
-resetModelerState: () => {
-    // Define the pristine, default state of the entire modeler.
-    const defaultState = {
-        activeDealType: 'AssetSwap',
-        assetSwap: { 
-            amount: 1000000, 
-            fromAssetKey: '', 
-            toAssetKey: '' 
-        },
-        commodityTrade: { 
-        assetKey: 'WTI-BBL-USD',
-        quantity: 100000,
-        unitOfMeasure: 'Barrel',
-        qualitySpec: 'API Gravity: 40-42, Sulfur Content: <0.42%',
-        origin: 'United States',
-        port: 'Houston',
-        incoterms: 'FOB',
-        procedures: '• Standard TTV Procedures\n• SGS/Intertek Inspection\n• Payment via SBLC/DLC',
-        pricingModel: 'Discount',
-        fixedPrice: 0,
-        discountPremiumValue: 4,
-        discountPremiumIsInPercent: true,
-        settlementAssetKey: 'USD' 
-    },
-        cryptoLoan: { 
-            collateralAssetKey: 'BTC-USD', 
-            collateralAmount: 10, 
-            loanCurrency: 'USD', 
-            ltv: 60, 
-            interestRateType: 'fixed', 
-            interestRateValue: 5.5, 
-            tenureMonths: 12 
-        },
-        sblcMonetization: { 
-            faceValue: 100000000, 
-            ltv: 80 
-        },
-        pricingConfig: { 
-            isVisible: false, 
-            offerType: 'discount', 
-            grossValue: 0, 
-            netValue: 0, 
-            isValueInPercent: true 
-        },
-        legal: { 
-            totalCommission: 0, 
-            jurisdiction: 'Singapore, Dubai, England, Wales', 
-            spaReferenceCode: '', 
-            groups: [] 
-        }
-    };
+            resetModelerState: () => {
+                // Define the pristine, definitive default state with the specific assets and amount required.
+                const defaultState = {
+                    activeDealType: 'AssetSwap',
+                    assetSwap: { 
+                        amount: 30000, 
+                        fromAssetKey: 'BTC-USD', 
+                        toAssetKey: 'USDT-USD' 
+                    },
+                    commodityTrade: { 
+                        assetKey: 'WTI-BBL-USD',
+                        quantity: 100000,
+                        unitOfMeasure: 'Barrel',
+                        qualitySpec: 'API Gravity: 40-42, Sulfur Content: <0.42%',
+                        origin: 'USA',
+                        port: 'Houston',
+                        incoterms: 'FOB',
+                        procedures: '• Standard TTV Procedures\n• SGS/Intertek Inspection\n• Payment via SBLC/DLC',
+                        pricingModel: 'Discount',
+                        fixedPrice: 0,
+                        discountPremiumValue: 4,
+                        discountPremiumIsInPercent: true,
+                        settlementAssetKey: 'USD' 
+                    },
+                    cryptoLoan: { 
+                        collateralAssetKey: 'BTC-USD', 
+                        collateralAmount: 10, 
+                        loanCurrency: 'USD', 
+                        ltv: 60, 
+                        interestRateType: 'fixed', 
+                        interestRateValue: 5.5, 
+                        tenureMonths: 12 
+                    },
+                    sblcMonetization: { 
+                        faceValue: 100000000, 
+                        ltv: 80 
+                    },
+                    pricingConfig: { 
+                        isVisible: false, 
+                        offerType: 'discount', 
+                        grossValue: 0, 
+                        netValue: 0, 
+                        isValueInPercent: true 
+                    },
+                    legal: { 
+                        totalCommission: 0, 
+                        jurisdiction: 'Singapore, Dubai, England, Wales', 
+                        spaReferenceCode: '', 
+                        groups: [] 
+                    }
+                };
 
-    // Perform a deep clone to ensure no lingering references. This is the most robust way to reset.
-    AppState.modeler = JSON.parse(JSON.stringify(defaultState));
-    
-    // Intelligence: After resetting, re-populate the Asset Swap fields with the first two
-    // available assets from the market data, providing a sensible default.
-    const allSwappableAssets = AppState.marketData.filter(a => a.type !== 'Cross-Rate' && a.price > 0);
-    if (allSwappableAssets.length >= 2) {
-        AppState.modeler.assetSwap.fromAssetKey = allSwappableAssets[0].key;
-        AppState.modeler.assetSwap.toAssetKey = allSwappableAssets[1].key;
-    }
-    
-    // Trigger a full UI re-render to reflect the reset state.
-    Logic.updateModelerUI(true);
-    
-    // Provide user feedback.
-    Utils.showNotification('Institutional Modeler has been reset to its default state.', 'info', 'Modeler Reset');
-},
+                // Perform a deep clone to ensure no lingering references. This is the most robust way to reset.
+                AppState.modeler = JSON.parse(JSON.stringify(defaultState));
+                
+                // The flawed logic that previously overwrote these defaults has been permanently removed.
+                // The state is now guaranteed to be the desired BTC/USDT default.
+                
+                // Trigger a full UI re-render to reflect the correct reset state.
+                Logic.updateModelerUI(true);
+                
+                // Provide user feedback.
+                Utils.showNotification('Institutional Modeler has been reset to its default state.', 'info', 'Modeler Reset');
+            },
 
 /**
  * Swaps the 'from' and 'to' assets in the Asset Swap modeler.
