@@ -1382,32 +1382,42 @@ generateExecutiveSummary: (report) => {
  * This function is called once when the toolkit becomes active, using efficient
  * event delegation on the main input container to handle all dynamic changes.
  */
-bindInstitutionalModelerEvents: () => {
+            bindInstitutionalModelerEvents: () => {
                 Logic.updateModelerUI(true);
                 const inputContainer = document.getElementById('modeler-input-container');
                 if (inputContainer) {
-                    inputContainer.addEventListener('input', Utils.debounce((e) => {
-                        if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
-                    }, 250));
-                    inputContainer.addEventListener('change', (e) => {
-                        if (e.target.matches('[data-path]')) Logic.handleModelerInputChange(e);
-                    });
-
-                    // --- DEFINITIVE LTV SLIDER SYNC LOGIC (REGRESSION FIX) ---
-                    if (AppState.modeler.activeDealType === 'CryptoLoan') {
-                        const ltvContainer = document.getElementById('ltv-sync-container');
-                        if (ltvContainer) { /* ... Crypto Loan sync logic ... */ }
-                    } else if (AppState.modeler.activeDealType === 'SBLCMonetization') {
-                        const ltvContainer = document.getElementById('sblc-ltv-sync-container');
-                        if (ltvContainer) {
-                            const slider = ltvContainer.querySelector('#sblc-ltv-slider');
-                            const numberInput = ltvContainer.querySelector('#sblc-ltv-input');
-                            if (slider && numberInput) {
-                                slider.addEventListener('input', () => { numberInput.value = slider.value; });
-                                numberInput.addEventListener('input', () => { slider.value = numberInput.value; });
+                    // This is the persistent parent listener. It never gets destroyed.
+                    inputContainer.addEventListener('input', (e) => {
+                        // --- THE SUPREME, DELEGATED SLIDER SYNC LOGIC ---
+                        if (e.target.matches('#ltv-slider, #ltv-input, #sblc-ltv-slider, #sblc-ltv-input')) {
+                            const container = e.target.closest('#ltv-sync-container, #sblc-ltv-sync-container');
+                            if (container) {
+                                const slider = container.querySelector('input[type="range"]');
+                                const numberInput = container.querySelector('input[type="number"]');
+                                if (slider && numberInput) {
+                                    // Instantly synchronize both elements, regardless of which one was changed.
+                                    if (e.target === slider) {
+                                        numberInput.value = slider.value;
+                                    } else {
+                                        slider.value = numberInput.value;
+                                    }
+                                }
                             }
                         }
-                    }
+                        
+                        // Debounced logic for general state updates
+                        Utils.debounce(() => {
+                            if (e.target.matches('[data-path]')) {
+                                Logic.handleModelerInputChange(e);
+                            }
+                        }, 250)();
+                    });
+
+                    inputContainer.addEventListener('change', (e) => {
+                        if (e.target.matches('[data-path]')) {
+                            Logic.handleModelerInputChange(e);
+                        }
+                    });
                 }
             },
 /**
