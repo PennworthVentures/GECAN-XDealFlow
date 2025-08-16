@@ -2046,42 +2046,53 @@ updateModelerUI: (isFullRefresh = false) => {
                 const calculationFunc = Logic[`calculate${activeDealType}`];
                 if (!calculationFunc) return null;
             
+                // Step 1: Get the base calculation from the specific deal modeler.
+                // This now returns a rich object including primaryValue, primaryUnit, and usdEquivalent.
                 const dealCalc = calculationFunc();
-                if (!dealCalc) return null;
+                if (!dealCalc || !dealCalc.isValid) return null;
 
-                // --- NATIVE ASSET CALCULATION PIPELINE ---
-                const { primaryValue: baseValueInToAsset, toAsset } = dealCalc;
-            
-                const grossConfigValue = parseFloat(String(pricingConfig.grossValue).replace(/,/g, '')) || 0;
-                const netConfigValue = parseFloat(String(pricingConfig.netValue).replace(/,/g, '')) || 0;
-            
-                // Calculate gross/net amounts DIRECTLY in the native 'To Asset' currency
-                const grossOfferInToAsset = pricingConfig.isValueInPercent ? baseValueInToAsset * (grossConfigValue / 100) : grossConfigValue;
-                const netToBuyerInToAsset = pricingConfig.isValueInPercent ? baseValueInToAsset * (netConfigValue / 100) : netConfigValue;
-            
-                // Apply discount/premium DIRECTLY to the native 'To Asset' currency
-                let finalValueToBuyerInToAsset;
-                if (pricingConfig.offerType === 'discount') {
-                    finalValueToBuyerInToAsset = baseValueInToAsset - netToBuyerInToAsset;
-                } else { // 'premium'
-                    finalValueToBuyerInToAsset = baseValueInToAsset + netToBuyerInToAsset;
+                // Step 2: Establish the correct base values for native-asset calculations.
+                // For Asset Swap, this is a direct conversion. For others, it's the USD equivalent.
+                const baseValueInToAsset = dealCalc.baseValueInToAsset || dealCalc.primaryValue;
+                const toAsset = dealCalc.toAsset || { baseAsset: dealCalc.primaryUnit, price: 1 };
+
+                // Step 3: Perform pricing calculations natively in the 'To Asset' currency for Asset Swap.
+                let finalValueToBuyerInToAsset = baseValueInToAsset;
+                let totalCommissionInToAsset = 0;
+
+                if (activeDealType === 'AssetSwap') {
+                    const grossConfigValue = parseFloat(String(pricingConfig.grossValue).replace(/,/g, '')) || 0;
+                    const netConfigValue = parseFloat(String(pricingConfig.netValue).replace(/,/g, '')) || 0;
+                    
+                    const grossOfferInToAsset = pricingConfig.isValueInPercent ? baseValueInToAsset * (grossConfigValue / 100) : grossConfigValue;
+                    const netToBuyerInToAsset = pricingConfig.isValueInPercent ? baseValueInToAsset * (netConfigValue / 100) : netConfigValue;
+                    
+                    if (pricingConfig.offerType === 'discount') {
+                        finalValueToBuyerInToAsset = baseValueInToAsset - netToBuyerInToAsset;
+                    } else { // 'premium'
+                        finalValueToBuyerInToAsset = baseValueInToAsset + netToBuyerInToAsset;
+                    }
+                    totalCommissionInToAsset = Math.max(0, grossOfferInToAsset - netToBuyerInToAsset);
                 }
-            
-                // Calculate commission DIRECTLY in the native 'To Asset' currency
-                const totalCommissionInToAsset = Math.max(0, grossOfferInToAsset - netToBuyerInToAsset);
+                
+                // Step 4: Calculate the final USD-equivalent commission for the IMFPA state.
+                // This is the universal value passed to the legal suite.
+                const totalCommissionPoolUSD = (activeDealType === 'AssetSwap') 
+                    ? totalCommissionInToAsset * (toAsset.price || 1)
+                    : dealCalc.totalCommissionUSD || (dealCalc.totalCommissionInSettlement * (toAsset.price || 1));
 
-                // --- BACKGROUND USD CONVERSION (FOR IMFPA ONLY) ---
-                // Convert the native commission value to USD for the IMFPA state.
-                const totalCommissionPoolUSD = totalCommissionInToAsset * (toAsset.price || 0);
                 AppState.modeler.legal.totalCommission = totalCommissionPoolUSD;
             
+                // Step 5: Return the complete, unabridged, and supremely accurate data package.
                 return {
                     ...dealCalc,
                     baseValueInToAsset,
                     finalValueToBuyerInToAsset,
                     totalCommissionInToAsset,
-                    netValueDescription: `${Utils.formatNumber(pricingConfig.netValue)}% Net ${pricingConfig.offerType}`,
-                    grossValueDescription: `${Utils.formatNumber(pricingConfig.grossValue)}% Gross ${pricingConfig.offerType}`
+                    netValueDescription: `${Utils.formatNumber(pricingConfig.netValue, 2)}% Net ${pricingConfig.offerType}`,
+                    grossValueDescription: `${Utils.formatNumber(pricingConfig.grossValue, 2)}% Gross ${pricingConfig.offerType}`,
+                    // This critical pass-through powers the "Review Parameters" stage.
+                    pricingConfig: AppState.modeler.pricingConfig
                 };
             },
 
