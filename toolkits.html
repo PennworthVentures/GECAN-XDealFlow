@@ -3207,7 +3207,6 @@ const UI = {
  */
 renderCryptoLoanPanel: () => {
                 const state = AppState.modeler.cryptoLoan;
-                // --- DEFINITIVE FIX: Allow ALL assets with a price to be used as collateral ---
                 const assetOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
                 const currencyOptions = () => ['USD', 'EUR', 'HKD', 'USDT'].sort().map(c => `<option value="${c}" ${state.loanCurrency === c ? 'selected' : ''}>${c}</option>`).join('');
 
@@ -3236,7 +3235,14 @@ renderCryptoLoanPanel: () => {
                     <div class="step-content space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-text-muted mb-2">Loan-to-Value (LTV)</label>
-                            <div class="flex items-center gap-4"><input type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer"><div class="relative w-28"><input type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div></div>
+                            <!-- DEFINITIVE SLIDER FIX: The `oninput` event now forces an immediate UI update, synchronizing both inputs perfectly. -->
+                            <div class="flex items-center gap-4">
+                                <input type="range" data-path="cryptoLoan.ltv" min="10" max="90" value="${state.ltv}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer" oninput="this.nextElementSibling.querySelector('input').value = this.value;">
+                                <div class="relative w-28">
+                                    <input type="number" data-path="cryptoLoan.ltv" value="${state.ltv}" class="form-input text-lg text-center font-bold pr-6" oninput="this.parentElement.previousElementSibling.value = this.value;">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div><label class="block text-sm font-medium text-text-muted mb-2">Loan Currency</label><select data-path="cryptoLoan.loanCurrency" class="form-select">${currencyOptions()}</select></div>
@@ -3260,7 +3266,6 @@ renderCryptoLoanPanel: () => {
                     </div>
                 </div>`;
             },
-
 /**
  * Renders the specific input fields for the SBLC Monetization deal type.
  * @returns {string} The HTML for the SBLC Monetization panel.
@@ -3369,6 +3374,7 @@ renderSBLCMonetizationPanel: () => {
                     const { primaryValue, primaryUnit, dealTitle, totalRepayment, monthlyPayment, originationFee, collateralValueUSD, netLoanToBorrower, grossLoanPrincipal, amortizationData } = calc;
                     const state = AppState.modeler.cryptoLoan;
 
+                    // --- DEFINITIVE CURRENCY FIX: `primaryUnit` is now passed to all formatting functions. ---
                     primaryAnalysisCards = `
                         <div class="output-metric-card base-value">
                             <p class="label"><i class="fas fa-money-bill-wave"></i>Net Loan to Borrower</p>
