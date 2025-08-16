@@ -1240,31 +1240,38 @@ updateModelerUI: (isFullRefresh = false) => {
             
                 const dealCalc = calculationFunc();
                 if (!dealCalc) return null;
-            
-                // Use the CORRECT value (usdEquivalent) for all financial calculations.
-                const { usdEquivalent } = dealCalc;
+
+                // --- NATIVE ASSET CALCULATION PIPELINE ---
+                const { primaryValue: baseValueInToAsset, toAsset } = dealCalc;
             
                 const grossConfigValue = parseFloat(String(pricingConfig.grossValue).replace(/,/g, '')) || 0;
                 const netConfigValue = parseFloat(String(pricingConfig.netValue).replace(/,/g, '')) || 0;
             
-                const grossOfferAmount = pricingConfig.isValueInPercent ? usdEquivalent * (grossConfigValue / 100) : grossConfigValue;
-                const netToBuyerAmount = pricingConfig.isValueInPercent ? usdEquivalent * (netConfigValue / 100) : netConfigValue;
+                // Calculate gross/net amounts DIRECTLY in the native 'To Asset' currency
+                const grossOfferInToAsset = pricingConfig.isValueInPercent ? baseValueInToAsset * (grossConfigValue / 100) : grossConfigValue;
+                const netToBuyerInToAsset = pricingConfig.isValueInPercent ? baseValueInToAsset * (netConfigValue / 100) : netConfigValue;
             
-                let finalValueToBuyerUSD;
+                // Apply discount/premium DIRECTLY to the native 'To Asset' currency
+                let finalValueToBuyerInToAsset;
                 if (pricingConfig.offerType === 'discount') {
-                    finalValueToBuyerUSD = usdEquivalent - netToBuyerAmount;
+                    finalValueToBuyerInToAsset = baseValueInToAsset - netToBuyerInToAsset;
                 } else { // 'premium'
-                    finalValueToBuyerUSD = usdEquivalent + netToBuyerAmount;
+                    finalValueToBuyerInToAsset = baseValueInToAsset + netToBuyerInToAsset;
                 }
             
-                const totalCommissionPool = Math.max(0, grossOfferAmount - netToBuyerAmount);
-                AppState.modeler.legal.totalCommission = totalCommissionPool;
+                // Calculate commission DIRECTLY in the native 'To Asset' currency
+                const totalCommissionInToAsset = Math.max(0, grossOfferInToAsset - netToBuyerInToAsset);
+
+                // --- BACKGROUND USD CONVERSION (FOR IMFPA ONLY) ---
+                // Convert the native commission value to USD for the IMFPA state.
+                const totalCommissionPoolUSD = totalCommissionInToAsset * (toAsset.price || 0);
+                AppState.modeler.legal.totalCommission = totalCommissionPoolUSD;
             
-                // Return the complete package, passing through the UNTOUCHED primary values for the UI.
                 return {
-                    ...dealCalc, // Includes primaryValue, primaryUnit, dealTitle
-                    finalValueToBuyerUSD,
-                    totalCommissionPool,
+                    ...dealCalc,
+                    baseValueInToAsset,
+                    finalValueToBuyerInToAsset,
+                    totalCommissionInToAsset,
                     netValueDescription: `${Utils.formatNumber(pricingConfig.netValue)}% Net ${pricingConfig.offerType}`,
                     grossValueDescription: `${Utils.formatNumber(pricingConfig.grossValue)}% Gross ${pricingConfig.offerType}`
                 };
@@ -2713,13 +2720,12 @@ const UI = {
                     .sort((a, b) => a.baseAsset.localeCompare(b.baseAsset))
                     .map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.quoteAsset})</option>`).join('');
                 
-                // This lookup is the key to the dynamic label.
                 const fromAsset = Utils.getAssetByKey(state.fromAssetKey);
                 
                 return `
                 <div class="flex items-center gap-4">
                     <div class="flex-1">
-                        <label class="block text-sm font-medium text-text-muted mb-2">From Asset (You Give)</label>
+                        <label class="block text-sm font-medium text-text-muted mb-2">From Asset (To Purchase)</label>
                         <select data-path="assetSwap.fromAssetKey" class="form-select">${assetOptions(state.fromAssetKey)}</select>
                     </div>
                     <div class="pt-8">
@@ -2728,12 +2734,12 @@ const UI = {
                         </button>
                     </div>
                     <div class="flex-1">
-                        <label class="block text-sm font-medium text-text-muted mb-2">To Asset (You Receive)</label>
+                        <label class="block text-sm font-medium text-text-muted mb-2">To Asset (Settlement Protocol)</label>
                         <select data-path="assetSwap.toAssetKey" class="form-select">${assetOptions(state.toAssetKey)}</select>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-text-muted mb-2">Amount to Give (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label>
+                    <label class="block text-sm font-medium text-text-muted mb-2">Amount to Purchase (<span class="font-bold text-white">${fromAsset.baseAsset || 'N/A'}</span>)</label>
                     <input type="text" data-path="assetSwap.amount" value="${(parseFloat(state.amount) || 0).toLocaleString()}" class="form-input text-lg font-bold">
                 </div>`;
             },
@@ -2806,29 +2812,61 @@ renderSBLCMonetizationPanel: () => {
             renderModelerOutputPanel: (calc) => {
                 if (!calc) return `<div class="flex items-center justify-center h-full text-center text-text-muted"><i class="fas fa-calculator fa-2x mr-4"></i>Awaiting parameters...</div>`;
             
+                let customAnalysisPanel = '';
+                let primaryAnalysisCards = '';
+            
+                if (AppState.modeler.activeDealType === 'AssetSwap') {
+                    const { fromAsset, toAsset, amountToGive, baseValueInToAsset, finalValueToBuyerInToAsset, totalCommissionInToAsset, netValueDescription, grossValueDescription } = calc;
+                    
+                    // --- THE THREE MAIN CARDS --- now 100% in the 'To Asset' currency
+                    primaryAnalysisCards = `
+                        <div class="output-metric-card base-value">
+                            <p class="label"><i class="fas fa-exchange-alt"></i>Base Settlement Value</p>
+                            <p class="value">${Utils.formatNumber(baseValueInToAsset, 4)} <span class="text-2xl">${toAsset.baseAsset}</span></p>
+                            <p class="sub-value">Market Rate Settlement</p>
+                        </div>
+                        <div class="output-metric-card net">
+                            <p class="label"><i class="fas fa-hand-holding-dollar"></i>Net Settlement to Buyer</p>
+                            <p class="value">${Utils.formatNumber(finalValueToBuyerInToAsset, 4)} <span class="text-2xl">${toAsset.baseAsset}</span></p>
+                            <p class="sub-value">${netValueDescription}</p>
+                        </div>
+                        <div class="output-metric-card commission">
+                            <p class="label"><i class="fas fa-coins"></i>Total Commission Pool</p>
+                            <p class="value">${Utils.formatNumber(totalCommissionInToAsset, 4)} <span class="text-2xl">${toAsset.baseAsset}</span></p>
+                            <p class="sub-value">${grossValueDescription}</p>
+                        </div>`;
+
+                    // --- THE RESTORED PINNACLE SWAP ANALYSIS PANEL ---
+                    customAnalysisPanel = `
+                    <div class="output-metric-card p-4 mt-4 border-l-4 border-primary-royal">
+                        <p class="label !mb-2 text-primary-royal"><i class="fas fa-sync-alt"></i>Pinnacle Swap Analysis</p>
+                        <div class="space-y-3">
+                            <div class="p-3 rounded-lg bg-background-light border border-red-500/30">
+                                <div class="flex justify-between items-center text-xs text-red-400 font-semibold"><span>PURCHASING</span><i class="fas fa-arrow-up"></i></div>
+                                <div class="flex justify-between items-baseline mt-1">
+                                    <span class="text-xl font-bold font-mono text-white">${Utils.formatNumber(amountToGive, 4)} ${fromAsset.baseAsset}</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-lg bg-background-light border border-green-500/30">
+                                <div class="flex justify-between items-center text-xs text-green-400 font-semibold"><span>SETTLING WITH</span><i class="fas fa-arrow-down"></i></div>
+                                <div class="flex justify-between items-baseline mt-1">
+                                    <span class="text-xl font-bold font-mono text-white">${Utils.formatNumber(baseValueInToAsset, 4)} ${toAsset.baseAsset}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+
+                } else {
+                    // Fallback for other deal types which are inherently USD-based
+                    primaryAnalysisCards = `<p class="text-center text-text-muted">Analysis view not configured for this deal type.</p>`;
+                }
+            
                 return `
                 <div class="flex flex-col h-full animate-fade-in-up">
                     <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3"><i class="fas fa-chart-line text-success-color"></i>Deal Analysis & Projections</h2>
                     <div class="space-y-4 flex-grow">
-                        
-                        <div class="output-metric-card base-value">
-                            <p class="label"><i class="fas fa-exchange-alt"></i>Primary Deal Value</p>
-                            <p class="value">${Utils.formatNumber(calc.primaryValue, 4)} <span class="text-2xl">${calc.primaryUnit}</span></p>
-                            <p class="sub-value">${calc.dealTitle}</p>
-                        </div>
-
-                        <div class="output-metric-card net">
-                            <p class="label"><i class="fas fa-hand-holding-dollar"></i>Net Value (USD Equivalent)</p>
-                            <p class="value">${Utils.formatPrice(calc.finalValueToBuyerUSD)}</p>
-                            <p class="sub-value">${calc.netValueDescription}</p>
-                        </div>
-
-                        <div class="output-metric-card commission">
-                            <p class="label"><i class="fas fa-coins"></i>Total Commission Pool (USD)</p>
-                            <p class="value">${Utils.formatPrice(calc.totalCommissionPool)}</p>
-                            <p class="sub-value">${calc.grossValueDescription}</p>
-                        </div>
-
+                        ${primaryAnalysisCards}
+                        ${customAnalysisPanel}
                     </div>
                     <div class="mt-auto pt-6 border-t border-border-color">
                         <button onclick="Logic.openImfpaModal()" class="btn-primary w-full py-3 font-bold">
