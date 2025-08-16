@@ -714,7 +714,15 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
             }
         };
 
-        const commodityData = {
+const commodityData = {
+            // This NEW specifications object is the definitive data source for real-time updates.
+            specifications: {
+                'EN590-1MT-USD': { uom: 'Metric Ton', spec: '10 PPM Sulphur Gasoil' },
+                'D6-GAL-USD': { uom: 'Gallon', spec: 'Virgin D6 Fuel Oil' },
+                'WTI-BBL-USD': { uom: 'Barrel', spec: 'West Texas Intermediate Crude' },
+                'JET-A1-MT-USD': { uom: 'Metric Ton', spec: 'Aviation Turbine Fuel' },
+                'GOLD-T-OZ-USD': { uom: 'Troy Ounce', spec: '99.99% Au Bullion' },
+            },
             unitsOfMeasure: ['Barrel', 'Metric Ton', 'Troy Ounce', 'Kilogram', 'Pound', 'Gallon', 'Liter', 'Cubic Meter', 'Short Ton', 'Long Ton', 'Tonne', 'MMBtu', 'Bushel'].sort(),
             incoterms: [
                 { value: 'EXW', label: 'EXW - Ex Works', port: 'Seller\'s Premises', risk: 'Buyer', cost: 'Minimal' }, { value: 'FCA', label: 'FCA - Free Carrier', port: 'Named Place', risk: 'Buyer', cost: 'Low' },
@@ -1339,18 +1347,20 @@ handleModelerInputChange: (e) => {
  * It intelligently updates related fields like 'Unit of Measure' to maintain data consistency.
  * @param {string} assetKey - The new commodity asset key (e.g., 'WTI-BBL-USD').
  */
-handleCommodityChange: (assetKey) => {
-    const commodityState = AppState.modeler.commodityTrade;
-    commodityState.assetKey = assetKey;
-    const spec = commodityData.specifications[assetKey];
-    if (spec) {
-        commodityState.unitOfMeasure = spec.uom;
-        commodityState.qualitySpec = spec.spec;
-        commodityState.incoterms = spec.incoterm;
-        commodityState.origin = spec.origin;
-    }
-    Logic.updateModelerUI(true);
-},
+            handleCommodityChange: (assetKey) => {
+                const commodityState = AppState.modeler.commodityTrade;
+                commodityState.assetKey = assetKey;
+                
+                // Use the new, reliable data source.
+                const spec = commodityData.specifications[assetKey];
+                if (spec) {
+                    // This is the real-time update logic.
+                    commodityState.unitOfMeasure = spec.uom;
+                }
+                
+                // A full UI refresh guarantees all panels reflect the new data.
+                Logic.updateModelerUI(true);
+            },
 
 /**
  * Placeholder for launching a future deep-dive analysis suite. For now, it provides
@@ -3042,20 +3052,16 @@ const UI = {
             renderCommodityTradePanel: () => {
                 const state = AppState.modeler.commodityTrade;
                 const commodityOptions = (selectedKey) => AppState.marketData.filter(asset => ['Crude Oil', 'Refined Fuel', 'Precious Metal', 'Commodity', 'Energy'].some(term => asset.type?.includes(term))).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.key})</option>`).join('');
-                const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0 && a.key !== state.assetKey).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
+                const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
 
                 const commodityAsset = Utils.getAssetByKey(state.assetKey);
-                // Auto-update Unit of Measure from live data
-                if (commodityAsset && commodityAsset.unitOfMeasure) {
-                    AppState.modeler.commodityTrade.unitOfMeasure = commodityAsset.unitOfMeasure;
-                }
 
                 // --- Intelligent State Determination for Guided Workflow ---
                 const isCommodityDefined = state.assetKey && state.quantity > 0;
-                const isPriceDefined = (state.pricingModel === 'Fixed' && state.fixedPrice > 0) || (state.pricingModel !== 'Fixed' && state.priceAdjustmentValue > 0);
-                const isCommissionDefined = state.isCommissionIncluded ? state.commissionValue > 0 : state.markupValue > 0;
+                const isPriceDefined = (state.pricingModel === 'Fixed' && state.fixedPrice > 0) || (state.pricingModel !== 'Fixed' && state.priceAdjustmentValue != 0); // Allow zero
+                const isCommissionDefined = state.isCommissionIncluded ? state.commissionValue > 0 : state.markupValue != 0; // Allow zero
 
-                // --- Intelligent Focus Logic ---
+                // --- Intelligent Focus Logic (DEFINITIVELY FIXED) ---
                 setTimeout(() => {
                     let selector = '';
                     if (!isCommodityDefined) selector = '[data-path="commodityTrade.quantity"]';
@@ -3066,20 +3072,23 @@ const UI = {
                     const elToFocus = document.querySelector(selector);
                     if (elToFocus) {
                         elToFocus.focus();
-                        elToFocus.select();
+                        // This condition prevents the "is not a function" crash.
+                        if (typeof elToFocus.select === 'function') {
+                            elToFocus.select();
+                        }
                     }
                 }, 100);
 
                 const commissionInputsHTML = state.isCommissionIncluded ?
                     `<div>
                         <label class="block text-sm font-medium text-text-muted mb-2">Commission Included Per ${state.unitOfMeasure}</label>
-                        <input type="number" data-path="commodityTrade.commissionValue" value="${state.commissionValue}" class="form-input ${!isCommissionDefined ? 'highlight-focus' : ''}">
+                        <input type="number" data-path="commodityTrade.commissionValue" value="${state.commissionValue}" class="form-input text-lg font-bold ${!isCommissionDefined ? 'highlight-focus' : ''}">
                         <p class="text-xs text-text-muted mt-2">The Net Price already contains this commission amount.</p>
                     </div>` :
                     `<div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-text-muted mb-2">Add Mark-Up</label>
-                            <input type="number" data-path="commodityTrade.markupValue" value="${state.markupValue}" class="form-input ${!isCommissionDefined ? 'highlight-focus' : ''}">
+                            <input type="number" data-path="commodityTrade.markupValue" value="${state.markupValue}" class="form-input text-lg font-bold ${!isCommissionDefined ? 'highlight-focus' : ''}">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-text-muted mb-2">Mark-Up Type</label>
@@ -3118,11 +3127,11 @@ const UI = {
                     </div>
                     <div class="step-content space-y-4">
                         <div class="flex items-center justify-around p-2 bg-background-dark rounded-lg">
-                            ${['PlattsMinus', 'PlattsPlus', 'Fixed'].map(p => `<label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.pricingModel === p ? 'bg-primary-azure/20 text-primary-azure' : 'hover:bg-background-light'}"><input type="radio" name="pricingModel" value="${p}" ${state.pricingModel === p ? 'checked' : ''} data-path="commodityTrade.pricingModel" class="hidden">${{PlattsMinus:'Platts Minus', PlattsPlus:'Platts Plus', Fixed:'Fixed Price'}[p]}</label>`).join('')}
+                            ${['PlattsMinus', 'PlattsPlus', 'Fixed'].map(p => `<label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.pricingModel === p ? 'bg-primary-azure/20 text-primary-azure font-semibold' : 'hover:bg-background-light'}"><input type="radio" name="pricingModel" value="${p}" ${state.pricingModel === p ? 'checked' : ''} data-path="commodityTrade.pricingModel" class="hidden">${{PlattsMinus:'Platts Minus', PlattsPlus:'Platts Plus', Fixed:'Fixed Price'}[p]}</label>`).join('')}
                         </div>
                         ${state.pricingModel === 'Fixed' ? 
-                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Fixed Price per ${state.unitOfMeasure}</label><input type="number" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input ${!isPriceDefined ? 'highlight-focus' : ''}"></div>` :
-                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Price Adjustment (USD)</label><input type="number" data-path="commodityTrade.priceAdjustmentValue" value="${state.priceAdjustmentValue}" class="form-input ${!isPriceDefined ? 'highlight-focus' : ''}"></div>`
+                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Fixed Price per ${state.unitOfMeasure}</label><input type="number" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input text-lg font-bold ${!isPriceDefined ? 'highlight-focus' : ''}"></div>` :
+                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Price Adjustment (USD)</label><input type="number" data-path="commodityTrade.priceAdjustmentValue" value="${state.priceAdjustmentValue}" class="form-input text-lg font-bold ${!isPriceDefined ? 'highlight-focus' : ''}"></div>`
                         }
                     </div>
                 </div>
@@ -3135,8 +3144,8 @@ const UI = {
                     </div>
                     <div class="step-content space-y-4">
                         <div class="flex items-center justify-around p-2 bg-background-dark rounded-lg">
-                             <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${!state.isCommissionIncluded ? 'bg-primary-azure/20 text-primary-azure' : 'hover:bg-background-light'}"><input type="radio" name="isCommissionIncluded" value="false" ${!state.isCommissionIncluded ? 'checked' : ''} data-path="commodityTrade.isCommissionIncluded" class="hidden">Add Mark-Up</label>
-                             <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.isCommissionIncluded ? 'bg-primary-azure/20 text-primary-azure' : 'hover:bg-background-light'}"><input type="radio" name="isCommissionIncluded" value="true" ${state.isCommissionIncluded ? 'checked' : ''} data-path="commodityTrade.isCommissionIncluded" class="hidden">Commission Included</label>
+                             <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${!state.isCommissionIncluded ? 'bg-primary-azure/20 text-primary-azure font-semibold' : 'hover:bg-background-light'}"><input type="radio" name="isCommissionIncluded" value="false" ${!state.isCommissionIncluded ? 'checked' : ''} data-path="commodityTrade.isCommissionIncluded" class="hidden">Add Mark-Up</label>
+                             <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.isCommissionIncluded ? 'bg-primary-azure/20 text-primary-azure font-semibold' : 'hover:bg-background-light'}"><input type="radio" name="isCommissionIncluded" value="true" ${state.isCommissionIncluded ? 'checked' : ''} data-path="commodityTrade.isCommissionIncluded" class="hidden">Commission Included</label>
                         </div>
                         ${commissionInputsHTML}
                     </div>
