@@ -2836,40 +2836,39 @@ togglePricingConfig: () => {
 
             // Add this new function inside the `Logic` object
 validateImfpaData: () => {
-    const { legal } = AppState.modeler;
-    const allParties = legal.groups.flatMap(g => g.parties);
-    const isImfpa = legal.agreementType === 'IMFPA';
+                const { legal } = AppState.modeler;
+                const allParties = legal.groups.flatMap(g => g.parties);
+                const isImfpa = legal.agreementType === 'IMFPA';
 
-    // Rule 1: Must have a jurisdiction
-    if (!legal.jurisdiction || legal.jurisdiction.trim() === '') return false;
+                // Rule 1: Must have a jurisdiction (robust check)
+                if (!legal.jurisdiction || legal.jurisdiction.trim() === '') return false;
 
-    // Rule 2: Must have at least two parties for any agreement
-    if (allParties.length < 2) return false;
+                // Rule 2: Must have at least two parties for any agreement
+                if (allParties.length < 2) return false;
 
-    // Rule 3: All parties must have at least their core details (name, email, number)
-    const allPartiesSufficient = allParties.every(p => 
-        p.legalName && p.email && p.contactNumber
-    );
-    if (!allPartiesSufficient) return false;
+                // Rule 3: All parties must have their core details completed (robust check)
+                const allPartiesSufficient = allParties.every(p => 
+                    p.legalName && p.legalName.trim() !== '' &&
+                    p.email && p.email.trim() !== '' &&
+                    p.contactNumber && p.contactNumber.trim() !== ''
+                );
+                if (!allPartiesSufficient) return false;
 
-    // Rule 4: If IMFPA, run commission allocation checks
-    if (isImfpa) {
-        if (legal.groups.length === 0) return false;
-        // Check if total group percentage is exactly 100%
-        const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
-        if (Math.abs(totalGroupPct - 100) > 0.01) return false;
+                // Rule 4: If IMFPA, run commission allocation checks
+                if (isImfpa) {
+                    if (legal.groups.length === 0) return false;
+                    const totalGroupPct = legal.groups.reduce((sum, g) => sum + (parseFloat(g.percentage) || 0), 0);
+                    if (Math.abs(totalGroupPct - 100) > 0.01) return false;
+                    for (const group of legal.groups) {
+                        if (group.parties.length === 0) return false;
+                        const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
+                        if (Math.abs(totalPartyPct - 100) > 0.01) return false;
+                    }
+                }
 
-        // Check if every group has parties and their allocations sum to 100%
-        for (const group of legal.groups) {
-            if (group.parties.length === 0) return false;
-            const totalPartyPct = group.parties.reduce((sum, p) => sum + (parseFloat(p.percentage) || 0), 0);
-            if (Math.abs(totalPartyPct - 100) > 0.01) return false;
-        }
-    }
-
-    // If all critical checks pass, the data is valid for synthesis.
-    return true;
-},
+                // If all pinnacle-grade checks pass, the data is valid.
+                return true;
+            },
 
 // Add this new function inside the `Logic` object
 updateSynthesizeButtonState: () => {
@@ -4875,12 +4874,16 @@ renderImfpaGroups: () => {
                 }
             },
 
-            renderImfpaParty: (groupIndex, partyIndex) => {
+renderImfpaParty: (groupIndex, partyIndex) => {
                 const party = AppState.modeler.legal.groups[groupIndex].parties[partyIndex];
                 const base = `legal.groups[${groupIndex}].parties[${partyIndex}]`;
                 
-                // SEVERELY INTELLIGENT VALIDATION: This logic now runs on every refresh, guaranteeing real-time accuracy.
-                const isSufficient = party.legalName && party.email && party.contactNumber;
+                // SEVERELY UPGRADED VALIDATION: This robust check guarantees the badge updates instantly and accurately.
+                const isSufficient = 
+                    party.legalName && party.legalName.trim() !== '' &&
+                    party.email && party.email.trim() !== '' &&
+                    party.contactNumber && party.contactNumber.trim() !== '';
+
                 let validationStatus;
                 if (isSufficient) {
                     validationStatus = { badgeClass: 'bg-green-500/20 text-green-400', badgeText: 'SUFFICIENT', indicatorClass: 'text-success-color', indicatorIcon: 'fa-check-circle', indicatorText: 'Core Details Valid' };
@@ -4888,7 +4891,6 @@ renderImfpaGroups: () => {
                     validationStatus = { badgeClass: 'bg-red-500/20 text-red-400 animate-pulse', badgeText: 'INCOMPLETE', indicatorClass: 'text-error-color', indicatorIcon: 'fa-exclamation-triangle', indicatorText: 'Core Details Required' };
                 }
 
-                // CRITICAL UPGRADE: The root div now has a unique ID for surgical removal.
                 return `
                     <div class="allocation-party-card p-3" id="party-card-${groupIndex}-${partyIndex}">
                         <div class="flex items-center gap-2">
@@ -5025,12 +5027,51 @@ renderContractDocument: (agreementReference) => {
     return `<div class="p-doc"><div class="p-watermark">DRAFT</div><h1 class="p-h1">${title}</h1><p class="p-text"><strong>Reference:</strong> ${agreementReference}</p><p class="p-text"><strong>Effective Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>${imfpaArticle}<div class="p-annex-start"><h2 class="p-h2">SIGNATURE PAGE</h2><p class="p-text">IN WITNESS WHEREOF, the Parties have executed this Agreement by their duly authorized representatives as of the Effective Date.</p>${signatureBlocks}</div></div>`;
 },
 renderContractPreview: (legal, calc) => {
-        const isImfpa = legal.agreementType === 'IMFPA';
-        const allParties = legal.groups.flatMap(g => g.parties);
-        const title = isImfpa ? "IMFPA & NCNDA Summary" : "NCNDA Summary";
-        const commissionSummary = isImfpa ? `<p class="preview-p">The Parties acknowledge a total commission pool of <span class="preview-strong">${Utils.formatPrice(legal.totalCommission)}</span> to be distributed as per the configured allocation schedule.</p>` : '';
-        return `<h1 class="preview-h1">${title}</h1><p class="preview-p"><span class="preview-strong">Reference:</span> GECAN-${legal.agreementType}-... (provisional)</p><p class="preview-p"><span class="preview-strong">Date:</span> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p><p class="preview-p"><span class="preview-strong">Signatory Parties (${allParties.length}):</span> ${allParties.length > 0 ? `This agreement is entered into by and between ${allParties.map(p => p.legalName || '[Unnamed Party]').join(', ')}.` : 'Awaiting party details.'}</p>${commissionSummary}<p class="preview-p"><span class="preview-strong">Governing Law:</span> This Agreement shall be governed by the laws of ${legal.jurisdiction || '[Not Specified]'}.</p>`;
-    },
+                const isImfpa = legal.agreementType === 'IMFPA';
+                const allParties = legal.groups.flatMap(g => g.parties);
+                const title = isImfpa ? "IMFPA & NCNDA Live Synthesis" : "NCNDA Live Synthesis";
+
+                // --- Real-time Party List Generation ---
+                const partyListHTML = allParties.length > 0
+                    ? allParties.map(p => `<li class="preview-p-item">${p.legalName || '<span class="preview-placeholder">Unnamed Party</span>'}</li>`).join('')
+                    : `<p class="preview-p preview-placeholder">Awaiting party details...</p>`;
+
+                // --- Real-time Commission Summary (Conditional) ---
+                const commissionSummaryHTML = isImfpa
+                    ? `<h2 class="preview-h2">Commission Protocol</h2>
+                       <p class="preview-p">The Parties acknowledge a total commission pool of <span class="preview-strong">${Utils.formatPrice(legal.totalCommission)}</span> to be distributed as per the configured allocation schedule.</p>`
+                    : '';
+
+                // --- Real-time Legal Articles Summary ---
+                const articlesHTML = Object.entries(legal.articles)
+                    .filter(([key, value]) => value === true)
+                    .map(([key]) => {
+                        // Convert camelCase to Title Case
+                        const title = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        return `<li class="preview-p-item">${title} Clause</li>`;
+                    }).join('');
+
+                return `
+                    <div class="living-document-preview">
+                        <div class="preview-content">
+                            <h1 class="preview-header">${title}</h1>
+                            
+                            <h2 class="preview-h2">Core Parameters</h2>
+                            <p class="preview-p"><span class="preview-strong">Reference:</span> GECAN-${legal.agreementType}-${legal.spaReferenceCode || '...(provisional)'}</p>
+                            <p class="preview-p"><span class="preview-strong">Date:</span> ${new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p class="preview-p"><span class="preview-strong">Governing Law:</span> ${legal.jurisdiction || '<span class="preview-placeholder">Jurisdiction not specified</span>'}</p>
+                            
+                            <h2 class="preview-h2">Contracting Parties (${allParties.length})</h2>
+                            <ul class="preview-ul">${partyListHTML}</ul>
+
+                            ${commissionSummaryHTML}
+
+                            <h2 class="preview-h2">Included Legal Articles</h2>
+                            <ul class="preview-ul">${articlesHTML || '<p class="preview-p preview-placeholder">No additional articles selected.</p>'}</ul>
+                        </div>
+                    </div>
+                `;
+            },
     
 
     // --- DYNAMIC MODAL RENDERERS ---
