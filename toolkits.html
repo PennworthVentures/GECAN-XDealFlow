@@ -34,7 +34,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&display=swap" rel="stylesheet">
 
     <style>
-
+        
+.submission-label {
+    color: var(--text-premium-gold) !important;
+    font-weight: 500; /* Medium weight for clarity */
+}
 /* = a====================================================================== */
 /* === PINNACLE SUBMISSION PROTOCOL UI (v2.0 - MASSIVE UPGRADE) === */
 /* ========================================================================= */
@@ -444,6 +448,7 @@
 
 /* --- A. CORE THEME & VARIABLES (BENCHMARKED) --- */
 :root {
+    --text-premium-gold: #EAE0C8; /* A sophisticated, pale white-gold */
     --brand-gecan-blue: #1c2e4a; --brand-gecan-gold: #b4975a; --primary-azure: #0ea5e9;
     --primary-sapphire: #3b82f6; --primary-royal: #6366f1; --primary-amethyst: #8b5cf6;
     --primary-diamond: #f8fafc; --primary-dark: #0369a1;
@@ -3412,7 +3417,6 @@ const UI = {
      */
             renderWalletSubmissionSuite: (referralInfo) => {
                 const { report } = AppState.walletAnalysis;
-                // --- DEFINITIVE FIX: The entire content is now wrapped in the mandatory .dialog-content-wrapper ---
                 return `
                 <div class="dialog-content-wrapper" style="max-width: 48rem;">
                     <form id="wallet-submission-form" class="flex flex-col h-full">
@@ -3429,30 +3433,62 @@ const UI = {
                         <div class="p-6 space-y-6 overflow-y-auto">
                             <fieldset class="p-4 border border-border-color rounded-lg"><legend class="px-2 font-semibold text-text-secondary">Transaction Context</legend>
                                 <div class="space-y-4">
-                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Wallet Address to be Submitted</label><input type="text" class="form-input font-mono" value="${report.wallet.address}" readonly></div>
-                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Target Offer ID (If Applicable)</label><select id="submission-offer-id" class="form-select"></select></div>
+                                    <div>
+                                        <!-- DEFINITIVE FIX: Class updated -->
+                                        <label class="block text-sm font-medium mb-2 submission-label">Wallet Address to be Submitted</label>
+                                        <input type="text" class="form-input font-mono" value="${report.wallet.address}" readonly>
+                                    </div>
+                                    <div>
+                                        <!-- DEFINITIVE FIX: Class updated -->
+                                        <label class="block text-sm font-medium mb-2 submission-label">Target Offer ID (If Applicable)</label>
+                                        <select id="submission-offer-id" class="form-select"></select>
+                                    </div>
                                 </div>
                             </fieldset>
 
                             <fieldset class="p-4 border border-border-color rounded-lg"><legend class="px-2 font-semibold text-text-secondary">Your Details (Submitter)</legend>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Full Name*</label><input type="text" id="submitter-name" class="form-input" placeholder="e.g., Jane Smith" required></div>
-                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Role*</label><input type="text" id="submitter-role" class="form-input" placeholder="e.g., Mandate, Broker" required></div>
-                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Contact Email*</label><input type="email" id="submitter-email" class="form-input" placeholder="you@example.com" required></div>
-                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Your Contact Phone*</label><input type="tel" id="submitter-phone" class="form-input" placeholder="+1 555 123 4567" required></div>
+                                    <div>
+                                        <!-- DEFINITIVE FIX: Class updated -->
+                                        <label class="block text-sm font-medium mb-2 submission-label">Your Full Name*</label>
+                                        <input type="text" id="submitter-name" class="form-input" placeholder="e.g., Jane Smith" required>
+                                    </div>
+                                    <div>
+                                        <!-- DEFINITIVE FIX: Class updated -->
+                                        <label class="block text-sm font-medium mb-2 submission-label">Your Role*</label>
+                                        <input type="text" id="submitter-role" class="form-input" placeholder="e.g., Mandate, Broker" required>
+                                    </div>
+                                    <div>
+                                        <!-- DEFINITIVE FIX: Class updated -->
+                                        <label class="block text-sm font-medium mb-2 submission-label">Your Contact Email*</label>
+                                        <input type="email" id="submitter-email" class="form-input" placeholder="you@example.com" required>
+                                    </div>
+                                    <div>
+                                        <!-- DEFINITIVE FIX: Class updated -->
+                                        <label class="block text-sm font-medium mb-2 submission-label">Your Contact Phone*</label>
+                                        <input type="tel" id="submitter-phone" class="form-input" placeholder="+1 555 123 4567" required>
+                                    </div>
                                 </div>
                             </fieldset>
 
                             <fieldset class="p-4 border border-border-color rounded-lg"><legend class="px-2 font-semibold text-text-secondary">Alleged Wallet Controller</legend>
                                 <div class="space-y-4">
-                                    <div><label class="block text-sm font-medium mb-2 text-text-muted">Principal / Entity Name*</label><input type="text" id="controller-name" class="form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required></div>
+                                    <div>
+                                        <!-- DEFINITIVE FIX: Class updated -->
+                                        <label class="block text-sm font-medium mb-2 submission-label">Principal / Entity Name*</label>
+                                        <input type="text" id="controller-name" class="form-input" placeholder="e.g., John Doe / XYZ Trading LLC" required>
+                                    </div>
                                     <div class="p-3 rounded-lg bg-sky-900/50 border border-sky-500/30 text-xs text-sky-300">
                                         <p><strong>Recommendation:</strong> For expedited review, provide the alleged controller's CIS and POF via secure email to <strong>compliance@gecan.co</strong> after submission.</p>
                                     </div>
                                 </div>
                             </fieldset>
                             
-                            <div><label class="block text-sm font-medium mb-2 text-text-muted">Referring Partner</label><input type="text" class="form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly></div>
+                            <div>
+                                <!-- DEFINITIVE FIX: Class updated -->
+                                <label class="block text-sm font-medium mb-2 submission-label">Referring Partner</label>
+                                <input type="text" class="form-input" value="${referralInfo.partnerName} (${referralInfo.referralId})" readonly>
+                            </div>
                         </div>
 
                         <!-- Footer / Actions -->
