@@ -34,6 +34,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&display=swap" rel="stylesheet">
 
     <style>
+
+/* ========================================================================= */
+/* === SUPREME COMMODITY WORKFLOW AESTHETICS (v5.0) === */
+/* ========================================================================= */
+.pricing-option, .commission-option {
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.pricing-option.selected, .commission-option.selected {
+    background-image: linear-gradient(135deg, var(--primary-azure-t), var(--primary-royal-t));
+    border-color: var(--primary-azure);
+    color: var(--text-diamond);
+}
+.glow-selected {
+    box-shadow: 0 0 25px var(--glow-azure), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.hover-lift-subtle:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-accent);
+}
+        
 /* ========================================================================= */
 /* === PINNACLE GUIDED WORKFLOW & 3D UI ENGINE (v1.0) === */
 /* ========================================================================= */
@@ -714,7 +737,7 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
             }
         };
 
-        const commodityData = {
+const commodityData = {
             specifications: {
                 'EN590-1MT-USD': { uom: 'Metric Ton', spec: '10 PPM Sulphur Gasoil', category: 'Refined Fuel' },
                 'D6-GAL-USD': { uom: 'Gallon', spec: 'Virgin D6 Fuel Oil', category: 'Refined Fuel' },
@@ -730,10 +753,10 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
             },
             unitsOfMeasure: ['Barrel', 'Metric Ton', 'Troy Ounce', 'Kilogram', 'Pound', 'Gallon', 'Liter', 'Cubic Meter', 'Short Ton', 'Long Ton', 'Tonne', 'MMBtu', 'Bushel'].sort(),
             incoterms: [
-                { value: 'EXW', label: 'EXW - Ex Works', port: 'Seller\'s Premises', risk: 'Buyer', cost: 'Minimal' }, { value: 'FCA', label: 'FCA - Free Carrier', port: 'Named Place', risk: 'Buyer', cost: 'Low' },
-                { value: 'FOB', label: 'FOB - Free on Board', port: 'Port of Loading', risk: 'Buyer', cost: 'Low' }, { value: 'CFR', label: 'CFR - Cost & Freight', port: 'Port of Destination', risk: 'Seller', cost: 'Medium' },
-                { value: 'CIF', label: 'CIF - Cost, Insurance & Freight', port: 'Port of Destination', risk: 'Seller', cost: 'High' }, { value: 'DPU', label: 'DPU - Delivered at Place Unloaded', port: 'Named Place', risk: 'Seller', cost: 'Very High' },
-                { value: 'DDP', label: 'DDP - Delivered Duty Paid', port: 'Buyer\'s Premises', risk: 'Seller', cost: 'Maximum' }
+                { value: 'EXW', label: 'EXW - Ex Works' }, { value: 'FCA', label: 'FCA - Free Carrier' },
+                { value: 'FOB', label: 'FOB - Free on Board' }, { value: 'CFR', label: 'CFR - Cost & Freight' },
+                { value: 'CIF', label: 'CIF - Cost, Insurance & Freight' }, { value: 'DPU', label: 'DPU - Delivered at Place Unloaded' },
+                { value: 'DDP', label: 'DDP - Delivered Duty Paid' }
             ],
             countries: ['USA', 'Saudi Arabia', 'Russia', 'Canada', 'China', 'Brazil', 'UAE', 'Nigeria', 'Netherlands', 'Singapore', 'UK', 'Qatar', 'Australia'].sort(),
             ports: ['Shanghai', 'Singapore', 'Hong Kong', 'Rotterdam', 'Los Angeles', 'Houston', 'Jebel Ali', 'Fujairah', 'Ras Tanura'].sort()
@@ -1481,41 +1504,25 @@ updateModelerUI: (isFullRefresh = false) => {
  */
             calculateCommodityTrade: () => {
                 const state = AppState.modeler.commodityTrade;
-                
                 if (!state.assetKey || !state.quantity || state.quantity <= 0) {
                     return { isValid: false, error: 'Invalid commodity or quantity' };
                 }
-                
                 const commodityAsset = Utils.getAssetByKey(state.assetKey);
                 const settlementAsset = Utils.getAssetByKey(state.settlementAssetKey) || { baseAsset: 'USD', price: 1 };
-                
                 if (!commodityAsset) {
                     return { isValid: false, error: 'Commodity asset not found' };
                 }
-                
                 const marketPriceUSD = commodityAsset.price || 0;
                 let netPricePerUnitUSD = 0;
-                
                 switch (state.pricingModel) {
-                    case 'Fixed':
-                        netPricePerUnitUSD = Math.max(0, parseFloat(state.fixedPrice) || 0);
-                        break;
-                    case 'PlattsMinus':
-                        const discount = Math.max(0, parseFloat(state.priceAdjustmentValue) || 0);
-                        netPricePerUnitUSD = Math.max(0, marketPriceUSD - discount);
-                        break;
-                    case 'PlattsPlus':
-                        const premium = Math.max(0, parseFloat(state.priceAdjustmentValue) || 0);
-                        netPricePerUnitUSD = marketPriceUSD + premium;
-                        break;
-                    default:
-                        netPricePerUnitUSD = marketPriceUSD;
+                    case 'Fixed': netPricePerUnitUSD = Math.max(0, parseFloat(state.fixedPrice) || 0); break;
+                    case 'PlattsMinus': netPricePerUnitUSD = Math.max(0, marketPriceUSD - (Math.max(0, parseFloat(state.priceAdjustmentValue) || 0))); break;
+                    case 'PlattsPlus': netPricePerUnitUSD = marketPriceUSD + (Math.max(0, parseFloat(state.priceAdjustmentValue) || 0)); break;
+                    default: netPricePerUnitUSD = marketPriceUSD;
                 }
-                
                 let finalPricePerUnitUSD = 0;
                 let commissionPerUnitUSD = 0;
                 const quantity = parseFloat(state.quantity) || 0;
-                
                 if (state.isCommissionIncluded) {
                     finalPricePerUnitUSD = netPricePerUnitUSD;
                     commissionPerUnitUSD = Math.max(0, parseFloat(state.commissionValue) || 0);
@@ -1525,16 +1532,12 @@ updateModelerUI: (isFullRefresh = false) => {
                     finalPricePerUnitUSD = netPricePerUnitUSD + markupAmount;
                     commissionPerUnitUSD = markupAmount;
                 }
-                
                 const totalFinalValueUSD = finalPricePerUnitUSD * quantity;
                 const totalCommissionUSD = commissionPerUnitUSD * quantity;
-                
                 const conversionRate = settlementAsset.price || 1;
                 const primaryValue = totalFinalValueUSD / conversionRate;
                 const totalCommissionInSettlement = totalCommissionUSD / conversionRate;
-                
                 const currentUnitOfMeasure = commodityData.specifications[state.assetKey]?.uom || state.unitOfMeasure;
-                
                 return {
                     isValid: true,
                     primaryValue: primaryValue,
@@ -1547,7 +1550,7 @@ updateModelerUI: (isFullRefresh = false) => {
                     netPricePerUnitUSD: netPricePerUnitUSD,
                     finalPricePerUnitUSD: finalPricePerUnitUSD,
                     marketPriceUSD: marketPriceUSD,
-                    unitOfMeasure: currentUnitOfMeasure,
+                    unitOfMeasure: currentUnitOfMeasure
                 };
             },
 
@@ -1565,7 +1568,7 @@ resetCommodityTrade: () => {
                     markupValue: 0,
                     settlementAssetKey: 'USD'
                 };
-                Logic.updateModelerUI(true); // Synthesized to call the correct UI refresh function
+                Logic.updateModelerUI(true);
             },
             
 /**
@@ -1627,9 +1630,9 @@ resetCommodityTrade: () => {
                         fromAssetKey: 'BTC-USD', 
                         toAssetKey: 'USDT-USD' 
                     },
-                    commodityTrade: {
+commodityTrade: {
                     assetKey: 'EN590-1MT-USD',
-                    quantity: 1, // As specified
+                    quantity: 1,
                     unitOfMeasure: 'Metric Ton',
                     pricingModel: 'PlattsMinus',
                     priceAdjustmentValue: 0,
@@ -3074,12 +3077,10 @@ const UI = {
  */
             renderCommodityTradePanel: () => {
                 const state = AppState.modeler.commodityTrade;
-                const calculation = Logic.calculateCommodityTrade(); // Synthesized call
+                const calculation = Logic.calculateCommodityTrade();
                 
                 const currentUnitOfMeasure = commodityData.specifications[state.assetKey]?.uom || state.unitOfMeasure;
-                if (state.unitOfMeasure !== currentUnitOfMeasure) {
-                    state.unitOfMeasure = currentUnitOfMeasure;
-                }
+                if (state.unitOfMeasure !== currentUnitOfMeasure) { state.unitOfMeasure = currentUnitOfMeasure; }
                 
                 const commodityOptions = (selectedKey) => AppState.marketData.filter(asset => ['Crude Oil', 'Refined Fuel', 'Precious Metal', 'Commodity', 'Energy'].some(term => asset.type?.includes(term))).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${commodityData.specifications[a.key]?.uom || 'Unit'})</option>`).join('');
                 const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
@@ -3121,10 +3122,9 @@ const UI = {
                 return `
                 <div class="space-y-6">
                     <div class="flex items-center justify-between">
-                         <h2 class="text-xl font-bold text-text-primary flex items-center"></h2>
-                         <button onclick="Logic.resetCommodityTrade()" class="btn-secondary px-3 py-1 text-xs rounded-lg"><i class="fas fa-undo-alt mr-2"></i>Reset Parameters</button>
+                        <h2 class="text-xl font-bold text-text-primary flex items-center"><i class="fas fa-oil-can mr-3 text-primary-azure"></i>Commodity Trade Configuration</h2>
+                        <button onclick="Logic.resetCommodityTrade()" class="btn-secondary px-3 py-1 text-xs rounded-lg flex items-center gap-2"><i class="fas fa-undo-alt"></i>Reset All</button>
                     </div>
-                    <!-- Step 1: Define Commodity & Quantity -->
                     <div class="guided-step-card">
                         <div class="step-header ${isCommodityDefined ? 'completed' : ''}"><div class="step-number"><i class="fas ${isCommodityDefined ? 'fa-check' : 'fa-oil-can'}"></i></div><div><h3 class="step-title">Define Commodity</h3><p class="text-sm text-text-muted">Select product and specify quantity.</p></div></div>
                         <div class="step-content space-y-4">
@@ -3135,7 +3135,6 @@ const UI = {
                             <div><label class="block text-sm font-medium text-text-muted mb-2">Quantity (${currentUnitOfMeasure})</label><input type="number" data-path="commodityTrade.quantity" value="${state.quantity}" min="1" class="form-input text-lg font-bold ${!isCommodityDefined ? 'highlight-focus' : ''}" placeholder="1.0"></div>
                         </div>
                     </div>
-                    <!-- Step 2: Define Net Price -->
                     <div class="guided-step-card">
                         <div class="step-header ${isPriceDefined ? 'completed' : ''}"><div class="step-number"><i class="fas ${isPriceDefined ? 'fa-check' : 'fa-tags'}"></i></div><div><h3 class="step-title">Define Net Price</h3><p class="text-sm text-text-muted">Set pricing model and base price structure.</p></div></div>
                         <div class="step-content space-y-4">
@@ -3143,7 +3142,6 @@ const UI = {
                             ${state.pricingModel === 'Fixed' ? `<div><label class="block text-sm font-medium text-text-muted mb-2">Fixed Price per ${currentUnitOfMeasure}</label><input type="number" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" min="0" step="0.01" class="form-input text-lg font-bold ${!isPriceDefined ? 'highlight-focus' : ''}" placeholder="0.00"></div>` : `<div><label class="block text-sm font-medium text-text-muted mb-2">Price Adjustment (${state.pricingModel === 'PlattsMinus' ? 'Discount' : 'Premium'}) per ${currentUnitOfMeasure}</label><input type="number" data-path="commodityTrade.priceAdjustmentValue" value="${state.priceAdjustmentValue}" min="0" step="0.01" class="form-input text-lg font-bold ${!isPriceDefined ? 'highlight-focus' : ''}" placeholder="0.00"><p class="text-xs text-text-muted mt-2 opacity-75">${state.pricingModel === 'PlattsMinus' ? 'Amount to subtract from market price.' : 'Amount to add to market price.'}</p></div>`}
                         </div>
                     </div>
-                    <!-- Step 3: Configure Commission -->
                     <div class="guided-step-card">
                         <div class="step-header ${isCommissionDefined ? 'completed' : ''}"><div class="step-number"><i class="fas ${isCommissionDefined ? 'fa-check' : 'fa-calculator'}"></i></div><div><h3 class="step-title">Configure Commission</h3><p class="text-sm text-text-muted">Define commission structure and fees.</p></div></div>
                         <div class="step-content space-y-4">
@@ -3151,7 +3149,6 @@ const UI = {
                             ${commissionInputsHTML}
                         </div>
                     </div>
-                    <!-- Step 4: Define Settlement Protocol -->
                     <div class="guided-step-card">
                         <div class="step-header ${isSettlementDefined ? 'completed' : ''}"><div class="step-number"><i class="fas ${isSettlementDefined ? 'fa-check' : 'fa-coins'}"></i></div><div><h3 class="step-title">Define Settlement</h3><p class="text-sm text-text-muted">Select final settlement currency.</p></div></div>
                         <div class="step-content"><label class="block text-sm font-medium text-text-muted mb-2">Settlement Currency</label><select data-path="commodityTrade.settlementAssetKey" class="form-select">${settlementOptions(state.settlementAssetKey)}</select></div>
