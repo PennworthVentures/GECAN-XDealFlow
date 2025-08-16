@@ -1892,7 +1892,9 @@ generateExecutiveSummary: (report) => {
  * event delegation on the main input container to handle all dynamic changes.
  */
             bindInstitutionalModelerEvents: () => {
+                // This initial call is critical to render the panel correctly on first load.
                 Logic.updateModelerUI(true);
+                
                 const inputContainer = document.getElementById('modeler-input-container');
                 if (inputContainer) {
                     
@@ -1927,7 +1929,7 @@ generateExecutiveSummary: (report) => {
                         debouncedStateUpdate(e);
                     });
 
-                    // 'change' events (for selects, radios) should also trigger state updates.
+                    // 'change' events (for selects, radios) should also trigger state updates immediately, not debounced.
                     inputContainer.addEventListener('change', (e) => {
                         if (e.target.matches('[data-path]')) {
                             Logic.handleModelerInputChange(e);
