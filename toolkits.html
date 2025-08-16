@@ -1409,12 +1409,12 @@ handleDealTypeChange: (newDealType) => {
                 if (!path) return;
 
                 // Handle special cases that require unique logic before the main update
+                // --- DEFINITIVE FIX: The function name is now spelled correctly. ---
                 if (path === 'commodityTrade.assetKey') {
-                    Logic.handleCommodM odityChange(value);
+                    Logic.handleCommodityChange(value);
                     return;
                 }
 
-                // --- THE SUPREME, SYNTHESIZED RE-RENDER LOGIC ---
                 // This definitive array is the single source of truth for determining
                 // which state changes are critical enough to require a full UI refresh.
                 const fullRenderPaths = [
