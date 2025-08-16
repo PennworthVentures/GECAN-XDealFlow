@@ -34,6 +34,147 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&display=swap" rel="stylesheet">
 
     <style>
+
+/* ========================================================================= */
+/* === PINNACLE LEGAL SYNTHESIS ENVIRONMENT (v1.0 - MASSIVE UPGRADE) === */
+/* ========================================================================= */
+.synthesis-stage {
+    border: 1px solid var(--border-secondary);
+    border-radius: 1.25rem;
+    transition: all 0.5s ease;
+    overflow: hidden;
+}
+.synthesis-stage-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    background: var(--background-glass);
+    transition: background-color 0.3s ease;
+}
+.synthesis-stage-header:hover {
+    background: var(--background-secondary);
+}
+.synthesis-stage.active .synthesis-stage-header {
+    background-color: var(--background-secondary);
+}
+.stage-number {
+    width: 2.5rem; height: 2.5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--text-diamond);
+    background: var(--background-dark);
+    border: 2px solid var(--border-premium);
+    transition: all 0.4s ease;
+}
+.synthesis-stage.active .stage-number {
+    background: var(--gradient-primary);
+    border-color: var(--primary-azure);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--glow-azure);
+}
+.stage-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-platinum);
+}
+.stage-chevron {
+    margin-left: auto;
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.synthesis-stage.active .stage-chevron {
+    transform: rotate(180deg);
+}
+.synthesis-stage-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.synthesis-stage.active .synthesis-stage-content {
+    grid-template-rows: 1fr;
+}
+.synthesis-stage-content > div {
+    overflow: hidden;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+}
+/* Living Document Preview Styles */
+.living-document-preview {
+    background-color: #fcfcff;
+    color: #1a202c;
+    font-family: 'Garamond', serif;
+    border-radius: 1rem;
+    border: 1px solid var(--border-premium);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.living-document-preview .preview-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+.living-document-preview .preview-header {
+    font-size: 1.2rem; font-weight: bold; color: #1A237E;
+    border-bottom: 2px solid var(--brand-gecan-gold);
+    padding-bottom: 0.5rem; margin-bottom: 1rem;
+}
+.living-document-preview .preview-p {
+    font-size: 0.9rem; line-height: 1.6;
+    text-align: justify; margin-bottom: 1rem;
+}
+.living-document-preview .preview-strong {
+    font-weight: bold; color: #283593;
+}
+.living-document-preview .preview-placeholder {
+    font-style: italic;
+    color: #718096;
+}
+.article-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--background-dark);
+    border: 1px solid var(--border-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.article-checkbox:hover {
+    background-color: var(--background-secondary);
+    border-color: var(--primary-azure);
+}
+.article-checkbox input {
+    appearance: none;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border-premium);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+.article-checkbox input:checked {
+    background-color: var(--primary-azure);
+    border-color: var(--primary-azure);
+}
+.article-checkbox input:checked::after {
+    content: '\f00c'; /* Font Awesome check icon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: white;
+    font-size: 12px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+        
 /* ========================================================================= */
 /* === PINNACLE FIELDSET AESTHETICS (v1.0 - MASSIVE UPGRADE) === */
 /* ========================================================================= */
@@ -1085,7 +1226,23 @@ sblcMonetization: {
                     providerSideFeePercent: 1.0
                 },
                 pricingConfig: { isVisible: false, offerType: 'discount', grossValue: 0, netValue: 0, isValueInPercent: true },
-                legal: { totalCommission: 0, jurisdiction: 'Singapore, Dubai, England, Wales', spaReferenceCode: '', groups: [] }
+legal: { 
+                    totalCommission: 0, 
+                    jurisdiction: 'Singapore, Dubai, England, Wales', 
+                    spaReferenceCode: '', 
+                    groups: [],
+                    // --- NEW INTELLIGENT WORKFLOW STATE ---
+                    agreementType: 'IMFPA',
+                    autoBalance: true,
+                    activeStage: 'Review', // 'Review', 'Configure', 'Allocate'
+                    // New Article Configuration State
+                    articles: {
+                        arbitration: true,
+                        forceMajeure: true,
+                        indemnification: true,
+                        confidentiality: true
+                    }
+                }
             }
         };
 
@@ -2289,14 +2446,25 @@ togglePricingConfig: () => {
 // ========================================================================================
 
 // --- A. SEVERELY OVERHAULED LOGIC ---
-            openImfpaModal: () => {
+openImfpaModal: () => {
                 const modal = document.getElementById('imfpa-modal');
                 if (!modal) return console.error("CRITICAL: IMFPA modal container not found.");
+                
+                // --- DEFINITIVE FIX: Reset the guided workflow to the first stage on open ---
+                AppState.modeler.legal.activeStage = 'Review';
+
                 if (AppState.modeler.legal.agreementType === undefined) AppState.modeler.legal.agreementType = 'IMFPA';
                 if (AppState.modeler.legal.autoBalance === undefined) AppState.modeler.legal.autoBalance = true;
+                
                 modal.innerHTML = UI.renderImfpaModal();
                 Logic.refreshImfpaModalUI();
                 modal.showModal();
+            },
+
+            setActiveSynthesisStage: (stageName) => {
+                const { legal } = AppState.modeler;
+                legal.activeStage = (legal.activeStage === stageName) ? '' : stageName; // Toggle behavior
+                Logic.refreshImfpaModalUI();
             },
             refreshImfpaModalUI: () => {
                 const { legal } = AppState.modeler;
@@ -4274,87 +4442,109 @@ renderYieldGraph: (calc) => {
 },
 
     // --- IMFPA & DOCUMENT EXECUTION SUITE RENDERERS (v6.0 Pinnacle Overhaul) ---
-    renderImfpaModal: () => {
-    const { legal } = AppState.modeler;
-    const isImfpa = legal.agreementType === 'IMFPA';
-    const mainSectionTitle = isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties';
-    const mainSectionIcon = isImfpa ? 'fa-sitemap' : 'fa-users';
+            renderImfpaModal: () => {
+                const { legal } = AppState.modeler;
+                const isImfpa = legal.agreementType === 'IMFPA';
+                const isReadyToSynthesize = Logic.validateImfpaData();
+                const calc = Logic.calculateModel();
 
-    // --- MILITARY-GRADE FINAL VALIDATION CHECK (NEW) ---
-    const isReadyToSynthesize = Logic.validateImfpaData();
-    const synthesizeButtonClass = isReadyToSynthesize 
-        ? 'from-premium-gold to-yellow-600 border-premium-gold hover:shadow-lg hover:shadow-premium-gold-glow' // Ready State (Premium Gold)
-        : 'from-gray-600 to-gray-800 border-gray-600 cursor-not-allowed'; // Incomplete State (Muted Gray)
-    const synthesizeButtonText = isReadyToSynthesize 
-        ? 'Synthesize & Preview Full Document' 
-        : 'Complete All Required Fields';
-
-    return `
-        <div class="dialog-content-wrapper">
-            <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
-                <div class="flex justify-between items-start mb-4 imfpa-header print-hide">
-                    <div>
-                        <h2 class="text-3xl font-bold">Commission & Contract Suite</h2>
-                        <p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p>
-                    </div>
-                    <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
-                </div>
-                <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
-                    <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
-                    <label class="agreement-toggle"><div class="toggle-switch"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}><span class="toggle-slider"></span></div></label>
-                    <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2">
-                    <div class="lg:col-span-3 space-y-6 overflow-y-auto pr-4">
-                        <div class="space-y-6">
-                            <div class="flex justify-between items-center">
-                                <h3 class="imfpa-section-title"><i class="fas ${mainSectionIcon} mr-3"></i>${mainSectionTitle}</h3>
-                                <div class="text-right ${isImfpa ? 'block' : 'hidden'}">
-                                    <p class="text-xs text-premium-text-secondary">Total Pool</p>
-                                    <p id="imfpa-total-commission-pool" class="text-2xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
-                                </div>
-                            </div>
-                            <div id="imfpa-controls" class="flex justify-between items-center">
-                                <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory Party'}</button>
-                                <div class="flex items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}">
-                                    <div class="flex items-center gap-2 text-xs">
-                                        <input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-premium-gold bg-premium-bg-dark border-premium-border focus:ring-premium-gold">
-                                        <label for="auto-balance-toggle">Auto-Balance</label>
-                                    </div>
-                                    <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-4" id="imfpa-groups-container"></div>
+                // This function renders each collapsible stage of the guided workflow.
+                const renderStage = (stageName, number, icon, title, content) => {
+                    const isActive = legal.activeStage === stageName;
+                    return `
+                    <div class="synthesis-stage ${isActive ? 'active' : ''}">
+                        <div class="synthesis-stage-header" onclick="Logic.setActiveSynthesisStage('${stageName}')">
+                            <div class="stage-number"><i class="fas ${icon}"></i></div>
+                            <div><h3 class="stage-title">${title}</h3></div>
+                            <i class="fas fa-chevron-down stage-chevron"></i>
                         </div>
-                        <div class="space-y-6">
-                            <h3 class="imfpa-section-title"><i class="fas fa-gavel mr-3"></i>Legal Framework</h3>
-                            <div class="bg-black/20 p-4 rounded-lg">
-                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Governing Law & Jurisdiction*</label>
-                                <input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales">
-                            </div>
-                            <div class="bg-black/20 p-4 rounded-lg">
-                                <label class="block text-sm font-medium mb-2 text-premium-text-secondary">Cross-Referenced Contract / SPA (Optional)</label>
-                                <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345">
+                        <div class="synthesis-stage-content"><div>${content}</div></div>
+                    </div>`;
+                };
+
+                // --- Content for Stage 1: Review Parameters ---
+                const reviewContent = `
+                    <div class="p-4 rounded-lg bg-background-dark border border-border-color">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-semibold text-text-secondary">Deal Summary</h4>
+                            <button class="text-xs text-sky-400 hover:underline" onclick="document.getElementById('imfpa-modal').close()">Edit Parameters</button>
+                        </div>
+                        <p class="text-sm text-text-platinum mt-2">${calc.dealTitle || 'N/A'}</p>
+                        <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                            <div><p class="text-text-muted">Base Settlement</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.baseValueInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div>
+                            <div><p class="text-text-muted">Net to Buyer</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.finalValueToBuyerInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div>
+                            <div><p class="text-text-muted">Commission Pool</p><p class="font-mono font-semibold text-yellow-400">${Utils.formatNumber(calc.totalCommissionInToAsset || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div>
+                            <div><p class="text-text-muted">Effective Rate</p><p class="font-mono font-semibold">${calc.netValueDescription || 'N/A'}</p></div>
+                        </div>
+                    </div>`;
+
+                // --- Content for Stage 2: Configure Document ---
+                const configureContent = `
+                    <div class="space-y-4">
+                        <div><label class="block text-sm font-medium mb-2 submission-label">Governing Law & Jurisdiction*</label><input value="${legal.jurisdiction}" data-path="legal.jurisdiction" class="form-input" placeholder="e.g., Singapore, Dubai, England, Wales"></div>
+                        <div><label class="block text-sm font-medium mb-2 submission-label">Cross-Referenced Contract / SPA (Optional)</label><input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345"></div>
+                        <div class="pt-2">
+                            <p class="text-sm font-semibold text-text-secondary mb-3">Configure Legal Articles</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.arbitration" ${legal.articles.arbitration ? 'checked':''}><span>Arbitration Clause</span></label>
+                                <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.forceMajeure" ${legal.articles.forceMajeure ? 'checked':''}><span>Force Majeure</span></label>
+                                <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.indemnification" ${legal.articles.indemnification ? 'checked':''}><span>Indemnification</span></label>
+                                <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.confidentiality" ${legal.articles.confidentiality ? 'checked':''}><span>Confidentiality</span></label>
                             </div>
                         </div>
+                    </div>`;
+
+                // --- Content for Stage 3: Allocate Commissions & Parties ---
+                const allocateContent = `
+                    <div class="space-y-4">
+                        <div id="imfpa-controls" class="flex justify-between items-center">
+                            <button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory'}</button>
+                            <div class="text-right ${isImfpa ? 'block' : 'hidden'}">
+                                <p class="text-xs text-premium-text-secondary">Total Pool</p>
+                                <p id="imfpa-total-commission-pool" class="text-xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-end items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}">
+                            <div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" onchange="AppState.modeler.legal.autoBalance = this.checked; Logic.updateImfpaCalculations();" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-sky-500 bg-slate-700 border-slate-600 focus:ring-sky-600"><label for="auto-balance-toggle">Auto-Balance</label></div>
+                            <div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div>
+                        </div>
+                        <div class="space-y-4" id="imfpa-groups-container"></div>
+                    </div>`;
+
+                return `
+                <div class="dialog-content-wrapper">
+                    <div class="p-6 md:p-8 flex-1 flex flex-col overflow-hidden">
+                        <div class="flex justify-between items-start mb-4 imfpa-header flex-shrink-0">
+                            <div><h2 class="text-3xl font-bold">Commission & Contract Suite</h2><p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p></div>
+                            <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
+                        </div>
+                        <div class="mb-6 p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
+                            <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
+                            <label class="agreement-toggle"><div class="toggle-switch"><input type="checkbox" onchange="Logic.toggleAgreementType(this.checked)" ${isImfpa ? 'checked' : ''}><span class="toggle-slider"></span></div></label>
+                            <span class="toggle-label ${isImfpa ? 'active' : 'text-gray-500'}">Full IMFPA</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 flex-1 overflow-y-auto pr-2">
+                            <div class="lg:col-span-3 space-y-4">
+                                ${renderStage('Review', '1', 'fa-search-dollar', 'Review Parameters', reviewContent)}
+                                ${renderStage('Configure', '2', 'fa-file-signature', 'Configure Document', configureContent)}
+                                ${renderStage('Allocate', '3', 'fa-sitemap', 'Commission Allocation & Parties', allocateContent)}
+                            </div>
+                            <div class="lg:col-span-2 h-full flex flex-col">
+                                <h3 class="imfpa-section-title flex-shrink-0 mb-4"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
+                                <div id="contract-live-preview" class="living-document-preview"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-6 border-t border-premium-border mt-auto flex-shrink-0">
+                            <button id="synthesize-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold" ${!isReadyToSynthesize ? 'disabled' : ''}>
+                                <i class="fas fa-file-export mr-2"></i>${isReadyToSynthesize ? 'Synthesize & Execute Document' : 'Complete All Required Fields'}
+                            </button>
+                            <div id="contract-preview-container" class="mt-4 hidden"></div>
+                        </div>
                     </div>
-                    <div class="lg:col-span-2">
-                        <h3 class="imfpa-section-title"><i class="fas fa-eye mr-3"></i>Live Preview</h3>
-                        <div id="contract-live-preview" class="h-full"></div>
-                    </div>
-                </div>
-                
-                <div class="pt-6 border-t border-premium-border mt-auto print-hide">
-                    <button id="synthesize-btn" onclick="Logic.generateContract()" class="btn-primary w-full py-3 font-bold bg-gradient-to-r ${synthesizeButtonClass}" ${!isReadyToSynthesize ? 'disabled' : ''}>
-                        <i class="fas fa-file-signature mr-2"></i>${synthesizeButtonText}
-                    </button>
-                    <div id="contract-preview-container" class="mt-4 hidden"></div>
-                </div>
-            </div>
-        </div>
-    `;
-},
+                </div>`;
+            },
 renderImfpaGroups: () => {
     const { legal } = AppState.modeler;
     const { groups, agreementType } = legal;
