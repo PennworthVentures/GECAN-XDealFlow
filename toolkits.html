@@ -786,6 +786,29 @@ const commodityData = {
                 'East West Bank': 'Non-Standard',
                 'Capital One': 'Non-Standard',
             },
+
+bankRatingDetails: {
+                'Top-Tier': { 
+                    description: 'A prime global bank with highest creditworthiness. Instruments are highly liquid, qualifying for maximum LTV.',
+                    icon: 'fa-check-circle', 
+                    color: 'text-green-400' 
+                },
+                'Standard': { 
+                    description: 'A reputable national or large regional bank. Instruments are generally accepted, subject to standard risk assessment.',
+                    icon: 'fa-minus-circle', 
+                    color: 'text-yellow-400' 
+                },
+                'Non-Standard': { 
+                    description: 'A smaller or less-rated institution. Instruments require enhanced due diligence and typically receive lower LTVs.',
+                    icon: 'fa-exclamation-triangle', 
+                    color: 'text-orange-400' 
+                },
+                'Unrecognized': { 
+                    description: 'This institution is not in our Prime Bank database. A manual risk assessment is mandatory via the Contingency Protocol.',
+                    icon: 'fa-shield-alt', 
+                    color: 'text-red-400' 
+                }
+            },
     
             unitsOfMeasure: ['Barrel', 'Metric Ton', 'Troy Ounce', 'Kilogram', 'Pound', 'Gallon', 'Liter', 'Cubic Meter', 'Short Ton', 'Long Ton', 'Tonne', 'MMBtu', 'Bushel'].sort(),
             incoterms: [
@@ -1408,42 +1431,39 @@ handleDealTypeChange: (newDealType) => {
                 const path = dataset.path;
                 if (!path) return;
 
-                // Handle special cases that require unique logic before the main update
-                // --- DEFINITIVE FIX: The function name is now spelled correctly. ---
-                if (path === 'commodityTrade.assetKey') {
-                    Logic.handleCommodityChange(value);
-                    return;
+                if (path === 'sblcMonetization.bankNameInput') {
+                    // Instantly update state for responsive typing, but defer the heavy UI refresh
+                    try {
+                        const pathKeys = path.split(/[\.\[\]]+/).filter(Boolean);
+                        let targetObject = AppState.modeler;
+                        for (let i = 0; i < pathKeys.length - 1; i++) { targetObject = targetObject[pathKeys[i]]; }
+                        targetObject[pathKeys[pathKeys.length - 1]] = value;
+                    } catch (error) { console.error(`State update failed for path: ${path}`, error); }
+                    Logic.debouncedBankRatingCheck();
+                    return; // Exit here to prevent double-processing
                 }
-
-                // This definitive array is the single source of truth for determining
-                // which state changes are critical enough to require a full UI refresh.
+                
+                // --- THE SUPREME, SYNTHESIZED RE-RENDER LOGIC ---
                 const fullRenderPaths = [
                     'cryptoLoan.userRole',
-                    'sblcMonetization.bankNameInput',
                     'sblcMonetization.isBankRatingManual',
+                    'sblcMonetization.manualRatingOverride', // This was the missing, critical path
                     'sblcMonetization.userRole',
                     'commodityTrade.pricingModel',
-                    'commodityTrade.isCommissionIncluded'
+                    'commodityTrade.isCommissionIncluded',
+                    'commodityTrade.assetKey'
                 ];
                 const requiresFullRender = fullRenderPaths.includes(path);
 
                 try {
-                    // Universal state update logic (preserved for stability)
                     const pathKeys = path.split(/[\.\[\]]+/).filter(Boolean);
                     let targetObject = AppState.modeler;
-                    for (let i = 0; i < pathKeys.length - 1; i++) {
-                        targetObject = targetObject[pathKeys[i]];
-                    }
+                    for (let i = 0; i < pathKeys.length - 1; i++) { targetObject = targetObject[pathKeys[i]]; }
                     const finalKey = pathKeys[pathKeys.length - 1];
-                    let processedValue = (type === 'checkbox') ? checked 
-                                       : (typeof targetObject[finalKey] === 'boolean') ? (value === 'true') 
-                                       : (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') ? parseFloat(String(value).replace(/,/g, '')) || 0 
-                                       : value;
+                    let processedValue = (type === 'checkbox') ? checked : (typeof targetObject[finalKey] === 'boolean') ? (value === 'true') : (type === 'number' || type === 'range' || typeof targetObject[finalKey] === 'number') ? parseFloat(String(value).replace(/,/g, '')) || 0 : value;
                     targetObject[finalKey] = processedValue;
                     
-                    // The intelligent engine call: performs a full or partial update as needed.
                     Logic.updateModelerUI(requiresFullRender);
-
                 } catch (error) {
                     console.error(`Failed to update modeler state for path: ${path}`, error);
                     Utils.showNotification("An internal error occurred while updating the model.", 'error');
@@ -1769,6 +1789,11 @@ resetCommodityTrade: () => {
                     effectiveBankRating
                 };
             },
+
+            debouncedBankRatingCheck: Utils.debounce(() => {
+                // This function's only job is to force a full, intelligent UI re-render.
+                Logic.updateModelerUI(true);
+            }, 500), // 500ms professional-grade delay
 
 /**
  * Resets the entire Institutional Modeler state to its default configuration.
@@ -3416,7 +3441,7 @@ renderSBLCMonetizationPanel: () => {
                 const autoDetectedRating = commodityData.bankRatings[detectedBankKey] || 'Unrecognized';
                 const effectiveBankRating = state.isBankRatingManual ? state.manualRatingOverride : autoDetectedRating;
                 
-                const ratingColors = { 'Top-Tier': 'text-green-400', 'Standard': 'text-yellow-400', 'Non-Standard': 'text-orange-400', 'Unrecognized': 'text-red-400' };
+                const ratingDetails = commodityData.bankRatingDetails[effectiveBankRating] || commodityData.bankRatingDetails['Unrecognized'];
                 
                 const ltvModifiers = { 'Top-Tier': 1.0, 'Standard': 0.9, 'Non-Standard': 0.8, 'Unrecognized': 0.7 };
                 const maxLTV = Math.floor(90 * (ltvModifiers[effectiveBankRating] || 0.7));
@@ -3430,13 +3455,13 @@ renderSBLCMonetizationPanel: () => {
                         </div>
                     </div>` : '';
                 
-                const contingencyProtocolHTML = autoDetectedRating === 'Unrecognized' ? `
+                const contingencyProtocolHTML = autoDetectedRating === 'Unrecognized' && !state.isBankRatingManual ? `
                     <div class="mt-3 p-4 rounded-lg bg-red-900/30 border border-red-500/50 animate-fade-in-up">
                         <div class="flex items-start gap-3">
                             <i class="fas fa-shield-alt text-red-400 text-xl mt-1"></i>
                             <div>
                                 <h4 class="font-semibold text-red-300">Contingency Protocol Activated</h4>
-                                <p class="text-xs text-red-300/80 mt-1">The specified bank is not in our recognized Prime Bank database. Enhanced due diligence is required. To proceed with a preliminary model, activate the manual override and select a rating that best reflects the institution's perceived standing.</p>
+                                <p class="text-xs text-red-300/80 mt-1">${commodityData.bankRatingDetails['Unrecognized'].description}</p>
                                 <label class="flex items-center gap-2 text-xs text-sky-400 cursor-pointer mt-3"><input type="checkbox" data-path="sblcMonetization.isBankRatingManual" ${state.isBankRatingManual ? 'checked' : ''} class="w-4 h-4 rounded text-sky-500 bg-slate-700 border-slate-600 focus:ring-sky-600">Activate Manual Rating Override</label>
                             </div>
                         </div>
@@ -3452,11 +3477,17 @@ renderSBLCMonetizationPanel: () => {
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-text-muted mb-2">Issuing Bank Name</label>
-                            <input type="text" list="bank-names" data-path="sblcMonetization.bankNameInput" value="${state.bankNameInput}" class="form-input" placeholder="e.g., JPMorgan Chase & Co.">
+                            <input type="text" list="bank-names" data-path="sblcMonetization.bankNameInput" value="${state.bankNameInput}" class="form-input" placeholder="e.g., HSBC Holdings">
                             <datalist id="bank-names">${Object.keys(commodityData.bankRatings).map(b => `<option value="${b}"></option>`).join('')}</datalist>
-                            <div class="text-xs text-text-muted mt-2 px-1">Detected Rating: <strong class="${ratingColors[autoDetectedRating]}">${autoDetectedRating}</strong></div>
+                            <div class="mt-3 p-3 rounded-lg bg-background-light flex items-start gap-3">
+                                <i class="fas ${ratingDetails.icon} ${ratingDetails.color} text-xl mt-1"></i>
+                                <div>
+                                    <p class="text-xs text-text-muted">Detected Rating: <strong class="${ratingDetails.color} font-semibold">${effectiveBankRating}</strong></p>
+                                    <p class="text-xs text-text-muted mt-1">${ratingDetails.description}</p>
+                                </div>
+                            </div>
                             ${contingencyProtocolHTML}
-                            ${state.isBankRatingManual ? `<div class="mt-2 animate-fade-in-up"><label class="block text-sm font-medium text-text-muted mb-2">Manual Rating Selection</label><select data-path="sblcMonetization.manualRatingOverride" class="form-select">${['Top-Tier', 'Standard', 'Non-Standard'].map(r => `<option value="${r}" ${state.manualRatingOverride === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>` : ''}
+                            ${state.isBankRatingManual ? `<div class="mt-2 animate-fade-in-up"><label class="block text-sm font-medium text-text-muted mb-2">Manual Rating Selection</label><select data-path="sblcMonetization.manualRatingOverride" class="form-select">${Object.keys(ltvModifiers).filter(r => r !== 'Unrecognized').map(r => `<option value="${r}" ${state.manualRatingOverride === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>` : ''}
                         </div>
                     </div>
                 </div>
@@ -3481,7 +3512,7 @@ renderSBLCMonetizationPanel: () => {
                             <input id="sblc-ltv-slider" type="range" data-path="sblcMonetization.ltv" min="10" max="${maxLTV}" value="${Math.min(state.ltv, maxLTV)}" class="w-full h-2 bg-background-secondary rounded-lg appearance-none cursor-pointer">
                             <div class="relative w-28"><input id="sblc-ltv-input" type="number" data-path="sblcMonetization.ltv" max="${maxLTV}" value="${Math.min(state.ltv, maxLTV)}" class="form-input text-lg text-center font-bold pr-6"><span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">%</span></div>
                         </div>
-                        <p class="text-xs text-text-muted mt-2 text-center">LTV is capped based on the Issuing Bank's perceived risk profile. Max for a <span class="font-bold ${ratingColors[effectiveBankRating]}">${effectiveBankRating}</span> bank is approx. <span class="font-bold text-sky-400">${maxLTV}%</span>.</p>
+                        <p class="text-xs text-text-muted mt-2 text-center">LTV is capped based on the Issuing Bank's risk profile. Max for a <span class="font-bold ${ratingDetails.color}">${effectiveBankRating}</span> institution is approx. <span class="font-bold text-sky-400">${maxLTV}%</span>.</p>
                     </div>
                 </div>`;
             },
