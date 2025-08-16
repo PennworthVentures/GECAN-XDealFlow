@@ -2462,7 +2462,7 @@ togglePricingConfig: () => {
 // ========================================================================================
 
 // --- A. SEVERELY OVERHAULED LOGIC ---
-openImfpaModal: () => {
+            openImfpaModal: () => {
                 const modal = document.getElementById('imfpa-modal');
                 if (!modal) return console.error("CRITICAL: IMFPA modal container not found.");
                 
@@ -2472,35 +2472,57 @@ openImfpaModal: () => {
                 if (AppState.modeler.legal.agreementType === undefined) AppState.modeler.legal.agreementType = 'IMFPA';
                 if (AppState.modeler.legal.autoBalance === undefined) AppState.modeler.legal.autoBalance = true;
                 
+                // --- PINNACLE SCROLL LOCK PROTOCOL (ENGAGE) ---
+                document.body.style.overflow = 'hidden';
+
                 modal.innerHTML = UI.renderImfpaModal();
-                Logic.refreshImfpaModalUI();
+                Logic.refreshImfpaModalUI(); // Use the powerful refresh to ensure everything is perfect on open
                 modal.showModal();
             },
 
             setActiveSynthesisStage: (stageName) => {
                 const { legal } = AppState.modeler;
-                legal.activeStage = (legal.activeStage === stageName) ? '' : stageName; // Toggle behavior
+                // Toggle behavior: Clicking an active stage closes it.
+                legal.activeStage = (legal.activeStage === stageName) ? '' : stageName;
+                // CRITICAL FIX: Call the new, powerful refresh engine.
                 Logic.refreshImfpaModalUI();
             },
             refreshImfpaModalUI: () => {
-                const { legal } = AppState.modeler;
-                const groupsContainer = document.getElementById('imfpa-groups-container');
-                const legalPartiesContainer = document.getElementById('imfpa-legal-parties');
-                if (groupsContainer) groupsContainer.innerHTML = UI.renderImfpaGroups();
-                if (legalPartiesContainer) {
-                    const allParties = legal.groups.flatMap(g => g.parties);
-                    legalPartiesContainer.innerHTML = allParties.length > 0 ? allParties.map(p => `<div><i class="fas fa-user-check text-premium-gold mr-2"></i>${p.legalName || 'Unnamed Party'}</div>`).join('') : '<p class="text-xs text-premium-text-secondary">No signatory parties defined.</p>';
+                const modal = document.getElementById('imfpa-modal');
+                if (!modal || !modal.hasAttribute('open')) return; // Safeguard
+
+                // 1. Preserve critical user input focus before re-render.
+                const activeElement = document.activeElement;
+                const activeElementPath = activeElement?.dataset.path;
+                const selectionStart = activeElement?.selectionStart;
+                const selectionEnd = activeElement?.selectionEnd;
+
+                // 2. Perform the full, unabridged re-render.
+                modal.innerHTML = UI.renderImfpaModal();
+                
+                // 3. Intelligently restore focus and cursor position after re-render.
+                if (activeElementPath) {
+                    const newActiveElement = modal.querySelector(`[data-path="${activeElementPath}"]`);
+                    if (newActiveElement) {
+                        newActiveElement.focus();
+                        if (typeof selectionStart === 'number' && typeof selectionEnd === 'number') {
+                            newActiveElement.setSelectionRange(selectionStart, selectionEnd);
+                        }
+                    }
                 }
-                const modalContent = document.getElementById('imfpa-modal');
-                if (modalContent) {
-                    modalContent.removeEventListener('input', Logic.handleModelerInputChangeInModal);
-                    modalContent.removeEventListener('change', Logic.handleModelerInputChangeInModal);
-                    modalContent.addEventListener('input', Logic.handleModelerInputChangeInModal);
-                    modalContent.addEventListener('change', Logic.handleModelerInputChangeInModal);
-                }
+
+                // 4. Ensure all subsequent logic (calculations, validation) is re-run.
                 Logic.updateImfpaCalculations();
                 Logic.updateContractPreview();
+                Logic.updateSynthesizeButtonState();
             },
+
+            closeImfpaModal: () => {
+                const modal = document.getElementById('imfpa-modal');
+                if (modal) modal.close();
+                document.body.style.overflow = ''; // Restore scrolling
+            },
+            
             handleModelerInputChangeInModal: (e) => {
                 Logic.handleModelerInputChange(e);
                 Logic.updateImfpaCalculations();
@@ -4483,7 +4505,7 @@ renderImfpaModal: () => {
                     <div class="p-4 rounded-lg bg-background-dark border border-border-color">
                         <div class="flex justify-between items-center">
                             <h4 class="font-semibold text-text-secondary">Deal Summary</h4>
-                            <button class="text-xs text-sky-400 hover:underline" onclick="document.getElementById('imfpa-modal').close()">Edit Parameters</button>
+                            <button class="text-xs text-sky-400 hover:underline" onclick="Logic.closeImfpaModal()">Edit Parameters</button>
                         </div>
                         <p class="text-sm text-text-platinum mt-2">${calc.dealTitle || 'N/A'}</p>
                         <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
@@ -4531,12 +4553,11 @@ renderImfpaModal: () => {
                 <div class="dialog-content-wrapper">
                     <!-- ========================================================= -->
                     <!-- === 1. PINNACLE MODAL HEADER (LOCKED) === -->
-                    <!-- flex-shrink: 0 prevents this section from shrinking. -->
                     <!-- ========================================================= -->
                     <div class="p-6 md:p-8 border-b border-premium-border flex-shrink-0">
                         <div class="flex justify-between items-start mb-4 imfpa-header">
                             <div><h2 class="text-3xl font-bold">Commission & Contract Suite</h2><p class="text-premium-text-secondary">Synthesize Legally Binding Agreements with Supreme Intelligence.</p></div>
-                            <button onclick="document.getElementById('imfpa-modal').close()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
+                            <button onclick="Logic.closeImfpaModal()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
                         </div>
                         <div class="p-4 rounded-lg bg-black/20 flex items-center justify-center gap-6">
                             <span class="toggle-label ${!isImfpa ? 'active' : 'text-gray-500'}">NCNDA Only</span>
@@ -4547,9 +4568,6 @@ renderImfpaModal: () => {
                     
                     <!-- ========================================================= -->
                     <!-- === 2. PINNACLE MODAL BODY (SCROLLABLE) === -->
-                    <!-- CRITICAL UPGRADE: This wrapper is now the scroll container. -->
-                    <!-- flex-1 allows it to take all available space. -->
-                    <!-- overflow-y-auto makes it scroll if content exceeds space. -->
                     <!-- ========================================================= -->
                     <div class="flex-1 overflow-y-auto p-6 md:p-8">
                         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -4567,7 +4585,6 @@ renderImfpaModal: () => {
 
                     <!-- ========================================================= -->
                     <!-- === 3. PINNACLE MODAL FOOTER (LOCKED) === -->
-                    <!-- flex-shrink: 0 prevents this section from shrinking. -->
                     <!-- ========================================================= -->
                     <div class="p-6 md:p-8 border-t border-premium-border flex-shrink-0 bg-[var(--background-dark)]/50">
                         <button id="synthesize-btn" class="btn-primary w-full py-3 font-bold transition-all duration-300">
