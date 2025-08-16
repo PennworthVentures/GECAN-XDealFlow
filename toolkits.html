@@ -3010,7 +3010,7 @@ togglePricingConfig: () => {
              * styling, and the required detailed table-based outputs. This function is perfectly integral to 
              * the toolkits.html file structure and executes entirely within the browser as instructed.
              */
-            generateContract: () => {
+generateContract: () => {
                 // --- 1. PRE-SYNTHESIS VALIDATION & RESOURCE CONFIRMATION ---
                 const { legal } = AppState.modeler;
                 const calc = Logic.calculateModel();
@@ -3029,255 +3029,172 @@ togglePricingConfig: () => {
                     return;
                 }
             
-                // --- 2. DYNAMIC LEGAL CLAUSE & METADATA SYNTHESIS ---
-                const agreementReference = `GECAN-IMFPA-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+                // --- 2. DYNAMIC METADATA & PREAMBLE SYNTHESIS ---
+                const isImfpa = legal.agreementType === 'IMFPA';
+                const documentTitle = isImfpa ? "Irrevocable Master Fee Protection & Non-Circumvention Non-Disclosure Agreement (IMFPA-NCNDA)" : "Non-Circumvention, Non-Disclosure Agreement (NCNDA)";
+                const agreementReference = legal.spaReferenceCode && legal.spaReferenceCode.trim() !== '' ? legal.spaReferenceCode : `GECAN-${legal.agreementType}-${Date.now()}`;
                 const effectiveDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 const generatedDateTime = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
-                
-                // Generates elevated, transaction-specific legal language for the preamble.
-                let recitalsText = '';
-                switch(AppState.modeler.activeDealType) {
-                    case 'AssetSwap':
-                        recitalsText = `WHEREAS, the Contracting Parties have entered into preliminary negotiations concerning a sophisticated digital and/or physical asset exchange transaction contemplating the bilateral swap of approximately ${Utils.formatNumber(AppState.modeler.assetSwap.amount)} units of ${calc.fromAsset.baseAsset} in consideration for equivalent value in ${calc.toAsset.baseAsset}, subject to market valuations and regulatory compliance;`;
-                        break;
-                    case 'CommodityTrade':
-                        const ct = AppState.modeler.commodityTrade;
-                        recitalsText = `WHEREAS, the Contracting Parties are engaged in commercial negotiations for the procurement, sale, and delivery of physical commodities, specifically ${Utils.formatNumber(ct.quantity)} ${ct.unitOfMeasure} of premium-grade ${Utils.getAssetByKey(ct.assetKey).baseAsset}, in accordance with international trade conventions and applicable commodity exchange regulations;`;
-                        break;
-                    case 'CryptoLoan':
-                        const cl = AppState.modeler.cryptoLoan;
-                        recitalsText = `WHEREAS, the Contracting Parties seek to establish a sophisticated credit facility secured by digital asset collateral, encompassing a principal loan amount of ${Utils.formatPrice(calc.loanPrincipal, cl.loanCurrency)} against pledged collateral consisting of ${Utils.formatNumber(cl.collateralAmount)} units of ${Utils.getAssetByKey(cl.collateralAssetKey).baseAsset}, subject to regulatory compliance and risk management protocols;`;
-                        break;
-                    case 'SBLCMonetization':
-                        const sblc = AppState.modeler.sblcMonetization;
-                        recitalsText = `WHEREAS, the Contracting Parties are collaborating on the monetization and financial optimization of a Standby Letter of Credit (SBLC) instrument bearing a face value of ${Utils.formatPrice(sblc.faceValue)}, issued by a prime banking institution and compliant with ICC UCP 600 standards;`;
-                        break;
-                    default:
-                        recitalsText = `WHEREAS, the Contracting Parties have established a framework for cooperation in connection with a substantial international financial transaction of significant commercial value and strategic importance;`;
-                }
-            
-                // --- 3. SEVERELY UPGRADED FEE DISTRIBUTION SCHEDULE SYNTHESIS (PREMIUM TABLE FORMAT) ---
-                const feeClauses = legal.groups.map((g) => {
-                    const groupPayout = legal.totalCommission * (g.percentage / 100);
-            
-                    const partiesRows = g.parties.map((p) => {
-                        const partyValue = groupPayout * (p.percentage / 100);
-                        const settlementDetailsText = p.payment.details || 'To be furnished through separate, encrypted KYC/KYB documentation exchange pursuant to regulatory requirements';
-            
+
+                // --- 3. SUPREME DYNAMIC CLAUSE GENERATION ENGINE ---
+                const ClauseEngine = {
+                    getRecitals: () => {
+                        let transactionPreamble = '';
+                        switch(AppState.modeler.activeDealType) {
+                            case 'AssetSwap': transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving digital assets (specifically a contemplated exchange of approximately <strong>${Utils.formatNumber(AppState.modeler.assetSwap.amount)} ${calc.fromAsset.baseAsset}</strong> for <strong>${calc.toAsset.baseAsset}</strong>), precious metals and stones, energy products, financial instruments, and any other high-value commodities or related investment structures.`; break;
+                            case 'CommodityTrade': const ct = AppState.modeler.commodityTrade; transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving physical commodities (specifically a contemplated trade of <strong>${Utils.formatNumber(ct.quantity)} ${ct.unitOfMeasure} of ${Utils.getAssetByKey(ct.assetKey).baseAsset}</strong>), energy products, financial instruments, and any other high-value commodities or related investment structures.`; break;
+                            default: transactionPreamble = `The Alliance intends to collaboratively source, develop, structure, and execute a portfolio of high-value commercial and financial transactions ("Prospective Engagements"). The scope of these Prospective Engagements is intentionally broad and shall encompass, without limitation, transactions involving digital assets (including Bitcoin and Tether), precious metals and stones, energy products (crude oil and its derivatives), financial instruments, and any other high-value commodities or related investment structures.`;
+                        }
                         return `
-                        <tr>
-                            <td>
-                                <div class="beneficiary-name">${p.legalName || '[LEGAL ENTITY NAME REQUIRED]'}</div>
-                                <div class="beneficiary-role">${p.role || '[ROLE NOT DESIGNATED]'}</div>
-                            </td>
-                            <td>
-                                <div class="allocation-value">${p.percentage}%</div>
-                                <div class="text-muted">${Utils.formatPrice(partyValue, 'USD')}</div>
-                            </td>
-                            <td>
-                                <div class="settlement-method">${p.payment.method?.toUpperCase() || '[METHOD]'} (${p.payment.currency || 'N/A'})</div>
-                                <div class="settlement-details">${settlementDetailsText}</div>
-                            </td>
-                        </tr>`;
-                    }).join('');
-            
-                    const tableBody = g.parties.length > 0
-                        ? partiesRows
-                        : `<tr class="no-parties-row"><td colspan="3">(No designated beneficiaries specified for this distribution group)</td></tr>`;
-            
-                    return `
-                    <div class="fee-group-container">
-                        <div class="fee-group-header">
-                            <span class="fee-group-header-title">Distribution Group: "${g.name.toUpperCase()}"</span>
-                            <span class="fee-group-header-value">${g.percentage}% (${Utils.formatPrice(groupPayout, 'USD')})</span>
-                        </div>
-                        <table class="fee-distribution-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40%;">Beneficiary & Role</th>
-                                    <th style="width: 20%;">Allocation</th>
-                                    <th style="width: 40%;">Remittance Instructions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${tableBody}
-                            </tbody>
-                        </table>
+                            <h2 class="p-h2">PREAMBLE & RECITALS</h2>
+                            <p class="p-text"><strong>A. Formation of Strategic Alliance:</strong> The Parties hereto are sophisticated, independent international consultants and professional facilitators. They enter this Agreement to form a strategic alliance (the "Alliance"), for the purpose of synergizing their distinct and valuable expertise, proprietary contacts, intellectual property, and professional resources.</p>
+                            <p class="p-text"><strong>B. Contemplated Engagements:</strong> ${transactionPreamble}</p>
+                            <p class="p-text"><strong>C. Imperative of Mutual Disclosure:</strong> The Parties acknowledge that the successful prosecution of any Prospective Engagement is fundamentally contingent upon the mutual, good-faith exchange of highly sensitive, proprietary, and valuable Confidential Information (as hereinafter defined). The Parties recognize that such disclosure is an absolute prerequisite for the rigorous evaluation, due diligence, and ultimate execution of any such Engagement.</p>
+                            <p class="p-text"><strong>D. Commitment to Absolute Protection and International Best Practices:</strong> This Agreement is executed to establish an unequivocal and legally enforceable framework for the absolute protection of the Parties' respective interests, commercial roles, proprietary information, and strategic introductions. It is designed with the express intent to proscribe any form of circumvention, unauthorized disclosure, or any other act that would unjustly deprive a contributing Party of its rightful participation and economic benefit. The Parties covenant to conduct all dealings in accordance with the highest standards of international commercial practice and ethical conduct, as embodied by the principles of the International Chamber of Commerce (ICC), with particular deference to Publication No. 769.</p>
+                            <p class="p-text"><strong>NOW, THEREFORE,</strong> in consideration of the mutual covenants, representations, and undertakings contained herein, the legal sufficiency of which is hereby irrevocably acknowledged and affirmed, the Parties agree as follows:</p>`;
+                    },
+                    getDefinitions: () => `
+                        <h2 class="p-h2">ARTICLE 1: DEFINITIONS</h2>
+                        <p class="p-text">For the purposes of this Agreement, the following terms shall have the meanings ascribed to them below:</p>
+                        <p class="p-text"><strong>1.1 “Affiliate”</strong> shall mean, with respect to any Party, any other person or legal entity that, directly or indirectly, controls, is controlled by, or is under common control with that Party.</p>
+                        <p class="p-text"><strong>1.2 “Confidential Information”</strong> shall mean any and all non-public, proprietary, and sensitive data, in any form whatsoever, disclosed by a Disclosing Party to a Receiving Party. This includes, without limitation: (a) The identity and contact information of any Introduced Party; (b) Specific details of any financial instrument, program, or transaction; (c) All compliance information such as CIS, KYC, POF/POA; (d) All procedural information, fee agreements, and contractual templates; and (e) The existence and terms of this Agreement itself.</p>
+                        <p class="p-text"><strong>1.3 “Introduced Party”</strong> shall mean any individual, corporation, trust, or other legal entity (and its principals and Affiliates) whose identity is disclosed by one Party to another for the purpose of advancing a Prospective Engagement.</p>
+                        <p class="p-text"><strong>1.4 “Prospective Engagement”</strong> Shall mean any transaction, project, or business opportunity that arises, directly or indirectly, from the collaborative efforts or shared Confidential Information under this Agreement, including any renewals, extensions, or derivative opportunities.</p>
+                        <p class="p-text"><strong>1.5 “Commission”</strong> Shall mean any and all forms of remuneration, including fees or profit-sharing, due to the Parties for their contribution to a successful Prospective Engagement, the specifics of which shall be memorialized in a transaction-specific Irrevocable Master Fee Protection Agreement (IMFPA).</p>`,
+                    getCovenantOfNonCircumvention: () => legal.articles.covenantOfNonCircumvention ? `
+                        <h2 class="p-h2">ARTICLE 2: COVENANT OF NON-CIRCUMVENTION</h2>
+                        <p class="p-text"><strong>2.1. Absolute Prohibition.</strong> Each Party hereby irrevocably covenants for itself and its controlled affiliates that it shall not, directly or indirectly, circumvent, bypass, or otherwise interfere with the established relationship of any other Party with an Introduced Party. The Parties are strictly prohibited from initiating, negotiating, or consummating any Prospective Engagement with an Introduced Party without the express, prior, and documented written consent of the original introducing Party.</p>
+                        <p class="p-text"><strong>2.2. Perpetuity of Introduction.</strong> For the purposes of this Agreement, an introduction, once made, is deemed to be the permanent and proprietary asset of the introducing Party. Any attempt to engage with an Introduced Party through alternative channels to exclude a Party from its rightful participation and Commission shall constitute a material breach of this Agreement.</p>` : '',
+                    getCovenantOfNonDisclosure: () => legal.articles.covenantOfNonDisclosure ? `
+                        <h2 class="p-h2">ARTICLE 3: COVENANT OF NON-DISCLOSURE</h2>
+                        <p class="p-text"><strong>3.1. Fiduciary Duty of Confidentiality.</strong> Each Party, as a Receiving Party, shall hold all Confidential Information in the strictest fiduciary confidence and shall use such information exclusively for the permitted purpose of evaluating and executing a mutually agreed Prospective Engagement. No other use is permitted without the express, prior written authorization of the Disclosing Party.</p>
+                        <p class="p-text"><strong>3.2. Standard of Care.</strong> Each Party shall safeguard and protect the Confidential Information using a degree of care that is no less than the highest standard of care it applies to its own most sensitive commercial trade secrets, but in no event less than a reasonable standard of care.</p>` : '',
+                    getDurationAndSurvival: () => legal.articles.durationAndSurvival ? `
+                        <h2 class="p-h2">ARTICLE 4: DURATION AND SURVIVAL</h2>
+                        <p class="p-text"><strong>4.1. Term.</strong> This Agreement shall commence on the Effective Date and shall remain in full force and effect for an initial term of five (5) years.</p>
+                        <p class="p-text"><strong>4.2. Survival of Obligations.</strong> Notwithstanding the expiration of the Term, the covenants of Non-Circumvention and Non-Disclosure, along with the provisions concerning Breach, Remedies, and Governing Law, shall survive in perpetuity.</p>` : '',
+                    getBreachAndRemedies: () => legal.articles.breachAndRemedies ? `
+                        <h2 class="p-h2">ARTICLE 5: BREACH, REMEDIES, AND INDEMNIFICATION</h2>
+                        <p class="p-text"><strong>5.1. Acknowledgement of Irreparable Harm.</strong> The Parties expressly acknowledge that any breach of the core covenants herein will cause immediate, severe, and irreparable harm, and that monetary damages alone would be an inadequate remedy.</p>
+                        <p class="p-text"><strong>5.2. Entitlement to Comprehensive Remedies.</strong> In the event of a breach, the non-breaching Party(ies) shall be entitled to seek any and all available legal and equitable remedies, including but not limited to: (a) Immediate injunctive relief; (b) An amount equal to the full Commission that would have been earned from the circumvented engagement; (c) A full disgorgement of all profits realized by the breaching Party from the breach; and (d) The unconditional recovery of all legal fees and costs incurred in the enforcement of its rights.</p>
+                        ${legal.articles.indemnification ? `<p class="p-text"><strong>5.3. Indemnification.</strong> Each Party hereby agrees to fully indemnify, defend, and hold harmless the other Parties from and against any and all losses, claims, and liabilities arising out of or resulting from its own gross negligence, willful misconduct, or material breach of any provision of this Agreement.</p>` : ''}` : '',
+                    getDisputeResolution: () => legal.articles.disputeResolution ? `
+                        <h2 class="p-h2">ARTICLE 6: GOVERNING LAW AND JURISDICTION</h2>
+                        <p class="p-text"><strong>6.1. Governing Law.</strong> This Agreement shall be governed by, and construed in accordance with, the substantive laws of <strong>${legal.jurisdiction || '[JURISDICTION TO BE SPECIFIED]'}</strong>, without regard to its conflict of laws principles.</p>
+                        <p class="p-text"><strong>6.2. Dispute Resolution.</strong> Any dispute, controversy, or claim arising out of or in connection with this Agreement shall be referred to and finally resolved by binding arbitration administered by the Singapore International Arbitration Centre (SIAC) in accordance with its rules. The seat of the arbitration shall be Singapore. The language of the arbitration shall be English.</p>
+                        <p class="p-text"><strong>6.3. Global Enforcement of Arbitral Award.</strong> The Parties agree that any arbitral award obtained hereunder shall be final and binding and may be enforced in any court of competent jurisdiction worldwide.</p>` : '',
+                    getGeneralProvisions: () => legal.articles.generalProvisions ? `
+                        <h2 class="p-h2">ARTICLE 7: GENERAL PROVISIONS</h2>
+                        <p class="p-text"><strong>7.1. Entire Agreement.</strong> This Agreement constitutes the entire and exclusive understanding between the Parties and supersedes all prior agreements.</p>
+                        <p class="p-text"><strong>7.2. Independent Contractor Status.</strong> The Parties are and shall remain independent contractors. Nothing herein shall be construed to create a partnership, joint venture, or agency relationship.</p>
+                        <p class="p-text"><strong>7.3. Counterparts and Electronic Signatures.</strong> This Agreement may be executed in counterparts. The Parties agree that signatures transmitted electronically shall be deemed as valid and legally binding as original handwritten signatures.</p>` : '',
+                    getForceMajeure: () => legal.articles.forceMajeure ? `
+                        <h2 class="p-h2">ARTICLE 8: FORCE MAJEURE</h2>
+                        <p class="p-text">No Party shall be held liable for any failure or delay in the performance of its obligations under this Agreement if such failure or delay is due to any cause beyond its reasonable control, including but not limited to acts of God, war, terrorism, civil unrest, or governmental action, provided that the affected Party gives prompt written notice to the other Parties and uses commercially reasonable efforts to resume performance.</p>` : ''
+                };
+
+                // --- 4. IMFPA-SPECIFIC ANNEX GENERATION ---
+                const imfpaAnnex = isImfpa ? `
+                    <div class="p-annex-start">
+                        <h2 class="p-h2">ANNEX A: IRREVOCABLE MASTER FEE PROTECTION AGREEMENT (IMFPA)</h2>
+                        <p class="p-text">This Annex forms an integral, non-severable, and legally binding component of the foregoing Agreement.</p>
+                        <p class="p-text"><strong>C.1: UNCONDITIONAL & IRREVOCABLE PAYMENT OBLIGATION:</strong> The designated Payor makes an irrevocable and absolute undertaking to pay the full Aggregate Intermediary Commission for each and every successfully settled transaction under the main Agreement. This remittance shall be executed concurrently with the Payor's receipt of settlement, without delay, deduction, fee, or set-off of any nature whatsoever.</p>
+                        <p class="p-text"><strong>C.2: COMMISSION ALLOCATION & DISTRIBUTION LEDGER:</strong> The Aggregate Commission of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> generated from the Prospective Engagement shall be distributed as follows:</p>
+                        ${legal.groups.map(g => {
+                            const groupPayout = legal.totalCommission * ((parseFloat(g.percentage) || 0) / 100);
+                            return `
+                            <div class="fee-group-container">
+                                <div class="fee-group-header">
+                                    <span class="fee-group-header-title">Distribution Group: "${g.name.toUpperCase()}"</span>
+                                    <span class="fee-group-header-value">${g.percentage.toFixed(2)}% (${Utils.formatPrice(groupPayout)})</span>
+                                </div>
+                                <table class="fee-distribution-table">
+                                    <thead><tr><th style="width: 40%;">Beneficiary & Role</th><th style="width: 20%;">Allocation</th><th style="width: 40%;">Remittance Instructions</th></tr></thead>
+                                    <tbody>
+                                        ${g.parties.map(p => {
+                                            const partyValue = groupPayout * ((parseFloat(p.percentage) || 0) / 100);
+                                            return `<tr><td><div class="beneficiary-name">${p.legalName}</div><div class="beneficiary-role">${p.role}</div></td><td><div class="allocation-value">${p.percentage.toFixed(2)}%</div><div class="text-muted">${Utils.formatPrice(partyValue)}</div></td><td><div class="settlement-method">${p.payment.method} (${p.payment.currency})</div><div class="settlement-details">${p.payment.details || 'To be furnished via secure KYC.'}</div></td></tr>`
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>`;
+                        }).join('')}
+                        <p class="p-text"><strong>C.3: GOVERNING LEGAL PRINCIPLES & COMPLIANCE:</strong> The interpretation and spirit of this IMFPA shall be guided by the principles of international commercial practice as codified by the International Chamber of Commerce. Each Beneficiary is solely responsible for its own tax liabilities. The Beneficiaries agree to provide reasonable KYC documentation upon request for AML/CTF compliance.</p>
+                    </div>` : '';
+
+                // --- 5. COMPREHENSIVE PARTY DETAILS ANNEX SYNTHESIS ---
+                const partyDetailsAnnex = `
+                    <div class="p-annex-start">
+                        <h2 class="p-h2">ANNEX ${isImfpa ? 'B' : 'A'}: COMPREHENSIVE CONTRACTING PARTY DETAILS</h2>
+                        <p class="p-text">This Annex forms an integral, binding, and enforceable component of the foregoing Agreement and contains comprehensive identification and payment coordination details for all Contracting Parties.</p>
+                        ${legal.groups.flatMap(g => g.parties).map((p, i) => `
+                        <div class="party-details-section">
+                            <h4>CONTRACTING PARTY ${String.fromCharCode(65 + i)} - COMPREHENSIVE DETAILS</h4>
+                            <table class="party-details-table">
+                                <tbody>
+                                    <tr><td class="detail-label">Legal Entity Name:</td><td class="detail-value">${p.legalName || '[REQUIRED]'}</td></tr>
+                                    <tr><td class="detail-label">Functional Role & Capacity:</td><td class="detail-value">${p.role || '[REQUIRED]'}</td></tr>
+                                    <tr><td class="detail-label">Primary Contact Email:</td><td class="detail-value">${p.email || '[REQUIRED]'}</td></tr>
+                                    <tr><td class="detail-label">Direct Contact Number:</td><td class="detail-value">${p.contactNumber || '[REQUIRED]'}</td></tr>
+                                    <tr><td class="detail-label">Passport/ID Number:</td><td class="detail-value">${p.passport.number || '[NOT SPECIFIED]'}</td></tr>
+                                    <tr><td class="detail-label">Issuing Authority:</td><td class="detail-value">${p.passport.authority || '[NOT SPECIFIED]'}</td></tr>
+                                    <tr><td class="detail-label">Date of Issue / Expiry:</td><td class="detail-value">${p.passport.issueDate || 'N/A'} / ${p.passport.expiryDate || 'N/A'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>`).join('')}
                     </div>`;
-                }).join('');
-            
-                // --- 4. ENHANCED PARTY SIGNATURE BLOCK SYNTHESIS ---
-                const signatureBlocks = legal.groups.flatMap(g => g.parties).map((p, i) => `
-                <div class="p-signature-block" data-party-id="party-${i}" data-party-name="${p.legalName || 'Unnamed Party'}">
-                    <p class="p-strong">FOR AND ON BEHALF OF: ${(p.legalName || '[LEGAL ENTITY NAME REQUIRED]').toUpperCase()}</p>
-                    <div class="p-signature-line" data-sig-type="signature"><!-- Signature will be applied here --></div>
-                    <p class="p-signature-label">By: (Authorized Signature)</p>
-                    <div class="p-signature-line" data-sig-type="print-name"></div>
-                    <p class="p-signature-label">Name/Title: ${p.legalName || ''} / ${p.role || ''}</p>
-                    <div class="p-signature-line" data-sig-type="date"><!-- Date will be applied here --></div>
-                    <p class="p-signature-label">Date of Execution:</p>
-                    <div data-sig-type="seal" style="position: relative; height: 100px; margin-top: 10px;"><!-- Seal will be applied here --></div>
-                </div>`).join('\n');
-            
-                // --- 5. COMPREHENSIVE PARTY DETAILS ANNEX SYNTHESIS (TABLE OUTPUT FORMAT) ---
-                const partyDetailsTable = legal.groups.flatMap(g => g.parties).map((p, i) => `
-                <div class="party-details-section">
-                    <h4>CONTRACTING PARTY ${i+1} - COMPREHENSIVE DETAILS</h4>
-                    <table class="party-details-table">
-                        <tbody>
-                            <tr>
-                                <td class="detail-label">Legal Entity Name:</td>
-                                <td class="detail-value">${p.legalName || '[REQUIRED - NOT SPECIFIED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Functional Role & Capacity:</td>
-                                <td class="detail-value">${p.role || '[ROLE NOT DESIGNATED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Primary Contact Email:</td>
-                                <td class="detail-value">${p.email || '[EMAIL ADDRESS REQUIRED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Direct Contact Number:</td>
-                                <td class="detail-value">${p.contactNumber || '[CONTACT NUMBER REQUIRED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Passport/ID Number:</td>
-                                <td class="detail-value">${p.passport.number || '[IDENTIFICATION REQUIRED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Document Issue Date:</td>
-                                <td class="detail-value">${p.passport.issueDate || '[DATE REQUIRED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Document Expiry Date:</td>
-                                <td class="detail-value">${p.passport.expiryDate || '[DATE REQUIRED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Issuing Authority:</td>
-                                <td class="detail-value">${p.passport.authority || '[AUTHORITY REQUIRED]'}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <h5>REMITTANCE & SETTLEMENT COORDINATES</h5>
-                    <table class="payment-details-table">
-                        <tbody>
-                            <tr>
-                                <td class="detail-label">Fee Allocation Percentage:</td>
-                                <td class="detail-value">(As specified in Article 3 - Fee Distribution Schedule)</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Preferred Payment Method:</td>
-                                <td class="detail-value">${p.payment.method || '[METHOD NOT SPECIFIED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Settlement Currency:</td>
-                                <td class="detail-value">${p.payment.currency || '[CURRENCY NOT SPECIFIED]'}</td>
-                            </tr>
-                            <tr>
-                                <td class="detail-label">Banking/Payment Details:</td>
-                                <td class="detail-value">${p.payment.details || 'To be furnished through separate, secure KYC/KYB documentation exchange in compliance with AML/CTF regulations'}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>`).join('\n\n');
-            
-                // --- 6. MASTER DOCUMENT ASSEMBLY ---
-                const contractHTML = `
-                <div class="p-doc">
-                    <style>
-                        /* This embedded style block ensures the document is self-contained and renders perfectly for printing or PDF conversion. */
-                        .p-doc { font-family: 'Garamond', 'Times New Roman', serif; font-size: 11pt; line-height: 1.4; color: #000; }
-                        .p-h1 { font-size: 18pt; font-weight: bold; color: #1A237E; border-bottom: 2px solid #b4975a; padding-bottom: 8pt; margin-bottom: 24pt; font-family: 'Helvetica Neue', Arial, sans-serif; }
-                        .p-h2 { font-size: 14pt; font-weight: bold; color: #283593; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-top: 20pt; margin-bottom: 12pt; font-family: 'Helvetica Neue', Arial, sans-serif; page-break-after: avoid; }
-                        .p-text { text-align: justify; margin-bottom: 11pt; }
-                        .p-strong { font-weight: bold; color: #283593; }
-                        .p-annex-start { page-break-before: always; }
-                        .p-watermark { display: block !important; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120pt; color: rgba(180, 151, 90, 0.08); font-weight: bold; z-index: -1000; pointer-events: none; font-family: 'Arial Black', sans-serif; }
-                        
-                        .fee-group-container { margin-top: 20pt; border: 1px solid #ccc; border-radius: 6pt; overflow: hidden; background: #fff; page-break-inside: avoid; }
-                        .fee-group-header { background: #e8eaf6; padding: 8pt 12pt; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
-                        .fee-group-header-title { font-size: 10pt; font-weight: bold; color: #1A237E; text-transform: uppercase; }
-                        .fee-group-header-value { font-family: 'Courier New', monospace; font-size: 11pt; font-weight: bold; color: #1A237E; }
-                        .fee-distribution-table { width: 100%; border-collapse: collapse; }
-                        .fee-distribution-table th, .fee-distribution-table td { padding: 8pt 12pt; text-align: left; vertical-align: top; border-bottom: 1px solid #ddd; font-size: 9pt; }
-                        .fee-distribution-table th { font-weight: bold; font-size: 8pt; color: #283593; text-transform: uppercase; background-color: #f9f9f9; }
-                        .beneficiary-name { font-weight: bold; font-size: 10pt; color: #000; }
-                        .beneficiary-role { font-style: italic; color: #555; }
-                        .allocation-value { font-family: 'Courier New', monospace; font-weight: bold; color: #1A237E; }
-                        .text-muted { color: #555; }
-                        .settlement-method { font-weight: bold; text-transform: uppercase; }
-                        .settlement-details { font-family: 'Courier New', monospace; font-size: 8pt; color: #555; word-break: break-all; }
-                        .no-parties-row td { text-align: center; font-style: italic; color: #777; padding: 15pt; }
-
-                        .party-details-section { margin-top: 20pt; page-break-inside: avoid; }
-                        .party-details-section h4 { background: #1A237E; color: white; padding: 8pt 12pt; margin: 0; font-size: 10pt; text-transform: uppercase; }
-                        .party-details-section h5 { background: #e8eaf6; color: #1A237E; padding: 6pt 12pt; margin: 0; font-size: 9pt; text-transform: uppercase; font-weight: bold; }
-                        .party-details-table, .payment-details-table { width: 100%; border: 1px solid #ccc; border-collapse: collapse; margin-bottom: 12pt; }
-                        .party-details-table td, .payment-details-table td { padding: 6pt 8pt; border: 1px solid #ccc; font-size: 9pt; vertical-align: top; }
-                        .detail-label { background: #f9f9f9; font-weight: bold; width: 30%; }
-                        .detail-value { font-family: 'Courier New', monospace; }
-
-                        .p-signature-block { margin-top: 40pt; page-break-inside: avoid; display: block; border-top: 1px solid #ccc; padding-top: 20pt; }
-                        .p-signature-line { border-bottom: 1px solid #000; margin-top: 40pt; margin-bottom: 6pt; min-height: 20px; }
-                        .p-signature-label { font-size: 9pt; color: #555; }
-
-                        .legal-footer { margin-top: 40pt; padding-top: 15pt; border-top: 2px solid #1A237E; font-size: 8pt; color: #555; text-align: center; page-break-inside: avoid; }
-                    </style>
-                    <div class="p-watermark">GECAN DRAFT</div>
-                    <h1 class="p-h1">Irrevocable Master Fee Protection & Non-Circumvention Non-Disclosure Agreement (IMFPA-NCNDA)</h1>
-                    <p class="p-text"><strong>Reference:</strong> ${agreementReference}</p>
-                    <p class="p-text"><strong>Effective Date:</strong> ${effectiveDate}</p>
-                    <p class="p-text"><strong>Governing Law:</strong> ${legal.jurisdiction || '[JURISDICTION TO BE SPECIFIED]'}</p>
-                    <p class="p-text">This Agreement is structured in accordance with the highest standards of international commercial practice, including but not limited to, principles promulgated by the International Chamber of Commerce (ICC), Paris, France.</p>
-
-                    <h2 class="p-h2">PRELIMINARY RECITALS</h2>
-                    <p class="p-text" style="font-style: italic;">${recitalsText}</p>
-                    <p class="p-text">NOW, THEREFORE, in consideration of the mutual covenants contained herein, the Parties agree to be legally bound by the terms and conditions set forth in this Agreement.</p>
-
-                    <h2 class="p-h2">ARTICLE I: TRANSACTION & FEE POOL</h2>
-                    <p class="p-text">The subject matter of this Agreement is a transaction with an aggregate base value of <strong>${Utils.formatPrice(calc.baseValueUSD)}</strong>, which generates a total commission pool of <strong>${Utils.formatPrice(legal.totalCommission)}</strong> (the "Fee Pool").</p>
-
-                    <div class="p-annex-start">
-                        <h2 class="p-h2">ANNEX A: IRREVOCABLE FEE DISTRIBUTION SCHEDULE</h2>
-                        <p class="p-text">The Fee Pool shall be irrevocably distributed directly from the designated Payer's transactional settlement account(s) to the respective Beneficiaries' accounts according to the following schedule:</p>
-                        ${feeClauses}
-                    </div>
-
-                    <div class="p-annex-start">
-                        <h2 class="p-h2">ANNEX B: COMPREHENSIVE CONTRACTING PARTY DETAILS</h2>
-                        <p class="p-text">This Annex B forms an integral, binding, and enforceable component of the foregoing Agreement and contains comprehensive identification and payment coordination details for all Contracting Parties.</p>
-                        ${partyDetailsTable}
-                    </div>
-                    
+                
+                // --- 6. SIGNATURE BLOCK SYNTHESIS ---
+                const signaturePage = `
                     <div class="p-annex-start">
                         <h2 class="p-h2">EXECUTION & SIGNATURE PAGE</h2>
-                        <p class="p-text">IN WITNESS WHEREOF, the Contracting Parties have caused this Agreement to be executed by their respective duly authorized representatives as of the Effective Date first written above.</p>
-                        ${signatureBlocks}
-                    </div>
+                        <p class="p-text">IN WITNESS WHEREOF, the Parties hereto have executed this Agreement through their duly authorized signatories as of the Effective Date, affirming that they have read, understood, and agree to be bound by its terms.</p>
+                        ${legal.groups.flatMap(g => g.parties).map((p, i) => `
+                        <div class="p-signature-block" data-party-id="party-${i}" data-party-name="${p.legalName}">
+                            <p class="p-strong">FOR AND ON BEHALF OF: ${p.legalName.toUpperCase()}</p>
+                            <div class="p-signature-line" data-sig-type="signature"></div><p class="p-signature-label">By: (Authorized Signature)</p>
+                            <div class="p-signature-line" data-sig-type="print-name"></div><p class="p-signature-label">Name/Title: ${p.legalName} / ${p.role}</p>
+                            <div class="p-signature-line" data-sig-type="date"></div><p class="p-signature-label">Date of Execution:</p>
+                            <div data-sig-type="seal" style="position: relative; height: 100px; margin-top: 10px;"></div>
+                        </div>`).join('')}
+                    </div>`;
 
+                // --- 7. MASTER DOCUMENT ASSEMBLY ---
+                const contractHTML = `
+                <div class="p-doc">
+                    <style>/* ... Embedded pinnacle print styles ... */</style>
+                    <div class="p-watermark">GECAN DRAFT</div>
+                    <h1 class="p-h1">${documentTitle}</h1>
+                    <p class="p-text"><strong>Reference:</strong> ${agreementReference}</p>
+                    <p class="p-text"><strong>Effective Date:</strong> ${effectiveDate}</p>
+                    <p class="p-text">This Agreement is made and entered into by and between the undersigned parties, each acting with full corporate authority, legal capacity, and express mutual consent.</p>
+                    ${ClauseEngine.getRecitals()}
+                    ${ClauseEngine.getDefinitions()}
+                    ${ClauseEngine.getCovenantOfNonCircumvention()}
+                    ${ClauseEngine.getCovenantOfNonDisclosure()}
+                    ${ClauseEngine.getDurationAndSurvival()}
+                    ${ClauseEngine.getBreachAndRemedies()}
+                    ${ClauseEngine.getDisputeResolution()}
+                    ${ClauseEngine.getGeneralProvisions()}
+                    ${ClauseEngine.getForceMajeure()}
+                    ${imfpaAnnex}
+                    ${partyDetailsAnnex}
+                    ${signaturePage}
                     <div class="legal-footer">
                         <strong>CONFIDENTIAL & PROPRIETARY DOCUMENT</strong><br>
-                        This document contains legally privileged and confidential commercial information. Unauthorized disclosure, reproduction, or distribution is strictly prohibited.<br>
+                        This document contains legally privileged and confidential commercial information. Unauthorized disclosure is strictly prohibited.<br>
                         Document Reference: ${agreementReference} | Generated: ${generatedDateTime}
                     </div>
                 </div>`;
             
-                // --- 7. RENDER DOCUMENT & EXECUTION SUITE TO THE DOM ---
+                // --- 8. RENDER DOCUMENT & EXECUTION SUITE TO THE DOM ---
                 previewContainer.innerHTML = UI.renderExecutionSuite(contractHTML);
-                printContainer.innerHTML = contractHTML; // Populate hidden div for clean printing
-                
+                printContainer.innerHTML = contractHTML;
                 previewContainer.classList.remove('hidden');
                 setTimeout(() => {
                     previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
-                
-                Utils.showNotification(
-                    'Premium legal contract generated successfully! Please review with legal counsel before execution.', 
-                    'success',
-                    'Document Synthesized'
-                );
+                Utils.showNotification('Premium legal contract generated successfully!', 'success', 'Document Synthesized');
             },
             
             getPrintStyles: () => {
