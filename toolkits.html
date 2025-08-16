@@ -36,6 +36,149 @@
     <style>
 
 /* ========================================================================= */
+/* === PINNACLE DASHBOARD & SIDEBAR UI ENGINE v2.0 (MASSIVE UPGRADE) === */
+/* ========================================================================= */
+
+/* --- A. Severely Upgraded Sidebar Menu --- */
+.toolkit-menu-btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    transform-style: preserve-3d;
+    position: relative;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: var(--text-secondary);
+}
+.toolkit-menu-btn:hover {
+    background-color: var(--background-secondary);
+    color: var(--text-diamond);
+    transform: perspective(800px) rotateY(-8deg) scale(1.05);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+    border-color: var(--primary-azure);
+}
+.toolkit-menu-btn.active {
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.15));
+    color: var(--text-diamond);
+    border-color: var(--primary-azure);
+    font-weight: 600;
+    box-shadow: 0 0 20px var(--glow-azure);
+}
+.toolkit-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    perspective: 600px;
+}
+.toolkit-icon-flipper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.toolkit-menu-btn:hover .toolkit-icon-flipper {
+    transform: rotateY(180deg);
+}
+.toolkit-icon-face {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    backface-visibility: hidden;
+    border-radius: 0.75rem;
+    font-size: 1.25rem;
+}
+.icon-front {
+    background: var(--background-secondary);
+}
+.toolkit-menu-btn.active .icon-front {
+     background: var(--gradient-primary);
+}
+.icon-back {
+    background: var(--gradient-primary);
+    transform: rotateY(180deg);
+    text-shadow: 0 0 15px white;
+}
+
+/* --- B. Severely Upgraded Dashboard Cards --- */
+.dashboard-card {
+    background: var(--background-glass);
+    border: 1px solid var(--border-color);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+.dashboard-card:hover {
+    transform: perspective(1000px) translateY(-10px) rotateX(8deg) scale(1.03);
+    border-color: var(--primary-azure);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 40px var(--glow-azure);
+}
+/* Premium Glint Effect */
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg) translateX(-150%);
+    transition: transform 0.8s ease;
+}
+.dashboard-card:hover::before {
+    transform: skewX(-25deg) translateX(250%);
+}
+/* Intelligent Icon Orbit */
+.dashboard-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: icon-wrapper-rotate 30s linear infinite;
+}
+@keyframes icon-wrapper-rotate {
+    to { transform: rotateY(360deg); }
+}
+.dashboard-icon-orbit {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid;
+    animation: orbit-spin var(--duration) linear infinite;
+}
+.orbit-1 { --duration: 5s; transform: rotateX(65deg); border-color: rgba(14, 165, 233, 0.5); }
+.orbit-2 { --duration: 7s; transform: rotateX(65deg) rotateY(60deg); border-color: rgba(99, 102, 241, 0.5); }
+.orbit-3 { --duration: 9s; transform: rotateX(65deg) rotateY(120deg); border-color: rgba(139, 92, 246, 0.5); }
+@keyframes orbit-spin {
+    to { transform: rotateX(65deg) rotateY(var(--angle, 0deg)) rotateZ(360deg); }
+}
+.dashboard-icon-main {
+    width: 64px;
+    height: 64px;
+    border-radius: 1.25rem;
+    display: grid;
+    place-items: center;
+    font-size: 1.75rem;
+    color: white;
+    position: relative;
+    z-index: 1;
+    transition: all 0.4s ease;
+}
+.dashboard-card:hover .dashboard-icon-main {
+    transform: scale(1.1) translateZ(20px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* ========================================================================= */
 /* === PINNACLE WALLET FORENSICS UI & ANIMATION ENGINE (v5.0) === */
 /* ========================================================================= */
 .heuristic-engine-container {
@@ -2908,25 +3051,32 @@ const UI = {
     /**
      * Renders the menu of available toolkits in the left sidebar, highlighting the active one.
      */
-    renderToolkitMenu: () => {
-        const menuContainer = document.getElementById('toolkit-menu');
-        if (!menuContainer) return;
-        menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
-            const isActive = AppState.activeToolkit === t.id;
-            return `
-                <button onclick="Logic.setActiveToolkit('${t.id}')" 
-                        class="w-full text-left p-4 rounded-xl flex items-center gap-4 transition-all duration-300 group ${isActive ? 'bg-gradient-to-r from-primary-azure to-primary-dark text-white shadow-lg shadow-primary-azure/20' : 'text-text-secondary hover:bg-background-secondary hover:text-white'}">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br ${t.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                        <i class="fas ${t.icon} text-white"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="font-semibold truncate">${t.name}</div>
-                        <div class="text-xs opacity-75 mt-1 truncate">${t.description.split('.')[0]}</div>
-                    </div>
-                    <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-opacity ml-auto"></i>
-                </button>`;
-        }).join('');
-    },
+            renderToolkitMenu: () => {
+                const menuContainer = document.getElementById('toolkit-menu');
+                if (!menuContainer) return;
+                menuContainer.innerHTML = Object.values(AppState.toolkits).map(t => {
+                    const isActive = AppState.activeToolkit === t.id;
+                    return `
+                        <a onclick="Logic.setActiveToolkit('${t.id}')" 
+                                class="toolkit-menu-btn ${isActive ? 'active' : ''}">
+                            <div class="toolkit-icon-wrapper">
+                                <div class="toolkit-icon-flipper">
+                                    <div class="toolkit-icon-face icon-front bg-gradient-to-br ${t.color}">
+                                        <i class="fas ${t.icon}"></i>
+                                    </div>
+                                    <div class="toolkit-icon-face icon-back">
+                                        <i class="fas ${t.icon}"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold truncate">${t.name}</div>
+                                <div class="text-xs opacity-75 mt-1 truncate">${t.description.split('.')[0]}</div>
+                            </div>
+                            <i class="fas fa-chevron-right opacity-50 group-hover:opacity-100 transition-opacity ml-auto"></i>
+                        </a>`;
+                }).join('');
+            },
 
     /**
      * Master UI renderer. It acts as a router, calling the specific UI function 
@@ -2952,34 +3102,39 @@ const UI = {
      * Renders the main dashboard/welcome view for the toolkits page.
      * DEFINITIVE FIX: The trailing comma that caused the syntax error has been removed.
      */
-    renderDashboardUI: () => `
-        <div class="glass rounded-2xl p-8 h-full flex flex-col animate-fade-in-up">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold gradient-text mb-4">GECAN™ Intelligent Toolkits</h2>
-                <p class="text-text-secondary text-lg max-w-2xl mx-auto leading-relaxed">Select a proprietary tool from the sidebar to begin your institutional-grade analysis. Each toolkit is powered by advanced algorithms and real-time data intelligence.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
-                ${Object.values(AppState.toolkits)
-                    .filter(t => t.id !== 'Dashboard')
-                    .map((t, index) => `
-                        <div class="report-section p-8 cursor-pointer group animate-scale-in stagger-${index + 1}" onclick="Logic.setActiveToolkit('${t.id}')">
-                            <div class="flex items-start gap-6">
-                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-2xl group-hover:scale-110 transition-transform duration-300 ease-in-out">
-                                    <i class="fas ${t.icon}"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-primary-azure transition-colors">${t.name}</h3>
-                                    <p class="text-text-secondary leading-relaxed">${t.description}</p>
-                                    <div class="mt-4 flex items-center text-primary-azure opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <span class="text-sm font-medium">Launch Toolkit</span>
-                                        <i class="fas fa-arrow-right ml-2"></i>
+            renderDashboardUI: () => `
+                <div class="glass rounded-2xl p-8 h-full flex flex-col animate-fade-in-up">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl font-bold gradient-text mb-4">GECAN™ Intelligent Toolkits</h2>
+                        <p class="text-text-secondary text-lg max-w-2xl mx-auto leading-relaxed">Select a proprietary tool from the sidebar to engage our institutional-grade analysis engines. Each toolkit is powered by advanced algorithms and real-time data intelligence.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
+                        ${Object.values(AppState.toolkits)
+                            .filter(t => t.id !== 'Dashboard')
+                            .map((t, index) => `
+                                <div class="dashboard-card" onclick="Logic.setActiveToolkit('${t.id}')">
+                                    <div class="flex items-start gap-6">
+                                        <div class="dashboard-icon-wrapper">
+                                            <div class="dashboard-icon-orbit orbit-1"></div>
+                                            <div class="dashboard-icon-orbit orbit-2"></div>
+                                            <div class="dashboard-icon-orbit orbit-3"></div>
+                                            <div class="dashboard-icon-main bg-gradient-to-br ${t.color}">
+                                                <i class="fas ${t.icon}"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h3 class="text-2xl font-bold text-white mb-3 transition-colors">${t.name}</h3>
+                                            <p class="text-text-secondary leading-relaxed">${t.description}</p>
+                                            <div class="mt-4 flex items-center text-primary-azure opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <span class="text-sm font-medium">Launch Toolkit</span>
+                                                <i class="fas fa-arrow-right ml-2"></i>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>`).join('')
-                }
-            </div>
-        </div>`,
+                                </div>`).join('')
+                        }
+                    </div>
+                </div>`,
 
     /**
      * Renders the main container and logic for the Wallet Forensics toolkit.
