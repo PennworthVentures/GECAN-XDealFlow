@@ -694,7 +694,19 @@ input:checked + .toggle-slider:before { transform: translateX(26px); }
             modeler: {
                 activeDealType: 'AssetSwap', 
                 assetSwap: { amount: 30000, fromAssetKey: 'BTC-USD', toAssetKey: 'USDT-USD' },
-                commodityTrade: { assetKey: 'WTI-BBL-USD', quantity: 100000, unitOfMeasure: 'Barrel', qualitySpec: 'API Gravity: 40-42, Sulfur Content: <0.42%', origin: 'USA', port: 'Houston', incoterms: 'FOB', procedures: '• Standard TTV Procedures\n• SGS/Intertek Inspection\n• Payment via SBLC/DLC', pricingModel: 'Discount', fixedPrice: 0, discountPremiumValue: 4, discountPremiumIsInPercent: true, settlementAssetKey: 'USD' },
+                commodityTrade: { 
+                    assetKey: 'EN590-1MT-USD', // Default to a common commodity
+                    quantity: 100000,
+                    unitOfMeasure: 'Metric Ton', // Will be auto-updated
+                    pricingModel: 'PlattsMinus', // 'PlattsMinus', 'PlattsPlus', 'Fixed'
+                    priceAdjustmentValue: 40,
+                    fixedPrice: 0,
+                    isCommissionIncluded: false, // Does the net price already include commission?
+                    commissionValue: 10,       // Commission amount per unit
+                    isMarkupInPercent: false,  // Markup type if commission is NOT included
+                    markupValue: 15,           // Markup value
+                    settlementAssetKey: 'USD' 
+                },
                 cryptoLoan: { collateralAssetKey: 'BTC-USD', collateralAmount: 10, loanCurrency: 'USD', ltv: 60, interestRateType: 'fixed', interestRateValue: 5.5, tenureMonths: 12 },
                 sblcMonetization: { faceValue: 100000000, ltv: 80 },
                 pricingConfig: { isVisible: false, offerType: 'discount', grossValue: 0, netValue: 0, isValueInPercent: true },
@@ -1452,27 +1464,73 @@ updateModelerUI: (isFullRefresh = false) => {
  * Calculates the specifics for a physical Commodity Trade deal.
  * @returns {object} An object containing the calculated metrics for the trade.
  */
-            calculateCommodityTrade: () => {
-                const { quantity, assetKey, pricingModel, fixedPrice, discountPremiumValue, settlementAssetKey, discountPremiumIsInPercent } = AppState.modeler.commodityTrade;
-                const asset = Utils.getAssetByKey(assetKey);
-                const settlementAsset = Utils.getAssetByKey(settlementAssetKey);
-                let effectivePricePerUnit = asset.price || 0;
-                const discPremVal = parseFloat(discountPremiumValue) || 0;
-                if (pricingModel === 'Fixed') { effectivePricePerUnit = parseFloat(fixedPrice) || 0; }
-                else if (pricingModel === 'Premium') { const premiumAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discPremVal; effectivePricePerUnit += premiumAmount; }
-                else if (pricingModel === 'Discount') { const discountAmount = discountPremiumIsInPercent ? effectivePricePerUnit * (discPremVal / 100) : discountAmount; effectivePricePerUnit -= discountAmount; }
+calculateCommodityTrade: () => {
+                const state = AppState.modeler.commodityTrade;
+                const commodityAsset = Utils.getAssetByKey(state.assetKey);
+                const settlementAsset = Utils.getAssetByKey(state.settlementAssetKey);
+
+                if (!commodityAsset || !settlementAsset) return null;
+
+                const plattsPriceUSD = commodityAsset.price || 0;
+                let netPricePerUnitUSD = 0;
+
+                // Step 1: Calculate Net Price to Buyer (in USD)
+                if (state.pricingModel === 'Fixed') {
+                    netPricePerUnitUSD = parseFloat(state.fixedPrice) || 0;
+                } else {
+                    const adjustment = parseFloat(state.priceAdjustmentValue) || 0;
+                    netPricePerUnitUSD = (state.pricingModel === 'PlattsMinus') ? plattsPriceUSD - adjustment : plattsPriceUSD + adjustment;
+                }
+
+                let finalPricePerUnitUSD = 0;
+                let commissionPerUnitUSD = 0;
+                let baseCostPerUnitUSD = 0;
+
+                // Step 2: Calculate Commission and Final Price based on workflow
+                if (state.isCommissionIncluded) {
+                    finalPricePerUnitUSD = netPricePerUnitUSD;
+                    commissionPerUnitUSD = parseFloat(state.commissionValue) || 0;
+                    baseCostPerUnitUSD = finalPricePerUnitUSD - commissionPerUnitUSD;
+                } else { // Commission is an added markup
+                    const markupValue = parseFloat(state.markupValue) || 0;
+                    const markupAmount = state.isMarkupInPercent ? netPricePerUnitUSD * (markupValue / 100) : markupValue;
+                    
+                    finalPricePerUnitUSD = netPricePerUnitUSD + markupAmount;
+                    commissionPerUnitUSD = markupAmount;
+                    baseCostPerUnitUSD = netPricePerUnitUSD;
+                }
+
+                const quantity = parseFloat(state.quantity) || 0;
+
+                // Step 3: Calculate Totals
+                const totalFinalValueUSD = finalPricePerUnitUSD * quantity;
+                const totalCommissionUSD = commissionPerUnitUSD * quantity;
                 
-                const usdEquivalent = (parseFloat(quantity) || 0) * effectivePricePerUnit;
-                const primaryValue = usdEquivalent / (settlementAsset.price || 1);
-            
-                return {
+                // Step 4: Convert to Settlement Asset
+                const conversionRate = settlementAsset.price || 1;
+                const primaryValue = totalFinalValueUSD / conversionRate; // Total Final Value in Settlement Asset
+                const totalCommissionInSettlement = totalCommissionUSD / conversionRate;
+
+                // This is the USD equivalent of the FINAL price, used for the IMFPA
+                const usdEquivalentForIMFPA = totalFinalValueUSD; 
+
+                return { 
                     primaryValue: primaryValue,
                     primaryUnit: settlementAsset.baseAsset,
-                    dealTitle: `${Utils.formatNumber(quantity)} units of ${asset.baseAsset}`,
-                    usdEquivalent: usdEquivalent,
-                    toAsset: settlementAsset, // Ensure `toAsset` exists for compatibility
-                    finalValueToBuyerUSD: 0,
-                    totalCommissionPool: 0
+                    dealTitle: `${Utils.formatNumber(quantity)} ${state.unitOfMeasure} of ${commodityAsset.baseAsset}`,
+                    usdEquivalent: usdEquivalentForIMFPA,
+                    toAsset: settlementAsset,
+                    
+                    // Add all detailed values for the brilliant analysis panel
+                    totalCommissionInSettlement,
+                    baseCostPerUnitUSD,
+                    commissionPerUnitUSD,
+                    netPricePerUnitUSD,
+                    finalPricePerUnitUSD,
+                    plattsPriceUSD,
+
+                    finalValueToBuyerUSD: 0, // Legacy, not used by new Commodity panel
+                    totalCommissionPool: 0   // Legacy, not used by new Commodity panel
                 };
             },
 /**
@@ -2846,13 +2904,37 @@ const UI = {
             renderModelerInputPanel: () => {
                 const { activeDealType, pricingConfig } = AppState.modeler;
                 
-                // This function call is now wrapped in a check to ensure it only runs for Asset Swaps
-                const dealPanelHTML = (activeDealType === 'AssetSwap') 
-                    ? UI.renderAssetSwapPanel() 
-                    : `<p class="text-error-color text-center p-4">Guided workflow is optimized for Asset Swap. Please select that deal type.</p>`;
+                let dealPanelHTML = '';
+                // This logic block acts as the master router for the panel's content.
+                if (activeDealType === 'AssetSwap') {
+                    dealPanelHTML = UI.renderAssetSwapPanel();
+                } else if (activeDealType === 'CommodityTrade') {
+                    dealPanelHTML = UI.renderCommodityTradePanel();
+                } else if (activeDealType === 'CryptoLoan') {
+                    // Renders the standard, functional panel inside a styled container for consistency.
+                    dealPanelHTML = `
+                    <div class="p-6 rounded-2xl bg-background-dark border border-border-color">
+                        <h3 class="step-title mb-4">Crypto Loan Parameters</h3>
+                        ${UI.renderCryptoLoanPanel()}
+                    </div>`;
+                } else if (activeDealType === 'SBLCMonetization') {
+                    // Renders the standard, functional panel inside a styled container for consistency.
+                    dealPanelHTML = `
+                    <div class="p-6 rounded-2xl bg-background-dark border border-border-color">
+                        <h3 class="step-title mb-4">SBLC Monetization Parameters</h3>
+                        ${UI.renderSBLCMonetizationPanel()}
+                    </div>`;
+                } else {
+                    dealPanelHTML = `<p class="text-error-color text-center p-4">Guided workflow is optimized for Asset Swap & Commodity Trade. Please select a supported deal type.</p>`;
+                }
 
+                // This is the generic pricing configurator, used ONLY by Asset Swap.
                 const pricingConfigHTML = `<div class="collapsible-content ${pricingConfig.isVisible ? 'expanded' : ''}"><div class="grid grid-cols-2 gap-4 mb-4"><select data-path="pricingConfig.offerType" class="form-select">${['discount','premium'].map(o => `<option value="${o}" ${pricingConfig.offerType === o ? 'selected' : ''}>${o.charAt(0).toUpperCase() + o.slice(1)}</option>`).join('')}</select><select data-path="pricingConfig.isValueInPercent" class="form-select">${[[true, '%'], [false, '$']].map(([v,l]) => `<option value="${String(v)}" ${String(pricingConfig.isValueInPercent) === String(v) ? 'selected' : ''}>Value in ${l}</option>`).join('')}</select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">Gross Offer</label><input type="number" data-path="pricingConfig.grossValue" value="${pricingConfig.grossValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Net to Buyer</label><input type="number" data-path="pricingConfig.netValue" value="${pricingConfig.netValue}" class="form-input"></div></div></div>`;
                 
+                // This logic is critical: It ensures the generic pricing panel is ONLY shown for Asset Swap,
+                // as the Commodity Trade workflow has its own integrated commission steps.
+                const showGenericPricingConfig = activeDealType === 'AssetSwap';
+
                 return `
                 <h2 class="text-3xl font-bold text-white mb-6 flex items-center gap-4">
                     <i class="fas fa-sliders-h text-primary-azure"></i>Deal Parameters
@@ -2860,8 +2942,7 @@ const UI = {
                 <div class="space-y-6 flex-grow flex flex-col">
                     ${dealPanelHTML}
                     
-                    <!-- Step 3: Optional Pricing Configuration -->
-                    <div class="guided-step-card mt-auto">
+                    <div class="guided-step-card mt-auto ${showGenericPricingConfig ? '' : 'hidden'}">
                         <div class="step-header cursor-pointer" onclick="Logic.togglePricingConfig()">
                             <div class="step-number">3</div>
                             <div class="flex-grow">
@@ -2870,9 +2951,7 @@ const UI = {
                             </div>
                             <i class="fas fa-chevron-down text-xl text-text-muted transition-transform ${pricingConfig.isVisible ? 'rotate-180' : ''}"></i>
                         </div>
-                        <div class="step-content">
-                            ${pricingConfigHTML}
-                        </div>
+                        <div class="step-content">${pricingConfigHTML}</div>
                     </div>
                 </div>`;
             },
@@ -2960,41 +3039,121 @@ const UI = {
  * SEVERELY ENHANCED: Renders the multi-step, interactive UI for structuring a physical commodity trade.
  * @returns {string} The complete HTML for the Commodity Trade panel.
  */
-renderCommodityTradePanel: () => {
-    const state = AppState.modeler.commodityTrade;
-    const commodityAsset = Utils.getAssetByKey(state.assetKey);
+            renderCommodityTradePanel: () => {
+                const state = AppState.modeler.commodityTrade;
+                const commodityOptions = (selectedKey) => AppState.marketData.filter(asset => ['Crude Oil', 'Refined Fuel', 'Precious Metal', 'Commodity', 'Energy'].some(term => asset.type?.includes(term))).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.key})</option>`).join('');
+                const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0 && a.key !== state.assetKey).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
 
-    const commodityOptions = (selectedKey) => AppState.marketData.filter(asset => ['Crude Oil', 'Refined Fuel', 'Precious Metal', 'Commodity', 'Energy'].some(term => asset.type?.includes(term))).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset} (${a.key})</option>`).join('');
-    const settlementOptions = (selectedKey) => AppState.marketData.filter(a => a.price > 0 && a.key !== state.assetKey).sort((a,b) => a.baseAsset.localeCompare(b.baseAsset)).map(a => `<option value="${a.key}" ${selectedKey === a.key ? 'selected' : ''}>${a.baseAsset}</option>`).join('');
-    const selectedIncoterm = commodityData.incoterms.find(i => i.value === state.incoterms) || commodityData.incoterms.find(i => i.value === 'FOB');
+                const commodityAsset = Utils.getAssetByKey(state.assetKey);
+                // Auto-update Unit of Measure from live data
+                if (commodityAsset && commodityAsset.unitOfMeasure) {
+                    AppState.modeler.commodityTrade.unitOfMeasure = commodityAsset.unitOfMeasure;
+                }
 
-    const pricingModelInputs = () => {
-        if (state.pricingModel === 'Fixed') {
-            return `<div><label class="block text-sm font-medium text-text-muted mb-2">Fixed Price per Unit (USD)</label><input type="number" step="0.01" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input"></div>`;
-        }
-        if (state.pricingModel === 'Discount' || state.pricingModel === 'Premium') {
-            return `<div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-text-muted mb-2">${state.pricingModel} Value</label><input type="number" step="0.01" data-path="commodityTrade.discountPremiumValue" value="${state.discountPremiumValue}" class="form-input"></div><div><label class="block text-sm font-medium text-text-muted mb-2">Value Type</label><select data-path="commodityTrade.discountPremiumIsInPercent" class="form-select"><option value="true" ${state.discountPremiumIsInPercent ? 'selected':''}>Percentage (%)</option><option value="false" ${!state.discountPremiumIsInPercent ? 'selected':''}>Fixed Amount ($)</option></select></div></div>`;
-        }
-        return '';
-    };
+                // --- Intelligent State Determination for Guided Workflow ---
+                const isCommodityDefined = state.assetKey && state.quantity > 0;
+                const isPriceDefined = (state.pricingModel === 'Fixed' && state.fixedPrice > 0) || (state.pricingModel !== 'Fixed' && state.priceAdjustmentValue > 0);
+                const isCommissionDefined = state.isCommissionIncluded ? state.commissionValue > 0 : state.markupValue > 0;
 
-    return `
-        <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-2"><label class="block text-sm font-medium text-text-muted mb-2">Commodity Asset</label><select data-path="commodityTrade.assetKey" class="form-select">${commodityOptions(state.assetKey)}</select></div>
-                <div><label class="block text-sm font-medium text-text-muted mb-2">Quantity</label><input type="number" data-path="commodityTrade.quantity" value="${state.quantity || ''}" class="form-input font-bold"></div>
-            </div>
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Unit of Measure</label><select data-path="commodityTrade.unitOfMeasure" class="form-select"><option value="">Select unit...</option>${commodityData.unitsOfMeasure.map(u => `<option value="${u}" ${state.unitOfMeasure === u ? 'selected' : ''}>${u}</option>`).join('')}</select></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="block text-sm font-medium text-text-muted mb-2">Origin Country</label><input list="countries-datalist" value="${state.origin || ''}" data-path="commodityTrade.origin" class="form-input"><datalist id="countries-datalist">${commodityData.countries.map(c => `<option value="${c}">`).join('')}</datalist></div>
-                <div><label class="block text-sm font-medium text-text-muted mb-2">${selectedIncoterm.port}</label><input list="ports-datalist" value="${state.port || ''}" data-path="commodityTrade.port" class="form-input"><datalist id="ports-datalist">${commodityData.ports.map(p => `<option value="${p}">`).join('')}</datalist></div>
-            </div>
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Incoterms® 2020</label><select data-path="commodityTrade.incoterms" class="form-select">${commodityData.incoterms.map(i => `<option value="${i.value}" ${state.incoterms === i.value ? 'selected' : ''}>${i.label}</option>`).join('')}</select><p class="text-xs text-text-muted mt-2">Risk transfers to <strong>${selectedIncoterm.risk}</strong> • Cost responsibility: ${selectedIncoterm.cost}</p></div>
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Pricing Model</label><div class="flex flex-wrap gap-2">${['Market', 'Discount', 'Premium', 'Fixed'].map(p => `<label class="flex items-center gap-2 p-2 rounded-lg cursor-pointer ${state.pricingModel === p ? 'bg-primary-azure/20' : 'bg-background-light'}"><input type="radio" name="pricingModel" value="${p}" ${state.pricingModel === p ? 'checked' : ''} data-path="commodityTrade.pricingModel" class="hidden">${p}</label>`).join('')}</div></div>
-            ${pricingModelInputs()}
-            <div><label class="block text-sm font-medium text-text-muted mb-2">Settlement Asset</label><select data-path="commodityTrade.settlementAssetKey" class="form-select"><option value="USD">USD (Default)</option>${settlementOptions(state.settlementAssetKey)}</select></div>
-        </div>`;
-},
+                // --- Intelligent Focus Logic ---
+                setTimeout(() => {
+                    let selector = '';
+                    if (!isCommodityDefined) selector = '[data-path="commodityTrade.quantity"]';
+                    else if (!isPriceDefined) selector = (state.pricingModel === 'Fixed') ? '[data-path="commodityTrade.fixedPrice"]' : '[data-path="commodityTrade.priceAdjustmentValue"]';
+                    else if (!isCommissionDefined) selector = state.isCommissionIncluded ? '[data-path="commodityTrade.commissionValue"]' : '[data-path="commodityTrade.markupValue"]';
+                    else selector = '[data-path="commodityTrade.settlementAssetKey"]';
+                    
+                    const elToFocus = document.querySelector(selector);
+                    if (elToFocus) {
+                        elToFocus.focus();
+                        elToFocus.select();
+                    }
+                }, 100);
+
+                const commissionInputsHTML = state.isCommissionIncluded ?
+                    `<div>
+                        <label class="block text-sm font-medium text-text-muted mb-2">Commission Included Per ${state.unitOfMeasure}</label>
+                        <input type="number" data-path="commodityTrade.commissionValue" value="${state.commissionValue}" class="form-input ${!isCommissionDefined ? 'highlight-focus' : ''}">
+                        <p class="text-xs text-text-muted mt-2">The Net Price already contains this commission amount.</p>
+                    </div>` :
+                    `<div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-2">Add Mark-Up</label>
+                            <input type="number" data-path="commodityTrade.markupValue" value="${state.markupValue}" class="form-input ${!isCommissionDefined ? 'highlight-focus' : ''}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-text-muted mb-2">Mark-Up Type</label>
+                            <select data-path="commodityTrade.isMarkupInPercent" class="form-select">
+                                <option value="false" ${!state.isMarkupInPercent ? 'selected':''}>Fixed Amount</option>
+                                <option value="true" ${state.isMarkupInPercent ? 'selected':''}>Percentage (%)</option>
+                            </select>
+                        </div>
+                        <p class="text-xs text-text-muted mt-2 col-span-2">This markup will be added to the Net Price to create the Final Price.</p>
+                    </div>`;
+
+                return `
+                <!-- Step 1: Define Commodity & Quantity -->
+                <div class="guided-step-card">
+                    <div class="step-header ${isCommodityDefined ? 'completed' : ''}">
+                        <div class="step-number"><i class="fas ${isCommodityDefined ? 'fa-check' : 'fa-oil-can'}"></i></div>
+                        <div><h3 class="step-title">Define Commodity</h3><p class="text-sm text-text-muted">Select the product and specify quantity.</p></div>
+                    </div>
+                    <div class="step-content space-y-4">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="col-span-2"><label class="block text-sm font-medium text-text-muted mb-2">Commodity to Purchase</label><select data-path="commodityTrade.assetKey" class="form-select">${commodityOptions(state.assetKey)}</select></div>
+                            <div><label class="block text-sm font-medium text-text-muted mb-2">Live Platts Price</label><div class="form-input bg-background-light text-primary-azure font-mono flex items-center justify-center h-full">${Utils.formatPrice(commodityAsset.price)}</div></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium text-text-muted mb-2">Quantity</label><input type="number" data-path="commodityTrade.quantity" value="${state.quantity}" class="form-input text-lg font-bold ${!isCommodityDefined ? 'highlight-focus' : ''}"></div>
+                            <div><label class="block text-sm font-medium text-text-muted mb-2">Unit of Measure</label><div class="form-input bg-background-light font-mono flex items-center justify-center h-full">${state.unitOfMeasure}</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Define Net Price -->
+                <div class="guided-step-card">
+                    <div class="step-header ${isPriceDefined ? 'completed' : ''}">
+                        <div class="step-number"><i class="fas ${isPriceDefined ? 'fa-check' : 'fa-tags'}"></i></div>
+                        <div><h3 class="step-title">Define Net Price</h3><p class="text-sm text-text-muted">Set the base price relative to Platts or as a fixed value.</p></div>
+                    </div>
+                    <div class="step-content space-y-4">
+                        <div class="flex items-center justify-around p-2 bg-background-dark rounded-lg">
+                            ${['PlattsMinus', 'PlattsPlus', 'Fixed'].map(p => `<label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.pricingModel === p ? 'bg-primary-azure/20 text-primary-azure' : 'hover:bg-background-light'}"><input type="radio" name="pricingModel" value="${p}" ${state.pricingModel === p ? 'checked' : ''} data-path="commodityTrade.pricingModel" class="hidden">${{PlattsMinus:'Platts Minus', PlattsPlus:'Platts Plus', Fixed:'Fixed Price'}[p]}</label>`).join('')}
+                        </div>
+                        ${state.pricingModel === 'Fixed' ? 
+                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Fixed Price per ${state.unitOfMeasure}</label><input type="number" data-path="commodityTrade.fixedPrice" value="${state.fixedPrice}" class="form-input ${!isPriceDefined ? 'highlight-focus' : ''}"></div>` :
+                            `<div><label class="block text-sm font-medium text-text-muted mb-2">Price Adjustment (USD)</label><input type="number" data-path="commodityTrade.priceAdjustmentValue" value="${state.priceAdjustmentValue}" class="form-input ${!isPriceDefined ? 'highlight-focus' : ''}"></div>`
+                        }
+                    </div>
+                </div>
+
+                <!-- Step 3: Configure Commission -->
+                <div class="guided-step-card">
+                    <div class="step-header ${isCommissionDefined ? 'completed' : ''}">
+                        <div class="step-number"><i class="fas ${isCommissionDefined ? 'fa-check' : 'fa-calculator'}"></i></div>
+                        <div><h3 class="step-title">Configure Commission</h3><p class="text-sm text-text-muted">Specify if commission is included or added as a mark-up.</p></div>
+                    </div>
+                    <div class="step-content space-y-4">
+                        <div class="flex items-center justify-around p-2 bg-background-dark rounded-lg">
+                             <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${!state.isCommissionIncluded ? 'bg-primary-azure/20 text-primary-azure' : 'hover:bg-background-light'}"><input type="radio" name="isCommissionIncluded" value="false" ${!state.isCommissionIncluded ? 'checked' : ''} data-path="commodityTrade.isCommissionIncluded" class="hidden">Add Mark-Up</label>
+                             <label class="flex-1 text-center p-2 rounded-lg cursor-pointer transition-colors ${state.isCommissionIncluded ? 'bg-primary-azure/20 text-primary-azure' : 'hover:bg-background-light'}"><input type="radio" name="isCommissionIncluded" value="true" ${state.isCommissionIncluded ? 'checked' : ''} data-path="commodityTrade.isCommissionIncluded" class="hidden">Commission Included</label>
+                        </div>
+                        ${commissionInputsHTML}
+                    </div>
+                </div>
+
+                <!-- Step 4: Define Settlement Protocol -->
+                <div class="guided-step-card">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <div><h3 class="step-title">Define Settlement</h3><p class="text-sm text-text-muted">Select the final settlement currency.</p></div>
+                    </div>
+                    <div class="step-content">
+                        <label class="block text-sm font-medium text-text-muted mb-2">Settlement Protocol</label>
+                        <select data-path="commodityTrade.settlementAssetKey" class="form-select">${settlementOptions(state.settlementAssetKey)}</select>
+                    </div>
+                </div>`;
+            },
 
 /**
  * Renders the specific input fields for the Crypto Loan deal type.
@@ -3027,8 +3186,10 @@ renderSBLCMonetizationPanel: () => {
                 let customAnalysisPanel = '';
                 let primaryAnalysisCards = '';
             
+                // ========================================================================
+                // === ASSET SWAP WORKFLOW (PRESERVED WORD-FOR-WORD - NO REGRESSIONS) ===
+                // ========================================================================
                 if (AppState.modeler.activeDealType === 'AssetSwap') {
-                    // --- DEFINITIVE FIX IS HERE: `directRate` and `inverseRate` are now destructured ---
                     const { 
                         fromAsset, toAsset, amountToGive, baseValueInToAsset, 
                         finalValueToBuyerInToAsset, totalCommissionInToAsset, 
@@ -3105,8 +3266,57 @@ renderSBLCMonetizationPanel: () => {
                              <p class="text-xs font-mono text-text-muted mt-1">(1 ${toAsset.baseAsset} ≈ ${Utils.formatNumber(inverseRate, 8)} ${fromAsset.baseAsset})</p>
                         </div>
                     </div>`;
+
+                // ========================================================================
+                // === COMMODITY TRADE WORKFLOW (ELEVATED TO PINNACLE STANDARD) ===
+                // ========================================================================
+                } else if (AppState.modeler.activeDealType === 'CommodityTrade') {
+                    const { primaryValue, primaryUnit, dealTitle, totalCommissionInSettlement, baseCostPerUnitUSD, commissionPerUnitUSD, netPricePerUnitUSD, finalPricePerUnitUSD, plattsPriceUSD } = calc;
+                    const state = AppState.modeler.commodityTrade;
+
+                    primaryAnalysisCards = `
+                        <div class="output-metric-card base-value">
+                            <p class="label"><i class="fas fa-file-invoice-dollar"></i>Total Final Settlement</p>
+                            <p class="value">${Utils.formatNumber(primaryValue, 2)} <span class="text-2xl">${primaryUnit}</span></p>
+                            <p class="sub-value">${dealTitle}</p>
+                        </div>
+                        <div class="output-metric-card net">
+                            <p class="label"><i class="fas fa-tag"></i>Final Price Per ${state.unitOfMeasure}</p>
+                            <p class="value">${Utils.formatPrice(finalPricePerUnitUSD)}</p>
+                            <p class="sub-value">Net: ${Utils.formatPrice(netPricePerUnitUSD)} + Comm: ${Utils.formatPrice(commissionPerUnitUSD)}</p>
+                        </div>
+                        <div class="output-metric-card commission">
+                            <p class="label"><i class="fas fa-coins"></i>Total Commission Pool</p>
+                            <p class="value">${Utils.formatNumber(totalCommissionInSettlement, 2)} <span class="text-2xl">${primaryUnit}</span></p>
+                            <p class="sub-value">@ ${Utils.formatPrice(commissionPerUnitUSD)} per ${state.unitOfMeasure}</p>
+                        </div>`;
+                    
+                    customAnalysisPanel = `
+                    <div class="output-metric-card p-4 mt-4 border-l-4 border-primary-royal">
+                        <p class="label !mb-2 text-primary-royal"><i class="fas fa-stream"></i>Pinnacle Pricing Analysis (Per ${state.unitOfMeasure})</p>
+                        <div class="p-3 rounded-lg bg-background-light space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-text-muted">Live Platts Price</span>
+                                <span class="font-mono font-semibold">${Utils.formatPrice(plattsPriceUSD)}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-blue-400">
+                                <span class="text-sm">Net Price to Buyer</span>
+                                <span class="font-mono font-semibold">${Utils.formatPrice(netPricePerUnitUSD)}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-yellow-400">
+                                <span class="text-sm">Commission / Mark-Up</span>
+                                <span class="font-mono font-semibold">+ ${Utils.formatPrice(commissionPerUnitUSD)}</span>
+                            </div>
+                            <div class="border-t border-border-color my-1"></div>
+                            <div class="flex justify-between items-center text-white">
+                                <span class="text-sm font-bold">Final Price</span>
+                                <span class="font-mono font-bold text-lg">${Utils.formatPrice(finalPricePerUnitUSD)}</span>
+                            </div>
+                        </div>
+                    </div>`;
+
                 } else {
-                    primaryAnalysisCards = `<p class="text-center text-text-muted">Analysis dashboard is optimized for Asset Swap. Please select that deal type.</p>`;
+                    primaryAnalysisCards = `<p class="text-center text-text-muted py-12">Analysis dashboard is optimized for Asset Swap & Commodity Trade. Please select a supported deal type.</p>`;
                 }
             
                 return `
