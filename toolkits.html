@@ -3859,49 +3859,84 @@ processImageForTransparency: (imageDataUrl) => {
                 Utils.showNotification("Generating high-fidelity PDF and preparing for secure dispatch...", 'info', 'Processing Request');
 
                 try {
-                    // --- Stage 1: Retrieve the Clean HTML Template and the Separate Styles ---
+                    // --- Stage 1: Retrieve and Isolate Document Components ---
                     const printArea = document.getElementById('print-area');
-                    if (!printArea) throw new Error("CRITICAL: #print-area element not found.");
+                    if (!printArea) throw new Error("CRITICAL FAILURE: #print-area element is missing from the DOM.");
 
-                    // Create a clone to avoid modifying the live preview
+                    // Create a deep clone to operate on, preserving the live preview element.
                     const clone = printArea.cloneNode(true);
                     const styleElement = clone.querySelector('style');
-                    let styles = '';
-                    if (styleElement) {
-                        styles = styleElement.innerHTML;
-                        styleElement.remove(); // Remove the style block to get "clean" HTML
+                    
+                    if (!styleElement) {
+                        throw new Error("CRITICAL FAILURE: Cannot find <style> block within the contract template.");
                     }
                     
-                    const finalHtmlTemplate = clone.innerHTML;
+                    const styles = styleElement.innerHTML;
+                    styleElement.remove(); // Remove the style block to get "clean" HTML body content.
                     
-                    if (!finalHtmlTemplate) {
-                        throw new Error("CRITICAL: Cannot dispatch. The generated contract HTML in #print-area is empty.");
+                    const cleanHtmlBody = clone.innerHTML;
+                    
+                    if (!cleanHtmlBody || cleanHtmlBody.trim() === '') {
+                        throw new Error("CRITICAL FAILURE: The generated contract HTML in #print-area is empty or invalid.");
                     }
 
-                    // --- Stage 2: Extract Metadata for the Payload ---
-                    const recipientEmails = AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => p.email).filter(Boolean);
-                    const agreementReference = finalHtmlTemplate.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'GECAN-DOC-FINAL';
-                    const partiesJson = JSON.stringify(AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => ({ legalName: p.legalName, email: p.email })));
+                    // --- Stage 2: Extract Critical Metadata for Payload ---
+                    const recipientEmails = AppState.modeler.legal.groups
+                        .flatMap(g => g.parties)
+                        .map(p => p.email)
+                        .filter(Boolean); // Ensures only valid, non-empty emails are included.
 
+                    const agreementReference = cleanHtmlBody.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || `GECAN-DOC-${Date.now()}`;
+                    
+                    const partiesJson = JSON.stringify(
+                        AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => ({ 
+                            legalName: p.legalName, 
+                            email: p.email 
+                        }))
+                    );
 
-                    // --- Stage 3: Construct the Pinnacle-Grade Payload for the Backend ---
+                    // --- PINNACLE UPGRADE & BUG FIX (v23.1) ---
+                    // --- Stage 3: Reconstruct a Self-Contained, High-Fidelity HTML Document ---
+                    // The backend error indicates it expects a single, complete HTML document, not fragmented parts.
+                    // This reconstruction creates a well-formed HTML5 document, embedding the styles directly into the <head>,
+                    // which is the gold standard for server-side PDF generation engines.
+                    const fullHtmlDocument = `
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>${agreementReference}</title>
+                            <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
+                            <style>
+                                ${styles}
+                            </style>
+                        </head>
+                        <body>
+                            ${cleanHtmlBody}
+                        </body>
+                        </html>`;
+
+                    // --- Stage 4: Construct the Corrected, Complete Payload ---
+                    // The payload is now simplified and provides the exact data structure the backend requires.
                     const payload = {
-                        htmlTemplate: finalHtmlTemplate, // The HTML structure ONLY
-                        styles: styles,                 // The CSS rules ONLY
+                        htmlContent: fullHtmlDocument, // The complete, self-contained HTML for PDF generation.
                         partiesJson: partiesJson,
                         recipientEmails: recipientEmails.join(','),
                         agreementReference: agreementReference,
                         fileName: `${agreementReference}_EXECUTED.pdf`
                     };
 
-                    // --- Stage 4: Dispatch the Payload to the Secure Backend API Gateway ---
+                    // --- Stage 5: Dispatch the Payload to the Secure Backend API Gateway ---
                     const response = await Logic.createApiRequest('finalizeAndDispatchDirect', 'POST', payload);
                     
-                    Utils.showNotification(response, 'success', 'Document Dispatched');
+                    Utils.showNotification(response.message || "Document successfully dispatched to all parties.", 'success', 'Dispatch Complete');
 
                 } catch (error) {
+                    console.error("Finalization Workflow Error:", error);
                     Utils.showNotification(error.message, 'error', 'Dispatch Failed');
                 } finally {
+                    // Ensure the button is always re-enabled, regardless of outcome.
                     if (finalizationBtn) {
                         finalizationBtn.disabled = false;
                         finalizationBtn.innerHTML = '<i class="fas fa-gavel mr-2"></i>Proceed with Finalization';
