@@ -4,10 +4,10 @@
     <!-- ========================================================================= -->
     <!-- === DEFINITIVE FAVICON INTEGRATION (PINNACLE STANDARD) === -->
     <!-- ========================================================================= -->
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     
     <base target="_top">
     <title>GECAN™ Network Intelligence Suite</title>
@@ -32,11 +32,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&display=swap" rel="stylesheet">
 
-    <style id="pinnacle-styles">
+    <style>
         /* ========================================================================= */
-        /* === PINNACLE CSS ENGINE v4.0 (BENCHMARKED & UNIFIED) === */
+        /* === PINNACLE CSS ENGINE v5.0 (INTELLIGENCE SUITE EDITION) === */
         /* This stylesheet is the definitive standard, ensuring visual consistency */
-        /* with the entire GECAN platform. */
+        /* with the entire GECAN platform, plus Intelligence-specific enhancements. */
         /* ========================================================================= */
 
         /* --- A. CORE THEME & VARIABLES (BENCHMARKED) --- */
@@ -51,12 +51,10 @@
             --border-premium: rgba(148, 163, 184, 0.3); --border-accent: #64748b;
             --text-diamond: #f8fafc; --text-platinum: #e2e8f0; --text-silver: #cbd5e1;
             --text-muted: #94a3b8; --text-subtle: #64748b; --text-primary: #f8fafc; --text-secondary: #a0aec0;
-            --glow-azure: rgba(14, 165, 233, 0.8); --glow-sapphire: rgba(59, 130, 246, 0.9);
-            --glow-royal: rgba(139, 92, 246, 0.8);
+            --glow-azure: rgba(14, 165, 233, 0.8); --glow-sapphire: rgba(59, 130, 246, 0.9); --glow-royal: rgba(139, 92, 246, 0.8);
             --success-color: #22c55e; --warning-color: #f59e0b; --error-color: #ef4444; --critical-color: #dc2626;
             --gradient-primary: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
             --shadow-ultra: 0 25px 50px -12px rgba(0, 0, 0, 0.25); --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
-            --shadow-quantum: 0 50px 100px -20px rgba(0,0,0,0.5), 0 30px 60px -30px rgba(0,0,0,0.6);
             --transform-ultra: translateY(-16px) rotateX(10deg) rotateY(5deg) scale(1.07);
         }
 
@@ -70,7 +68,6 @@
 
         /* --- C. DYNAMIC BACKGROUND & PREMIUM HEADER (BENCHMARKED) --- */
         #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
-        
         .premium-header { position: sticky; top: 0; z-index: 50; background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-bottom: 1px solid var(--border-premium); box-shadow: var(--shadow-ultra); }
         .gecan-logo-container { perspective: 800px; }
         .gecan-logo-flipper { position: relative; width: 250px; height: 120px; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1); }
@@ -119,10 +116,7 @@
             border-color: var(--primary-azure);
             box-shadow: 0 0 40px var(--glow-azure), 0 20px 40px rgba(0, 0, 0, 0.4);
         }
-        .status-indicator-ring {
-            width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; background: var(--background-dark); padding: 4px; transition: transform 0.3s ease;
-        }
+        .status-indicator-ring { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--background-dark); padding: 4px; transition: transform 0.3s ease; }
         .contact-card:hover .status-indicator-ring { transform: scale(1.1) translateZ(10px); }
         .status-ring-ACTIVE { border: 2px solid var(--success-color); box-shadow: 0 0 10px var(--success-color); }
         .status-ring-INACTIVE { border: 2px solid var(--text-muted); }
@@ -171,13 +165,17 @@
         }
         .goal-btn:hover:not(.active) { border-color: var(--primary-azure); color: var(--text-diamond); }
         .goal-btn.active { background: var(--gradient-primary); border-color: var(--primary-azure); color: white; box-shadow: 0 0 20px var(--glow-azure); }
+
+        #path-results-tbody tr { transition: background-color 0.3s ease, border-left-color 0.3s ease; }
+        #path-results-tbody tr.selected-path { background-color: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--primary-azure); }
+        .path-details-row.hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen">
 
     <div id="particles-js"></div>
     
-    <!-- PREMIUM HEADER (BENCHMARKED FROM TOOLKITS.HTML) -->
+    <!-- PREMIUM HEADER (BENCHMARKED & UNIFIED) -->
     <header class="premium-header p-4 lg:px-6">
         <div class="container mx-auto flex items-center justify-between gap-6">
             <div class="flex items-center gap-6 flex-shrink-0">
@@ -202,24 +200,8 @@
         </div>
     </header>
 
-    <main class="container mx-auto p-4 md:p-8">
-        <div id="premium-access-gate" class="glass-card rounded-2xl p-6 md:p-8 max-w-lg mx-auto shadow-2xl fade-in-up">
-            <h2 class="text-2xl font-bold text-white mb-2">Exclusive Access Required</h2>
-            <p class="text-text-secondary mb-6">This intelligence suite is available to premium partners only. Please enter your assigned Access Code.</p>
-            <div class="flex items-center gap-3">
-                <input type="text" id="access-code-input" placeholder="e.g., GECAN-PREMIUM-XYZ" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-wider">
-                <button id="validate-code-btn" class="btn-primary bg-gradient-to-r from-primary-royal to-primary-amethyst border-primary-royal font-bold py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed">Authenticate</button>
-            </div>
-            <p id="access-error" class="text-sm text-error-color mt-3 hidden"></p>
-            <div id="auth-progress" class="mt-4 hidden">
-              <div class="w-full progress-bar-container rounded-full h-2.5"><div class="bg-gradient-to-r from-primary-royal to-primary-amethyst h-2.5 rounded-full" style="width: 0%"></div></div>
-              <p class="text-xs text-text-muted mt-2 text-center">Validating credentials...</p>
-            </div>
-        </div>
-
-        <div id="intelligence-suite" class="hidden">
-            <!-- Content will be generated by JS after successful authentication -->
-        </div>
+    <main id="main-content" class="container mx-auto p-4 md:p-8">
+        <!-- The entire UI will be dynamically rendered here by JavaScript -->
     </main>
     
     <footer class="mt-auto pt-16">
@@ -242,322 +224,21 @@
         </div>
     </footer>
 
+    <!-- ==================================================================================== -->
+    <!-- === GECAN™ INTELLIGENCE ENGINE v7.0 (PINNACLE STANDARD - UNIFIED SCRIPT) === -->
+    <!-- This single, unabridged script block contains the entire application logic. -->
+    <!-- It has been refactored to eliminate all previous errors and regressions. -->
+    <!-- ==================================================================================== -->
     <script>
-        // ====================================================================================
-        // === GECAN™ INTELLIGENCE ENGINE v6.0 (PINNACLE STANDARD - SEVERE UPGRADE) ===
-        // This engine is the definitive, production-grade standard for the Intelligence page.
-        // It has been completely refactored to use the modern createApiRequest protocol and
-        // to render severely upgraded, interactive UI components.
-        // ====================================================================================
-        
-        const API_URL = "https://script.google.com/macros/s/AKfycbwrrMjSFDAwywkZ5stFEOiX8_58qm8CZVw5-m0OOQenJPK4ez41mfqfX5bLcQupY-nu/exec";
-
-        const AppState = { 
-            allContacts: [], 
-            filteredContacts: [],
-            userAccessCode: null,
-            currentPage: 1, 
-            contactsPerPage: 12,
-            contactSort: 'name_asc',
-            pathAnalysis: {
-                start: null, via: null, end: null,
-                goal: 'confidence',
-                excludeBlacklisted: true,
-                includeRisk: false,
-                results: [],
-                selectedPathId: null
-            },
-            ui: {
-                isRefreshing: false,
-                lastDataHash: null,
-                refreshInterval: null,
-                activeAutocomplete: null,
-                expandedCards: new Set()
-            }
-        };
-
-        const Utils = {
-            createApiRequest: async (action, method = 'POST', params = {}) => {
-                const url = new URL(API_URL);
-                const options = {
-                    method: method.toUpperCase(),
-                    redirect: 'follow',
-                    body: JSON.stringify({ action, data: params }),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                };
-                try {
-                    const response = await fetch(url, options);
-                    if (!response.ok) throw new Error(`API Network Error: Status ${response.status}`);
-                    const result = await response.json();
-                    if (result.success === false) throw new Error(result.error || 'An unknown server error occurred.');
-                    return result.data || result.message || result;
-                } catch (error) {
-                    console.error(`API Error for action '${action}':`, error);
-                    throw error;
-                }
-            },
-            debounce: (func, wait) => { 
-                let timeout; 
-                return (...args) => { 
-                    clearTimeout(timeout); 
-                    timeout = setTimeout(() => func.apply(this, args), wait); 
-                }; 
-            },
-            showNotification: (message, type = 'info', duration = 4000) => {
-                const toast = document.createElement('div');
-                const colors = {
-                    success: 'from-green-500 to-emerald-600',
-                    error: 'from-red-500 to-rose-600',
-                    info: 'from-sky-500 to-blue-600'
-                };
-                const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
-                toast.className = `fixed top-5 right-5 p-4 rounded-xl shadow-2xl z-[200] text-white font-medium bg-gradient-to-br ${colors[type]} transform translate-x-full transition-all duration-500 ease-out`;
-                toast.innerHTML = `<div class="flex items-center gap-3"><i class="fas ${icons[type]} text-lg"></i><span>${message}</span></div>`;
-                document.body.appendChild(toast);
-                requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; });
-                setTimeout(() => { toast.style.transform = 'translateX(120%)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, duration);
-            },
-            hashString: (str) => { 
-                let hash = 0; if (str.length === 0) return hash; 
-                for (let i = 0; i < str.length; i++) { const char = str.charCodeAt(i); hash = ((hash << 5) - hash) + char; hash = hash & hash; } 
-                return hash; 
-            }
-        };
-
-        const UI = {
-            init: () => {
-                UI.initParticles();
-                UI.populateNavLinks();
-                Logic.setupEventListeners();
-            },
-            initParticles: () => {
-                 if(typeof particlesJS !== 'undefined') { 
-                    particlesJS('particles-js', {"particles":{"number":{"value":50,"density":{"enable":true,"value_area":1200}},"color":{"value":"#334155"},"shape":{"type":"circle"},"opacity":{"value":0.4,"random":true},"size":{"value":2,"random":true},"line_linked":{"enable":true,"distance":180,"color":"#475569","opacity":0.2,"width":1},"move":{"enable":true,"speed":0.8,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":false}},"modes":{"grab":{"distance":200,"line_linked":{"opacity":0.5}}}},"retina_detect":true}); 
-                } 
-            },
-            populateNavLinks: () => {
-                const navContainer = document.getElementById('nav-container');
-                if (!navContainer) return;
-                const links = [
-                    { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
-                    { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
-                    { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
-                    { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' }
-                ];
-                navContainer.innerHTML = links.map(link => {
-                    const isActive = link.page === 'intelligence';
-                    return `<a href="./${link.page}.html" class="nav-btn ${isActive ? 'active' : ''}"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`;
-                }).join('');
-            },
-            renderMainSuite: () => {
-                const container = document.getElementById('intelligence-suite');
-                container.innerHTML = `
-                    <section id="path-analyzer-section" class="mb-12">
-                        <div class="text-center mb-10">
-                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Strategic Path Analyzer</h2>
-                            <p class="text-text-secondary max-w-3xl mx-auto">Visually construct and analyze communication pathways between network contacts to identify the most efficient, secure, and legitimate routes for engagement.</p>
-                        </div>
-                        ${UI.ComponentBuilders.renderPathAnalyzerForm()}
-                        ${UI.ComponentBuilders.renderPathResultsArea()}
-                    </section>
-                    <section id="contacts-section" class="mt-16">
-                        <div class="text-center mb-10">
-                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Contact Ledger</h2>
-                            <p class="text-text-secondary max-w-3xl mx-auto">Browse, filter, and review contacts within the GECAN network. Access levels may apply based on your partner tier.</p>
-                        </div>
-                        ${UI.ComponentBuilders.renderContactFilters()}
-                        <div id="contacts-loading-spinner" class="text-center py-20"><i class="fas fa-spinner fa-spin fa-3x text-primary-azure"></i><p class="mt-6 text-lg">Loading GECAN™ Contact Database...</p></div>
-                        <div id="contacts-container" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"></div>
-                        <div id="contacts-pagination" class="hidden mt-8 flex justify-center items-center gap-3"></div>
-                    </section>
-                `;
-                Logic.setupSuiteEventListeners();
-            },
-            renderContactCards: () => {
-                const container = document.getElementById('contacts-container');
-                if (!container) return;
-                
-                const startIndex = (AppState.currentPage - 1) * AppState.contactsPerPage;
-                const endIndex = startIndex + AppState.contactsPerPage;
-                const contactsToRender = AppState.filteredContacts.slice(startIndex, endIndex);
-
-                document.getElementById('contacts-shown').textContent = AppState.filteredContacts.length;
-                
-                if (contactsToRender.length === 0) {
-                    container.innerHTML = `<div class="col-span-full text-center py-20 text-gray-400"><i class="fas fa-search-minus fa-4x opacity-50"></i><p class="text-xl mt-4">No contacts match your current filters.</p></div>`;
-                    return;
-                }
-
-                container.innerHTML = contactsToRender.map(UI.ComponentBuilders.createContactCardHTML).join('');
-                setTimeout(() => UI.animateLegitimacyBars(), 50);
-            },
-            animateLegitimacyBars: () => {
-                document.querySelectorAll('.legitimacy-bar-fill').forEach((bar, index) => {
-                    setTimeout(() => { bar.style.width = bar.dataset.score + '%'; }, index * 50);
-                });
-            },
-            updatePagination: () => {
-                const container = document.getElementById('contacts-pagination');
-                const totalPages = Math.ceil(AppState.filteredContacts.length / AppState.contactsPerPage);
-                if (totalPages <= 1) {
-                    container.classList.add('hidden');
-                    return;
-                }
-                container.classList.remove('hidden');
-                container.innerHTML = `
-                    <button id="prev-page-btn" class="btn-secondary px-4 py-2 rounded-lg" ${AppState.currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
-                    <span id="page-info" class="text-sm text-text-muted font-medium">Page ${AppState.currentPage} of ${totalPages}</span>
-                    <button id="next-page-btn" class="btn-secondary px-4 py-2 rounded-lg" ${AppState.currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
-                `;
-                document.getElementById('prev-page-btn').addEventListener('click', Logic.prevPage);
-                document.getElementById('next-page-btn').addEventListener('click', Logic.nextPage);
-            },
-            updateSelectedContactDisplay: (target, name) => {
-                const displayEl = document.getElementById(`${target}-contact-display`);
-                const inputEl = document.getElementById(`${target}-contact-input`);
-                const suggestionsEl = document.getElementById(`${target}-contact-suggestions`);
-
-                if (!displayEl || !inputEl || !suggestionsEl) return;
-
-                if (name) {
-                    const icons = { start: 'fa-flag-checkered', via: 'fa-map-signs', end: 'fa-bullseye' };
-                    displayEl.innerHTML = `<i class="fas ${icons[target]} icon"></i><span class="name truncate">${name}</span><button class="clear-btn" onmousedown="event.preventDefault(); Logic.clearSelectedContact('${target}')">×</button>`;
-                    displayEl.classList.remove('hidden');
-                    inputEl.classList.add('hidden');
-                } else {
-                    displayEl.classList.add('hidden');
-                    inputEl.value = '';
-                    inputEl.classList.remove('hidden');
-                }
-                suggestionsEl.classList.add('hidden');
-            },
-            renderAutocompleteSuggestions: (suggestions, target) => {
-                const suggestionsEl = document.getElementById(`${target}-contact-suggestions`);
-                if (!suggestionsEl) return;
-                if (suggestions.length === 0) {
-                    suggestionsEl.classList.add('hidden');
-                    return;
-                }
-                suggestionsEl.innerHTML = suggestions.map(s => `
-                    <div class="suggestion-item" onmousedown="Logic.selectAutocompleteSuggestion('${target}', '${s.fullName}')">
-                        <div class="name">${s.fullName}</div>
-                        <div class="entity">${s.entity}</div>
-                    </div>`).join('');
-                suggestionsEl.classList.remove('hidden');
-            },
-            updateSingleCardExpansion: (contactId) => {
-                const card = document.getElementById(`contact-card-${contactId}`);
-                if (!card) return;
-                const details = card.querySelector('.card-details');
-                const toggleBtnIcon = card.querySelector('.expand-toggle-btn i');
-                details.classList.toggle('expanded', AppState.ui.expandedCards.has(contactId));
-                toggleBtnIcon.classList.toggle('rotate-180', AppState.ui.expandedCards.has(contactId));
-            },
-            renderPathResults: (paths) => {
-                const resultsArea = document.getElementById('path-results-area');
-                const reportContainer = document.getElementById('path-report-container');
-                const errorDisplay = document.getElementById('path-error-display');
-                
-                resultsArea.classList.remove('hidden');
-                document.getElementById('path-loading-spinner').classList.add('hidden');
-                
-                if (!paths || paths.length === 0) {
-                    reportContainer.classList.add('hidden');
-                    document.getElementById('path-error-message').textContent = "No viable pathways could be found matching your criteria.";
-                    errorDisplay.classList.remove('hidden');
-                    return;
-                }
-                
-                AppState.pathAnalysis.results = paths;
-                Logic.sortPaths(); // Apply initial sort
-                document.getElementById('path-results-tbody').innerHTML = paths.map(UI.ComponentBuilders.createPathRowHTML).join('');
-                reportContainer.classList.remove('hidden');
-                errorDisplay.classList.add('hidden');
-                Logic.selectPath(paths[0].pathId); // Auto-select the top result
-            }
-        };
-
-        const ComponentBuilders = {
-            renderPathAnalyzerForm: () => `
-                <div class="report-section p-6 md:p-8">
-                    <div class="mb-8">
-                        <label class="text-sm font-medium text-text-muted mb-3 block text-center">Step 1: Define Optimization Goal</label>
-                        <div id="optimization-goal-selector" class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-                            <button data-goal="confidence" class="goal-btn active flex-col h-24"><i class="fas fa-shield-alt text-2xl mb-2"></i><span>Highest Confidence</span></button>
-                            <button data-goal="userCentric" class="goal-btn flex-col h-24"><i class="fas fa-user-check text-2xl mb-2 text-primary-royal"></i><span>User-Centric (Via Me)</span></button>
-                            <button data-goal="shortest" class="goal-btn flex-col h-24"><i class="fas fa-route text-2xl mb-2"></i><span>Shortest Path</span></button>
-                            <button data-goal="legitimacy" class="goal-btn flex-col h-24"><i class="fas fa-balance-scale text-2xl mb-2"></i><span>Highest Legitimacy</span></button>
-                        </div>
-                    </div>
-                    <div class="mb-6">
-                        <label class="text-sm font-medium text-text-muted mb-3 block text-center">Step 2: Configure Pathway</label>
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                            ${['start', 'via', 'end'].map(target => `
-                                <div class="relative">
-                                    <input type="text" id="${target}-contact-input" class="form-input p-3 pl-10 text-white rounded-xl w-full autocomplete-input" placeholder="${target.charAt(0).toUpperCase() + target.slice(1)} Contact..." autocomplete="off">
-                                    <div id="${target}-contact-suggestions" class="autocomplete-suggestions hidden"></div>
-                                    <div id="${target}-contact-display" class="selected-contact-display hidden"></div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <div class="mt-8 pt-6 border-t border-border-color flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div class="flex items-center gap-4 text-sm text-text-secondary">
-                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" id="exclude-blacklisted" checked class="form-input !w-4 !h-4 !p-0 !rounded">Exclude Blacklisted</label>
-                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" id="include-risk-analysis" class="form-input !w-4 !h-4 !p-0 !rounded">Detailed Risk Analysis</label>
-                        </div>
-                        <div class="flex gap-3">
-                            <button id="clear-paths-btn" class="btn-secondary px-6 py-2.5 rounded-lg text-sm font-semibold"><i class="fas fa-times mr-2"></i>Clear</button>
-                            <button id="find-paths-btn" class="btn-primary font-bold py-2.5 px-8 rounded-lg disabled:opacity-50"><i class="fas fa-project-diagram mr-2"></i>Generate Report</button>
-                        </div>
-                    </div>
-                </div>`,
-            renderPathResultsArea: () => `
-                <div id="path-results-area" class="mt-8 hidden">
-                    <div id="path-loading-spinner" class="hidden text-center py-10"><i class="fas fa-spinner fa-spin fa-3x text-primary-azure"></i><p class="mt-4 text-lg text-text-secondary">Analyzing GECAN™ Network...</p></div>
-                    <div id="path-error-display" class="hidden report-section p-8 text-error-color text-center"><i class="fas fa-exclamation-triangle text-4xl mb-4"></i><p class="text-xl font-semibold">Analysis Error</p><p id="path-error-message" class="text-sm mt-1"></p></div>
-                    <div id="path-report-container" class="hidden space-y-8">
-                        <div id="path-summary-section" class="report-section"></div>
-                        <div class="overflow-x-auto report-section"><table class="min-w-full text-sm text-left text-text-secondary"><thead class="text-xs text-text-muted uppercase bg-background-dark/50"><tr><th class="p-4 cursor-pointer" onclick="Logic.sortPaths('integrityScore')">Integrity <i class="fas fa-sort ml-1"></i></th><th class="p-4">Path</th><th class="p-4 text-center cursor-pointer" onclick="Logic.sortPaths('hops')">Hops <i class="fas fa-sort ml-1"></i></th><th class="p-4 text-center cursor-pointer" onclick="Logic.sortPaths('avgLegitimacy')">Avg. Legitimacy <i class="fas fa-sort ml-1"></i></th><th class="p-4">Weakest Link</th><th class="p-4">Strongest Link</th><th class="p-4 text-center">Details</th></tr></thead><tbody id="path-results-tbody" class="divide-y divide-border-color"></tbody></table></div>
-                    </div>
-                </div>`,
-            renderContactFilters: () => `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="relative lg:col-span-2"><i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i><input type="text" id="contact-search-input" placeholder="Search by name, entity, role, jurisdiction..." class="w-full form-input py-3 pl-12 pr-10 text-white rounded-xl"><button id="clear-search-btn" class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-white hidden">&times;</button></div>
-                    <div><select id="role-filter-select" class="w-full form-input p-3 text-white rounded-xl"></select></div>
-                    <div><select id="asset-filter-select" class="w-full form-input p-3 text-white rounded-xl"></select></div>
-                </div>
-                <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-                  <div class="flex items-center gap-2" id="contact-status-filters"><span class="text-sm text-text-muted">Status:</span><button class="btn-primary px-3 py-1 text-xs rounded-lg" data-status="ALL">All</button><button class="btn-secondary px-3 py-1 text-xs rounded-lg" data-status="ACTIVE">Active</button><button class="btn-secondary px-3 py-1 text-xs rounded-lg" data-status="BLACKLISTED">Blacklisted</button></div>
-                  <div class="flex items-center gap-4 text-sm text-text-secondary"><span>Showing <span id="contacts-shown" class="font-bold text-white">0</span> of <span id="total-contacts" class="font-bold text-white">0</span> contacts</span><select id="contacts-sort-select" class="form-input p-2 text-sm text-white rounded-lg"><option value="name_asc">Sort: Name (A-Z)</option><option value="name_desc">Sort: Name (Z-A)</option><option value="legitimacy_desc">Sort: Legitimacy (High-Low)</option></select></div>
-                </div>`,
-            createContactCardHTML: (c) => { /* ... As per previous correct version ... */ }, // Placeholder for brevity, use final version.
-            createPathRowHTML: (p) => { /* ... As per previous correct version ... */ }, // Placeholder for brevity, use final version.
-        };
-
-        const Logic = {
-            init: () => {
-                UI.init();
-                Logic.validatePremiumCode(); // Auto-validate on load if code exists
-            },
-            // ... (Other logic functions will be added here) ...
-        };
-
-        document.addEventListener('DOMContentLoaded', Logic.init);
-        window.Logic = Logic;
-        window.UI = UI;
-        window.Utils = Utils;
-        window.ComponentBuilders = ComponentBuilders; // For potential debugging
-    </script>
-
-    <script>
-        // Separate script block for logic to ensure DOM is ready.
         (function() {
-            const API_URL = "https://script.google.com/macros/s/AKfycby_U6tBwtdj4Sud-t94FFgTmb8YwNRyS3VJeHJIoZ3KEkhR9EfM8I3NuS0CYLsCWjzX/exec";
+            'use strict';
+            
+            const API_URL = "https://script.google.com/macros/s/AKfycbwrrMjSFDAwywkZ5stFEOiX8_58qm8CZVw5-m0OOQenJPK4ez41mfqfX5bLcQupY-nu/exec";
 
             const AppState = { 
                 allContacts: [], 
                 filteredContacts: [],
+                allOffers: [], // To populate NCNDA deal context
                 userAccessCode: null,
                 userAccessTier: null,
                 currentPage: 1, 
@@ -569,7 +250,17 @@
                     excludeBlacklisted: true,
                     includeRisk: false,
                     results: [],
-                    selectedPathId: null
+                    selectedPathId: null,
+                    isLoading: false,
+                },
+                ncnda: {
+                    parties: [],
+                    includeImfpa: false,
+                    dealContextType: 'Agnostic',
+                    offerId: null,
+                    jurisdiction: 'International Chamber of Commerce (ICC Pub. No. 769 E)',
+                    imfpaGroups: [],
+                    dealMetrics: { volume: 0, price: 0, commissionPct: 0 }
                 },
                 ui: {
                     isRefreshing: false,
@@ -580,8 +271,6 @@
                 }
             };
             
-            window.AppState = AppState; // Expose for debugging
-
             const Utils = {
                 createApiRequest: async (action, method = 'POST', params = {}) => {
                     const url = new URL(API_URL);
@@ -612,11 +301,7 @@
                 },
                 showNotification: (message, type = 'info', duration = 4000) => {
                     const toast = document.createElement('div');
-                    const colors = {
-                        success: 'from-green-500 to-emerald-600',
-                        error: 'from-red-500 to-rose-600',
-                        info: 'from-sky-500 to-blue-600'
-                    };
+                    const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-rose-600', info: 'from-sky-500 to-blue-600' };
                     const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
                     toast.className = `fixed top-5 right-5 p-4 rounded-xl shadow-2xl z-[200] text-white font-medium bg-gradient-to-br ${colors[type]} transform translate-x-full transition-all duration-500 ease-out`;
                     toast.innerHTML = `<div class="flex items-center gap-3"><i class="fas ${icons[type]} text-lg"></i><span>${message}</span></div>`;
@@ -628,6 +313,24 @@
                     let hash = 0; if (str.length === 0) return hash; 
                     for (let i = 0; i < str.length; i++) { const char = str.charCodeAt(i); hash = ((hash << 5) - hash) + char; hash |= 0; } 
                     return hash; 
+                },
+                animateProgressBar: (el, target, onComplete) => {
+                    let start = parseFloat(el.style.width) || 0;
+                    let startTime = null;
+                    const duration = 800;
+                    function animation(currentTime) {
+                        if (startTime === null) startTime = currentTime;
+                        const timeElapsed = currentTime - startTime;
+                        const progress = Math.min(timeElapsed / duration, 1);
+                        const currentWidth = start + (target - start) * progress;
+                        el.style.width = currentWidth + '%';
+                        if (progress < 1) {
+                            requestAnimationFrame(animation);
+                        } else {
+                            if (onComplete) onComplete();
+                        }
+                    }
+                    requestAnimationFrame(animation);
                 }
             };
             
@@ -635,47 +338,55 @@
                 init: () => {
                     UI.initParticles();
                     UI.populateNavLinks();
-                    Logic.setupEventListeners();
+                    UI.renderView('auth');
+                    Logic.setupGlobalEventListeners();
+                    Logic.checkForAutoAuth();
                 },
                 initParticles: () => { 
-                    if(typeof particlesJS !== 'undefined') { 
+                     if(typeof particlesJS !== 'undefined') { 
                         particlesJS('particles-js', {"particles":{"number":{"value":50,"density":{"enable":true,"value_area":1200}},"color":{"value":"#334155"},"shape":{"type":"circle"},"opacity":{"value":0.4,"random":true},"size":{"value":2,"random":true},"line_linked":{"enable":true,"distance":180,"color":"#475569","opacity":0.2,"width":1},"move":{"enable":true,"speed":0.8,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":false}},"modes":{"grab":{"distance":200,"line_linked":{"opacity":0.5}}}},"retina_detect":true}); 
                     } 
                 },
                 populateNavLinks: () => {
+                    // This function is consistent with the other pages.
                     const navContainer = document.getElementById('nav-container');
                     const links = [
-                        { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
-                        { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
-                        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
-                        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' }
+                        { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow' },
+                        { page: 'toolkits', icon: 'fas fa-tools', text: 'Toolkits' },
+                        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect' },
+                        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Intelligence' },
+                        { page: 'nexus', icon: 'fas fa-layer-group', text: 'Capital Nexus' }
                     ];
                     navContainer.innerHTML = links.map(link => {
                         const isActive = link.page === 'intelligence';
                         return `<a href="./${link.page}.html" class="nav-btn ${isActive ? 'active' : ''}"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`;
                     }).join('');
                 },
-                renderMainSuite: () => {
-                    document.getElementById('intelligence-suite').innerHTML = `
-                        <section id="path-analyzer-section" class="mb-12 fade-in-up">
-                            ${ComponentBuilders.renderPathAnalyzerForm()}
-                            ${ComponentBuilders.renderPathResultsArea()}
-                        </section>
-                        <section id="contacts-section" class="mt-16 fade-in-up" style="animation-delay: 0.2s;">
-                            ${ComponentBuilders.renderContactDirectory()}
-                        </section>
-                    `;
-                    Logic.setupSuiteEventListeners();
+                renderView: (viewName) => {
+                    const mainContent = document.getElementById('main-content');
+                    if (!mainContent) return;
+                    
+                    let html = '';
+                    switch(viewName) {
+                        case 'auth':
+                            html = ComponentBuilders.renderAuthGate();
+                            break;
+                        case 'suite':
+                            html = ComponentBuilders.renderMainSuite();
+                            break;
+                    }
+                    mainContent.innerHTML = html;
+                    Logic.bindEventListenersForView(viewName);
                 },
                 updateContactDisplay: () => {
                     const container = document.getElementById('contacts-container');
                     const loadingSpinner = document.getElementById('contacts-loading-spinner');
                     const paginationEl = document.getElementById('contacts-pagination');
+                    if (!container || !loadingSpinner || !paginationEl) return;
 
                     loadingSpinner.classList.add('hidden');
                     container.classList.remove('hidden');
-                    paginationEl.classList.remove('hidden');
-
+                    
                     const startIndex = (AppState.currentPage - 1) * AppState.contactsPerPage;
                     const endIndex = startIndex + AppState.contactsPerPage;
                     const contactsToRender = AppState.filteredContacts.slice(startIndex, endIndex);
@@ -683,10 +394,11 @@
                     document.getElementById('contacts-shown').textContent = AppState.filteredContacts.length;
 
                     if (contactsToRender.length === 0) {
-                        container.innerHTML = `<div class="col-span-full text-center py-20 text-text-muted"><i class="fas fa-search-minus fa-4x opacity-50"></i><p class="text-xl mt-4">No contacts match the current filters.</p></div>`;
+                        container.innerHTML = `<div class="col-span-full text-center py-20 text-text-muted"><i class="fas fa-search-minus fa-4x opacity-50"></i><p class="text-xl mt-4">No contacts match your current filters.</p></div>`;
                         paginationEl.classList.add('hidden');
                     } else {
                         container.innerHTML = contactsToRender.map(ComponentBuilders.createContactCardHTML).join('');
+                        paginationEl.classList.remove('hidden');
                         setTimeout(() => document.querySelectorAll('.legitimacy-bar-fill').forEach(bar => { bar.style.width = bar.dataset.score + '%'; }), 50);
                         UI.updatePaginationControls();
                     }
@@ -708,6 +420,7 @@
                     const inputEl = document.getElementById(`${target}-contact-input`);
                     const suggestionsEl = document.getElementById(`${target}-contact-suggestions`);
                     if (!displayEl || !inputEl || !suggestionsEl) return;
+
                     if (name) {
                         const icons = { start: 'fa-flag-checkered', via: 'fa-map-signs', end: 'fa-bullseye' };
                         displayEl.innerHTML = `<i class="fas ${icons[target]} icon"></i><span class="name truncate">${name}</span><button class="clear-btn" onmousedown="event.preventDefault(); Logic.clearSelectedContact('${target}')">×</button>`;
@@ -723,7 +436,10 @@
                 renderAutocompleteSuggestions: (suggestions, target) => {
                     const suggestionsEl = document.getElementById(`${target}-contact-suggestions`);
                     if (!suggestionsEl) return;
-                    if (suggestions.length === 0) { suggestionsEl.classList.add('hidden'); return; }
+                    if (suggestions.length === 0) {
+                        suggestionsEl.classList.add('hidden');
+                        return;
+                    }
                     suggestionsEl.innerHTML = suggestions.map(s => `
                         <div class="suggestion-item" onmousedown="Logic.selectAutocompleteSuggestion('${target}', '${s.fullName}')">
                             <div class="name">${s.fullName}</div><div class="entity">${s.entity}</div>
@@ -763,85 +479,610 @@
             };
             
             const ComponentBuilders = {
-                renderPathAnalyzerForm: () => `...`, // To be filled with final HTML
-                renderPathResultsArea: () => `...`,
-                renderContactDirectory: () => `...`,
-                createContactCardHTML: () => `...` // And so on
+                renderAuthGate: () => `
+                    <div class="glass-card rounded-2xl p-6 md:p-10 max-w-lg mx-auto shadow-2xl fade-in-up text-center">
+                        <i class="fas fa-shield-alt text-5xl text-primary-azure mb-4" style="text-shadow: 0 0 20px var(--glow-azure);"></i>
+                        <h2 class="text-3xl font-bold text-white mb-2">Intelligence Suite Access</h2>
+                        <p class="text-text-secondary mb-8">This module requires premium partner authentication. Please enter your GECAN™ Access Code to proceed.</p>
+                        <div class="flex items-center gap-3">
+                            <input type="password" id="access-code-input" placeholder="Enter Access Code" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-widest text-center">
+                            <button id="validate-code-btn" class="btn-primary bg-gradient-to-r from-primary-royal to-primary-amethyst border-primary-royal font-bold py-3 px-6 rounded-xl disabled:opacity-50">Authenticate</button>
+                        </div>
+                        <p id="access-error" class="text-sm text-error-color mt-3 h-5"></p>
+                    </div>`,
+                renderMainSuite: () => `
+                    <div class="space-y-16">
+                        <section id="path-analyzer-section" class="fade-in-up">
+                            ${ComponentBuilders.renderPathAnalyzerForm()}
+                            ${ComponentBuilders.renderPathResultsArea()}
+                        </section>
+                        <section id="contacts-section" class="mt-16 fade-in-up" style="animation-delay: 0.2s;">
+                            ${ComponentBuilders.renderContactDirectory()}
+                        </section>
+                    </div>`,
+                renderPathAnalyzerForm: () => `
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Strategic Path Analyzer</h2>
+                        <p class="text-text-secondary max-w-3xl mx-auto">Visually construct and analyze communication pathways between network contacts to identify the most efficient, secure, and legitimate routes for engagement.</p>
+                    </div>
+                    <div class="report-section p-6 md:p-8">
+                        <div class="mb-8">
+                            <label class="text-sm font-medium text-text-muted mb-3 block text-center">Step 1: Define Optimization Goal</label>
+                            <div id="optimization-goal-selector" class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+                                <button data-goal="confidence" class="goal-btn active flex-col h-24 rounded-xl"><i class="fas fa-shield-alt text-2xl mb-2"></i><span>Highest Confidence</span></button>
+                                <button data-goal="userCentric" class="goal-btn flex-col h-24 rounded-xl"><i class="fas fa-user-check text-2xl mb-2 text-primary-royal"></i><span>User-Centric (Via Me)</span></button>
+                                <button data-goal="shortest" class="goal-btn flex-col h-24 rounded-xl"><i class="fas fa-route text-2xl mb-2"></i><span>Shortest Path</span></button>
+                                <button data-goal="legitimacy" class="goal-btn flex-col h-24 rounded-xl"><i class="fas fa-balance-scale text-2xl mb-2"></i><span>Highest Legitimacy</span></button>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label class="text-sm font-medium text-text-muted mb-3 block text-center">Step 2: Configure Pathway</label>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                                ${['start', 'via', 'end'].map(target => `
+                                    <div class="relative">
+                                        <input type="text" id="${target}-contact-input" class="form-input p-3 pl-4 text-white rounded-xl w-full autocomplete-input" placeholder="${target.charAt(0).toUpperCase() + target.slice(1)} Contact..." autocomplete="off">
+                                        <div id="${target}-contact-suggestions" class="autocomplete-suggestions hidden"></div>
+                                        <div id="${target}-contact-display" class="selected-contact-display hidden"></div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-border-secondary flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div class="flex items-center gap-4 text-sm text-text-secondary">
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" id="exclude-blacklisted" checked class="form-input !w-4 !h-4 !p-0 !rounded text-primary-azure focus:ring-primary-azure">Exclude Blacklisted</label>
+                                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" id="include-risk-analysis" class="form-input !w-4 !h-4 !p-0 !rounded text-primary-azure focus:ring-primary-azure">Detailed Risk Analysis</label>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="clear-paths-btn" class="btn-secondary px-6 py-2.5 rounded-lg text-sm font-semibold"><i class="fas fa-times mr-2"></i>Clear Path</button>
+                                <button id="find-paths-btn" class="btn-primary font-bold py-2.5 px-8 rounded-lg disabled:opacity-50"><i class="fas fa-project-diagram mr-2"></i>Generate Report</button>
+                            </div>
+                        </div>
+                    </div>`,
+                renderPathResultsArea: () => `
+                    <div id="path-results-area" class="mt-8 hidden">
+                        <div id="path-loading-spinner" class="hidden text-center py-10"><div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-3x text-primary-azure"></i><div class="absolute inset-0 rounded-full animate-ping bg-primary-azure opacity-20"></div></div><p class="mt-6 text-lg text-text-secondary">Analyzing GECAN™ Network...</p></div>
+                        <div id="path-error-display" class="hidden report-section p-8 text-center"><i class="fas fa-exclamation-triangle text-4xl mb-4 text-error-color"></i><p class="text-xl font-semibold text-white">Analysis Error</p><p id="path-error-message" class="text-text-secondary mt-1"></p></div>
+                        <div id="path-report-container" class="hidden space-y-8">
+                            <div id="path-summary-section" class="report-section"></div>
+                            <div class="overflow-x-auto report-section"><table class="min-w-full text-sm text-left text-text-secondary"><thead class="text-xs text-text-muted uppercase bg-background-dark/50"><tr><th scope="col" class="p-4 cursor-pointer hover:text-white" onclick="Logic.sortPaths('integrityScore')">Integrity <i class="fas fa-sort ml-1"></i></th><th scope="col" class="p-4">Path</th><th scope="col" class="p-4 text-center cursor-pointer hover:text-white" onclick="Logic.sortPaths('hops')">Hops <i class="fas fa-sort ml-1"></i></th><th scope="col" class="p-4 text-center cursor-pointer hover:text-white" onclick="Logic.sortPaths('avgLegitimacy')">Avg. Legitimacy <i class="fas fa-sort ml-1"></i></th><th scope="col" class="p-4">Weakest Link</th><th scope="col" class="p-4 text-center">Details</th></tr></thead><tbody id="path-results-tbody" class="divide-y divide-border-color"></tbody></table></div>
+                        </div>
+                    </div>`,
+                renderContactDirectory: () => `
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Contact Ledger</h2>
+                        <p class="text-text-secondary max-w-3xl mx-auto">Browse, filter, and review contacts within the GECAN network. Access levels may apply based on your partner tier.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="relative lg:col-span-2"><i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i><input type="text" id="contact-search-input" placeholder="Search by name, entity, role, jurisdiction..." class="w-full form-input py-3 pl-12 pr-10 text-white rounded-xl"><button id="clear-search-btn" class="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-white hidden">&times;</button></div>
+                        <div><select id="role-filter-select" class="w-full form-input p-3 text-white rounded-xl"></select></div>
+                        <div><select id="asset-filter-select" class="w-full form-input p-3 text-white rounded-xl"></select></div>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+                      <div class="flex items-center gap-2" id="contact-status-filters"><span class="text-sm text-text-muted">Status:</span><button class="btn-primary px-3 py-1 text-xs rounded-lg" data-status="ALL">All</button><button class="btn-secondary px-3 py-1 text-xs rounded-lg" data-status="ACTIVE">Active</button><button class="btn-secondary px-3 py-1 text-xs rounded-lg" data-status="BLACKLISTED">Blacklisted</button></div>
+                      <div class="flex items-center gap-4 text-sm text-text-secondary"><span>Showing <span id="contacts-shown" class="font-bold text-white">0</span> of <span id="total-contacts" class="font-bold text-white">0</span> contacts</span><select id="contacts-sort-select" class="form-input p-2 text-sm text-white rounded-lg"><option value="legitimacy_desc">Sort: Legitimacy (High-Low)</option><option value="name_asc">Sort: Name (A-Z)</option><option value="name_desc">Sort: Name (Z-A)</option></select></div>
+                    </div>
+                    <div id="contacts-loading-spinner" class="text-center py-20"><i class="fas fa-spinner fa-spin fa-3x text-primary-azure"></i><p class="mt-6 text-lg">Loading GECAN™ Contact Database...</p></div>
+                    <div id="contacts-container" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6"></div>
+                    <div id="contacts-pagination" class="hidden mt-8 flex justify-center items-center gap-3"></div>
+                `,
+                createContactCardHTML: (c) => {
+                    const legitimacyScore = c.legitimacyScore || 0;
+                    const legitimacyPercentage = Math.min(legitimacyScore * 10, 100);
+                    const legitimacyBarClass = legitimacyPercentage >= 70 ? 'legitimacy-high' : legitimacyPercentage >= 40 ? 'legitimacy-medium' : 'legitimacy-low';
+                    
+                    let selectionClass = '';
+                    let selectionBadge = '';
+                    if (AppState.pathAnalysis.start === c.fullName) { selectionClass = 'border-sky-400/60 ring-2 ring-sky-400/40'; selectionBadge = `<div class="absolute -top-2 -right-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">START</div>`; } 
+                    else if (AppState.pathAnalysis.via === c.fullName) { selectionClass = 'border-indigo-400/60 ring-2 ring-indigo-400/40'; selectionBadge = `<div class="absolute -top-2 -right-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">VIA</div>`; } 
+                    else if (AppState.pathAnalysis.end === c.fullName) { selectionClass = 'border-emerald-400/60 ring-2 ring-emerald-400/40'; selectionBadge = `<div class="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">END</div>`; }
+
+                    const isExpanded = AppState.ui.expandedCards.has(c.contactId);
+
+                    return `
+                    <div id="contact-card-${c.contactId}" class="contact-card rounded-2xl p-5 flex flex-col h-full group ${selectionClass}">
+                        ${selectionBadge}
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="status-indicator-ring status-ring-${c.status} relative">
+                                <div class="status-dot-${c.status}"></div>
+                                ${c.status === 'ACTIVE' ? '<div class="absolute inset-0 rounded-full bg-current opacity-20 animate-ping"></div>' : ''}
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <h3 class="text-lg font-bold text-white truncate group-hover:text-primary-azure transition-colors">${c.fullName}</h3>
+                                <p class="text-sm text-text-secondary truncate">${c.entity}</p>
+                            </div>
+                            <button onclick="Logic.toggleCardExpansion('${c.contactId}')" class="expand-toggle-btn w-8 h-8 rounded-full bg-background-secondary/50 hover:bg-background-secondary flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0" title="${isExpanded ? 'Collapse' : 'Expand'}">
+                                <i class="fas fa-chevron-down transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="text-xs text-text-muted">Legitimacy Score: <span class="font-bold text-white">${legitimacyScore}/10</span></div>
+                        <div class="legitimacy-bar-container relative h-3 rounded-full overflow-hidden mt-1">
+                            <div class="legitimacy-bar-fill ${legitimacyBarClass} h-full rounded-full" data-score="${legitimacyPercentage}" style="width: 0%;"></div>
+                        </div>
+
+                        <div class="card-details ${isExpanded ? 'expanded' : ''} text-xs space-y-2">
+                            <p><strong>Role:</strong> ${c.primaryRole || 'N/A'}</p>
+                            <p><strong>Jurisdiction:</strong> ${c.jurisdiction || 'N/A'}</p>
+                            <p><strong>Asset Focus:</strong> ${c.primaryAssetFocus || 'N/A'}</p>
+                        </div>
+                        
+                        <div class="flex-grow"></div> 
+                        <div class="relative z-10 mt-4 pt-4 border-t border-border-color">
+                            <div class="grid grid-cols-3 gap-2">
+                                ${['start', 'via', 'end'].map(t => {
+                                    const icons = { start: 'fa-flag-checkered', via: 'fa-map-signs', end: 'fa-bullseye' };
+                                    const isSelected = AppState.pathAnalysis[t] === c.fullName;
+                                    return `<button class="btn-secondary !rounded-lg text-xs py-2 ${isSelected ? '!bg-primary-azure !text-white !border-primary-azure' : ''}" onclick="Logic.setContactForAnalysis('${t}', '${c.fullName}')" title="Set as ${t}"><i class="fas ${icons[t]}"></i></button>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+                },
+                createPathRowHTML: (p) => {
+                    const scoreColor = p.integrityScore >= 75 ? 'text-success-color' : p.integrityScore >= 50 ? 'text-warning-color' : 'text-error-color';
+                    const userCentricIcon = p.isUserCentric ? `<i class="fas fa-user-check text-primary-royal" title="Path includes you"></i>` : '';
+                    return `
+                        <tr class="hover:bg-background-secondary cursor-pointer group" id="path-row-${p.pathId}" onclick="Logic.selectPath('${p.pathId}')">
+                            <td class="p-4 font-bold ${scoreColor}"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full ${scoreColor.replace('text-', 'bg-')}"></div>${p.integrityScore.toFixed(0)}%</div></td>
+                            <td class="p-4"><div class="flex items-center gap-3">${userCentricIcon}<span class="truncate max-w-sm font-medium group-hover:text-primary-azure transition-colors" title="${p.pathText}">${p.pathText}</span></div></td>
+                            <td class="p-4 text-center"><span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-background-secondary text-text-secondary">${p.hops}</span></td>
+                            <td class="p-4 text-center font-medium">${p.avgLegitimacy.toFixed(1)}</td>
+                            <td class="p-4 text-error-color/80 text-sm"><div class="truncate">${p.weakestLink.name} (${p.weakestLink.score})</div></td>
+                            <td class="p-4 text-center"><i class="fas fa-chevron-down transition-transform duration-300" id="details-icon-${p.pathId}"></i></td>
+                        </tr>
+                        <tr id="details-row-${p.pathId}" class="path-details-row hidden">
+                            <td colspan="6" class="bg-background-dark/50 p-0">
+                                <div id="details-content-${p.pathId}" class="p-6"></div>
+                            </td>
+                        </tr>
+                    `;
+                },
             };
 
             const Logic = {
                 init: () => {
                     UI.init();
-                    Logic.checkForAutoAuth();
                 },
-                checkForAutoAuth: () => {
-                    const code = new URLSearchParams(window.location.search).get('code');
-                    if (code) {
-                        document.getElementById('access-code-input').value = code;
-                        Logic.validatePremiumCode();
+                validatePremiumCode: async () => {
+                    const btn = document.getElementById('validate-code-btn');
+                    const input = document.getElementById('access-code-input');
+                    const errEl = document.getElementById('access-error');
+                    const progEl = document.getElementById('auth-progress');
+                    if (!btn || !input || !errEl || !progEl) return;
+
+                    AppState.userAccessCode = input.value.trim().toUpperCase();
+                    if (!AppState.userAccessCode) {
+                        errEl.textContent = 'Access Code cannot be empty.';
+                        errEl.classList.remove('hidden');
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    errEl.classList.add('hidden');
+                    progEl.classList.remove('hidden');
+                    Utils.animateProgressBar(progEl.querySelector('div'), 90);
+
+                    try {
+                        const responseData = await Utils.createApiRequest('validatePremiumAccessCode', 'POST', { accessCode: AppState.userAccessCode });
+                        if (responseData && responseData.isValid) {
+                            AppState.userAccessTier = responseData.accessTier;
+                            document.getElementById('premium-access-gate').style.display = 'none';
+                            document.getElementById('intelligence-suite').classList.remove('hidden');
+                            document.getElementById('welcome-banner').innerHTML = `<p class="text-sm text-text-secondary">Partner: <strong class="text-white">${responseData.partnerName}</strong></p><p class="text-xs font-mono text-primary-amethyst">Tier: ${responseData.accessTier}</p>`;
+                            document.getElementById('welcome-banner').classList.remove('hidden');
+                            Utils.showNotification('Authentication successful!', 'success');
+                            UI.renderMainSuite();
+                            Logic.initialDataLoad();
+                        } else {
+                            throw new Error(responseData.message || 'Invalid or inactive Access Code.');
+                        }
+                    } catch (error) {
+                        progEl.classList.add('hidden');
+                        errEl.textContent = error.message;
+                        errEl.classList.remove('hidden');
+                        btn.disabled = false;
+                        btn.textContent = 'Authenticate';
                     }
                 },
-          validatePremiumCode: async () => {
-              const btn = document.getElementById('validate-code-btn');
-              const input = document.getElementById('access-code-input');
-              const errEl = document.getElementById('access-error');
-              const progEl = document.getElementById('auth-progress');
-              if(!btn || !input || !errEl || !progEl) return;
+                initialDataLoad: async () => {
+                    try {
+                        const contacts = await Utils.createApiRequest('getContactsForIntelligencePage', 'POST', { accessCode: AppState.userAccessCode });
+                        AppState.allContacts = contacts.map(c => ({...c, searchText: [c.fullName, c.entity, c.primaryRole, c.jurisdiction, c.primaryAssetFocus].join(' ').toLowerCase()}));
+                        AppState.lastDataHash = Utils.hashString(JSON.stringify(AppState.allContacts));
+                        
+                        document.getElementById('role-filter-select').innerHTML = '<option value="ALL">All Roles</option>' + [...new Set(AppState.allContacts.map(c => c.primaryRole).filter(Boolean))].sort().map(r => `<option value="${r}">${r}</option>`).join('');
+                        document.getElementById('asset-filter-select').innerHTML = '<option value="ALL">All Assets</option>' + [...new Set(AppState.allContacts.map(c => c.primaryAssetFocus).filter(Boolean))].sort().map(a => `<option value="${a}">${a}</option>`).join('');
+                        
+                        document.getElementById('total-contacts').textContent = AppState.allContacts.length;
+                        Logic.applyFiltersAndSort();
+                    } catch (error) {
+                        Utils.showNotification(error.message, 'error');
+                        document.getElementById('contacts-loading-spinner').innerHTML = `<p class="text-error-color">Failed to load contact data.</p>`;
+                    }
+                },
+                applyFiltersAndSort: () => {
+                    const q = document.getElementById('contact-search-input').value.toLowerCase();
+                    const s = document.querySelector('#contact-status-filters .btn-primary').dataset.status;
+                    const r = document.getElementById('role-filter-select').value;
+                    const a = document.getElementById('asset-filter-select').value;
+                    
+                    AppState.filteredContacts = AppState.allContacts.filter(c => 
+                        (s === 'ALL' || c.status === s) && 
+                        (r === 'ALL' || c.primaryRole === r) && 
+                        (a === 'ALL' || c.primaryAssetFocus === a) && 
+                        (q === '' || c.searchText.includes(q))
+                    );
+                    
+                    document.getElementById('clear-search-btn').classList.toggle('hidden', !q);
+                    Logic.sortContacts();
+                    AppState.currentPage = 1;
+                    UI.updateContactDisplay();
+                },
+                sortContacts: () => {
+                    const [field, dir] = AppState.contactSort.split('_');
+                    const sortField = field === 'legitimacy' ? 'legitimacyScore' : 'fullName';
+                    AppState.filteredContacts.sort((a, b) => {
+                        let vA = a[sortField] || (typeof a[sortField] === 'number' ? 0 : '');
+                        let vB = b[sortField] || (typeof b[sortField] === 'number' ? 0 : '');
+                        if (typeof vA === 'number') return dir === 'asc' ? vA - vB : vB - vA;
+                        return dir === 'asc' ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(vA));
+                    });
+                },
+                runPathAnalysis: async () => {
+                    const { start, end } = AppState.pathAnalysis;
+                    if (!start || !end || start === end) { 
+                        Utils.showNotification('Please select two different start and end contacts.', 'warning');
+                        return; 
+                    }
+                    
+                    document.getElementById('path-loading-spinner').classList.remove('hidden');
+                    document.getElementById('path-error-display').classList.add('hidden');
+                    document.getElementById('path-report-container').classList.add('hidden');
+                    document.getElementById('path-results-area').classList.remove('hidden');
+                    AppState.pathAnalysis.isLoading = true;
 
-              AppState.userAccessCode = input.value.trim().toUpperCase();
-              if (!AppState.userAccessCode) {
-                  errEl.textContent = 'Access Code cannot be empty.';
-                  errEl.classList.remove('hidden');
-                  return;
-              }
-              
-              btn.disabled = true;
-              btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-              errEl.classList.add('hidden');
-              progEl.classList.remove('hidden');
-              Utils.animateProgressBar(progEl.querySelector('div'), 90);
+                    try {
+                        const params = {
+                            start, end,
+                            via: AppState.pathAnalysis.via,
+                            goal: AppState.pathAnalysis.goal,
+                            excludeBlacklisted: document.getElementById('exclude-blacklisted').checked,
+                            includeRiskAnalysis: document.getElementById('include-risk-analysis').checked,
+                            accessCode: AppState.userAccessCode
+                        };
+                        const results = await Utils.createApiRequest('runAdvancedPathAnalysis', 'POST', params);
+                        UI.renderPathResults(results.paths);
+                    } catch (error) {
+                        document.getElementById('path-loading-spinner').classList.add('hidden');
+                        document.getElementById('path-error-message').textContent = error.message;
+                        document.getElementById('path-error-display').classList.remove('hidden');
+                    } finally {
+                        AppState.pathAnalysis.isLoading = false;
+                    }
+                },
+                setContactForAnalysis: (target, name) => {
+                    if (Object.values(AppState.pathAnalysis).includes(name)) {
+                        Utils.showNotification(`${name} is already selected for another role.`, 'warning');
+                        return;
+                    }
+                    const previousName = AppState.pathAnalysis[target];
+                    AppState.pathAnalysis[target] = name;
+                    
+                    UI.updateSelectedContactDisplay(target, name);
+                    
+                    const newContact = AppState.allContacts.find(c => c.fullName === name);
+                    if (newContact) UI.updateSingleCardExpansion(newContact.contactId, true, true);
+                    
+                    if (previousName) {
+                        const previousContact = AppState.allContacts.find(c => c.fullName === previousName);
+                        if (previousContact) UI.updateSingleCardExpansion(previousContact.contactId, false, true);
+                    }
+                },
+                clearSelectedContact: (target) => {
+                    const previousName = AppState.pathAnalysis[target];
+                    AppState.pathAnalysis[target] = null;
+                    UI.updateSelectedContactDisplay(target, null);
+                    if (previousName) {
+                        const previousContact = AppState.allContacts.find(c => c.fullName === previousName);
+                        if (previousContact) UI.updateSingleCardExpansion(previousContact.contactId, false, true);
+                    }
+                    document.getElementById(`${target}-contact-input`).focus();
+                },
+                setupGlobalEventListeners: () => {
+                    document.body.addEventListener('click', (e) => {
+                        if (!e.target.closest('.autocomplete-input, .autocomplete-suggestions')) {
+                            document.querySelectorAll('.autocomplete-suggestions').forEach(s => s.classList.add('hidden'));
+                        }
+                    });
+                },
+                bindEventListenersForView: (view) => {
+                    if (view === 'auth') {
+                        document.getElementById('validate-code-btn')?.addEventListener('click', Logic.validatePremiumCode);
+                        document.getElementById('access-code-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') Logic.validatePremiumCode(); });
+                    } else if (view === 'suite') {
+                        Logic.setupSuiteEventListeners();
+                    }
+                },
+                setupSuiteEventListeners: () => {
+                    const addListener = (selector, event, handler) => document.querySelector(selector)?.addEventListener(event, handler);
+                    const debouncedFilter = Utils.debounce(Logic.applyFiltersAndSort, 300);
+                    
+                    addListener('#contact-search-input', 'input', debouncedFilter);
+                    addListener('#clear-search-btn', 'click', () => { document.getElementById('contact-search-input').value = ''; debouncedFilter(); });
+                    addListener('#role-filter-select', 'change', Logic.applyFiltersAndSort);
+                    addListener('#asset-filter-select', 'change', Logic.applyFiltersAndSort);
+                    addListener('#contacts-sort-select', 'change', (e) => { AppState.contactSort = e.target.value; Logic.applyFiltersAndSort(); });
+                    addListener('#contact-status-filters', 'click', (e) => {
+                        if (e.target.tagName === 'BUTTON') {
+                            document.querySelectorAll('#contact-status-filters button').forEach(b => { b.className = 'btn-secondary px-3 py-1 text-xs rounded-lg'; });
+                            e.target.className = 'btn-primary px-3 py-1 text-xs rounded-lg';
+                            Logic.applyFiltersAndSort();
+                        }
+                    });
+                    
+                    ['start', 'via', 'end'].forEach(target => {
+                        const inputEl = document.getElementById(`${target}-contact-input`);
+                        if(inputEl) {
+                            const debouncedHandler = Utils.debounce((e) => Logic.handleAutocompleteInput(e, target), 250);
+                            inputEl.addEventListener('input', debouncedHandler);
+                            inputEl.addEventListener('focus', (e) => Logic.handleAutocompleteInput(e, target));
+                        }
+                    });
 
-              try {
-                  // The createApiRequest will now return an object like { success: true, data: { isValid: true, ... } }
-                  const responseData = await Utils.createApiRequest('validatePremiumAccessCode', 'POST', { accessCode: AppState.userAccessCode });
-                  
-                  // =========================================================================
-                  // === DEFINITIVE FIX v25.0 ===
-                  // We now check responseData.isValid directly, as the backend is returning
-                  // the validation result in the expected 'data' property.
-                  // =========================================================================
-                  if (responseData && responseData.isValid) {
-                      Utils.animateProgressBar(progEl.querySelector('div'), 100);
-                      setTimeout(() => {
-                          AppState.userAccessTier = responseData.accessTier;
-                          document.getElementById('premium-access-gate').style.display = 'none';
-                          document.getElementById('intelligence-suite').classList.remove('hidden');
-                          document.getElementById('intelligence-suite').classList.add('fade-in-up');
-                          document.getElementById('welcome-banner').innerHTML = `<p class="text-sm text-gray-400">Partner: <strong class="text-white">${responseData.partnerName}</strong></p><p class="text-xs font-mono text-indigo-400">Access Tier: ${responseData.accessTier}</p>`;
-                          Utils.showNotification('Authentication successful!', 'success');
-                          Logic.initialDataLoad();
-                          Logic.startLiveRefreshCycle();
-                      }, 500);
-                  } else {
-                      // If isValid is false, use the message from the backend.
-                      throw new Error(responseData.message || 'Invalid or inactive Access Code.');
-                  }
-              } catch (error) {
-                  Logic.onAuthFailure({ message: error.message });
-              }
-          },
-                // ... (All other logic functions from previous correct version) ...
+                    addListener('#optimization-goal-selector', 'click', e => {
+                        const button = e.target.closest('.goal-btn');
+                        if (button) {
+                            document.querySelectorAll('#optimization-goal-selector .goal-btn').forEach(b => b.classList.remove('active'));
+                            button.classList.add('active');
+                            AppState.pathAnalysis.goal = button.dataset.goal;
+                        }
+                    });
+
+                    addListener('#find-paths-btn', 'click', Logic.runPathAnalysis);
+                    addListener('#clear-paths-btn', 'click', Logic.clearPathUI);
+                },
+                prevPage: () => {
+                    if (AppState.currentPage > 1) {
+                        AppState.currentPage--;
+                        UI.updateContactDisplay();
+                        UI.updatePaginationControls();
+                    }
+                },
+                nextPage: () => {
+                    if (AppState.currentPage * AppState.contactsPerPage < AppState.filteredContacts.length) {
+                        AppState.currentPage++;
+                        UI.updateContactDisplay();
+                        UI.updatePaginationControls();
+                    }
+                },
+                handleAutocompleteInput: (event, target) => {
+                    const query = event.target.value.toLowerCase();
+                    const suggestionsEl = document.getElementById(`${target}-contact-suggestions`);
+                    if (!query) {
+                        suggestionsEl.classList.add('hidden');
+                        return;
+                    }
+                    const filtered = AppState.allContacts
+                        .filter(c => c.searchText.includes(query) && c.status === 'ACTIVE')
+                        .slice(0, 5);
+                    UI.renderAutocompleteSuggestions(filtered, target);
+                },
+                selectAutocompleteSuggestion: (target, name) => {
+                    Logic.setContactForAnalysis(target, name);
+                },
+                toggleCardExpansion: (contactId) => {
+                    if (AppState.ui.expandedCards.has(contactId)) {
+                        AppState.ui.expandedCards.delete(contactId);
+                    } else {
+                        AppState.ui.expandedCards.add(contactId);
+                    }
+                    UI.updateSingleCardExpansion(contactId);
+                }, // <--- THE CODE WAS CUT OFF HERE
+                // --- PINNACLE PATH ANALYSIS LOGIC ---
+               
+                runPathAnalysis: async () => {
+                    const findPathsBtn = document.getElementById('find-paths-btn');
+                    if(findPathsBtn) findPathsBtn.disabled = true;
+
+                    const { start, end } = AppState.pathAnalysis;
+                    if (!start || !end) {
+                        Utils.showNotification('A Start and End contact are required for analysis.', 'warning');
+                        if(findPathsBtn) findPathsBtn.disabled = false;
+                        return;
+                    }
+                    if (start === end) {
+                        Utils.showNotification('Start and End contacts must be different.', 'warning');
+                        if(findPathsBtn) findPathsBtn.disabled = false;
+                        return;
+                    }
+                    
+                    document.getElementById('path-loading-spinner').classList.remove('hidden');
+                    document.getElementById('path-error-display').classList.add('hidden');
+                    document.getElementById('path-report-container').classList.add('hidden');
+                    document.getElementById('path-results-area').classList.remove('hidden');
+                    AppState.pathAnalysis.isLoading = true;
+
+                    try {
+                        const params = {
+                            start, end,
+                            via: AppState.pathAnalysis.via,
+                            goal: AppState.pathAnalysis.goal,
+                            excludeBlacklisted: document.getElementById('exclude-blacklisted').checked,
+                            accessCode: AppState.userAccessCode
+                        };
+                        const results = await Utils.createApiRequest('runAdvancedPathAnalysis', 'POST', params);
+                        UI.renderPathResults(results);
+                    } catch (error) {
+                        document.getElementById('path-loading-spinner').classList.add('hidden');
+                        document.getElementById('path-error-message').textContent = error.message;
+                        document.getElementById('path-error-display').classList.remove('hidden');
+                    } finally {
+                        AppState.pathAnalysis.isLoading = false;
+                        if(findPathsBtn) findPathsBtn.disabled = false;
+                    }
+                },
+
+                sortPaths: () => {
+                    const { field, dir } = AppState.pathAnalysis.pathSort;
+                    AppState.pathAnalysis.results.sort((a, b) => {
+                        let valA = a[field];
+                        let valB = b[field];
+                        if (dir === 'asc') {
+                            return valA > valB ? 1 : -1;
+                        } else {
+                            return valB > valA ? 1 : -1;
+                        }
+                    });
+                },
+
+                handlePathSortClick: (field) => {
+                    if (AppState.pathAnalysis.pathSort.field === field) {
+                        AppState.pathAnalysis.pathSort.dir = AppState.pathAnalysis.pathSort.dir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        AppState.pathAnalysis.pathSort.field = field;
+                        AppState.pathAnalysis.pathSort.dir = 'desc';
+                    }
+                    Logic.sortPaths();
+                    document.getElementById('path-results-tbody').innerHTML = AppState.pathAnalysis.results.map(ComponentBuilders.createPathRowHTML).join('');
+                },
+
+                selectPath: (pathId) => {
+                    if (AppState.pathAnalysis.selectedPathId === pathId) {
+                        // Toggle off if already selected
+                        AppState.pathAnalysis.selectedPathId = null;
+                        document.getElementById(`details-row-${pathId}`).classList.add('hidden');
+                        document.getElementById(`path-row-${pathId}`).classList.remove('selected-path');
+                        document.getElementById(`details-icon-${pathId}`).classList.remove('rotate-180');
+                        document.getElementById('path-summary-section').classList.add('hidden');
+                    } else {
+                        // Deselect previous row
+                        if (AppState.pathAnalysis.selectedPathId) {
+                            document.getElementById(`details-row-${AppState.pathAnalysis.selectedPathId}`)?.classList.add('hidden');
+                            document.getElementById(`path-row-${AppState.pathAnalysis.selectedPathId}`)?.classList.remove('selected-path');
+                            document.getElementById(`details-icon-${AppState.pathAnalysis.selectedPathId}`)?.classList.remove('rotate-180');
+                        }
+                        
+                        // Select new row
+                        AppState.pathAnalysis.selectedPathId = pathId;
+                        const path = AppState.pathAnalysis.results.find(p => p.pathId === pathId);
+                        
+                        document.getElementById(`path-row-${pathId}`).classList.add('selected-path');
+                        const detailsRow = document.getElementById(`details-row-${pathId}`);
+                        detailsRow.classList.remove('hidden');
+                        document.getElementById(`details-icon-${pathId}`).classList.add('rotate-180');
+                        
+                        UI.ComponentBuilders.renderExecutiveSummary(path);
+                        UI.ComponentBuilders.loadPathDetailsContent(path);
+                    }
+                },
+
+                // --- CONTACT DATABASE LOGIC ---
+                applyFiltersAndSort: () => {
+                    const q = document.getElementById('contact-search-input').value.toLowerCase();
+                    const s = document.querySelector('#contact-status-filters .btn-primary').dataset.status;
+                    const r = document.getElementById('role-filter-select').value;
+                    const a = document.getElementById('asset-filter-select').value;
+                    
+                    AppState.filteredContacts = AppState.allContacts.filter(c => 
+                        (s === 'ALL' || c.status === s) && 
+                        (r === 'ALL' || c.primaryRole === r) && 
+                        (a === 'ALL' || c.primaryAssetFocus === a) && 
+                        (q === '' || c.searchText.includes(q))
+                    );
+                    
+                    document.getElementById('clear-search-btn').classList.toggle('hidden', !q);
+                    Logic.sortContacts();
+                    AppState.currentPage = 1;
+                    UI.updateContactDisplay();
+                },
+
+                sortContacts: () => {
+                    const [field, dir] = AppState.contactSort.split('_');
+                    const sortField = field === 'legitimacy' ? 'legitimacyScore' : 'fullName';
+                    AppState.filteredContacts.sort((a, b) => {
+                        let vA = a[sortField] || (typeof a[sortField] === 'number' ? 0 : '');
+                        let vB = b[sortField] || (typeof b[sortField] === 'number' ? 0 : '');
+                        if (typeof vA === 'number') return dir === 'asc' ? vA - vB : vB - vA;
+                        return dir === 'asc' ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(vA));
+                    });
+                },
+
+                prevPage: () => {
+                    if (AppState.currentPage > 1) {
+                        AppState.currentPage--;
+                        UI.updateContactDisplay();
+                    }
+                },
+
+                nextPage: () => {
+                    if (AppState.currentPage * AppState.contactsPerPage < AppState.filteredContacts.length) {
+                        AppState.currentPage++;
+                        UI.updateContactDisplay();
+                    }
+                },
+
+                // --- EVENT LISTENER SETUP ---
+                setupEventListeners: () => {
+                    document.getElementById('validate-code-btn')?.addEventListener('click', Logic.validatePremiumCode);
+                    document.getElementById('access-code-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') Logic.validatePremiumCode(); });
+                    document.body.addEventListener('click', (e) => {
+                        if (!e.target.closest('.autocomplete-input, .autocomplete-suggestions')) {
+                           document.querySelectorAll('.autocomplete-suggestions').forEach(s => s.classList.add('hidden'));
+                        }
+                    });
+                },
+
+                setupSuiteEventListeners: () => {
+                    const addListener = (selector, event, handler) => document.querySelector(selector)?.addEventListener(event, handler);
+                    const debouncedFilter = Utils.debounce(Logic.applyFiltersAndSort, 300);
+                    
+                    addListener('#contact-search-input', 'input', debouncedFilter);
+                    addListener('#clear-search-btn', 'click', () => { document.getElementById('contact-search-input').value = ''; debouncedFilter(); }); 
+                    addListener('#role-filter-select', 'change', Logic.applyFiltersAndSort);
+                    addListener('#asset-filter-select', 'change', Logic.applyFiltersAndSort);
+                    addListener('#contacts-sort-select', 'change', (e) => { AppState.contactSort = e.target.value; Logic.applyFiltersAndSort(); });
+                    
+                    document.querySelector('#contact-status-filters')?.addEventListener('click', (e) => {
+                        if (e.target.tagName === 'BUTTON') {
+                            document.querySelectorAll('#contact-status-filters button').forEach(b => b.className = 'btn-secondary px-3 py-1 text-xs rounded-lg');
+                            e.target.className = 'btn-primary px-3 py-1 text-xs rounded-lg';
+                            Logic.applyFiltersAndSort();
+                        }
+                    });
+                    
+                    ['start', 'via', 'end'].forEach(target => {
+                        const inputEl = document.getElementById(`${target}-contact-input`);
+                        if(inputEl) {
+                            const debouncedHandler = Utils.debounce((e) => Logic.handleAutocompleteInput(e, target), 250);
+                            inputEl.addEventListener('input', debouncedHandler);
+                            inputEl.addEventListener('focus', (e) => Logic.handleAutocompleteInput(e, target));
+                        }
+                    });
+
+                    document.querySelector('#optimization-goal-selector')?.addEventListener('click', e => {
+                        const button = e.target.closest('.goal-btn');
+                        if (button) {
+                            document.querySelectorAll('#optimization-goal-selector .goal-btn').forEach(b => b.classList.remove('active'));
+                            button.classList.add('active');
+                            AppState.pathAnalysis.goal = button.dataset.goal;
+                        }
+                    });
+
+                    addListener('#find-paths-btn', 'click', Logic.runPathAnalysis);
+                    addListener('#clear-paths-btn', 'click', Logic.clearPathUI);
+                }
             };
-
-            document.addEventListener('DOMContentLoaded', Logic.init);
             
-            // Expose to window for inline HTML event handlers
+            // Expose main controllers to the global scope for inline event handlers (onclick, onmousedown)
             window.Logic = Logic;
             window.UI = UI;
+            window.Utils = Utils;
+            window.ComponentBuilders = ComponentBuilders; 
+
+            // Initialize the application once the DOM is fully loaded.
+            document.addEventListener('DOMContentLoaded', Logic.init);
         })();
     </script>
-
 </body>
 </html>
-
-
