@@ -781,9 +781,55 @@
                         Logic.validatePremiumCode();
                     }
                 },
-                validatePremiumCode: async () => {
-                    // ... (Implementation from previous correct version)
-                },
+          validatePremiumCode: async () => {
+              const btn = document.getElementById('validate-code-btn');
+              const input = document.getElementById('access-code-input');
+              const errEl = document.getElementById('access-error');
+              const progEl = document.getElementById('auth-progress');
+              if(!btn || !input || !errEl || !progEl) return;
+
+              AppState.userAccessCode = input.value.trim().toUpperCase();
+              if (!AppState.userAccessCode) {
+                  errEl.textContent = 'Access Code cannot be empty.';
+                  errEl.classList.remove('hidden');
+                  return;
+              }
+              
+              btn.disabled = true;
+              btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+              errEl.classList.add('hidden');
+              progEl.classList.remove('hidden');
+              Utils.animateProgressBar(progEl.querySelector('div'), 90);
+
+              try {
+                  // The createApiRequest will now return an object like { success: true, data: { isValid: true, ... } }
+                  const responseData = await Utils.createApiRequest('validatePremiumAccessCode', 'POST', { accessCode: AppState.userAccessCode });
+                  
+                  // =========================================================================
+                  // === DEFINITIVE FIX v25.0 ===
+                  // We now check responseData.isValid directly, as the backend is returning
+                  // the validation result in the expected 'data' property.
+                  // =========================================================================
+                  if (responseData && responseData.isValid) {
+                      Utils.animateProgressBar(progEl.querySelector('div'), 100);
+                      setTimeout(() => {
+                          AppState.userAccessTier = responseData.accessTier;
+                          document.getElementById('premium-access-gate').style.display = 'none';
+                          document.getElementById('intelligence-suite').classList.remove('hidden');
+                          document.getElementById('intelligence-suite').classList.add('fade-in-up');
+                          document.getElementById('welcome-banner').innerHTML = `<p class="text-sm text-gray-400">Partner: <strong class="text-white">${responseData.partnerName}</strong></p><p class="text-xs font-mono text-indigo-400">Access Tier: ${responseData.accessTier}</p>`;
+                          Utils.showNotification('Authentication successful!', 'success');
+                          Logic.initialDataLoad();
+                          Logic.startLiveRefreshCycle();
+                      }, 500);
+                  } else {
+                      // If isValid is false, use the message from the backend.
+                      throw new Error(responseData.message || 'Invalid or inactive Access Code.');
+                  }
+              } catch (error) {
+                  Logic.onAuthFailure({ message: error.message });
+              }
+          },
                 // ... (All other logic functions from previous correct version) ...
             };
 
@@ -797,3 +843,4 @@
 
 </body>
 </html>
+
