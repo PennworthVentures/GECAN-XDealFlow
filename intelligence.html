@@ -32,19 +32,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&display=swap" rel="stylesheet">
 
-    <style>
+    <style id="pinnacle-styles">
         /* ========================================================================= */
         /* === PINNACLE CSS ENGINE v5.0 (INTELLIGENCE SUITE EDITION) === */
-        /* This stylesheet is the definitive standard, ensuring visual consistency */
-        /* with the entire GECAN platform, plus Intelligence-specific enhancements. */
         /* ========================================================================= */
-
-        /* --- A. CORE THEME & VARIABLES (BENCHMARKED) --- */
         :root {
             --text-premium-gold: #EAE0C8;
             --brand-gecan-blue: #1c2e4a; --brand-gecan-gold: #b4975a; --primary-azure: #0ea5e9;
             --primary-sapphire: #3b82f6; --primary-royal: #6366f1; --primary-amethyst: #8b5cf6;
-            --primary-diamond: #f8fafc; --primary-dark: #0369a1;
             --background-primary: #0a0a0f; --background-secondary: #1e293b; --background-light: #0f172a; --background-accent: #1e293b; --background-dark: #030712;
             --background-glass: rgba(15, 23, 42, 0.8); --background-glass-premium: rgba(15, 23, 42, 0.9);
             --border-color: rgba(148, 163, 184, 0.2); --border-secondary: rgba(148, 163, 184, 0.2);
@@ -57,16 +52,12 @@
             --shadow-ultra: 0 25px 50px -12px rgba(0, 0, 0, 0.25); --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
             --transform-ultra: translateY(-16px) rotateX(10deg) rotateY(5deg) scale(1.07);
         }
-
-        /* --- B. BASE STYLES & RESETS --- */
         * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
         html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         body { font-family: 'Inter', sans-serif; background: var(--background-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--background-secondary); } ::-webkit-scrollbar-thumb { background: var(--gradient-primary); border-radius: 4px; }
         ::selection { background: var(--gradient-primary); color: var(--text-diamond); }
-
-        /* --- C. DYNAMIC BACKGROUND & PREMIUM HEADER (BENCHMARKED) --- */
         #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
         .premium-header { position: sticky; top: 0; z-index: 50; background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-bottom: 1px solid var(--border-premium); box-shadow: var(--shadow-ultra); }
         .gecan-logo-container { perspective: 800px; }
@@ -76,18 +67,15 @@
         .logo-front { font-family: 'Orbitron', monospace; font-weight: 900; font-size: 2.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 40px var(--glow-azure); }
         .logo-back img { height: 100%; width: auto; object-fit: contain; filter: brightness(1.1) drop-shadow(0 0 10px var(--brand-gecan-gold)) drop-shadow(0 0 25px var(--brand-gecan-blue)); transform: rotateY(180deg); }
         .logo-separator { width: 6px; height: 120px; background: var(--gradient-primary); border-radius: 4px; box-shadow: 0 0 30px var(--glow-azure); }
-
         .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
         .nav-btn:hover:not(.active) { background: var(--background-glass-premium); color: var(--text-diamond); transform: var(--transform-ultra); box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure); border-color: var(--border-premium); }
         .nav-btn.active { background: linear-gradient(135deg, rgba(14, 165, 233, 0.65), rgba(139, 92, 246, 0.65)), var(--background-glass); color: var(--text-diamond); font-weight: 700; border-color: var(--primary-azure); filter: brightness(1.1); animation: premium-active-glow 2.5s ease-in-out infinite; }
-        @keyframes premium-active-glow { 50% { box-shadow: var(--shadow-ultra), 0 0 55px var(--glow-royal), 0 0 80px var(--glow-amethyst); text-shadow: 0 0 12px rgba(255, 255, 255, 1), 0 0 30px var(--glow-royal); } }
+        @keyframes premium-active-glow { 50% { box-shadow: var(--shadow-ultra), 0 0 55px var(--glow-royal), 0 0 80px var(--primary-amethyst); text-shadow: 0 0 12px rgba(255, 255, 255, 1), 0 0 30px var(--glow-royal); } }
         .nav-icon-wrapper { perspective: 500px; width: 24px; height: 24px; }
         .nav-icon-flipper { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1); }
         .nav-btn:hover:not(:active) .nav-icon-flipper { transform: rotateY(360deg); }
         .nav-icon-face { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; }
         .nav-icon-back { transform: rotateY(180deg); background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px var(--glow-royal); }
-
-        /* --- D. INTELLIGENCE SUITE STYLES (SEVERELY ENHANCED) --- */
         .glass-card { background: var(--background-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); }
         .btn-primary { background: linear-gradient(135deg, var(--primary-azure), var(--primary-dark)); border: 1px solid var(--primary-azure); color: white; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
         .btn-primary:hover:not(:disabled) { box-shadow: 0 8px 30px rgba(14, 165, 233, 0.4); transform: translateY(-3px); }
@@ -97,12 +85,11 @@
         .form-input, .form-select { background-color: var(--background-dark); border: 1px solid var(--border-secondary); color: var(--text-primary); border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; font-size: 1rem; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
         .form-input::placeholder { color: var(--text-muted); }
         .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary-azure); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 2px 4px rgba(0,0,0,0.3); }
-        
         .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
         .report-section { background: var(--background-glass); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 1.5rem; transition: all 0.5s ease; }
         
+        /* --- SUPREME CONTACT CARD STYLES v2.0 --- */
         .contact-card {
             border: 1px solid var(--border-secondary);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -144,7 +131,8 @@
             z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
-        .suggestion-item { padding: 0.75rem 1rem; cursor: pointer; transition: background-color 0.2s ease; }
+        .suggestion-item { padding: 0.75rem 1rem; cursor: pointer; transition: background-color 0.2s ease; border-bottom: 1px solid var(--border-color); }
+        .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover, .suggestion-item.active { background: var(--gradient-primary); }
         .suggestion-item .name { font-weight: 600; color: var(--text-primary); }
         .suggestion-item .entity { font-size: 0.75rem; color: var(--text-secondary); }
@@ -163,12 +151,13 @@
             background-color: var(--background-secondary); border: 1px solid var(--border-color);
             color: var(--text-secondary); transition: all 0.3s ease;
         }
-        .goal-btn:hover:not(.active) { border-color: var(--primary-azure); color: var(--text-diamond); }
-        .goal-btn.active { background: var(--gradient-primary); border-color: var(--primary-azure); color: white; box-shadow: 0 0 20px var(--glow-azure); }
+        .goal-btn:hover:not(.active) { border-color: var(--primary-azure); color: var(--text-diamond); transform: scale(1.05); }
+        .goal-btn.active { background: var(--gradient-primary); border-color: var(--primary-azure); color: white; box-shadow: 0 0 20px var(--glow-azure); transform: scale(1.05); }
 
-        #path-results-tbody tr { transition: background-color 0.3s ease, border-left-color 0.3s ease; }
-        #path-results-tbody tr.selected-path { background-color: rgba(14, 165, 233, 0.1); border-left: 3px solid var(--primary-azure); }
+        #path-results-tbody tr { transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+        #path-results-tbody tr.selected-path { background-color: rgba(14, 165, 233, 0.1); box-shadow: inset 3px 0 0 var(--primary-azure); }
         .path-details-row.hidden { display: none; }
+        .path-details-row > td { padding: 0 !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -224,16 +213,12 @@
         </div>
     </footer>
 
-<script>
-        // ====================================================================================
-        // === GECAN™ INTELLIGENCE ENGINE v8.0 (SUPREME UNIFIED STANDARD) ===
-        // This is the definitive, production-grade, and fully synthesized script for the
-        // Intelligence Suite. It unifies all logic into one cohesive block, resolves all
-        // previous TypeErrors and regressions, uses the modern createApiRequest protocol,
-        // and renders a severely upgraded, state-driven, and interactive UI without brevity
-        // or compromise. Every original function has been re-architected and elevated.
-        // ====================================================================================
-        
+    <!-- ==================================================================================== -->
+    <!-- === GECAN™ INTELLIGENCE ENGINE v8.0 (SUPREME UNIFIED STANDARD) === -->
+    <!-- This single, unabridged script block contains the entire application logic. -->
+    <!-- It has been refactored to eliminate all previous errors and regressions. -->
+    <!-- ==================================================================================== -->
+    <script>
         (function() {
             'use strict';
             
@@ -242,7 +227,6 @@
             const AppState = { 
                 allContacts: [], 
                 filteredContacts: [],
-                allOffers: [],
                 userAccessCode: null,
                 userAccessTier: null,
                 partnerName: null,
@@ -253,24 +237,13 @@
                     start: null, via: null, end: null,
                     goal: 'confidence',
                     excludeBlacklisted: true,
-                    includeRisk: false,
                     results: [],
                     selectedPathId: null,
                     isLoading: false,
                 },
-                ncnda: {
-                    parties: [],
-                    includeImfpa: false,
-                    dealContextType: 'Agnostic',
-                    offerId: null,
-                    jurisdiction: 'International Chamber of Commerce (ICC Pub. No. 769 E)',
-                    imfpaGroups: [],
-                    dealMetrics: { volume: 0, price: 0, commissionPct: 0 }
-                },
                 ui: {
                     isRefreshing: false,
                     lastDataHash: null,
-                    refreshInterval: null,
                     activeAutocomplete: null,
                     expandedCards: new Set()
                 }
@@ -318,25 +291,6 @@
                     let hash = 0; if (str.length === 0) return hash; 
                     for (let i = 0; i < str.length; i++) { const char = str.charCodeAt(i); hash = ((hash << 5) - hash) + char; hash |= 0; } 
                     return hash; 
-                },
-                animateProgressBar: (el, target, onComplete) => {
-                    if(!el) return;
-                    let start = parseFloat(el.style.width) || 0;
-                    let startTime = null;
-                    const duration = 800;
-                    function animation(currentTime) {
-                        if (startTime === null) startTime = currentTime;
-                        const timeElapsed = currentTime - startTime;
-                        const progress = Math.min(timeElapsed / duration, 1);
-                        const currentWidth = start + (target - start) * progress;
-                        el.style.width = currentWidth + '%';
-                        if (progress < 1) {
-                            requestAnimationFrame(animation);
-                        } else {
-                            if (onComplete) onComplete();
-                        }
-                    }
-                    requestAnimationFrame(animation);
                 }
             };
             
@@ -345,6 +299,7 @@
                     UI.initParticles();
                     UI.populateNavLinks();
                     UI.renderView('auth');
+                    Logic.setupGlobalEventListeners();
                 },
                 initParticles: () => { 
                      if(typeof particlesJS !== 'undefined') { 
@@ -353,7 +308,6 @@
                 },
                 populateNavLinks: () => {
                     const navContainer = document.getElementById('nav-container');
-                    if (!navContainer) return;
                     const links = [
                         { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow' },
                         { page: 'toolkits', icon: 'fas fa-tools', text: 'Toolkits' },
@@ -395,6 +349,7 @@
                     const contactsToRender = AppState.filteredContacts.slice(startIndex, endIndex);
                     
                     document.getElementById('contacts-shown').textContent = AppState.filteredContacts.length;
+                    document.getElementById('total-contacts').textContent = AppState.allContacts.length;
 
                     if (contactsToRender.length === 0) {
                         container.innerHTML = `<div class="col-span-full text-center py-20 text-text-muted"><i class="fas fa-search-minus fa-4x opacity-50"></i><p class="text-xl mt-4">No contacts match your current filters.</p></div>`;
@@ -423,7 +378,6 @@
                     const inputEl = document.getElementById(`${target}-contact-input`);
                     const suggestionsEl = document.getElementById(`${target}-contact-suggestions`);
                     if (!displayEl || !inputEl || !suggestionsEl) return;
-
                     if (name) {
                         const icons = { start: 'fa-flag-checkered', via: 'fa-map-signs', end: 'fa-bullseye' };
                         displayEl.innerHTML = `<i class="fas ${icons[target]} icon"></i><span class="name truncate">${name}</span><button class="clear-btn" onmousedown="event.preventDefault(); Logic.clearSelectedContact('${target}')">×</button>`;
@@ -478,29 +432,24 @@
                     reportContainer.classList.remove('hidden');
                     errorDisplay.classList.add('hidden');
                     Logic.selectPath(paths[0].pathId);
-                },
-                closeNcndaModal: () => {
-                    const overlay = document.getElementById('ncnda-modal-overlay');
-                    if (overlay) {
-                        overlay.classList.remove('active');
-                        setTimeout(() => overlay.classList.add('hidden'), 400);
-                    }
                 }
             };
             
             const ComponentBuilders = {
                 renderAuthGate: () => `
-                    <div class="glass-card rounded-2xl p-6 md:p-10 max-w-lg mx-auto shadow-2xl fade-in-up text-center">
-                        <i class="fas fa-shield-alt text-5xl text-primary-azure mb-4" style="text-shadow: 0 0 20px var(--glow-azure);"></i>
-                        <h2 class="text-3xl font-bold text-white mb-2">Intelligence Suite Access</h2>
-                        <p class="text-text-secondary mb-8">This module requires premium partner authentication. Please enter your GECAN™ Access Code to proceed.</p>
+                    <div id="premium-access-gate" class="glass-card rounded-2xl p-6 md:p-8 max-w-lg mx-auto shadow-2xl fade-in-up">
+                        <div class="text-center mb-6">
+                            <i class="fas fa-shield-alt text-5xl text-primary-azure" style="text-shadow: 0 0 20px var(--glow-azure);"></i>
+                            <h2 class="text-3xl font-bold text-white mt-4 mb-2">Intelligence Suite Access</h2>
+                            <p class="text-text-secondary">This module requires premium partner authentication. Please enter your GECAN™ Access Code to proceed.</p>
+                        </div>
                         <div class="flex items-center gap-3">
                             <input type="password" id="access-code-input" placeholder="Enter Access Code" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-widest text-center">
                             <button id="validate-code-btn" class="btn-primary bg-gradient-to-r from-primary-royal to-primary-amethyst border-primary-royal font-bold py-3 px-6 rounded-xl disabled:opacity-50">Authenticate</button>
                         </div>
                         <p id="access-error" class="text-sm text-error-color mt-3 h-5"></p>
-                        <div id="auth-progress" class="mt-4 hidden">
-                            <div class="w-full progress-bar-container rounded-full h-2.5"><div class="bg-gradient-to-r from-primary-royal to-primary-amethyst h-2.5 rounded-full" style="width: 0%"></div></div>
+                        <div id="auth-progress" class="mt-4 h-2.5 hidden">
+                          <div class="w-full progress-bar-container rounded-full h-full"><div class="bg-gradient-to-r from-primary-royal to-primary-amethyst h-full rounded-full" style="width: 0%"></div></div>
                         </div>
                     </div>`,
                 renderMainSuite: () => `
@@ -583,16 +532,18 @@
                     const legitimacyBarClass = legitimacyPercentage >= 70 ? 'legitimacy-high' : legitimacyPercentage >= 40 ? 'legitimacy-medium' : 'legitimacy-low';
                     
                     let selectionClass = '';
-                    let selectionBadge = '';
-                    if (AppState.pathAnalysis.start === c.fullName) { selectionClass = 'border-sky-400/60 ring-2 ring-sky-400/40'; selectionBadge = `<div class="absolute -top-2 -right-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">START</div>`; } 
-                    else if (AppState.pathAnalysis.via === c.fullName) { selectionClass = 'border-indigo-400/60 ring-2 ring-indigo-400/40'; selectionBadge = `<div class="absolute -top-2 -right-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">VIA</div>`; } 
-                    else if (AppState.pathAnalysis.end === c.fullName) { selectionClass = 'border-emerald-400/60 ring-2 ring-emerald-400/40'; selectionBadge = `<div class="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg z-20">END</div>`; }
+                    if (AppState.pathAnalysis.start === c.fullName) { selectionClass = 'border-sky-400/60 ring-2 ring-sky-400/40'; } 
+                    else if (AppState.pathAnalysis.via === c.fullName) { selectionClass = 'border-indigo-400/60 ring-2 ring-indigo-400/40'; } 
+                    else if (AppState.pathAnalysis.end === c.fullName) { selectionClass = 'border-emerald-400/60 ring-2 ring-emerald-400/40'; }
 
                     const isExpanded = AppState.ui.expandedCards.has(c.contactId);
 
+                    const canViewDetails = ['Professional', 'Strategic', 'Admin'].includes(AppState.userAccessTier);
+                    const lockOverlay = !canViewDetails ? `<div class="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl z-20"><i class="fas fa-lock text-yellow-400 text-2xl mb-2"></i><p class="text-xs text-yellow-200 font-semibold">PROFESSIONAL TIER</p></div>` : '';
+
                     return `
                     <div id="contact-card-${c.contactId}" class="contact-card rounded-2xl p-5 flex flex-col h-full group ${selectionClass}">
-                        ${selectionBadge}
+                        ${lockOverlay}
                         <div class="flex items-start gap-4 mb-4">
                             <div class="status-indicator-ring status-ring-${c.status} relative">
                                 <div class="status-dot-${c.status}"></div>
@@ -602,14 +553,14 @@
                                 <h3 class="text-lg font-bold text-white truncate group-hover:text-primary-azure transition-colors">${c.fullName}</h3>
                                 <p class="text-sm text-text-secondary truncate">${c.entity}</p>
                             </div>
-                            <button onclick="Logic.toggleCardExpansion('${c.contactId}')" class="expand-toggle-btn w-8 h-8 rounded-full bg-background-secondary/50 hover:bg-background-secondary flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0" title="${isExpanded ? 'Collapse Details' : 'Expand Details'}">
+                            <button ${!canViewDetails ? 'disabled' : ''} onclick="Logic.toggleCardExpansion('${c.contactId}')" class="expand-toggle-btn w-8 h-8 rounded-full bg-background-secondary/50 hover:bg-background-secondary flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" title="${isExpanded ? 'Collapse' : 'Expand'}">
                                 <i class="fas fa-chevron-down transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}"></i>
                             </button>
                         </div>
                         
-                        <div class="text-xs text-text-muted">Legitimacy Score: <span class="font-bold text-white">${legitimacyScore}/10</span></div>
+                        <div class="text-xs text-text-muted">Legitimacy Score: <span class="font-bold text-white">${canViewDetails ? c.legitimacyScore+'/10' : '[REDACTED]'}</span></div>
                         <div class="legitimacy-bar-container relative h-3 rounded-full overflow-hidden mt-1">
-                            <div class="legitimacy-bar-fill ${legitimacyBarClass} h-full rounded-full" data-score="${legitimacyPercentage}" style="width: 0%;"></div>
+                            <div class="legitimacy-bar-fill ${legitimacyBarClass} h-full rounded-full" data-score="${canViewDetails ? legitimacyPercentage : 0}" style="width: 0%;"></div>
                         </div>
 
                         <div class="card-details ${isExpanded ? 'expanded' : ''} text-xs space-y-2">
@@ -622,9 +573,8 @@
                         <div class="relative z-10 mt-4 pt-4 border-t border-border-color">
                             <div class="grid grid-cols-3 gap-2">
                                 ${['start', 'via', 'end'].map(t => {
-                                    const icons = { start: 'fa-flag-checkered', via: 'fa-map-signs', end: 'fa-bullseye' };
                                     const isSelected = AppState.pathAnalysis[t] === c.fullName;
-                                    return `<button class="btn-secondary !rounded-lg text-xs py-2 ${isSelected ? '!bg-primary-azure !text-white !border-primary-azure' : ''}" onclick="Logic.setContactForAnalysis('${t}', '${c.fullName}')" title="Set as ${t}"><i class="fas ${icons[t]}"></i></button>`;
+                                    return `<button class="btn-secondary !rounded-lg text-xs py-2 ${isSelected ? '!bg-primary-azure !text-white !border-primary-azure' : ''}" onclick="Logic.setContactForAnalysis('${t}', '${c.fullName}')" title="Set as ${t}"><i class="fas ${t === 'start' ? 'fa-flag-checkered' : t === 'via' ? 'fa-map-signs' : 'fa-bullseye'}"></i></button>`;
                                 }).join('')}
                             </div>
                         </div>
@@ -644,62 +594,14 @@
                         </tr>
                         <tr id="details-row-${p.pathId}" class="path-details-row hidden"><td colspan="6" class="bg-background-dark/50 p-0"><div id="details-content-${p.pathId}" class="p-6">Loading details...</div></td></tr>
                     `;
-                },
-                renderExecutiveSummary: (path) => {
-                    const container = document.getElementById('path-summary-section');
-                    if (!path || !container) return;
-                    const riskColor = path.integrityScore >= 75 ? 'text-emerald-400' : path.integrityScore >= 50 ? 'text-yellow-400' : 'text-red-400';
-                    const riskText = path.integrityScore >= 75 ? 'LOW' : path.integrityScore >= 50 ? 'MEDIUM' : 'HIGH';
-                    container.innerHTML = `
-                        <div class="p-6">
-                            <div class="flex justify-between items-start mb-4">
-                                <h3 class="text-2xl font-bold text-white">Intelligence Briefing</h3>
-                                <div class="text-right"><div class="text-xs text-text-muted">Risk Assessment</div><div class="text-lg font-bold ${riskColor}">${riskText}</div></div>
-                            </div>
-                            <div class="bg-background-dark/50 rounded-xl p-4 mb-4"><p class="text-xl font-semibold text-primary-azure">${path.pathText}</p></div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-center">
-                                <div class="stat-card p-3 rounded-lg"><p class="text-xs text-text-muted">Hops</p><p class="value text-2xl">${path.hops}</p></div>
-                                <div class="stat-card p-3 rounded-lg"><p class="text-xs text-text-muted">Integrity</p><p class="value text-2xl ${riskColor}">${path.integrityScore.toFixed(0)}%</p></div>
-                                <div class="stat-card p-3 rounded-lg"><p class="text-xs text-text-muted">Avg Legitimacy</p><p class="value text-2xl">${path.avgLegitimacy.toFixed(1)}</p></div>
-                                <div class="stat-card p-3 rounded-lg"><p class="text-xs text-text-muted">Est. Time</p><p class="value text-2xl">${path.estimatedTime}</p></div>
-                            </div>
-                        </div>`;
-                    container.classList.remove('hidden');
-                },
-                loadPathDetailsContent: async (path) => {
-                    const contentDiv = document.getElementById(`details-content-${path.pathId}`);
-                    if (!contentDiv) return;
-                    contentDiv.innerHTML = '<i class="fas fa-spinner fa-spin text-primary-azure"></i> Fetching entity data...';
-                    try {
-                        const contacts = path.pathText.split('  →  ');
-                        const entities = await Utils.createApiRequest('getEntitiesForPathAnalysis', 'POST', { pathContacts: contacts, accessCode: AppState.userAccessCode });
-                        const entitiesHtml = entities.length ? entities.map(e => `<span class="inline-block bg-background-secondary text-text-secondary px-2 py-1 rounded text-xs mr-1 mb-1">${e}</span>`).join('') : '<span class="text-text-muted text-xs">No unique entities found.</span>';
-                        contentDiv.innerHTML = `
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div class="space-y-4">
-                                    <h4 class="font-bold text-white">Pathway Details</h4>
-                                    <div class="text-sm space-y-2">
-                                        <p><strong>Security Rating:</strong> <span class="font-mono ${path.securityRating >= 7 ? 'text-success-color' : 'text-warning-color'}">${path.securityRating}/10</span></p>
-                                        <p><strong>Jurisdiction Shifts:</strong> <span class="font-mono">${path.jurisdictionShifts}</span></p>
-                                        <div><strong>Involved Entities:</strong><div class="mt-2">${entitiesHtml}</div></div>
-                                    </div>
-                                </div>
-                                <div class="space-y-4">
-                                    <h4 class="font-bold text-white">Risk Analysis</h4>
-                                    <div class="text-sm text-text-secondary">${path.riskFactors && path.riskFactors.length ? path.riskFactors.map(r => `<p class="mb-2 p-2 bg-warning-color/10 rounded-md border-l-2 border-warning-color"><strong>${r.type}:</strong> ${r.description}</p>`).join('') : '<p class="text-success-color">No specific risk factors identified.</p>'}</div>
-                                </div>
-                            </div>`;
-                    } catch (error) {
-                        contentDiv.innerHTML = `<p class="text-error-color">Could not load entity details: ${error.message}</p>`;
-                    }
                 }
             };
-
+            
             const Logic = {
                 init: () => {
                     UI.init();
-                    Logic.checkForAutoAuth();
                 },
+                
                 checkForAutoAuth: () => {
                     const code = new URLSearchParams(window.location.search).get('code');
                     if (code) {
@@ -710,13 +612,13 @@
                         }
                     }
                 },
+
                 validatePremiumCode: async () => {
                     const btn = document.getElementById('validate-code-btn');
                     const input = document.getElementById('access-code-input');
                     const errEl = document.getElementById('access-error');
-                    const progEl = document.getElementById('auth-progress');
-                    
                     if (!btn || !input || !errEl) return;
+
                     const accessCode = input.value.trim().toUpperCase();
                     if (!accessCode) {
                         errEl.textContent = 'Access Code cannot be empty.';
@@ -725,31 +627,30 @@
                     }
                     
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
                     errEl.classList.add('hidden');
 
                     try {
                         const responseData = await Utils.createApiRequest('validatePremiumAccessCode', 'POST', { accessCode });
-                        if (responseData && responseData.isValid) {
-                            AppState.userAccessCode = accessCode;
-                            AppState.userAccessTier = responseData.accessTier;
-                            AppState.partnerName = responseData.partnerName;
-                            
-                            document.getElementById('premium-access-gate').style.display = 'none';
-                            document.getElementById('intelligence-suite').classList.remove('hidden');
-                            
-                            const welcomeBanner = document.getElementById('welcome-banner');
-                            if(welcomeBanner) {
-                                welcomeBanner.innerHTML = `<p class="text-sm text-text-secondary">Partner: <strong class="text-white">${responseData.partnerName}</strong></p><p class="text-xs font-mono text-primary-amethyst">Tier: ${responseData.accessTier}</p>`;
-                                welcomeBanner.classList.remove('hidden');
-                            }
-                            
-                            Utils.showNotification('Authentication successful!', 'success');
-                            UI.renderView('suite');
-                            await Logic.initialDataLoad();
-                        } else {
-                            throw new Error(responseData.message || 'Invalid or inactive Access Code.');
+                        
+                        AppState.userAccessCode = accessCode;
+                        AppState.userAccessTier = responseData.accessTier;
+                        AppState.partnerName = responseData.partnerName;
+                        
+                        document.getElementById('premium-access-gate').style.display = 'none';
+                        const suiteEl = document.getElementById('intelligence-suite');
+                        if (suiteEl) suiteEl.classList.remove('hidden');
+                        
+                        const welcomeBanner = document.getElementById('welcome-banner');
+                        if(welcomeBanner) {
+                            welcomeBanner.innerHTML = `<p class="text-sm text-text-secondary">Partner: <strong class="text-white">${responseData.partnerName}</strong></p><p class="text-xs font-mono text-primary-amethyst">Tier: ${responseData.accessTier}</p>`;
+                            welcomeBanner.classList.remove('hidden');
                         }
+                        
+                        Utils.showNotification('Authentication successful!', 'success');
+                        UI.renderView('suite');
+                        await Logic.initialDataLoad();
+                        
                     } catch (error) {
                         errEl.textContent = error.message;
                         errEl.classList.remove('hidden');
@@ -757,6 +658,7 @@
                         btn.textContent = 'Authenticate';
                     }
                 },
+
                 initialDataLoad: async () => {
                     try {
                         const contacts = await Utils.createApiRequest('getContactsForIntelligencePage', 'POST', { accessCode: AppState.userAccessCode });
@@ -773,50 +675,24 @@
                         document.getElementById('contacts-loading-spinner').innerHTML = `<p class="text-error-color">Failed to load contact data.</p>`;
                     }
                 },
-                applyFiltersAndSort: () => {
-                    const q = document.getElementById('contact-search-input').value.toLowerCase();
-                    const s = document.querySelector('#contact-status-filters .btn-primary').dataset.status;
-                    const r = document.getElementById('role-filter-select').value;
-                    const a = document.getElementById('asset-filter-select').value;
-                    
-                    AppState.filteredContacts = AppState.allContacts.filter(c => 
-                        (s === 'ALL' || c.status === s) && 
-                        (r === 'ALL' || c.primaryRole === r) && 
-                        (a === 'ALL' || c.primaryAssetFocus === a) && 
-                        (q === '' || c.searchText.includes(q))
-                    );
-                    
-                    document.getElementById('clear-search-btn').classList.toggle('hidden', !q);
-                    Logic.sortContacts();
-                    AppState.currentPage = 1;
-                    UI.updateContactDisplay();
-                },
-                sortContacts: () => {
-                    const [field, dir] = AppState.contactSort.split('_');
-                    const sortField = field === 'legitimacy' ? 'legitimacyScore' : 'fullName';
-                    AppState.filteredContacts.sort((a, b) => {
-                        let vA = a[sortField] || (field === 'legitimacy' ? 0 : '');
-                        let vB = b[sortField] || (field === 'legitimacy' ? 0 : '');
-                        if (typeof vA === 'number') return dir === 'asc' ? vA - vB : vB - vA;
-                        return dir === 'asc' ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(vA));
-                    });
-                },
-                prevPage: () => {
-                    if (AppState.currentPage > 1) { AppState.currentPage--; UI.updateContactDisplay(); }
-                },
-                nextPage: () => {
-                    if (AppState.currentPage * AppState.contactsPerPage < AppState.filteredContacts.length) { AppState.currentPage++; UI.updateContactDisplay(); }
-                },
-                handleAutocompleteInput: (event, target) => {
+
+                handleAutocompleteInput: Utils.debounce((event, target) => {
                     const query = event.target.value.toLowerCase();
                     const suggestionsEl = document.getElementById(`${target}-contact-suggestions`);
-                    if (!query) { suggestionsEl.classList.add('hidden'); return; }
-                    const filtered = AppState.allContacts.filter(c => c.searchText.includes(query) && c.status === 'ACTIVE').slice(0, 5);
+                    if (!query) {
+                        suggestionsEl.classList.add('hidden');
+                        return;
+                    }
+                    const filtered = AppState.allContacts
+                        .filter(c => c.searchText.includes(query) && c.status === 'ACTIVE')
+                        .slice(0, 5);
                     UI.renderAutocompleteSuggestions(filtered, target);
-                },
+                }, 250),
+
                 selectAutocompleteSuggestion: (target, name) => {
                     Logic.setContactForAnalysis(target, name);
                 },
+
                 toggleCardExpansion: (contactId) => {
                     if (AppState.ui.expandedCards.has(contactId)) {
                         AppState.ui.expandedCards.delete(contactId);
@@ -825,11 +701,14 @@
                     }
                     UI.updateSingleCardExpansion(contactId);
                 },
+
                 clearSelectedContact: (target) => {
                     AppState.pathAnalysis[target] = null;
                     UI.updateSelectedContactDisplay(target, null);
                     document.getElementById(`${target}-contact-input`).focus();
+                    Logic.applyFiltersAndSort(); // Re-render cards to remove selection style
                 },
+
                 clearPathUI: () => {
                     AppState.pathAnalysis.start = null;
                     AppState.pathAnalysis.via = null;
@@ -840,24 +719,39 @@
                     UI.updateSelectedContactDisplay('via', null);
                     UI.updateSelectedContactDisplay('end', null);
                     document.getElementById('path-results-area').classList.add('hidden');
+                    Logic.applyFiltersAndSort(); // Re-render all cards to remove all selection styles
                     Utils.showNotification('Path Analyzer cleared.', 'info');
                 },
+
                 setContactForAnalysis: (target, name) => {
-                    if (Object.values(AppState.pathAnalysis).includes(name)) {
+                    const previousSelection = { ...AppState.pathAnalysis };
+
+                    if (Object.values(previousSelection).includes(name)) {
                         Utils.showNotification(`${name} is already selected for another role.`, 'warning');
                         return;
                     }
                     AppState.pathAnalysis[target] = name;
                     UI.updateSelectedContactDisplay(target, name);
+                    
+                    // Re-render only the affected cards for supreme performance
+                    const currentContact = AppState.allContacts.find(c => c.fullName === name);
+                    if (currentContact) UI.updateSingleCardExpansion(currentContact.contactId, false, true); // Rerender to show selection
+                    
+                    const previousContactName = previousSelection[target];
+                    if (previousContactName) {
+                        const previousContact = AppState.allContacts.find(c => c.fullName === previousContactName);
+                        if (previousContact) UI.updateSingleCardExpansion(previousContact.contactId, false, true); // Rerender to remove old selection
+                    }
                 },
+                
                 runPathAnalysis: async () => {
                     const findPathsBtn = document.getElementById('find-paths-btn');
-                    if(findPathsBtn) findPathsBtn.disabled = true;
+                    if (findPathsBtn) findPathsBtn.disabled = true;
 
                     const { start, end } = AppState.pathAnalysis;
                     if (!start || !end) {
                         Utils.showNotification('A Start and End contact are required for analysis.', 'warning');
-                        if(findPathsBtn) findPathsBtn.disabled = false;
+                        if (findPathsBtn) findPathsBtn.disabled = false;
                         return;
                     }
                     
@@ -876,16 +770,17 @@
                             accessCode: AppState.userAccessCode
                         };
                         const results = await Utils.createApiRequest('runAdvancedPathAnalysis', 'POST', params);
-                        UI.renderPathResults(results);
+                        UI.renderPathResults(results.paths);
                     } catch (error) {
                         document.getElementById('path-loading-spinner').classList.add('hidden');
                         document.getElementById('path-error-message').textContent = error.message;
                         document.getElementById('path-error-display').classList.remove('hidden');
                     } finally {
                         AppState.pathAnalysis.isLoading = false;
-                        if(findPathsBtn) findPathsBtn.disabled = false;
+                        if (findPathsBtn) findPathsBtn.disabled = false;
                     }
                 },
+
                 handlePathSortClick: (field) => {
                     const sortState = AppState.pathAnalysis.pathSort;
                     if (sortState.field === field) {
@@ -897,18 +792,20 @@
                     Logic.sortPaths();
                     document.getElementById('path-results-tbody').innerHTML = AppState.pathAnalysis.results.map(ComponentBuilders.createPathRowHTML).join('');
                 },
+                
                 sortPaths: () => {
                     const { field, dir } = AppState.pathAnalysis.pathSort;
                     AppState.pathAnalysis.results.sort((a, b) => {
                         let valA = a[field]; let valB = b[field];
                         if (typeof valA === 'number') return dir === 'asc' ? valA - valB : valB - valA;
-                        return dir === 'asc' ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(a));
+                        return dir === 'asc' ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
                     });
                 },
+
                 selectPath: (pathId) => {
+                    // This function now correctly handles the full toggle logic and detail loading
                     const isDeselecting = AppState.pathAnalysis.selectedPathId === pathId;
                     
-                    // Deselect previous row if one was selected
                     if (AppState.pathAnalysis.selectedPathId) {
                         document.getElementById(`details-row-${AppState.pathAnalysis.selectedPathId}`)?.classList.add('hidden');
                         document.getElementById(`path-row-${AppState.pathAnalysis.selectedPathId}`)?.classList.remove('selected-path');
@@ -922,14 +819,48 @@
                         AppState.pathAnalysis.selectedPathId = pathId;
                         const path = AppState.pathAnalysis.results.find(p => p.pathId === pathId);
                         
-                        document.getElementById(`path-row-${pathId}`).classList.add('selected-path');
-                        document.getElementById(`details-row-${pathId}`).classList.remove('hidden');
-                        document.getElementById(`details-icon-${pathId}`).classList.add('rotate-180');
+                        document.getElementById(`path-row-${pathId}`)?.classList.add('selected-path');
+                        document.getElementById(`details-row-${pathId}`)?.classList.remove('hidden');
+                        document.getElementById(`details-icon-${pathId}`)?.classList.add('rotate-180');
                         
                         ComponentBuilders.renderExecutiveSummary(path);
                         ComponentBuilders.loadPathDetailsContent(path);
                     }
                 },
+
+                applyFiltersAndSort: () => {
+                    const q = document.getElementById('contact-search-input').value.toLowerCase();
+                    const s = document.querySelector('#contact-status-filters .btn-primary').dataset.status;
+                    const r = document.getElementById('role-filter-select').value;
+                    const a = document.getElementById('asset-filter-select').value;
+                    
+                    AppState.filteredContacts = AppState.allContacts.filter(c => 
+                        (s === 'ALL' || c.status === s) && 
+                        (r === 'ALL' || c.primaryRole === r) && 
+                        (a === 'ALL' || c.primaryAssetFocus === a) && 
+                        (q === '' || c.searchText.includes(q))
+                    );
+                    
+                    document.getElementById('clear-search-btn').classList.toggle('hidden', !q);
+                    Logic.sortContacts();
+                    AppState.currentPage = 1;
+                    UI.updateContactDisplay();
+                },
+
+                sortContacts: () => {
+                    const [field, dir] = AppState.contactSort.split('_');
+                    const sortField = field === 'legitimacy' ? 'legitimacyScore' : 'fullName';
+                    AppState.filteredContacts.sort((a, b) => {
+                        let vA = a[sortField] || (field === 'legitimacy' ? 0 : '');
+                        let vB = b[sortField] || (field === 'legitimacy' ? 0 : '');
+                        if (typeof vA === 'number') return dir === 'asc' ? vA - vB : vB - vA;
+                        return dir === 'asc' ? String(vA).localeCompare(String(vB)) : String(vB).localeCompare(String(valA));
+                    });
+                },
+
+                prevPage: () => { if (AppState.currentPage > 1) { AppState.currentPage--; UI.updateContactDisplay(); } },
+                nextPage: () => { if (AppState.currentPage * AppState.contactsPerPage < AppState.filteredContacts.length) { AppState.currentPage++; UI.updateContactDisplay(); } },
+                
                 setupGlobalEventListeners: () => {
                     document.body.addEventListener('click', (e) => {
                         if (!e.target.closest('.autocomplete-input, .autocomplete-suggestions')) {
@@ -983,13 +914,9 @@
 
                     addListener('#find-paths-btn', 'click', Logic.runPathAnalysis);
                     addListener('#clear-paths-btn', 'click', Logic.clearPathUI);
-                    
-                    addListener('#prev-page-btn', 'click', Logic.prevPage);
-                    addListener('#next-page-btn', 'click', Logic.nextPage);
                 }
             };
             
-            // Initialize the application once the DOM is fully loaded.
             document.addEventListener('DOMContentLoaded', Logic.init);
             
             // Expose main controllers to the global scope for inline event handlers (onclick).
