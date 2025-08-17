@@ -4,13 +4,13 @@
     <!-- ========================================================================= -->
     <!-- === DEFINITIVE FAVICON INTEGRATION (PINNACLE STANDARD) === -->
     <!-- ========================================================================= -->
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     
     <base target="_top">
-    <title>GECAN™ Architect | Deal Structuring Wizard</title>
+    <title>GECAN™ Architect | Intelligent Deal Structuring Wizard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- CUSTOM TAILWIND CONFIG (BENCHMARKED) -->
@@ -34,9 +34,9 @@
 
     <style>
         /* ========================================================================= */
-        /* === PINNACLE CSS ENGINE v4.0 (BENCHMARKED & UNIFIED) === */
+        /* === PINNACLE CSS ENGINE v5.0 (ARCHITECT EDITION) === */
         /* This stylesheet is the definitive standard, ensuring visual consistency */
-        /* with the entire GECAN platform. */
+        /* with the entire GECAN platform, plus Architect-specific enhancements. */
         /* ========================================================================= */
 
         /* --- A. CORE THEME & VARIABLES (BENCHMARKED) --- */
@@ -56,7 +56,6 @@
             --success-color: #22c55e; --warning-color: #f59e0b; --error-color: #ef4444;
             --gradient-primary: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
             --shadow-ultra: 0 25px 50px -12px rgba(0, 0, 0, 0.25); --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
-            --shadow-quantum: 0 50px 100px -20px rgba(0,0,0,0.5), 0 30px 60px -30px rgba(0,0,0,0.6);
             --transform-ultra: translateY(-16px) rotateX(10deg) rotateY(5deg) scale(1.07);
         }
 
@@ -70,7 +69,6 @@
 
         /* --- C. DYNAMIC BACKGROUND & PREMIUM HEADER (BENCHMARKED) --- */
         #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
-        
         .premium-header { position: sticky; top: 0; z-index: 50; background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-bottom: 1px solid var(--border-premium); box-shadow: var(--shadow-ultra); }
         .gecan-logo-container { perspective: 800px; }
         .gecan-logo-flipper { position: relative; width: 250px; height: 120px; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1); }
@@ -83,7 +81,7 @@
         .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
         .nav-btn:hover:not(.active) { background: var(--background-glass-premium); color: var(--text-diamond); transform: var(--transform-ultra); box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure); border-color: var(--border-premium); }
         .nav-btn.active { background: linear-gradient(135deg, rgba(14, 165, 233, 0.65), rgba(139, 92, 246, 0.65)), var(--background-glass); color: var(--text-diamond); font-weight: 700; border-color: var(--primary-azure); filter: brightness(1.1); animation: premium-active-glow 2.5s ease-in-out infinite; }
-        @keyframes premium-active-glow { 50% { box-shadow: var(--shadow-ultra), 0 0 55px var(--glow-royal), 0 0 80px var(--glow-amethyst); text-shadow: 0 0 12px rgba(255, 255, 255, 1), 0 0 30px var(--glow-royal); } }
+        @keyframes premium-active-glow { 50% { box-shadow: var(--shadow-ultra), 0 0 55px var(--glow-royal), 0 0 80px var(--primary-amethyst); text-shadow: 0 0 12px rgba(255, 255, 255, 1), 0 0 30px var(--glow-royal); } }
         .nav-icon-wrapper { perspective: 500px; width: 24px; height: 24px; }
         .nav-icon-flipper { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1); }
         .nav-btn:hover:not(:active) .nav-icon-flipper { transform: rotateY(360deg); }
@@ -111,7 +109,7 @@
         .progress-bar { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
         .result-card { border: 1px solid var(--border-color); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; background: linear-gradient(145deg, var(--background-light), var(--background-dark)); cursor: pointer; transform-style: preserve-3d; }
-        .result-card:before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 0%, var(--asset-color, rgba(14, 165, 233, 0.15)), transparent 70%); opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+        .result-card:before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 0%, var(--asset-color, rgba(14, 165, 233, 0.15)), transparent 70%); opacity: 0; transition: opacity 0.6s ease; pointer-events: none; z-index: 0; }
         .result-card:hover { transform: translateY(-10px) scale(1.03) perspective(1000px) rotateX(4deg); border-color: var(--asset-color, var(--primary-azure)); box-shadow: 0 0 40px var(--asset-color, rgba(14, 165, 233, 0.3)), 0 20px 40px rgba(0, 0, 0, 0.4); }
         .result-card:hover:before { opacity: 1; }
         .asset-color-BITCOIN { --asset-color: #f7931a; } .asset-color-GOLD { --asset-color: #ffd700; } .asset-color-PALLETS { --asset-color: #16a34a; } .asset-color-SBLC_MONETIZATION { --asset-color: #6366f1; } .asset-color-USDT { --asset-color: #26a17b; } .asset-color-CRUDE_OIL { --asset-color: #64748b; } .asset-color-REFINED_FUEL { --asset-color: #fb923c; } .asset-color-PRECIOUS_METAL { --asset-color: #eab308; }
@@ -124,7 +122,7 @@
         .form-section { border: 1px solid var(--border-color); background: var(--background-dark); transition: all 0.3s ease; }
         .form-section:focus-within { border-color: var(--primary-azure); box-shadow: 0 0 15px rgba(14, 165, 233, 0.2); }
         .helper-text { position: absolute; left: 0.5rem; bottom: -1.25rem; font-size: 0.75rem; color: var(--text-muted); opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(-5px); pointer-events: none; }
-        .form-input:focus ~ .helper-text, .form-select:focus ~ .helper-text { opacity: 1; transform: translateY(0); }
+        .form-input:focus ~ .helper-text, .form-select:focus ~ .helper-text, .form-input-group:focus-within .helper-text { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="min-h-screen">
@@ -158,7 +156,7 @@
 
     <main class="container mx-auto p-4 md:p-8">
         <div id="main-content-wrapper">
-            <!-- The entire UI will be dynamically rendered here by JavaScript -->
+            <!-- The entire UI is dynamically rendered here by the script -->
         </div>
     </main>
 
@@ -290,7 +288,7 @@
                     setTimeout(() => {
                         overlay.classList.add('hidden');
                         wrapper.innerHTML = ''; // Clear content after hiding
-                    }, 300);
+                    }, 400);
                 }
             };
             
@@ -310,11 +308,11 @@
                         { page: 'toolkits', icon: 'fas fa-tools', text: 'Toolkits' },
                         { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect' },
                         { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Intelligence' },
-                        { page: 'nexus', icon: 'fas fa-layer-group', text: 'Capital Nexus' },
                     ];
                     const moreLinks = [
-                        { page: 'privacy', text: 'Privacy Policy' },
-                        { page: 'terms', text: 'Terms & Conditions' }
+                        { page: 'nexus', icon: 'fas fa-layer-group', text: 'Capital Nexus' },
+                        { page: 'privacy', icon: 'fas fa-user-secret', text: 'Privacy Policy' },
+                        { page: 'terms', icon: 'fas fa-gavel', text: 'Terms & Conditions' }
                     ];
 
                     let navHtml = links.map(link => {
@@ -322,12 +320,11 @@
                         return `<a href="./${link.page}.html" class="nav-btn ${isActive ? 'active' : ''}"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`;
                     }).join('');
 
-                    // Add 'More' dropdown
                     navHtml += `
                         <div class="relative group">
                             <button class="nav-btn"><i class="fas fa-ellipsis-h"></i></button>
-                            <div class="absolute top-full right-0 mt-2 w-48 bg-background-secondary border border-border-accent rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2">
-                                ${moreLinks.map(link => `<a href="./${link.page}.html" class="block px-4 py-2 text-sm text-text-secondary hover:bg-primary-azure hover:text-white">${link.text}</a>`).join('')}
+                            <div class="absolute top-full right-0 mt-2 w-56 bg-background-secondary border border-border-accent rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 z-50">
+                                ${moreLinks.map(link => `<a href="./${link.page}.html" class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-primary-azure hover:text-white transition-colors"><i class="fas ${link.icon} fa-fw w-5"></i><span>${link.text}</span></a>`).join('')}
                             </div>
                         </div>
                     `;
@@ -383,6 +380,7 @@
                     });
                     const uniqueValues = ['Any', ...new Set(filteredOffers.map(o => o[key]).filter(Boolean))].sort();
                     const selectEl = document.getElementById(selectId);
+                    if (!selectEl) return;
                     const currentValue = selectEl.value;
                     selectEl.innerHTML = uniqueValues.map(val => `<option value="${val}">${val}</option>`).join('');
                     if (uniqueValues.includes(currentValue)) {
@@ -390,13 +388,14 @@
                     } else {
                         selectEl.value = 'Any';
                         const keyName = selectId.split('-')[0];
-                        AppState.requirements[keyName] = 'Any';
-                        UI.updateSummary();
+                        if (AppState.requirements[keyName]) {
+                            AppState.requirements[keyName] = 'Any';
+                            UI.updateSummary();
+                        }
                     }
                 },
                 renderResults: (perfect, partial) => {
                     document.getElementById('results-spinner').classList.add('hidden');
-                    
                     const perfectContainer = document.getElementById('perfect-matches-container');
                     const partialContainer = document.getElementById('partial-matches-container');
                     
@@ -417,15 +416,18 @@
             const ComponentBuilders = {
                 renderAuthGate: () => `
                     <div id="referral-gate" class="glass-card rounded-2xl p-6 md:p-8 max-w-lg mx-auto shadow-2xl fade-in-up">
-                        <h2 class="text-2xl font-bold text-white mb-2">Architect Wizard Access</h2>
-                        <p class="text-text-secondary mb-6">Please enter your assigned GECAN Partner Referral ID to proceed.</p>
+                        <div class="text-center mb-6">
+                           <i class="fas fa-drafting-compass text-5xl text-primary-azure" style="text-shadow: 0 0 20px var(--glow-azure);"></i>
+                           <h2 class="text-3xl font-bold text-white mt-4 mb-2">Architect Wizard</h2>
+                           <p class="text-text-secondary">Please authenticate with your GECAN Partner Referral ID to access the deal structuring suite.</p>
+                        </div>
                         <div class="flex items-center gap-3">
-                            <input type="text" id="referral-id-input" placeholder="e.g., GECAN-PARTNER-001" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-wider">
+                            <input type="text" id="referral-id-input" placeholder="Enter Partner Referral ID" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-wider text-center">
                             <button id="validate-id-btn" class="btn-primary font-bold py-3 px-6 rounded-xl disabled:opacity-50">Validate</button>
                         </div>
                         <p id="referral-error" class="text-sm text-error-color mt-3 h-5"></p>
                         <div id="auth-progress" class="mt-4 hidden">
-                            <div class="w-full progress-bar-container rounded-full h-2.5"><div class="bg-gradient-to-r from-primary-azure to-primary-royal h-2.5 rounded-full" style="width: 0%"></div></div>
+                            <div class="w-full progress-bar-container rounded-full h-2.5"><div class="bg-gradient-to-r from-primary-azure to-primary-royal h-2.5 rounded-full progress-bar" style="width: 0%"></div></div>
                             <p id="auth-status-text" class="text-xs text-text-muted mt-2 text-center">Validating credentials...</p>
                         </div>
                     </div>`,
@@ -496,7 +498,7 @@
                     if(isPerfect) { buttonClasses += 'bg-gradient-to-r from-success-color to-green-600 text-white shadow-lg shadow-green-500/20'; } 
                     else { buttonClasses += 'bg-gradient-to-r from-warning-color to-yellow-500 text-black shadow-lg shadow-yellow-500/20'; }
                     
-                    return `<div class="result-card rounded-2xl p-5 flex flex-col h-full ${assetClass} group" onclick="Logic.openModal('${offer.OFFER_ID}')"><div class="deal-card-glow"></div><div class="flex-grow z-10"><div class="flex justify-between items-start mb-2"><div class="flex-1 pr-4"><h4 class="font-bold text-white text-lg line-clamp-2 group-hover:text-primary-azure transition-colors">${offer.OFFER_DESCRIPTION}</h4><p class="text-xs font-mono text-text-muted mt-1">${offer.OFFER_ID}</p></div><div class="text-right flex-shrink-0"><p class="text-xs text-text-muted">Confidence</p><p class="font-black text-3xl ${scoreColor}">${score}%</p></div></div><div class="my-4"><div class="flex justify-between items-center text-xs mb-1"><span class="font-medium text-text-secondary">Match Percentage</span><span class="font-bold" style="color: ${matchPercentage < 100 ? 'var(--warning-color)' : 'var(--success-color)'};">${Math.round(matchPercentage)}%</span></div><div class="w-full h-1.5 rounded-full match-bar-bg"><div class="h-full rounded-full match-bar" style="width: ${matchPercentage}%; background: ${matchBarGradient};"></div></div></div></div><button class="${buttonClasses}"><i class="fas ${buttonIcon}"></i><span>${buttonText}</span></button></div>`;
+                    return `<div class="result-card rounded-2xl p-5 flex flex-col h-full ${assetClass} group" onclick="Logic.openModal('${offer.OFFER_ID}')"><div class="absolute inset-0 deal-card-glow z-0"></div><div class="flex-grow z-10"><div class="flex justify-between items-start mb-2"><div class="flex-1 pr-4"><h4 class="font-bold text-white text-lg line-clamp-2 group-hover:text-primary-azure transition-colors">${offer.OFFER_DESCRIPTION}</h4><p class="text-xs font-mono text-text-muted mt-1">${offer.OFFER_ID}</p></div><div class="text-right flex-shrink-0"><p class="text-xs text-text-muted">Confidence</p><p class="font-black text-3xl ${scoreColor}">${score}%</p></div></div><div class="my-4"><div class="flex justify-between items-center text-xs mb-1"><span class="font-medium text-text-secondary">Match Percentage</span><span class="font-bold" style="color: ${matchPercentage < 100 ? 'var(--warning-color)' : 'var(--success-color)'};">${Math.round(matchPercentage)}%</span></div><div class="w-full h-1.5 rounded-full match-bar-bg"><div class="h-full rounded-full match-bar" style="width: ${matchPercentage}%; background: ${matchBarGradient};"></div></div></div></div><button class="${buttonClasses} z-10"><i class="fas ${buttonIcon}"></i><span>${buttonText}</span></button></div>`;
                 },
                 renderDetailsModalContent: (offer, gaps, matchPercentage) => {
                     const isPerfect = !gaps || gaps.length === 0;
@@ -510,16 +512,27 @@
                 renderEngagementForm: (offer) => {
                     const userReqs = AppState.requirements; 
                     const getVal = (key, offerKey) => userReqs[key] !== 'Any' ? userReqs[key] : offer[offerKey] || '';
-                    return `<form id="modal-form" class="flex flex-col h-full"><div class="p-6 border-b border-border-color flex-shrink-0"><div class="flex justify-between items-start"><div><h3 class="text-xl md:text-2xl font-bold text-white">Intermediary Deal Submission Portal</h3><p class="text-sm text-gray-400">Enquiry Against Offer: ${offer.OFFER_ID}</p></div><button type="button" onclick="Utils.closeModal()" class="text-2xl text-gray-500 hover:text-white transition-colors">×</button></div></div><div class="p-6 space-y-6 overflow-y-auto flex-grow"><div class="p-4 bg-gray-900/50 rounded-2xl border border-gray-700 shadow-lg"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-lg text-white">Engagement Feasibility Score</h4><span id="feasibility-score" class="text-3xl font-black text-green-400">100%</span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div id="feasibility-bar" class="bg-gradient-to-r from-green-500 to-emerald-400 h-2.5 rounded-full" style="width: 100%;"></div></div><p id="feasibility-guidance" class="text-xs text-gray-400 mt-3"><i class="fas fa-check-circle text-green-500 mr-1"></i>Your enquiry aligns with the offer.</p></div><input type="hidden" id="modal-timezone"><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">1. Your Details (Enquiry Source)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative"><input type="text" id="modal-user-name" placeholder="Your Full Name*" class="form-input" required><label class="helper-text">Your name as the introducer.</label></div><div class="relative"><input type="email" id="modal-user-email" placeholder="Your Email Address*" class="form-input" required><label class="helper-text">Your primary email for communication.</label></div><div class="relative"><input type="text" id="modal-user-phone" placeholder="Your Phone (Signal/WA)*" class="form-input" required><label class="helper-text">Your direct contact number.</label></div><div class="relative"><select id="modal-user-relationship" class="form-select" required><option value="" disabled selected>Your Relationship to Buyer*</option><option>Mandate</option><option>Broker/Intermediary</option><option>Consultant</option><option>Direct Principal</option></select><label class="helper-text">Select your role in this transaction.</label></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">2. End Buyer Identity</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative"><input type="text" id="modal-buyer-name" placeholder="Buyer Principal Full Name*" class="form-input" required><label class="helper-text">The full name of the ultimate end buyer.</label></div><div class="relative"><input type="text" id="modal-buyer-entity" placeholder="Buyer Legal Entity Name*" class="form-input" required><label class="helper-text">The registered company or trust name.</label></div><div class="relative"><input type="text" id="modal-buyer-jurisdiction" placeholder="Buyer Jurisdiction*" class="form-input" required><label class="helper-text">The country of incorporation.</label></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">3. Core Deal Structure (Verify & Amend)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative"><label class="text-xs text-text-muted">Asset Category</label><input type="text" id="modal-asset-category" value="${getVal('asset', 'ASSET_CATEGORY')}" data-original="${offer.ASSET_CATEGORY}" class="form-input deal-param" required></div><div class="relative"><label class="text-xs text-text-muted">Core Procedure</label><input type="text" id="modal-core-procedure" value="${getVal('procedure', 'CORE_PROCEDURE_TYPE')}" data-original="${offer.CORE_PROCEDURE_TYPE}" class="form-input deal-param" required></div><div class="relative"><label class="text-xs text-text-muted">Transaction Venue</label><input type="text" id="modal-preferred-venue" value="${getVal('venue', 'TRANSACTION_VENUE')}" data-original="${offer.TRANSACTION_VENUE}" class="form-input deal-param" required></div><div class="relative"><label class="text-xs text-text-muted">Settlement Protocol</label><input type="text" id="modal-settlement-protocol" value="${getVal('settlement', 'SETTLEMENT_PROTOCOL')}" data-original="${offer.SETTLEMENT_PROTOCOL}" class="form-input deal-param" required></div></div><div id="wallet-input-area" class="mt-4"></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">4. Commercials & Supporting Documents</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div class="relative"><label class="text-xs text-text-muted">Required Volume</label><input type="text" id="modal-required-volume" placeholder="Required Volume*" class="form-input deal-param" required data-original="${offer.TOTAL_VOLUME_AVAILABLE || ''}"></div><div class="relative"><label class="text-xs text-text-muted">Target Price/Discount</label><input type="text" id="modal-target-price" placeholder="Target Price/Discount*" class="form-input deal-param" required data-original="${offer.PRICE_REFERENCE_BASIS || ''}"></div></div><div class="relative"><textarea id="modal-comments" placeholder="Additional comments on buyer requirements, SOP points, etc..." class="form-input w-full h-24"></textarea></div></div></div><div class="p-6 border-t border-border-color mt-auto flex-shrink-0 flex justify-end"><button type="submit" class="btn-primary bg-gradient-to-r from-success-color to-green-600 border-green-500 font-bold py-3 px-8 rounded-lg">Submit Formal Enquiry</button></div></form>`;
+                    return `<form id="modal-form" class="flex flex-col h-full"><div class="p-6 border-b border-border-color flex-shrink-0"><div class="flex justify-between items-start"><div><h3 class="text-xl md:text-2xl font-bold text-white">Intermediary Deal Submission Portal</h3><p class="text-sm text-gray-400">Enquiry Against Offer: ${offer.OFFER_ID}</p></div><button type="button" onclick="Utils.closeModal()" class="text-2xl text-gray-500 hover:text-white transition-colors">×</button></div></div><div class="p-6 space-y-6 overflow-y-auto flex-grow"><div class="p-4 bg-gray-900/50 rounded-2xl border border-gray-700 shadow-lg"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-lg text-white">Engagement Feasibility Score</h4><span id="feasibility-score" class="text-3xl font-black text-green-400">100%</span></div><div class="w-full bg-gray-700 rounded-full h-2.5"><div id="feasibility-bar" class="bg-gradient-to-r from-green-500 to-emerald-400 h-2.5 rounded-full" style="width: 100%;"></div></div><p id="feasibility-guidance" class="text-xs text-gray-400 mt-3"><i class="fas fa-check-circle text-green-500 mr-1"></i>Your enquiry aligns with the offer.</p></div><input type="hidden" id="modal-timezone"><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">1. Your Details (Enquiry Source)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative group form-input-group"><input type="text" id="modal-user-name" placeholder="Your Full Name*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">Your name as the introducer.</p></div><div class="relative group form-input-group"><input type="email" id="modal-user-email" placeholder="Your Email Address*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">Your primary email for communication.</p></div><div class="relative group form-input-group"><input type="text" id="modal-user-phone" placeholder="Your Phone (Signal/WA)*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">Your direct contact number.</p></div><div class="relative group form-input-group"><select id="modal-user-relationship" class="form-select bg-transparent border-none p-0 focus:ring-0" required><option value="" disabled selected>Your Relationship to Buyer*</option><option>Mandate</option><option>Broker/Intermediary</option><option>Consultant</option><option>Direct Principal</option></select><p class="helper-text">Select your role in this transaction.</p></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">2. End Buyer Identity</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative group form-input-group"><input type="text" id="modal-buyer-name" placeholder="Buyer Principal Full Name*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">The full name of the ultimate end buyer.</p></div><div class="relative group form-input-group"><input type="text" id="modal-buyer-entity" placeholder="Buyer Legal Entity Name*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">The registered company or trust name.</p></div><div class="relative group form-input-group"><input type="text" id="modal-buyer-jurisdiction" placeholder="Buyer Jurisdiction*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">The country of incorporation.</p></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">3. Core Deal Structure (Verify & Amend)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative"><label class="text-xs text-text-muted">Asset Category</label><input type="text" id="modal-asset-category" value="${getVal('asset', 'ASSET_CATEGORY')}" data-original="${offer.ASSET_CATEGORY}" class="form-input deal-param" required></div><div class="relative"><label class="text-xs text-text-muted">Core Procedure</label><input type="text" id="modal-core-procedure" value="${getVal('procedure', 'CORE_PROCEDURE_TYPE')}" data-original="${offer.CORE_PROCEDURE_TYPE}" class="form-input deal-param" required></div><div class="relative"><label class="text-xs text-text-muted">Transaction Venue</label><input type="text" id="modal-preferred-venue" value="${getVal('venue', 'TRANSACTION_VENUE')}" data-original="${offer.TRANSACTION_VENUE}" class="form-input deal-param" required></div><div class="relative"><label class="text-xs text-text-muted">Settlement Protocol</label><input type="text" id="modal-settlement-protocol" value="${getVal('settlement', 'SETTLEMENT_PROTOCOL')}" data-original="${offer.SETTLEMENT_PROTOCOL}" class="form-input deal-param" required></div></div><div id="wallet-input-area" class="mt-4"></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">4. Commercials & Supporting Documents</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div class="relative group form-input-group"><input type="text" id="modal-required-volume" placeholder="Required Volume*" class="form-input deal-param bg-transparent border-none p-0 focus:ring-0" required data-original="${offer.TOTAL_VOLUME_AVAILABLE || ''}"><p class="helper-text">Total volume buyer wishes to acquire.</p></div><div class="relative group form-input-group"><input type="text" id="modal-target-price" placeholder="Target Price/Discount*" class="form-input deal-param bg-transparent border-none p-0 focus:ring-0" required data-original="${offer.PRICE_REFERENCE_BASIS || ''}"><p class="helper-text">e.g., LME -6% Net to Buyer.</p></div></div><div class="relative"><textarea id="modal-comments" placeholder="Additional comments on buyer requirements, SOP points, etc..." class="form-input w-full h-24"></textarea></div></div></div><div class="p-6 border-t border-border-color mt-auto flex-shrink-0 flex justify-end"><button type="submit" class="btn-primary bg-gradient-to-r from-success-color to-green-600 border-green-500 font-bold py-3 px-8 rounded-lg">Submit Formal Enquiry</button></div></form>`;
                 },
                 renderInquiryForm: (offer, gaps) => {
-                    return `<form id="modal-form" class="flex flex-col h-full"><div class="p-6 border-b border-border-color flex-shrink-0"><div class="flex justify-between items-start"><div><h3 class="text-xl md:text-2xl font-bold text-white">Structured Inquiry Portal</h3><p class="text-sm text-gray-400">Against Offer: ${offer.OFFER_ID}</p></div><button type="button" onclick="Utils.closeModal()" class="text-2xl text-gray-500 hover:text-white transition-colors">×</button></div></div><div class="p-6 space-y-6 overflow-y-auto flex-grow"><div class="p-4 bg-yellow-900/20 border border-yellow-500/50 rounded-2xl"><h4 class="font-bold text-lg text-yellow-300 mb-2">Identified Gaps for Negotiation</h4><ul class="text-sm text-yellow-200 space-y-1">${gaps.map(g => `<div><i class="fas fa-arrows-alt-h fa-fw mr-2"></i>${g}</div>`).join('')}</ul></div><input type="hidden" id="modal-timezone"><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">1. Your Details (Enquiry Source)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative"><input type="text" id="modal-user-name" placeholder="Your Full Name*" class="form-input" required><label class="helper-text">Your name as the introducer.</label></div><div class="relative"><input type="email" id="modal-user-email" placeholder="Your Email Address*" class="form-input" required><label class="helper-text">Your primary email for communication.</label></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">2. End Buyer Details</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative"><input type="text" id="modal-buyer-name" placeholder="Buyer Principal Full Name*" class="form-input" required><label class="helper-text">The ultimate end buyer.</label></div><div class="relative"><input type="text" id="modal-buyer-entity" placeholder="Buyer Legal Entity Name*" class="form-input" required><label class="helper-text">The registered company name.</label></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">3. Comments & Clarifications</h4><div class="relative"><textarea id="modal-comments" placeholder="Provide clarifications on the identified gaps or add other critical information to bridge the gap..." class="form-input w-full h-24" required></textarea></div></div></div><div class="p-6 border-t border-border-color mt-auto flex-shrink-0 flex justify-end"><button type="submit" class="btn-primary font-bold py-3 px-8 rounded-lg bg-gradient-to-r from-warning-color to-yellow-600 border-yellow-500 text-black">Submit Structured Inquiry</button></div></form>`;
+                    return `<form id="modal-form" class="flex flex-col h-full"><div class="p-6 border-b border-border-color flex-shrink-0"><div class="flex justify-between items-start"><div><h3 class="text-xl md:text-2xl font-bold text-white">Structured Inquiry Portal</h3><p class="text-sm text-gray-400">Against Offer: ${offer.OFFER_ID}</p></div><button type="button" onclick="Utils.closeModal()" class="text-2xl text-gray-500 hover:text-white transition-colors">×</button></div></div><div class="p-6 space-y-6 overflow-y-auto flex-grow"><div class="p-4 bg-yellow-900/20 border border-yellow-500/50 rounded-2xl"><h4 class="font-bold text-lg text-yellow-300 mb-2">Identified Gaps for Negotiation</h4><ul class="text-sm text-yellow-200 space-y-1">${gaps.map(g => `<div><i class="fas fa-arrows-alt-h fa-fw mr-2"></i>${g}</div>`).join('')}</ul></div><input type="hidden" id="modal-timezone"><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">1. Your Details (Enquiry Source)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative group form-input-group"><input type="text" id="modal-user-name" placeholder="Your Full Name*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">Your name as the introducer.</p></div><div class="relative group form-input-group"><input type="email" id="modal-user-email" placeholder="Your Email Address*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">Your primary email for communication.</p></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">2. End Buyer Details</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="relative group form-input-group"><input type="text" id="modal-buyer-name" placeholder="Buyer Principal Full Name*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">The ultimate end buyer.</p></div><div class="relative group form-input-group"><input type="text" id="modal-buyer-entity" placeholder="Buyer Legal Entity Name*" class="form-input bg-transparent border-none p-0 focus:ring-0" required><p class="helper-text">The registered company name.</p></div></div></div><div class="form-section rounded-xl p-6"><h4 class="font-bold text-white mb-4">3. Comments & Clarifications</h4><div class="relative"><textarea id="modal-comments" placeholder="Provide clarifications on the identified gaps or add other critical information to bridge the gap..." class="form-input w-full h-24" required></textarea></div></div></div><div class="p-6 border-t border-border-color mt-auto flex-shrink-0 flex justify-end"><button type="submit" class="btn-primary font-bold py-3 px-8 rounded-lg bg-gradient-to-r from-warning-color to-yellow-600 border-yellow-500 text-black">Submit Structured Inquiry</button></div></form>`;
                 }
             };
             
             const Logic = {
                 init: () => {
                     UI.init();
+                    Logic.checkForAutoAuth();
+                },
+                checkForAutoAuth: () => {
+                    const code = new URLSearchParams(window.location.search).get('referralId');
+                    if (code) {
+                        const input = document.getElementById('referral-id-input');
+                        if (input) {
+                            input.value = code;
+                            Logic.validateReferralId();
+                        }
+                    }
                 },
                 validateReferralId: async () => {
                     const btn = document.getElementById('validate-id-btn');
@@ -542,23 +555,28 @@
                     
                     try {
                         if (progressEl) Utils.animateProgressBar(progressEl.querySelector('.progress-bar'), 50);
-                        const response = await Utils.createApiRequest('validateReferralId', 'POST', { referralId });
-                        if (statusText) statusText.textContent = "Validation successful. Loading data...";
+                        const responseData = await Utils.createApiRequest('validateReferralId', 'POST', { referralId });
+                        if (statusText) statusText.textContent = "Validation successful. Fetching offer ledger...";
                         if (progressEl) Utils.animateProgressBar(progressEl.querySelector('.progress-bar'), 75);
 
-                        AppState.referralInfo = { id: response.referralId, partnerName: response.partnerName };
-                        
+                        AppState.referralInfo = { id: responseData.referralId, partnerName: responseData.partnerName };
                         const offerData = await Utils.createApiRequest('getOfferData');
                         
                         if (progressEl) Utils.animateProgressBar(progressEl.querySelector('.progress-bar'), 100, () => {
                            setTimeout(() => {
-                                document.getElementById('referral-gate').classList.add('opacity-0', 'pointer-events-none');
-                                setTimeout(() => {
-                                    UI.renderView('wizard');
-                                    document.getElementById('referral-banner').innerHTML = `<p class="text-sm text-text-secondary">Referral: <strong class="text-white">${response.referralId}</strong></p><p class="text-xs text-text-muted">Partner: ${response.partnerName}</p>`;
-                                    document.getElementById('referral-banner').classList.remove('hidden');
-                                    Logic.onDataLoaded(offerData);
-                                }, 500);
+                                const gate = document.getElementById('referral-gate');
+                                if (gate) {
+                                    gate.classList.add('opacity-0', 'pointer-events-none');
+                                    setTimeout(() => {
+                                        UI.renderView('wizard');
+                                        const banner = document.getElementById('referral-banner');
+                                        if (banner) {
+                                            banner.innerHTML = `<p class="text-sm text-text-secondary">Referral: <strong class="text-white">${responseData.referralId}</strong></p><p class="text-xs text-text-muted">Partner: ${responseData.partnerName}</p>`;
+                                            banner.classList.remove('hidden');
+                                        }
+                                        Logic.onDataLoaded(offerData);
+                                    }, 400);
+                                }
                             }, 500);
                         });
                     } catch (error) {
@@ -569,7 +587,7 @@
                     }
                 },
                 onDataLoaded: (data) => {
-                    AppState.allOffers = data.filter(o => o.OFFER_ID && o.OFFER_DESCRIPTION);
+                    AppState.allOffers = data.filter(o => o.OFFER_ID && o.OFFER_DESCRIPTION); // Data integrity check
                     const wizardContent = document.getElementById('wizard-content');
                     const initialLoading = document.getElementById('initial-loading');
                     if (initialLoading) initialLoading.style.display = 'none';
@@ -625,11 +643,12 @@
                         activeOffers.forEach(offer => {
                             let gaps = [], met = 0, potential = 0;
                             Object.keys(AppState.requirements).forEach(key => {
-                                const userValue = AppState.requirements[key], offerValue = offer[reqMap[key]];
+                                const userValue = AppState.requirements[key];
+                                const offerValue = offer[reqMap[key]];
                                 if (userValue !== 'Any') {
                                     potential++;
                                     if (userValue === offerValue) { met++; } 
-                                    else { gaps.push(`<strong>${key.charAt(0).toUpperCase() + key.slice(1)}:</strong> Required '${userValue}', but offer has '${offerValue || 'N/A'}'.`); }
+                                    else { gaps.push(`<strong>${key.charAt(0).toUpperCase() + key.slice(1)}:</strong> Required '<span>${userValue}</span>', but offer has '<span>${offerValue || 'N/A'}</span>'.`); }
                                 }
                             });
                             
@@ -643,7 +662,7 @@
                         });
 
                         perfect.sort((a,b) => (b.offer.OFFER_RELIABILITY_SCORE || 0) - (a.offer.OFFER_RELIABILITY_SCORE || 0));
-                        partial.sort((a, b) => b.matchPercentage - a.matchPercentage);
+                        partial.sort((a, b) => b.matchPercentage - a.matchPercentage || (b.offer.OFFER_RELIABILITY_SCORE || 0) - (a.offer.OFFER_RELIABILITY_SCORE || 0));
 
                         UI.renderResults(perfect, partial);
                     }, 800);
@@ -658,6 +677,7 @@
                 },
                 transitionToFormModal: (offerId) => {
                     const offer = AppState.allOffers.find(o => o.OFFER_ID === offerId);
+                    if(!offer) return;
                     const { gaps } = AppState.offerGapsMap.get(offerId) || { gaps: null };
                     const isPerfect = !gaps || gaps.length === 0;
 
@@ -738,33 +758,18 @@
                     }
                 }
             };
-
-            const UI = {
-                // Main UI object containing rendering logic
-            };
             
-            // This is a placeholder. You'd populate this with the full ComponentBuilders object.
-            const ComponentBuilders = {
-                // ... all component builder functions ...
-            };
-            
-            // This is a placeholder. You'd populate this with the full Logic object.
-            const Logic = {
-                // ... all logic functions ...
-            };
-
+            // This is the single, unified script execution entry point.
             document.addEventListener('DOMContentLoaded', () => {
-                // Merge all objects into their final state
-                Object.assign(window.UI, UI, ComponentBuilders);
-                Object.assign(window.Logic, Logic);
-                window.Utils = Utils;
-                window.AppState = AppState;
-
+                // Assign Component Builders to the UI object now that the DOM is ready
+                // This prevents race conditions and ensures all rendering functions are available.
+                Object.assign(UI, ComponentBuilders);
+                
                 // Initialize the application
-                window.Logic.init();
+                Logic.init();
             });
+            
         })();
     </script>
-
 </body>
 </html>
