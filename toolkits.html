@@ -3536,6 +3536,14 @@ togglePricingConfig: () => {
                 Logic.refreshImfpaModalUI();
             },
             
+            /**
+             * [NEW - Navigation Protocol] Returns the user to the configuration suite.
+             */
+            returnToEditor: () => {
+                AppState.modeler.legal.viewMode = 'configure';
+                Logic.refreshImfpaModalUI();
+            },
+            
             getPrintStyles: () => {
                 let printCss = '';
                 // Iterate through all stylesheets loaded on the page
@@ -3851,49 +3859,84 @@ processImageForTransparency: (imageDataUrl) => {
                 Utils.showNotification("Generating high-fidelity PDF and preparing for secure dispatch...", 'info', 'Processing Request');
 
                 try {
-                    // --- Stage 1: Retrieve the Clean HTML Template and the Separate Styles ---
+                    // --- Stage 1: Retrieve and Isolate Document Components ---
                     const printArea = document.getElementById('print-area');
-                    if (!printArea) throw new Error("CRITICAL: #print-area element not found.");
+                    if (!printArea) throw new Error("CRITICAL FAILURE: #print-area element is missing from the DOM.");
 
-                    // Create a clone to avoid modifying the live preview
+                    // Create a deep clone to operate on, preserving the live preview element.
                     const clone = printArea.cloneNode(true);
                     const styleElement = clone.querySelector('style');
-                    let styles = '';
-                    if (styleElement) {
-                        styles = styleElement.innerHTML;
-                        styleElement.remove(); // Remove the style block to get "clean" HTML
+                    
+                    if (!styleElement) {
+                        throw new Error("CRITICAL FAILURE: Cannot find <style> block within the contract template.");
                     }
                     
-                    const finalHtmlTemplate = clone.innerHTML;
+                    const styles = styleElement.innerHTML;
+                    styleElement.remove(); // Remove the style block to get "clean" HTML body content.
                     
-                    if (!finalHtmlTemplate) {
-                        throw new Error("CRITICAL: Cannot dispatch. The generated contract HTML in #print-area is empty.");
+                    const cleanHtmlBody = clone.innerHTML;
+                    
+                    if (!cleanHtmlBody || cleanHtmlBody.trim() === '') {
+                        throw new Error("CRITICAL FAILURE: The generated contract HTML in #print-area is empty or invalid.");
                     }
 
-                    // --- Stage 2: Extract Metadata for the Payload ---
-                    const recipientEmails = AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => p.email).filter(Boolean);
-                    const agreementReference = finalHtmlTemplate.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'GECAN-DOC-FINAL';
-                    const partiesJson = JSON.stringify(AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => ({ legalName: p.legalName, email: p.email })));
+                    // --- Stage 2: Extract Critical Metadata for Payload ---
+                    const recipientEmails = AppState.modeler.legal.groups
+                        .flatMap(g => g.parties)
+                        .map(p => p.email)
+                        .filter(Boolean); // Ensures only valid, non-empty emails are included.
 
+                    const agreementReference = cleanHtmlBody.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || `GECAN-DOC-${Date.now()}`;
+                    
+                    const partiesJson = JSON.stringify(
+                        AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => ({ 
+                            legalName: p.legalName, 
+                            email: p.email 
+                        }))
+                    );
 
-                    // --- Stage 3: Construct the Pinnacle-Grade Payload for the Backend ---
+                    // --- PINNACLE UPGRADE & BUG FIX (v23.1) ---
+                    // --- Stage 3: Reconstruct a Self-Contained, High-Fidelity HTML Document ---
+                    // The backend error indicates it expects a single, complete HTML document, not fragmented parts.
+                    // This reconstruction creates a well-formed HTML5 document, embedding the styles directly into the <head>,
+                    // which is the gold standard for server-side PDF generation engines.
+                    const fullHtmlDocument = `
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>${agreementReference}</title>
+                            <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet">
+                            <style>
+                                ${styles}
+                            </style>
+                        </head>
+                        <body>
+                            ${cleanHtmlBody}
+                        </body>
+                        </html>`;
+
+                    // --- Stage 4: Construct the Corrected, Complete Payload ---
+                    // The payload is now simplified and provides the exact data structure the backend requires.
                     const payload = {
-                        htmlTemplate: finalHtmlTemplate, // The HTML structure ONLY
-                        styles: styles,                 // The CSS rules ONLY
+                        htmlContent: fullHtmlDocument, // The complete, self-contained HTML for PDF generation.
                         partiesJson: partiesJson,
                         recipientEmails: recipientEmails.join(','),
                         agreementReference: agreementReference,
                         fileName: `${agreementReference}_EXECUTED.pdf`
                     };
 
-                    // --- Stage 4: Dispatch the Payload to the Secure Backend API Gateway ---
+                    // --- Stage 5: Dispatch the Payload to the Secure Backend API Gateway ---
                     const response = await Logic.createApiRequest('finalizeAndDispatchDirect', 'POST', payload);
                     
-                    Utils.showNotification(response, 'success', 'Document Dispatched');
+                    Utils.showNotification(response.message || "Document successfully dispatched to all parties.", 'success', 'Dispatch Complete');
 
                 } catch (error) {
+                    console.error("Finalization Workflow Error:", error);
                     Utils.showNotification(error.message, 'error', 'Dispatch Failed');
                 } finally {
+                    // Ensure the button is always re-enabled, regardless of outcome.
                     if (finalizationBtn) {
                         finalizationBtn.disabled = false;
                         finalizationBtn.innerHTML = '<i class="fas fa-gavel mr-2"></i>Proceed with Finalization';
@@ -5114,15 +5157,9 @@ renderYieldGraph: (calc) => {
                 const isImfpa = legal.agreementType === 'IMFPA';
                 
                 // --- MASTER VIEW ROUTER ---
+                // This logic determines whether to display the Configuration Suite or the Execution Suite.
+                // The Execution Suite code is preserved and is already at the pinnacle standard for layout.
                 if (legal.viewMode === 'execute') {
-                    // =========================================================================
-                    // === SEVERE UPGRADE & DEFINITIVE FIX v19.2 ===
-                    // Re-architected the layout to create a single, unified scroll container.
-                    // The left panel is now `position: sticky` within this container, locking
-                    // it to the top of the viewport during scroll. The right panel scrolls
-                    // naturally as part of the main content flow. This achieves the
-                    // pinnacle-standard locked-panel user experience permanently.
-                    // =========================================================================
                     return `
                     <div class="dialog-content-wrapper flex flex-col h-full">
                         <div class="p-6 md:p-8 border-b border-premium-border flex-shrink-0">
@@ -5131,17 +5168,11 @@ renderYieldGraph: (calc) => {
                                 <button onclick="Logic.closeImfpaModal()" class="text-3xl text-premium-text-secondary hover:text-white transition-colors">&times;</button>
                             </div>
                         </div>
-
-                        <!-- DEFINITIVE FIX: This container is now the single scrolling area. -->
                         <div class="flex-1 p-6 md:p-8 overflow-y-auto">
                             <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 relative">
-                                
-                                <!-- DEFINITIVE FIX: The left panel is now "sticky" within its scrolling parent. It will lock to the top. -->
-                                <div class="lg:col-span-2 self-start sticky top-0">
+                                <div class="lg:col-span-2 self-start sticky top-6">
                                     ${UI.renderExecutionSuitePanel()}
                                 </div>
-
-                                <!-- DEFINITIVE FIX: The right panel simply contains the content and will scroll as part of the main container. -->
                                 <div class="lg:col-span-3 flex flex-col">
                                     <h3 class="imfpa-section-title mb-4 flex-shrink-0"><i class="fas fa-file-alt mr-3"></i>Generated Document Preview</h3>
                                     <div id="contract-document-viewer" class="bg-white rounded-lg shadow-inner">
@@ -5150,12 +5181,13 @@ renderYieldGraph: (calc) => {
                                 </div>
                             </div>
                         </div>
-
                         <div id="print-area" class="hidden">${legal.generatedContractHTML}</div>
                     </div>`;
-
-                } else {
-                    // --- RENDER THE SUPREME CONFIGURATION SUITE (Unchanged) ---
+                } 
+                
+                // --- RENDER THE SUPREME CONFIGURATION SUITE ---
+                // This is the section where the critical bug is being fixed.
+                else {
                     const calc = Logic.calculateModel();
                     
                     const renderStage = (stageConfig) => {
@@ -5168,11 +5200,13 @@ renderYieldGraph: (calc) => {
                         const isLocked = currentStageIndex > 0 && !legal.stages[stageOrder[currentStageIndex - 1]];
 
                         const stageClasses = `synthesis-stage ${isActive ? 'active' : ''} ${isComplete ? 'completed' : ''} ${isLocked ? 'locked' : ''} ${extraClasses}`;
-
+                        
+                        // SEVERE UPGRADE: The "Proceed" button is now intelligently disabled based on real-time validation of the stage's data.
+                        const isStageValid = Logic.validateStageData(name);
                         const stageFooterHTML = isComplete
                             ? `<div class="completion-summary">${summaryGenerator()}</div>`
                             : `<div class="stage-footer">
-                                    <button id="proceed-btn-${name}" class="proceed-btn" onclick="Logic.completeStage('${name}')">
+                                    <button id="proceed-btn-${name}" class="proceed-btn" onclick="Logic.completeStage('${name}')" ${!isStageValid ? 'disabled' : ''}>
                                         <i class="fas fa-check-circle mr-2"></i>Acknowledge & Proceed
                                     </button>
                                </div>`;
@@ -5197,12 +5231,12 @@ renderYieldGraph: (calc) => {
                     
                     const stageDefinitions = [
                         {
-                            name: 'review', icon: 'fa-search-dollar', title: 'Review Parameters',
-                            contentGenerator: () => `<div class="p-4 rounded-lg bg-background-dark border border-border-color"><div class="flex justify-between items-center"><h4 class="font-semibold text-text-secondary">Deal Summary</h4><button class="text-xs text-sky-400 hover:underline" onclick="Logic.closeImfpaModal()">Edit Parameters</button></div><p class="text-sm text-text-platinum mt-2">${calc.dealTitle || 'N/A'}</p><div class="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p class="text-text-muted">Base Settlement</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.baseValueInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div><div><p class="text-text-muted">Net to Buyer</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.finalValueToBuyerInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div><div><p class="text-text-muted">Commission Pool</p><p class="font-mono font-semibold text-yellow-400">${Utils.formatPrice(legal.totalCommission)}</p></div><div><p class="text-text-muted">Effective Rate</p><p class="font-mono font-semibold">${calc.netValueDescription || 'N/A'}</p></div></div></div>`,
-                            summaryGenerator: () => `<strong>Parameters Acknowledged:</strong> Commission Pool at <span class="font-mono text-yellow-400">${Utils.formatPrice(legal.totalCommission)}</span>.`
+                            name: 'review', icon: 'fa-search-dollar', title: 'Stage 1: Review Transaction Parameters',
+                            contentGenerator: () => `<div class="p-4 rounded-lg bg-background-dark border border-border-color"><div class="flex justify-between items-center"><h4 class="font-semibold text-text-secondary">Deal Summary</h4><button class="text-xs text-sky-400 hover:underline" onclick="Logic.closeImfpaModal()">Edit Parameters</button></div><p class="text-sm text-text-platinum mt-2">${calc.dealTitle || 'N/A'}</p><div class="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p class="text-text-muted">Base Settlement Value</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.baseValueInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div><div><p class="text-text-muted">Net to Buyer/Recipient</p><p class="font-mono font-semibold">${Utils.formatNumber(calc.finalValueToBuyerInToAsset || calc.primaryValue || 0, 2)} ${calc.toAsset?.baseAsset || calc.primaryUnit}</p></div><div><p class="text-text-muted">Total Commission Pool (USD)</p><p class="font-mono font-semibold text-yellow-400">${Utils.formatPrice(legal.totalCommission)}</p></div><div><p class="text-text-muted">Effective Rate</p><p class="font-mono font-semibold">${calc.netValueDescription || 'N/A'}</p></div></div></div>`,
+                            summaryGenerator: () => `<strong>Parameters Acknowledged:</strong> Commission Pool confirmed at <span class="font-mono text-yellow-400">${Utils.formatPrice(legal.totalCommission)}</span>.`
                         },
                         {
-                            name: 'configure', icon: 'fa-file-signature', title: 'Configure Document',
+                            name: 'configure', icon: 'fa-file-signature', title: 'Stage 2: Configure Legal Framework',
                             contentGenerator: () => `
                                 <div class="space-y-6">
                                     <div>
@@ -5213,26 +5247,34 @@ renderYieldGraph: (calc) => {
                                         <label class="block text-sm font-medium mb-2 submission-label">Cross-Referenced Contract / SPA (Optional)</label>
                                         <input value="${legal.spaReferenceCode || ''}" data-path="legal.spaReferenceCode" class="form-input font-mono" placeholder="e.g., GECAN-SPA-XYZ-12345">
                                     </div>
-                                    <div class="space-y-4 pt-2">
-                                        <div>
-                                            <p class="text-sm font-semibold text-text-secondary mb-3">I. Core Covenants</p>
-                                            <div class="grid grid-cols-1 gap-3"><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.covenantOfNonCircumvention" ${legal.articles.covenantOfNonCircumvention ? 'checked':''}><span>Covenant of Non-Circumvention</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.covenantOfNonDisclosure" ${legal.articles.covenantOfNonDisclosure ? 'checked':''}><span>Covenant of Non-Disclosure</span></label></div>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-semibold text-text-secondary mb-3">II. Enforcement & Liability</p>
-                                            <div class="grid grid-cols-1 gap-3"><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.breachAndRemedies" ${legal.articles.breachAndRemedies ? 'checked':''}><span>Breach, Remedies & Damages</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.indemnification" ${legal.articles.indemnification ? 'checked':''}><span>Indemnification Clause</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.disputeResolution" ${legal.articles.disputeResolution ? 'checked':''}><span>Dispute Resolution (Arbitration)</span></label></div>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-semibold text-text-secondary mb-3">III. Operational Clauses</p>
-                                            <div class="grid grid-cols-1 gap-3"><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.durationAndSurvival" ${legal.articles.durationAndSurvival ? 'checked':''}><span>Duration & Survival Clause</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.forceMajeure" ${legal.articles.forceMajeure ? 'checked':''}><span>Force Majeure</span></label><label class="article-checkbox"><input type="checkbox" data-path="legal.articles.generalProvisions" ${legal.articles.generalProvisions ? 'checked':''}><span>General Provisions (Boilerplate)</span></label></div>
+                                    <div class="space-y-4 pt-4 border-t border-border-secondary">
+                                        <p class="text-sm font-semibold text-text-secondary mb-3">Select Articles to Include in Agreement:</p>
+                                        <!-- ========================================================================= -->
+                                        <!-- === DEFINITIVE BUG FIX & PINNACLE UPGRADE v23.0 === -->
+                                        <!-- The 'data-path' attribute is now correctly and definitively added to every -->
+                                        <!-- checkbox input. This is the critical link that allows the existing -->
+                                        <!-- 'handleModelerInputChangeInModal' event listener to capture changes -->
+                                        <!-- and update the 'AppState.modeler.legal.articles' object in real-time. -->
+                                        <!-- The 'checked' attribute correctly reflects the current state, and any -->
+                                        <!-- user interaction will now be saved and reflected in the final document. -->
+                                        <!-- ========================================================================= -->
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.covenantOfNonCircumvention" ${legal.articles.covenantOfNonCircumvention ? 'checked':''}><span>Covenant of Non-Circumvention</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.covenantOfNonDisclosure" ${legal.articles.covenantOfNonDisclosure ? 'checked':''}><span>Covenant of Non-Disclosure</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.breachAndRemedies" ${legal.articles.breachAndRemedies ? 'checked':''}><span>Breach, Remedies & Damages</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.indemnification" ${legal.articles.indemnification ? 'checked':''}><span>Indemnification Clause</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.disputeResolution" ${legal.articles.disputeResolution ? 'checked':''}><span>Dispute Resolution (Arbitration)</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.durationAndSurvival" ${legal.articles.durationAndSurvival ? 'checked':''}><span>Duration & Survival Clause</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.generalProvisions" ${legal.articles.generalProvisions ? 'checked':''}><span>General Provisions (Boilerplate)</span></label>
+                                            <label class="article-checkbox"><input type="checkbox" data-path="legal.articles.forceMajeure" ${legal.articles.forceMajeure ? 'checked':''}><span>Force Majeure</span></label>
                                         </div>
                                     </div>
                                 </div>`,
-                            summaryGenerator: () => `<strong>Document Configured:</strong> Governed by the laws of <span class="font-semibold text-white">${legal.jurisdiction || 'N/A'}</span>.`
+                            summaryGenerator: () => `<strong>Framework Configured:</strong> Governed by the laws of <span class="font-semibold text-white">${legal.jurisdiction || 'N/A'}</span>.`
                         },
                         {
-                            name: 'allocate', icon: isImfpa ? 'fa-sitemap' : 'fa-users', title: isImfpa ? 'Commission Allocation & Parties' : 'Signatory Parties',
-                            contentGenerator: () => `<div class="space-y-4"><div id="imfpa-controls" class="flex justify-between items-center"><button onclick="Logic.addImfpaGroup()" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory'}</button><div class="text-right ${isImfpa ? 'block' : 'hidden'}"><p class="text-xs text-premium-text-secondary">Total Pool</p><p id="imfpa-total-commission-pool" class="text-xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p></div></div><div class="flex justify-end items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}"><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" data-path="legal.autoBalance" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-sky-500 bg-slate-700 border-slate-600 focus:ring-sky-600"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container">${UI.renderImfpaGroups()}</div></div>`,
+                            name: 'allocate', icon: isImfpa ? 'fa-sitemap' : 'fa-users', title: isImfpa ? 'Stage 3: Allocate Commission & Parties' : 'Stage 3: Define Signatory Parties',
+                            contentGenerator: () => `<div class="space-y-4"><div id="imfpa-controls" class="flex justify-between items-center"><button onclick="${isImfpa ? 'Logic.addImfpaGroup()' : 'Logic.addImfpaParty(0)'}" class="btn-secondary px-3 py-1 text-sm rounded-lg"><i class="fas fa-plus mr-1"></i>${isImfpa ? 'Add Group' : 'Add Signatory'}</button><div class="text-right ${isImfpa ? 'block' : 'hidden'}"><p class="text-xs text-premium-text-secondary">Total Commission Pool</p><p id="imfpa-total-commission-pool" class="text-xl font-bold text-primary-azure">${Utils.formatPrice(legal.totalCommission)}</p></div></div><div class="flex justify-end items-center gap-4 ${isImfpa ? 'flex' : 'hidden'}"><div class="flex items-center gap-2 text-xs"><input type="checkbox" id="auto-balance-toggle" data-path="legal.autoBalance" ${legal.autoBalance ? 'checked' : ''} class="w-4 h-4 rounded text-sky-500 bg-slate-700 border-slate-600 focus:ring-sky-600"><label for="auto-balance-toggle">Auto-Balance</label></div><div id="imfpa-total-allocated" class="text-right font-mono text-sm"></div></div><div class="space-y-4" id="imfpa-groups-container">${UI.renderImfpaGroups()}</div></div>`,
                             summaryGenerator: () => `<strong>Parties Defined:</strong> A total of <span class="font-semibold text-white">${legal.groups.flatMap(g => g.parties).length}</span> signatories have been configured.`,
                             extraClasses: 'is-allocation-stage'
                         }
