@@ -3835,14 +3835,10 @@ processImageForTransparency: (imageDataUrl) => {
             },
 
             /**
-             * [Supreme Direct Dispatch Protocol v5.0 - Lightweight Payload]
-             * This is the definitive frontend function for the direct dispatch workflow, now severely
-             * optimized for performance and maintainability. It no longer contains any hard-coded
-             * font data. Its sole responsibilities are:
-             * 1. To gather the "clean" contract HTML template and its associated CSS rules.
-             * 2. To package this data along with recipient information into a lean payload.
-             * 3. To dispatch this payload to the 'finalizeAndDispatchDirect' backend endpoint,
-             *    which now handles all heavy-lifting for high-fidelity PDF generation.
+             * [Supreme Direct Dispatch Protocol v5.2 - Finalized Payload]
+             * This definitive function prepares the contract for server-side dispatch with pinnacle fidelity.
+             * It separates the document's structure from its styling, providing the backend with the
+             * precise components needed to construct a high-fidelity, self-contained PDF.
              */
             executeFinalizationWorkflow: async () => {
                 const finalizationBtn = document.getElementById('proceed-finalize-btn');
@@ -3852,30 +3848,45 @@ processImageForTransparency: (imageDataUrl) => {
                 }
                 
                 document.getElementById('finalization-modal').close();
-                Utils.showNotification("Finalizing document with high fidelity and preparing for secure dispatch...", 'info', 'Processing Request');
+                Utils.showNotification("Generating high-fidelity PDF and preparing for secure dispatch...", 'info', 'Processing Request');
 
                 try {
-                    // --- Stage 1: Extract Final Document, Styles, and Recipient Data ---
-                    const finalHtmlTemplate = document.getElementById('print-area').innerHTML;
-                    const pinnacleStyles = document.getElementById('pinnacle-styles')?.innerHTML || '';
+                    // --- Stage 1: Retrieve the Clean HTML Template and the Separate Styles ---
+                    const printArea = document.getElementById('print-area');
+                    if (!printArea) throw new Error("CRITICAL: #print-area element not found.");
+
+                    // Create a clone to avoid modifying the live preview
+                    const clone = printArea.cloneNode(true);
+                    const styleElement = clone.querySelector('style');
+                    let styles = '';
+                    if (styleElement) {
+                        styles = styleElement.innerHTML;
+                        styleElement.remove(); // Remove the style block to get "clean" HTML
+                    }
+                    
+                    const finalHtmlTemplate = clone.innerHTML;
+                    
+                    if (!finalHtmlTemplate) {
+                        throw new Error("CRITICAL: Cannot dispatch. The generated contract HTML in #print-area is empty.");
+                    }
+
+                    // --- Stage 2: Extract Metadata for the Payload ---
                     const recipientEmails = AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => p.email).filter(Boolean);
                     const agreementReference = finalHtmlTemplate.match(/Reference:<\/strong>\s*([^<]+)/)?.[1].trim() || 'GECAN-DOC-FINAL';
-                    
-                    // Create a JSON string of the parties for the email template generator on the backend.
-                    const partiesJson = JSON.stringify(AppState.modeler.legal.groups.flatMap(g => g.parties));
+                    const partiesJson = JSON.stringify(AppState.modeler.legal.groups.flatMap(g => g.parties).map(p => ({ legalName: p.legalName, email: p.email })));
 
-                    // --- Stage 2: Construct the Lean, Pinnacle-Grade Payload ---
-                    // NOTE: The large `fontFaces` block has been removed. This logic is now handled by the backend.
+
+                    // --- Stage 3: Construct the Pinnacle-Grade Payload for the Backend ---
                     const payload = {
-                        htmlTemplate: finalHtmlTemplate.replace(/<style>[\s\S]*?<\/style>/, ''), // Send clean HTML
-                        styles: pinnacleStyles, // Send the styles separately
+                        htmlTemplate: finalHtmlTemplate, // The HTML structure ONLY
+                        styles: styles,                 // The CSS rules ONLY
+                        partiesJson: partiesJson,
                         recipientEmails: recipientEmails.join(','),
-                        partiesJson: partiesJson, // Send party data for the email template
                         agreementReference: agreementReference,
                         fileName: `${agreementReference}_EXECUTED.pdf`
                     };
 
-                    // --- Stage 3: Dispatch the Payload to the Secure Backend API Gateway ---
+                    // --- Stage 4: Dispatch the Payload to the Secure Backend API Gateway ---
                     const response = await Logic.createApiRequest('finalizeAndDispatchDirect', 'POST', payload);
                     
                     Utils.showNotification(response, 'success', 'Document Dispatched');
@@ -3905,7 +3916,7 @@ processImageForTransparency: (imageDataUrl) => {
                                 <p><strong>Document Fingerprint (SHA-25G):</strong> <code style="font-size: 12px;">${payload.documentFingerprint}</code></p>
                             </div>
                             <h3>Parties to this Agreement:</h3><ul>${partyListHTML}</ul>
-                            <p>Thank you for your cooperation.<br><strong>The GECAN™ Transactional Systems</strong></p>
+                            <p>Thank you for your cooperation.<br><strong>The GECAN™ Compliance Team</strong></p>
                         </div>
                         <div style="background-color: #e2e8f0; color: #4a5568; padding: 20px; font-size: 12px; text-align: center;">
                             <p><strong>CONFIDENTIALITY NOTICE (ICC Pub. No. 769 E):</strong> This electronic communication is strictly confidential and intended solely for the authorized recipients.</p>
