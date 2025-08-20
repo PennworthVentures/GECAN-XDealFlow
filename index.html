@@ -4110,24 +4110,22 @@ initiateEngagement: (offerId) => {
                 modal.classList.remove('hidden');
                 document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateReferralId);
             },
-/**
-             * [Supreme Dossier Generation Controller v2.1 - Definitive Correction]
+            /**
+             * [Supreme Dossier Generation Controller v2.0 - API Aligned]
              * This definitive function orchestrates the client-side process for generating and
-             * downloading a premium offer dossier. It has been corrected to perfectly align with the
-             * standardized API response format and the dedicated `downloadPdf` handler.
-             * There are no regressions; all original functionality and UX enhancements are preserved.
+             * downloading a premium offer dossier. It has been severely upgraded to correctly
+             * handle the standardized, nested JSON response from the pinnacle-grade API gateway.
              *
              * @workflow
-             * 1. Provides immediate visual feedback by disabling the button and showing a loading state.
-             * 2. Retrieves the correct offer data from the local application state (`AppState`).
+             * 1. Provides immediate visual feedback to the user by disabling the button and
+             *    showing a loading state.
+             * 2. Retrieves the correct offer data from the local application state.
              * 3. Dispatches a 'generateOfferDossierPdf' request to the backend API.
-             * 4. CRITICAL FIX: Upon receiving a successful response from `createApiRequest`
-             *    (which automatically extracts the `data` property), it passes the entire
-             *    resulting object (e.g., `{ pdfData: "...", fileName: "..." }`) directly
-             *    to the `Logic.downloadPdf` function, which is the designated handler for
-             *    parsing this specific data structure.
-             * 5. Provides robust, user-facing error handling and restores the button's state
-             *    in all scenarios via the `.finally()` block.
+             * 4. CRITICAL FIX: Upon receiving a successful response, it correctly unwraps the
+             *    nested `data` object (e.g., response.data) before passing it to the
+             *    `Logic.downloadPdf` helper function.
+             * 5. Provides robust error handling and restores the button's state regardless
+             *    of the outcome.
              */
             generateAndDownloadDossier: (offerId) => {
                 const btn = document.getElementById(`print-dossier-btn-${offerId}`);
@@ -4618,19 +4616,13 @@ submitEngagementForm: async (offerId) => {
             animate();
         };
 
- // ====================================================================================
-            // === PINNACLE-GRADE GLOBAL EXPOSURE ===
-            // This block definitively exposes the necessary controller objects to the global
-            // 'window' scope. This is the military-grade solution to allow inline HTML
-            // event handlers (like onclick) to correctly access the encapsulated functions.
-            // ====================================================================================
-            window.Logic = Logic;
-            window.Utils = Utils;
-            window.AppState = AppState;
-
-            // Initialize the application once the DOM is fully loaded.
-            document.addEventListener('DOMContentLoaded', Logic.init);
-        })();
+        // === INITIALIZATION ===
+        document.addEventListener('DOMContentLoaded', Logic.init);
+        
+        // Global functions for inline event handlers
+        window.Utils = Utils;
+        window.UI = UI;
+        window.Logic = Logic;
     </script>
 </body>
 </html>
