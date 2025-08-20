@@ -3021,55 +3021,37 @@ renderPlaceholderContent: (type) => {
  * @param {Object} [params={}] - An object of key-value pairs for the request.
  * @returns {Promise<Object>} A promise that resolves with the JSON response from the server.
  */
-createApiRequest: async (action, method = 'POST', params = {}) => {
-                    const normalizedMethod = method.toUpperCase();
-                    // =========================================================================
-                    // === DEFINITIVE SYNTAX CORRECTION ===
-                    // The variable name is now correctly referenced as 'API_URL'.
-                    // =========================================================================
-                    const url = new URL(API_URL); 
+createApiRequest: async (action, method = 'GET', params = {}) => {
+        method = method.toUpperCase();
+        let url = `${API_URL}?action=${action}`;
+        const options = {
+            method: method,
+            redirect: 'follow',
+            muteHttpExceptions: true
+        };
 
-                    const options = {
-                        method: normalizedMethod,
-                        redirect: 'follow'
-                    };
+        if (method === 'GET') {
+            Object.keys(params).forEach(key => url += `&${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`);
+        } else if (method === 'POST') {
+            options.body = JSON.stringify({ action: action, data: params });
+            options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+        }
 
-                    // Correctly handle parameters based on the method
-                    if (normalizedMethod === 'GET') {
-                        url.searchParams.append('action', action);
-                        Object.entries(params).forEach(([key, value]) => {
-                            if (value !== undefined && value !== null) {
-                                url.searchParams.append(key, String(value));
-                            }
-                        });
-                    } else if (normalizedMethod === 'POST') {
-                        // For POST, the action is part of the body, not the URL.
-                        options.body = JSON.stringify({ action: action, data: params });
-                        options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
-                    }
-
-                    try {
-                        const response = await fetch(url.toString(), options);
-                        const resultText = await response.text();
-
-                        if (!response.ok) {
-                            console.error("Raw failed response text from server:", resultText);
-                            throw new Error(`API Network Error: Server responded with status ${response.status}`);
-                        }
-                        
-                        const result = JSON.parse(resultText);
-
-                        if (result.success === false) {
-                            throw new Error(result.error || 'The server returned an unspecified application error.');
-                        }
-                        
-                        return result.data || result.message || result;
-
-                    } catch (error) {
-                        console.error(`[GECAN Engine] API request failed for action '${action}':`, error);
-                        throw error; 
-                    }
-                },
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`API Network Error: Status ${response.status}`);
+            }
+            const result = await response.json();
+            if (result.success === false) {
+                throw new Error(result.error || 'The server reported an unspecified error.');
+            }
+            return result.data || result.message || result;
+        } catch (error) {
+            console.error(`API request failed for action '${action}':`, error);
+            throw error; // Re-throw to be caught by the caller's .catch()
+        }
+    },
 
                       /**
              * Checks if any filters are currently active.
@@ -4148,7 +4130,7 @@ initiateEngagement: (offerId) => {
             generateAndDownloadDossier: (offerId) => {
                 const btn = document.getElementById(`print-dossier-btn-${offerId}`);
                 if (!btn) {
-                    console.error(`[GECAN Engine] CRITICAL FAILURE: Dossier button with ID 'print-dossier-btn-${offerId}' not found in the DOM.`);
+                    console.error(`Button with ID 'print-dossier-btn-${offerId}' not found.`);
                     return;
                 }
 
@@ -4164,22 +4146,25 @@ initiateEngagement: (offerId) => {
                     return;
                 }
 
-                // Call the API. The `createApiRequest` function is designed to throw an error
-                // on failure and return the `data` property of the JSON on success.
                 Utils.createApiRequest('generateOfferDossierPdf', 'POST', { offerData })
                     .then(response => {
-                        // The 'response' variable here is already the `data` object from the backend
-                        // because `createApiRequest` handles the unwrapping.
-                        // So, we pass it directly to `downloadPdf`.
-                        Logic.downloadPdf(response);
+                        // =========================================================================
+                        // === THIS IS THE DEFINITIVE, CRITICAL FIX ===
+                        // The backend now returns { success: true, data: { pdfData: "...", fileName: "..." } }.
+                        // We must pass the nested `response` object itself (which is the `data` part) to the download function.
+                        // The `createApiRequest` already returns the `data` property, so `response` is the object we need.
+                        // =========================================================================
+                        if (response && response.pdfData && response.fileName) {
+                            Logic.downloadPdf(response);
+                        } else {
+                            // This handles a case where the server responds with success but the data is malformed.
+                            throw new Error("Received an invalid or empty PDF data payload from the server.");
+                        }
                     })
                     .catch(error => {
-                        // Handle any network or application-level errors.
                         Utils.showNotification(error.message || 'PDF generation failed.', 'error');
                     })
                     .finally(() => {
-                        // This block ensures the button is always restored to its original state,
-                        // whether the request succeeds or fails.
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
                     });
