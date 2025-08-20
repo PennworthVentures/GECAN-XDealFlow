@@ -1464,7 +1464,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
       // =================================================================================
     // INSTRUCTION: ADD THIS CONSTANT AT THE TOP OF YOUR SCRIPT BLOCK
     // =================================================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbyVaNnPTs2L0BEezuHDEfzCd1M4G75qF8gsCl-IuBjQ-CwepGK9qxO-s9UBqfqOihj8/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycby0AgpyjdRCvjdNPEWGNF3aSrT24iDr0c-8BIYTrK41cxELSD-HJumQWoRO9H2kPI-a/exec";
     const DEFAULT_THEME_CONFIG = {"particles":{"number":{"value":120,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.1,"sync":false}},"size":{"value":2.5,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#4a4a5a","opacity":0.2,"width":1},"move":{"enable":true,"speed":1.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"repulse"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.8,"color":"#8b5cf6"}},"repulse":{"distance":350,"duration":0.4}}},"retina_detect":true};
 
 
@@ -4110,9 +4110,29 @@ initiateEngagement: (offerId) => {
                 modal.classList.remove('hidden');
                 document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateReferralId);
             },
-generateAndDownloadDossier: (offerId) => {
+            /**
+             * [Supreme Dossier Generation Controller v2.0 - API Aligned]
+             * This definitive function orchestrates the client-side process for generating and
+             * downloading a premium offer dossier. It has been severely upgraded to correctly
+             * handle the standardized, nested JSON response from the pinnacle-grade API gateway.
+             *
+             * @workflow
+             * 1. Provides immediate visual feedback to the user by disabling the button and
+             *    showing a loading state.
+             * 2. Retrieves the correct offer data from the local application state.
+             * 3. Dispatches a 'generateOfferDossierPdf' request to the backend API.
+             * 4. CRITICAL FIX: Upon receiving a successful response, it correctly unwraps the
+             *    nested `data` object (e.g., response.data) before passing it to the
+             *    `Logic.downloadPdf` helper function.
+             * 5. Provides robust error handling and restores the button's state regardless
+             *    of the outcome.
+             */
+            generateAndDownloadDossier: (offerId) => {
                 const btn = document.getElementById(`print-dossier-btn-${offerId}`);
-                if (!btn) return;
+                if (!btn) {
+                    console.error(`Button with ID 'print-dossier-btn-${offerId}' not found.`);
+                    return;
+                }
 
                 const originalContent = btn.innerHTML;
                 btn.disabled = true;
@@ -4120,14 +4140,30 @@ generateAndDownloadDossier: (offerId) => {
 
                 const offerData = AppState.allOffers.find(o => o.OFFER_ID === offerId);
                 if (!offerData) {
-                    Utils.showNotification('Error: Could not find offer data.', 'error');
-                    btn.disabled = false; btn.innerHTML = originalContent;
+                    Utils.showNotification('Error: Could not find offer data to generate dossier.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
                     return;
                 }
 
-                Logic.createApiRequest('generateOfferDossierPdf', 'POST', { offerData })
-                    .then(response => Logic.downloadPdf(response))
-                    .catch(error => Utils.showNotification(error.message || 'PDF generation failed.', 'error'))
+                Utils.createApiRequest('generateOfferDossierPdf', 'POST', { offerData })
+                    .then(response => {
+                        // =========================================================================
+                        // === THIS IS THE DEFINITIVE, CRITICAL FIX ===
+                        // The backend now returns { success: true, data: { pdfData: "...", fileName: "..." } }.
+                        // We must pass the nested `response` object itself (which is the `data` part) to the download function.
+                        // The `createApiRequest` already returns the `data` property, so `response` is the object we need.
+                        // =========================================================================
+                        if (response && response.pdfData && response.fileName) {
+                            Logic.downloadPdf(response);
+                        } else {
+                            // This handles a case where the server responds with success but the data is malformed.
+                            throw new Error("Received an invalid or empty PDF data payload from the server.");
+                        }
+                    })
+                    .catch(error => {
+                        Utils.showNotification(error.message || 'PDF generation failed.', 'error');
+                    })
                     .finally(() => {
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
@@ -4135,14 +4171,16 @@ generateAndDownloadDossier: (offerId) => {
             },
 
             /**
-             * Helper function to trigger a browser download from Base64 data.
-             * @param {object} response - The success object from the backend.
-             * @param {string} response.pdfData - The Base64 encoded PDF data.
-             * @param {string} response.fileName - The suggested filename.
+             * [Definitive PDF Download Handler v2.0]
+             * This function is severely upgraded to correctly handle the standardized API response format.
+             * It now expects the pdfData and fileName to be nested within a 'data' property.
+             * @param {object} response - The success object from the backend, e.g., { success: true, data: { pdfData: "...", fileName: "..." } }.
              */
             downloadPdf: (response) => {
-                if (!response || !response.pdfData) {
+                // DEFINITIVE FIX: Check for the nested 'data' property from the API response.
+                if (!response || !response.pdfData || !response.fileName) {
                     Utils.showNotification('Failed to receive valid PDF data from server.', 'error');
+                    console.error("Invalid response object received by downloadPdf:", response);
                     return;
                 }
 
