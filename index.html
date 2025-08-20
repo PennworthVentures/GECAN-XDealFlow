@@ -3021,14 +3021,17 @@ renderPlaceholderContent: (type) => {
  * @param {Object} [params={}] - An object of key-value pairs for the request.
  * @returns {Promise<Object>} A promise that resolves with the JSON response from the server.
  */
-                createApiRequest: async (action, method = 'POST', params = {}) => {
+createApiRequest: async (action, method = 'POST', params = {}) => {
                     const normalizedMethod = method.toUpperCase();
-                    const url = new URL(API_- URL); // Start with the base URL
+                    // =========================================================================
+                    // === DEFINITIVE SYNTAX CORRECTION ===
+                    // The variable name is now correctly referenced as 'API_URL'.
+                    // =========================================================================
+                    const url = new URL(API_URL); 
 
                     const options = {
                         method: normalizedMethod,
-                        redirect: 'follow',
-                        muteHttpExceptions: true // This is a fetch parameter, not a GAS one, but good practice.
+                        redirect: 'follow'
                     };
 
                     // Correctly handle parameters based on the method
@@ -3049,7 +3052,6 @@ renderPlaceholderContent: (type) => {
                         const response = await fetch(url.toString(), options);
                         const resultText = await response.text();
 
-                        // This robust check handles both network errors and server-side errors from Apps Script.
                         if (!response.ok) {
                             console.error("Raw failed response text from server:", resultText);
                             throw new Error(`API Network Error: Server responded with status ${response.status}`);
@@ -3061,12 +3063,10 @@ renderPlaceholderContent: (type) => {
                             throw new Error(result.error || 'The server returned an unspecified application error.');
                         }
                         
-                        // On success, return the 'data' property if it exists, otherwise the 'message' or the whole object.
                         return result.data || result.message || result;
 
                     } catch (error) {
                         console.error(`[GECAN Engine] API request failed for action '${action}':`, error);
-                        // Re-throw the error so it can be caught by the calling function's .catch() block for specific UI feedback.
                         throw error; 
                     }
                 },
