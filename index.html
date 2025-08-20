@@ -3068,6 +3068,29 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                 );
             },
 
+            /**
+             * Handles the logic for sharing an offer via the Web Share API.
+             * This avoids syntax errors from special characters in offer details.
+             * @param {string} offerId - The ID of the offer to share.
+             */
+            shareOffer: (offerId) => {
+                const offer = AppState.allOffers.find(o => o.OFFER_ID === offerId);
+                if (!offer) {
+                    Utils.showNotification('Offer data not found for sharing.', 'error');
+                    return;
+                }
+
+                if (navigator.share) {
+                    navigator.share({
+                        title: offer.OFFER_DESCRIPTION,
+                        text: `GECAN Offer: ${offer.OFFER_ID}`,
+                        url: window.location.href
+                    }).catch(err => console.error("Share failed:", err));
+                } else {
+                    Utils.showNotification('Web Share API not supported on this browser.', 'warning');
+                }
+            },
+
  // ===================================================================
             //  NEW & DEFINITIVE: Single Handler for Status Filter Changes
             // ===================================================================
@@ -4060,19 +4083,15 @@ calculateMetrics: (items) => {
                             </div>
                         `;
                         
-                        const footerContent = `
+const footerContent = `
                             <div class="bg-gradient-to-r from-[var(--background-dark)] to-[var(--background-accent)] p-6 flex justify-between items-center rounded-b-2xl border-t border-[var(--border-color)] print-hide">
                                 <a href="${offer.SUPPORTING_DOCS_LINK}" target="_blank" class="flex items-center gap-2 text-[var(--primary-azure)] hover:text-white transition-colors duration-300 font-medium"><i class="fas fa-file-pdf text-lg"></i><span>Full Procedure Document</span></a>
                                 <div class="flex items-center gap-3">
-                                    <button onclick="navigator.share ? navigator.share({title: '${offer.OFFER_DESCRIPTION}', text: 'GECAN Offer: ${offer.OFFER_ID}', url: window.location.href}) : Utils.showNotification('Sharing not supported', 'warning')" class="btn-secondary px-4 py-2 rounded-lg font-medium"><i class="fas fa-share mr-2"></i>Share</button>
+                                    <button onclick="Logic.shareOffer('${offer.OFFER_ID}')" class="btn-secondary px-4 py-2 rounded-lg font-medium"><i class="fas fa-share mr-2"></i>Share</button>
                                     
-                                    <!-- =================================================================== -->
-                                    <!-- === SEVERE UPGRADE: THIS IS THE LINE TO REPLACE === -->
-                                    <!-- =================================================================== -->
                                     <button id="print-dossier-btn-${offer.OFFER_ID}" onclick="Logic.generateAndDownloadDossier('${offer.OFFER_ID}')" class="btn-primary px-4 py-2 rounded-lg font-medium">
                                         <i class="fas fa-print mr-2"></i>Print Summary
                                     </button>
-                                    <!-- =================================================================== -->
                                     
                                     <button onclick="Logic.initiateEngagement('${offer.OFFER_ID}')" class="btn-engagement"><i class="fas fa-rocket mr-2"></i>Initiate Engagement</button>
                                 </div>
@@ -4146,18 +4165,12 @@ initiateEngagement: (offerId) => {
                     return;
                 }
 
-                Utils.createApiRequest('generateOfferDossierPdf', 'POST', { offerData })
+                // === THIS IS THE CORRECTION: Call Logic.createApiRequest, not Utils.createApiRequest ===
+                Logic.createApiRequest('generateOfferDossierPdf', 'POST', { offerData })
                     .then(response => {
-                        // =========================================================================
-                        // === THIS IS THE DEFINITIVE, CRITICAL FIX ===
-                        // The backend now returns { success: true, data: { pdfData: "...", fileName: "..." } }.
-                        // We must pass the nested `response` object itself (which is the `data` part) to the download function.
-                        // The `createApiRequest` already returns the `data` property, so `response` is the object we need.
-                        // =========================================================================
                         if (response && response.pdfData && response.fileName) {
                             Logic.downloadPdf(response);
                         } else {
-                            // This handles a case where the server responds with success but the data is malformed.
                             throw new Error("Received an invalid or empty PDF data payload from the server.");
                         }
                     })
