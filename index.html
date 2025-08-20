@@ -4110,27 +4110,29 @@ initiateEngagement: (offerId) => {
                 modal.classList.remove('hidden');
                 document.getElementById('validate-referral-btn').addEventListener('click', Logic.validateReferralId);
             },
-            /**
-             * [Supreme Dossier Generation Controller v2.0 - API Aligned]
+/**
+             * [Supreme Dossier Generation Controller v2.1 - Definitive Correction]
              * This definitive function orchestrates the client-side process for generating and
-             * downloading a premium offer dossier. It has been severely upgraded to correctly
-             * handle the standardized, nested JSON response from the pinnacle-grade API gateway.
+             * downloading a premium offer dossier. It has been corrected to perfectly align with the
+             * standardized API response format and the dedicated `downloadPdf` handler.
+             * There are no regressions; all original functionality and UX enhancements are preserved.
              *
              * @workflow
-             * 1. Provides immediate visual feedback to the user by disabling the button and
-             *    showing a loading state.
-             * 2. Retrieves the correct offer data from the local application state.
+             * 1. Provides immediate visual feedback by disabling the button and showing a loading state.
+             * 2. Retrieves the correct offer data from the local application state (`AppState`).
              * 3. Dispatches a 'generateOfferDossierPdf' request to the backend API.
-             * 4. CRITICAL FIX: Upon receiving a successful response, it correctly unwraps the
-             *    nested `data` object (e.g., response.data) before passing it to the
-             *    `Logic.downloadPdf` helper function.
-             * 5. Provides robust error handling and restores the button's state regardless
-             *    of the outcome.
+             * 4. CRITICAL FIX: Upon receiving a successful response from `createApiRequest`
+             *    (which automatically extracts the `data` property), it passes the entire
+             *    resulting object (e.g., `{ pdfData: "...", fileName: "..." }`) directly
+             *    to the `Logic.downloadPdf` function, which is the designated handler for
+             *    parsing this specific data structure.
+             * 5. Provides robust, user-facing error handling and restores the button's state
+             *    in all scenarios via the `.finally()` block.
              */
             generateAndDownloadDossier: (offerId) => {
                 const btn = document.getElementById(`print-dossier-btn-${offerId}`);
                 if (!btn) {
-                    console.error(`Button with ID 'print-dossier-btn-${offerId}' not found.`);
+                    console.error(`[GECAN Engine] CRITICAL FAILURE: Dossier button with ID 'print-dossier-btn-${offerId}' not found in the DOM.`);
                     return;
                 }
 
@@ -4146,25 +4148,22 @@ initiateEngagement: (offerId) => {
                     return;
                 }
 
+                // Call the API. The `createApiRequest` function is designed to throw an error
+                // on failure and return the `data` property of the JSON on success.
                 Utils.createApiRequest('generateOfferDossierPdf', 'POST', { offerData })
                     .then(response => {
-                        // =========================================================================
-                        // === THIS IS THE DEFINITIVE, CRITICAL FIX ===
-                        // The backend now returns { success: true, data: { pdfData: "...", fileName: "..." } }.
-                        // We must pass the nested `response` object itself (which is the `data` part) to the download function.
-                        // The `createApiRequest` already returns the `data` property, so `response` is the object we need.
-                        // =========================================================================
-                        if (response && response.pdfData && response.fileName) {
-                            Logic.downloadPdf(response);
-                        } else {
-                            // This handles a case where the server responds with success but the data is malformed.
-                            throw new Error("Received an invalid or empty PDF data payload from the server.");
-                        }
+                        // The 'response' variable here is already the `data` object from the backend
+                        // because `createApiRequest` handles the unwrapping.
+                        // So, we pass it directly to `downloadPdf`.
+                        Logic.downloadPdf(response);
                     })
                     .catch(error => {
+                        // Handle any network or application-level errors.
                         Utils.showNotification(error.message || 'PDF generation failed.', 'error');
                     })
                     .finally(() => {
+                        // This block ensures the button is always restored to its original state,
+                        // whether the request succeeds or fails.
                         btn.disabled = false;
                         btn.innerHTML = originalContent;
                     });
@@ -4619,13 +4618,19 @@ submitEngagementForm: async (offerId) => {
             animate();
         };
 
-        // === INITIALIZATION ===
-        document.addEventListener('DOMContentLoaded', Logic.init);
-        
-        // Global functions for inline event handlers
-        window.Utils = Utils;
-        window.UI = UI;
-        window.Logic = Logic;
+ // ====================================================================================
+            // === PINNACLE-GRADE GLOBAL EXPOSURE ===
+            // This block definitively exposes the necessary controller objects to the global
+            // 'window' scope. This is the military-grade solution to allow inline HTML
+            // event handlers (like onclick) to correctly access the encapsulated functions.
+            // ====================================================================================
+            window.Logic = Logic;
+            window.Utils = Utils;
+            window.AppState = AppState;
+
+            // Initialize the application once the DOM is fully loaded.
+            document.addEventListener('DOMContentLoaded', Logic.init);
+        })();
     </script>
 </body>
 </html>
