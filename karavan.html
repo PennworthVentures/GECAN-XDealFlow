@@ -336,6 +336,28 @@
             // =========================================================================
             const UI = {
                 init: () => {
+
+                    // --- FIX ---
+                    // Re-initialize the Pinnacle-Grade Particle Background
+                    if (typeof particlesJS !== 'undefined') { 
+                        particlesJS('interactive-background', {
+                            "particles": {
+                                "number": { "value": 60, "density": { "enable": true, "value_area": 800 } },
+                                "color": { "value": "#b4975a" },
+                                "shape": { "type": "circle" },
+                                "opacity": { "value": 0.4, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false } },
+                                "size": { "value": 2, "random": true },
+                                "line_linked": { "enable": true, "distance": 150, "color": "#64748b", "opacity": 0.1, "width": 1 },
+                                "move": { "enable": true, "speed": 0.8, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+                            },
+                            "interactivity": {
+                                "detect_on": "canvas",
+                                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": false }, "resize": true }
+                            },
+                            "retina_detect": true
+                        });
+                    }
+                    // --- END FIX ---
                     UI.populateNavLinks();
                     Logic.checkForAutoAuth();
                 },
