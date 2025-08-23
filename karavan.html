@@ -188,61 +188,108 @@
         </div>
     </div>
 
-    <script>
+<script>
         // ====================================================================================
-        // === GECAN™ KARAVAN ENGINE v1.0 (SUPREME UNIFIED STANDARD) ===
+        // === GECAN™ KARAVAN ENGINE v2.0 (PROJECT KINESIS - PINNACLE STANDARD) ===
         // This single, unabridged script block contains the entire application logic for the
-        // Global Settlement Layer. It is architected for pinnacle performance, security, and a
-        // supremely intuitive, state-driven user experience.
+        // Global Settlement Layer. It is architected for military-grade compliance, performance,
+        // and a supremely intuitive, state-driven user workflow, directly implementing the
+        // definitive end-to-end specifications of Project Kinesis.
         // ====================================================================================
         
         (function() {
             'use strict';
             
+            // SIMULATED BACKEND API ENDPOINT
             const API_URL = "https://script.google.com/macros/s/AKfycbyWkJxecP-hQE9pchTjojDT1qPCwRtofI7guey8z2DTr_LIOHnmiFxIzeYU2xjiR_qb/exec";
 
+            // =========================================================================
+            // === APPLICATION STATE MACHINE (CENTRAL NERVOUS SYSTEM) ===
+            // =========================================================================
             const AppState = { 
                 isAuthenticated: false,
-                referralInfo: null,
-                userRole: null,
-                currentView: 'auth', // 'auth', 'role_select', 'dispatcher_wizard'
-                dispatch: {
-                    step: 1, totalSteps: 3,
-                    fromCurrency: 'SGD', toCurrency: 'PHP',
-                    amount: 1000, amountType: 'send', // 'send' or 'receive'
-                    quote: null, quoteTimer: null,
-                    recipient: null, invoiceRef: '',
-                    onRampMethod: 'fiat',
-                    onRampDetails: null
-                },
+                referralInfo: null, // { id, partnerName }
+                currentView: 'auth', // 'auth', 'dashboard', 'new_tx_type', 'tx_wizard', 'tx_tracker'
+                
+                // Active transaction object, reflecting the Kinesis workflow
+                transaction: null, // Holds the state of a single end-to-end transaction
+                
+                // Live market data and user-specific data
                 marketData: {
-                    fxRates: {},
-                    contacts: [],
-                    availableCurrencies: ['USD', 'CAD', 'SGD', 'HKD', 'GBP', 'AED', 'PHP', 'USDT']
+                    marketMatrix: [], // Live asset prices vs USD
+                    contacts: [ // Mocked contact list
+                        { id: 'ben_reyes_ph', name: 'Ben Reyes', entity: 'Personal', country: 'PH', details: 'BPI Account ending 9876' },
+                        { id: 'ph_supplier_acme', name: 'ACME Supplies Inc.', entity: 'Corporate', country: 'PH', details: 'BDO Corporate Account' },
+                        { id: 'uae_supplier_oil', name: 'Emirates Oil & Gas LLC', entity: 'Corporate', country: 'AE', details: 'FAB Bank, Dubai' }
+                    ],
+                    availableCurrencies: ['USD', 'CAD', 'SGD', 'HKD', 'GBP', 'AED', 'PHP', 'USDT', 'USDC']
                 },
-                isLoading: true
+                
+                isLoading: false,
+                ui: {
+                    quoteTimer: null,
+                    trackerInterval: null
+                }
             };
 
+            // =========================================================================
+            // === UTILITY BELT (PERFORMANCE-TUNED HELPERS) ===
+            // =========================================================================
             const Utils = {
                 createApiRequest: async (action, method = 'POST', params = {}) => {
-                    const url = new URL(API_URL);
-                    const options = { method: method.toUpperCase(), redirect: 'follow', body: JSON.stringify({ action, data: params }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } };
-                    try {
-                        const response = await fetch(url, options);
-                        const resultText = await response.text();
-                        if (!response.ok) throw new Error(`API Network Error: Status ${response.status} - ${resultText}`);
-                        const result = JSON.parse(resultText);
-                        if (result.success === false) throw new Error(result.error || 'An unknown server error occurred.');
-                        return result.data || result;
-                    } catch (error) {
-                        console.error(`API Error for action '${action}':`, error);
-                        throw error;
+                    // In a real app, this would be a live fetch. For this pinnacle prototype,
+                    // we simulate API calls to demonstrate the full workflow without a live backend.
+                    console.log(`[API Request Fired] Action: ${action}`, params);
+                    await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 800)); // Simulate network latency
+
+                    switch (action) {
+                        case 'validateReferralId':
+                            if (params.referralId === 'GECANPARTNER2025') {
+                                return { success: true, data: { referralId: 'GECANPARTNER2025', partnerName: 'Pennworth Ventures' }};
+                            }
+                            throw new Error('Invalid Partner ID. Access Denied.');
+                        
+                        case 'getMarketMatrixData':
+                            // Simulate live, institutional-grade FX data vs USD
+                            return { success: true, data: [
+                                { baseAsset: 'SGD', quoteAsset: 'USD', price: 0.74005 }, { baseAsset: 'PHP', quoteAsset: 'USD', price: 0.01700 },
+                                { baseAsset: 'CAD', quoteAsset: 'USD', price: 0.73150 }, { baseAsset: 'AED', quoteAsset: 'USD', price: 0.27229 },
+                                { baseAsset: 'USDT', quoteAsset: 'USD', price: 1.0001 }, { baseAsset: 'USDC', quoteAsset: 'USD', price: 1.0000 },
+                                { baseAsset: 'GBP', quoteAsset: 'USD', price: 1.27050 }, { baseAsset: 'HKD', quoteAsset: 'USD', price: 0.12810 },
+                                { baseAsset: 'USD', quoteAsset: 'USD', price: 1.00000 },
+                            ]};
+
+                        case 'initiateTransaction':
+                            // Simulate backend creating a transaction record (EnvelopeID)
+                            const envelopeId = `GKN-TX-${Date.now().toString().slice(-6)}`;
+                            let fundingDetails;
+                            if (params.onRampMethod === 'fiat_paynow') {
+                                fundingDetails = {
+                                    type: 'PayNow VPA',
+                                    label: 'PayNow VPA (Unique)',
+                                    value: `gecan.${envelopeId.toLowerCase()}@paynow.sg-bank.com`,
+                                    qrValue: `paynow://vpa=${`gecan.${envelopeId.toLowerCase()}@paynow.sg-bank.com`}&amount=${params.sendAmount.toFixed(2)}&currency=SGD`,
+                                    instructions: 'Scan the QR code or copy the VPA into your Singapore banking app. Ensure the amount is exactly as stated.'
+                                };
+                            } else { // crypto
+                                fundingDetails = {
+                                    type: 'USDT TRC-20',
+                                    label: 'USDT (TRC-20) Deposit Address',
+                                    value: `T${Math.random().toString(36).substring(2, 35)}`,
+                                    qrValue: `tron:T${Math.random().toString(36).substring(2, 35)}?amount=${params.sendAmount.toFixed(2)}`,
+                                    instructions: `Send the exact amount of USDT (TRC-20) to this unique, single-use address. Do not send any other asset.`
+                                };
+                            }
+                            return { success: true, data: { envelopeId, fundingDetails }};
+
+                        default:
+                            throw new Error(`Unknown API action: ${action}`);
                     }
                 },
                 showNotification: (message, type = 'info', duration = 4000) => {
                     const toast = document.createElement('div');
-                    const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-rose-600', info: 'from-sky-500 to-blue-600' };
-                    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+                    const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-rose-600', info: 'from-sky-500 to-blue-600', warning: 'from-amber-500 to-orange-600' };
+                    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle', warning: 'fa-exclamation-triangle' };
                     toast.className = `fixed top-5 right-5 p-4 rounded-xl shadow-2xl z-[200] text-white font-medium bg-gradient-to-br ${colors[type]} transform translate-x-full transition-all duration-500 ease-out`;
                     toast.innerHTML = `<div class="flex items-center gap-3"><i class="fas ${icons[type]} text-lg"></i><span>${message}</span></div>`;
                     document.body.appendChild(toast);
@@ -251,49 +298,47 @@
                 },
                 formatCurrency: (amount, currency = 'USD', decimals = 2) => {
                     if (isNaN(parseFloat(amount)) || amount === null) return '...';
-                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
+                    const maxDecimals = currency === 'USDT' || currency === 'USDC' ? 4 : decimals;
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, minimumFractionDigits: decimals, maximumFractionDigits: maxDecimals }).format(amount);
                 },
-                 openModal: () => {
+                openModal: (content) => {
                     const overlay = document.getElementById('modal-overlay');
                     const wrapper = document.getElementById('modal-content-wrapper');
+                    wrapper.innerHTML = content;
                     overlay.classList.remove('hidden');
                     requestAnimationFrame(() => {
                         overlay.classList.remove('opacity-0');
                         wrapper.classList.remove('scale-95', 'opacity-0');
-                        wrapper.classList.add('scale-100', 'opacity-100');
                     });
+                    document.getElementById('modal-close-btn')?.addEventListener('click', Utils.closeModal);
                 },
                 closeModal: () => {
                     const overlay = document.getElementById('modal-overlay');
                     const wrapper = document.getElementById('modal-content-wrapper');
                     overlay.classList.add('opacity-0');
-                    wrapper.classList.remove('scale-100', 'opacity-100');
                     wrapper.classList.add('scale-95', 'opacity-0');
                     setTimeout(() => {
                         overlay.classList.add('hidden');
-                        wrapper.innerHTML = ''; // Clear content after hiding
+                        wrapper.innerHTML = '';
                     }, 400);
+                },
+                debounce: (func, delay) => {
+                    let timeout;
+                    return (...args) => {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => func.apply(this, args), delay);
+                    };
                 }
             };
             
-const UI = {
-                /**
-                 * [Supreme Initialization Protocol]
-                 * Orchestrates the initialization of all core visual and logical components,
-                 * including the pinnacle-grade particle background and navigation.
-                 */
+            // =========================================================================
+            // === UI & COMPONENT ENGINE (PINNACLE-GRADE RENDERERS) ===
+            // =========================================================================
+            const UI = {
                 init: () => {
-                    if (typeof particlesJS !== 'undefined') { 
-                        particlesJS('particles-js', {"particles":{"number":{"value":40,"density":{"enable":true,"value_area":800}},"color":{"value":"#b4975a"},"shape":{"type":"circle"},"opacity":{"value":0.3,"random":true},"size":{"value":2,"random":true},"line_linked":{"enable":false},"move":{"enable":true,"speed":1,"direction":"bottom","random":true,"straight":false,"out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":false}}},"retina_detect":true});
-                    }
                     UI.populateNavLinks();
                     Logic.checkForAutoAuth();
                 },
-                /**
-                 * [Pinnacle Navigation Renderer]
-                 * Constructs the complete, benchmark-standard navigation bar, including the
-                 * multi-link "More" dropdown, and correctly sets the 'active' state for Karavan.
-                 */
                 populateNavLinks: () => {
                     const navContainer = document.getElementById('nav-container');
                     if (!navContainer) return;
@@ -311,29 +356,18 @@ const UI = {
                         { page: 'terms', icon: 'fas fa-gavel', text: 'Terms & Conditions' }
                     ];
 
-                    let navHtml = links.map(link => {
-                        return `<a href="./${link.page}.html" class="nav-btn"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`;
-                    }).join('');
+                    let navHtml = links.map(link => `<a href="./${link.page}.html" class="nav-btn"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`).join('');
 
                     navHtml += `
                         <div class="relative group">
                             <button class="nav-btn ${window.location.pathname.includes('karavan') ? 'active' : ''}"><i class="fas fa-ellipsis-h"></i></button>
                             <div class="absolute top-full right-0 mt-2 w-56 bg-background-secondary border border-border-accent rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 z-50">
-                                ${moreLinks.map(link => {
-                                    const isActive = window.location.pathname.includes(link.page);
-                                    return `<a href="./${link.page}.html" class="flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isActive ? 'text-white bg-primary-azure' : 'text-text-secondary hover:bg-primary-azure/50 hover:text-white'}">${link.icon ? `<i class="fas ${link.icon} fa-fw w-5"></i>` : ''}<span>${link.text}</span></a>`;
-                                }).join('')}
+                                ${moreLinks.map(link => `<a href="./${link.page}.html" class="flex items-center gap-3 px-4 py-3 text-sm transition-colors ${window.location.pathname.includes(link.page) ? 'text-white bg-primary-azure' : 'text-text-secondary hover:bg-primary-azure/50 hover:text-white'}">${link.icon ? `<i class="fas ${link.icon} fa-fw w-5"></i>` : ''}<span>${link.text}</span></a>`).join('')}
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                     navContainer.innerHTML = navHtml;
                 },
-                /**
-                 * [Master View Controller]
-                 * Renders the primary user interface based on the current AppState.currentView.
-                 * This is the core function that drives the entire single-page application feel.
-                 */
-                renderView: (viewName) => {
+                renderView: (viewName, options = {}) => {
                     const mainContent = document.getElementById('main-content');
                     if (!mainContent) return;
                     AppState.currentView = viewName;
@@ -341,271 +375,281 @@ const UI = {
                     let html = '';
                     switch(viewName) {
                         case 'auth': html = ComponentBuilders.renderAuthGate(); break;
-                        case 'role_select': html = ComponentBuilders.renderRoleSelector(); break;
-                        case 'dispatcher_wizard': html = ComponentBuilders.renderDispatcherWizard(); break;
-                        case 'loading': html = ComponentBuilders.renderLoadingScreen("Initializing Secure Session..."); break;
+                        case 'dashboard': html = ComponentBuilders.renderDashboard(); break;
+                        case 'new_tx_type': html = ComponentBuilders.renderTxTypeSelector(); break;
+                        case 'tx_wizard': html = ComponentBuilders.renderTransactionWizard(); break;
+                        case 'tx_tracker': html = ComponentBuilders.renderTransactionTracker(); break;
+                        case 'loading': html = ComponentBuilders.renderLoadingScreen(options.message || "Please wait..."); break;
                     }
                     mainContent.innerHTML = html;
                     Logic.bindEventListenersForView(viewName);
                 },
-                /**
-                 * [Pinnacle Quote Renderer]
-                 * Renders the live FX quote analysis panel with supreme detail and clarity.
-                 * It intelligently displays either the quote or a status message.
-                 */
                 updateDispatchQuote: () => {
-                    const { quote, sendAmount, receiveAmount, sendCurrency, toCurrency } = AppState.dispatch;
                     const quoteContainer = document.getElementById('quote-container');
                     if (!quoteContainer) return;
-
-                    // Clear any existing timer
-                    if (AppState.dispatch.quoteTimer) clearInterval(AppState.dispatch.quoteTimer);
-
-                    if (!quote || new Date() > AppState.dispatch.quoteExpiresAt) {
-                        quoteContainer.innerHTML = `<div class="flex items-center justify-center h-full text-text-muted italic p-4 text-center"><i class="fas fa-calculator fa-2x mb-4"></i><span>Enter an amount to get a live, institutional-grade quote.</span></div>`;
-                        document.getElementById('dispatch-btn').disabled = true;
+                    
+                    const tx = AppState.transaction;
+                    if (!tx || !tx.quote || new Date() > tx.quote.expiresAt) {
+                        quoteContainer.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-text-muted italic p-4 text-center"><i class="fas fa-calculator fa-2x mb-4"></i><span>Enter an amount to get a live, institutional-grade quote.</span></div>`;
+                        const nextBtn = document.getElementById('wizard-next-btn');
+                        if (nextBtn) nextBtn.disabled = true;
                         return;
                     }
                     
-                    const sendInputEl = document.getElementById('send-amount');
-                    const receiveInputEl = document.getElementById('receive-amount');
-                    if (sendInputEl) sendInputEl.value = parseFloat(quote.sendAmount).toFixed(2);
-                    if (receiveInputEl) receiveInputEl.value = parseFloat(quote.receiveAmount).toFixed(2);
-
+                    const { quote, details } = tx;
                     quoteContainer.innerHTML = `
-                        <div class="p-4 h-full flex flex-col">
-                            <h4 class="text-sm font-bold text-text-secondary mb-3 text-center uppercase tracking-wider">Live Transaction Analysis</h4>
-                            <div class="space-y-3 flex-grow">
-                                <div class="flex justify-between items-baseline"><span class="text-text-muted">Institutional Rate</span><strong class="font-mono text-text-platinum">1 ${sendCurrency} ≈ ${quote.rate.toFixed(5)} ${toCurrency}</strong></div>
-                                <div class="flex justify-between items-baseline"><span class="text-text-muted">GECAN™ Fee (${quote.feePercentage}%)</span><strong class="font-mono text-warning-color">- ${Utils.formatCurrency(quote.fee, sendCurrency)}</strong></div>
+                        <div class="p-4 h-full flex flex-col bg-background-dark rounded-xl shadow-inner-premium border border-border-secondary relative overflow-hidden">
+                            <h4 class="text-sm font-bold text-text-secondary mb-3 text-center uppercase tracking-wider">Pinnacle Quote Analysis</h4>
+                            <div class="space-y-3 flex-grow text-sm">
+                                <div class="flex justify-between items-baseline"><span class="text-text-muted">You Send</span><strong class="font-mono text-xl text-primary-azure">${Utils.formatCurrency(quote.sendAmount, details.fromCurrency)}</strong></div>
+                                <div class="flex justify-between items-baseline"><span class="text-text-muted">GECAN™ Fee (${quote.feePercentage}%)</span><strong class="font-mono text-warning-color">- ${Utils.formatCurrency(quote.feeAmount, details.fromCurrency)}</strong></div>
+                                <div class="flex justify-between items-baseline"><span class="text-text-muted">Amount to Convert</span><strong class="font-mono text-text-platinum">${Utils.formatCurrency(quote.netSendAmount, details.fromCurrency)}</strong></div>
                                 <div class="border-t border-border-secondary my-2"></div>
-                                <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">You Will Send</span><strong class="text-2xl font-bold text-primary-azure">${Utils.formatCurrency(quote.sendAmount, sendCurrency)}</strong></div>
-                                <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">Recipient Receives</span><strong class="text-2xl font-bold text-success-color">${Utils.formatCurrency(quote.receiveAmount, toCurrency)}</strong></div>
+                                <div class="flex justify-between items-baseline"><span class="text-text-muted">Institutional Rate</span><strong class="font-mono text-text-platinum">1 ${details.fromCurrency} ≈ ${quote.rate.toFixed(5)} ${details.toCurrency}</strong></div>
+                                <div class="border-t border-border-secondary my-2"></div>
+                                <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">Recipient Receives</span><strong class="text-2xl font-bold text-success-color">${Utils.formatCurrency(quote.receiveAmount, details.toCurrency)}</strong></div>
                             </div>
                             <div class="text-center text-xs text-text-muted mt-3">This guaranteed rate is locked for <span id="quote-countdown">30</span> seconds.</div>
-                            <div id="quote-timer-bar" class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-brand-gecan-gold to-warning-color"></div>
-                        </div>
-                    `;
+                            <div id="quote-timer-bar" class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-brand-gecan-gold to-warning-color" style="width: 100%;"></div>
+                        </div>`;
+
                     Logic.startQuoteTimer();
-                    document.getElementById('dispatch-btn').disabled = false;
+                    const nextBtn = document.getElementById('wizard-next-btn');
+                    if (nextBtn) nextBtn.disabled = false;
                 }
             };
             
+            // =========================================================================
+            // === COMPONENT BUILDER LIBRARY (DYNAMIC HTML GENERATORS) ===
+            // =========================================================================
             const ComponentBuilders = {
                 renderAuthGate: () => `
                     <div id="referral-gate" class="glass-pane rounded-2xl p-6 md:p-10 max-w-lg mx-auto shadow-2xl fade-in-up text-center">
-                        <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold/10 to-brand-gecan-gold/0 border-2 border-brand-gecan-gold/50 flex items-center justify-center mb-6 shadow-gold-glow animate-vortex-pulse">
-                            <i class="fas fa-gem text-5xl text-brand-gecan-gold" style="text-shadow: 0 0 15px var(--glow-gold);"></i>
-                        </div>
+                        <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold/10 to-brand-gecan-gold/0 border-2 border-brand-gecan-gold/50 flex items-center justify-center mb-6 shadow-gold-glow animate-vortex-pulse"><i class="fas fa-gem text-5xl text-brand-gecan-gold" style="text-shadow: 0 0 15px var(--glow-gold);"></i></div>
                         <h2 class="text-3xl font-bold text-white mb-2 font-mono">GECAN™ <span class="text-premium-gold">KARAVAN</span></h2>
                         <p class="text-text-secondary mb-8">Please authenticate with your Partner ID to access the Global Settlement Layer.</p>
                         <div class="space-y-4">
-                            <div class="flex items-center gap-3">
-                                <input type="password" id="referral-id-input" placeholder="Enter Partner ID" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-wider text-center">
-                                <button id="validate-id-btn" class="btn-gold font-bold py-3 px-6 rounded-xl disabled:opacity-50">Authenticate</button>
-                            </div>
-                            <p class="text-xs text-text-muted">Don't have a Partner ID? <a href="#" id="onboard-link" class="text-primary-azure hover:text-primary-dark font-semibold transition-colors">Onboard Here</a></p>
+                            <input type="password" id="referral-id-input" placeholder="Enter Partner ID" class="form-input p-3 text-lg font-mono tracking-wider text-center">
+                            <button id="validate-id-btn" class="btn-gold font-bold py-3 px-6 rounded-xl w-full disabled:opacity-50">Authenticate</button>
                         </div>
                         <p id="referral-error" class="text-sm text-error-color mt-3 h-5"></p>
                     </div>`,
-                renderRoleSelector: () => `
-                    <div class="text-center fade-in-up">
-                        <div class="mb-8">
-                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Welcome, ${AppState.referralInfo.partnerName}</h2>
-                            <p class="text-text-secondary mb-4 max-w-3xl mx-auto italic">"From the ancient Silk Road to the digital frontier, a Karavan has always signified the secure transport of value. It represents a trusted journey, protected by the network, delivering with precision and speed."</p>
+                renderDashboard: () => `
+                    <div class="fade-in-up text-center">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Welcome, ${AppState.referralInfo.partnerName}</h2>
+                        <p class="text-text-secondary mb-10 max-w-3xl mx-auto">You are connected to the GECAN™ Global Settlement Layer.</p>
+                        <div class="max-w-md mx-auto">
+                            <button id="new-transaction-btn" class="w-full btn-gold font-bold py-4 px-10 rounded-xl text-lg shadow-gold-glow transform hover:scale-105 transition-transform duration-300">
+                                <i class="fas fa-paper-plane mr-3"></i>Initiate New Karavan
+                            </button>
                         </div>
-                        <p class="text-lg text-text-platinum mb-10">What is your objective today?</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            <div id="role-dispatcher" class="role-selector-card p-8 rounded-2xl cursor-pointer">
-                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-azure to-primary-royal flex items-center justify-center mb-4 shadow-lg shadow-azure-glow/20"><i class="fas fa-paper-plane fa-2x text-white"></i></div>
-                                <h3 class="text-2xl font-bold text-white">Dispatch a Karavan</h3>
-                                <p class="text-text-secondary mt-2">Initiate a secure, instantaneous cross-border settlement or remittance.</p>
-                            </div>
-                            <div id="role-partner" class="role-selector-card p-8 rounded-2xl cursor-pointer">
-                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold to-warning-color flex items-center justify-center mb-4 shadow-lg shadow-gold-glow/40"><i class="fas fa-university fa-2x text-background-dark"></i></div>
-                                <h3 class="text-2xl font-bold text-white">Liquidity Partner Hub</h3>
-                                <p class="text-text-secondary mt-2">Manage your liquidity pools, view network activity, and access treasury tools.</p>
+                        <div class="mt-12">
+                            <h3 class="text-xl font-semibold text-text-platinum mb-4">Recent Activity</h3>
+                            <div class="glass-pane rounded-xl p-6 text-left max-w-4xl mx-auto">
+                                <p class="text-text-muted text-center">No recent Karavan activity found.</p>
+                                <!-- Transaction history would be rendered here -->
                             </div>
                         </div>
                     </div>`,
                 renderLoadingScreen: (message) => `
-                    <div class="text-center py-20 fade-in-up">
-                        <div class="relative inline-block">
-                            <i class="fas fa-spinner fa-spin fa-3x text-primary-azure drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></i>
-                            <div class="absolute inset-0 rounded-full animate-ping bg-primary-azure opacity-20"></div>
-                        </div>
+                    <div class="text-center py-20 fade-in-up flex flex-col items-center justify-center">
+                        <div class="relative w-16 h-16"><i class="fas fa-spinner fa-spin text-4xl text-primary-azure drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-primary-azure opacity-20"></div></div>
                         <p class="mt-6 text-xl font-medium text-text-secondary">${message}</p>
                     </div>`,
-                renderDispatcherWizard: () => {
-                    const { step, totalSteps } = AppState.dispatch;
-                    const progress = ((step - 1) / (totalSteps - 1)) * 100;
+                renderTxTypeSelector: () => `
+                    <div class="text-center fade-in-up max-w-4xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Select Transaction Type</h2>
+                        <p class="text-text-secondary mb-10">Choose the workflow that best suits your settlement objective.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div id="tx-type-remit" class="role-selector-card p-8 rounded-2xl cursor-pointer">
+                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-azure to-primary-royal flex items-center justify-center mb-4 shadow-lg shadow-azure-glow/20"><i class="fas fa-wallet fa-2x text-white"></i></div>
+                                <h3 class="text-2xl font-bold text-white">GECAN™ Remit</h3>
+                                <p class="text-text-secondary mt-2">For retail remittances and personal transfers. Simplified, high-speed, low-cost.</p>
+                            </div>
+                            <div id="tx-type-pay" class="role-selector-card p-8 rounded-2xl cursor-pointer">
+                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold to-warning-color flex items-center justify-center mb-4 shadow-lg shadow-gold-glow/40"><i class="fas fa-file-invoice-dollar fa-2x text-background-dark"></i></div>
+                                <h3 class="text-2xl font-bold text-white">GECAN™ Pay</h3>
+                                <p class="text-text-secondary mt-2">For B2B payments and institutional settlements. Invoice-driven and compliance-focused.</p>
+                            </div>
+                        </div>
+                    </div>`,
+                renderTransactionWizard: () => {
+                    const tx = AppState.transaction;
+                    const isRemit = tx.type === 'remit';
+                    const currencyOptions = (selected) => AppState.marketData.availableCurrencies.map(c => `<option value="${c}" ${c === selected ? 'selected': ''}>${c}</option>`).join('');
+                    const contactOptions = (selected) => AppState.marketData.contacts.map(c => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${c.name} (${c.entity})</option>`).join('');
+
                     return `
                     <div class="max-w-5xl mx-auto fade-in-up">
                         <div class="text-center mb-8">
-                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">New Karavan Dispatch</h2>
-                            <p class="text-text-secondary max-w-3xl mx-auto">A guided three-step process for secure, instantaneous global value transfer.</p>
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">${isRemit ? 'New Remittance' : 'New B2B Payment'}</h2>
+                            <p class="text-text-secondary max-w-3xl mx-auto">${isRemit ? 'A guided process for secure, personal fund transfers.' : 'A guided process for invoice settlement and institutional value transfer.'}</p>
                         </div>
-                        <div class="mb-8 max-w-2xl mx-auto">
-                            <div class="flex justify-between text-xs font-mono text-text-muted mb-2">
-                                <span class="${step >= 1 ? 'text-text-platinum font-bold' : ''}">1. Destination</span>
-                                <span class="${step >= 2 ? 'text-text-platinum font-bold' : ''}">2. Cargo</span>
-                                <span class="${step >= 3 ? 'text-text-platinum font-bold' : ''}">3. Dispatch</span>
-                            </div>
-                            <div class="w-full bg-background-dark shadow-inner-premium rounded-full h-2.5">
-                                <div id="progress-bar" class="bg-gradient-to-r from-brand-gecan-gold to-warning-color h-2.5 rounded-full transition-all duration-500 ease-out" style="width: ${progress}%"></div>
-                            </div>
-                        </div>
-                        <div class="glass-pane rounded-2xl shadow-2xl p-6 md:p-8 relative min-h-[500px]">
-                            <div class="wizard-step-container">
-                                ${ComponentBuilders.renderWizardStep1()}
-                                ${ComponentBuilders.renderWizardStep2()}
-                                ${ComponentBuilders.renderWizardStep3()}
-                            </div>
-                        </div>
-                    </div>`;
-                },
-                renderWizardStep1: () => `
-                    <div id="step-1" class="wizard-step">
-                        <div class="text-center mb-8">
-                            <span class="text-sm font-bold text-primary-azure font-mono tracking-widest">STEP 1: DESTINATION</span>
-                            <h3 class="text-2xl font-bold text-white mt-1">Who is receiving the funds?</h3>
-                            <p class="text-text-secondary mt-2">Select a verified beneficiary from your GECAN™ contacts or add a new one.</p>
-                        </div>
-                        <div class="max-w-lg mx-auto space-y-4">
-                             <div>
-                                <label class="text-sm font-medium text-text-secondary">Select Beneficiary</label>
-                                <select id="recipient-select" class="form-select mt-1"></select>
-                            </div>
-                            <p class="text-center text-text-muted">or</p>
-                            <button class="btn-secondary w-full py-3 rounded-lg"><i class="fas fa-user-plus mr-2"></i>Add New Beneficiary</button>
-                        </div>
-                        <div class="mt-12 text-center">
-                            <button class="btn-gold font-bold py-3 px-10 rounded-lg text-lg" onclick="Logic.setWizardStep(2)">Next Step <i class="fas fa-arrow-right ml-2"></i></button>
-                        </div>
-                    </div>`,
-                renderWizardStep2: () => {
-                    const { amountType, sendAmount, sendCurrency, toCurrency } = AppState.dispatch;
-                    const currencyOptions = (selected) => AppState.marketData.availableCurrencies.map(c => `<option ${c === selected ? 'selected': ''}>${c}</option>`).join('');
-                    
-                    return `
-                    <div id="step-2" class="wizard-step">
-                        <div class="text-center mb-8">
-                            <span class="text-sm font-bold text-primary-azure font-mono tracking-widest">STEP 2: CARGO</span>
-                            <h3 class="text-2xl font-bold text-white mt-1">Define the Value Transfer</h3>
-                            <p class="text-text-secondary mt-2">Enter either the amount you wish to send or the exact amount the recipient must receive.</p>
-                        </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
-                            <!-- Input Panel -->
-                            <div class="lg:col-span-3 space-y-4">
-                                <div class="relative group form-input-group transition-all duration-300 rounded-xl ${amountType === 'send' ? 'ring-2 ring-primary-azure' : ''}">
-                                    <label for="send-amount" class="font-semibold text-text-secondary block mb-1 p-4 pb-0">You Send</label>
-                                    <div class="flex items-center p-4 pt-0">
-                                        <input type="number" id="send-amount" class="form-input text-3xl font-bold !p-0 bg-transparent border-none focus:ring-0" value="${sendAmount}" ${amountType === 'receive' ? 'readonly' : ''}>
-                                        <select id="send-currency" class="form-select !p-2 !pr-8 w-32 font-semibold bg-background-secondary border-border-secondary">${currencyOptions(sendCurrency)}</select>
+                        <div class="glass-pane rounded-2xl shadow-2xl p-6 md:p-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+                                <!-- Input Panel -->
+                                <div class="lg:col-span-3 space-y-6">
+                                    <div>
+                                        <label class="text-sm font-medium text-text-secondary block mb-2">Beneficiary</label>
+                                        <select id="recipient-select" class="form-select">${contactOptions(tx.details.recipientId)}</select>
                                     </div>
-                                </div>
-                                <div class="text-center">
-                                    <button onclick="Logic.swapAmountFocus()" class="w-12 h-12 bg-background-secondary border border-border-color rounded-full hover:bg-primary-azure hover:text-white transition-all duration-300 transform hover:rotate-180 hover:scale-110 shadow-lg" title="Swap calculation direction">
-                                      <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                </div>
-                                <div class="relative group form-input-group transition-all duration-300 rounded-xl ${amountType === 'receive' ? 'ring-2 ring-success-color' : ''}">
-                                    <label for="receive-amount" class="font-semibold text-text-secondary block mb-1 p-4 pb-0">Recipient Receives</label>
-                                     <div class="flex items-center p-4 pt-0">
-                                        <input type="number" id="receive-amount" class="form-input text-3xl font-bold !p-0 bg-transparent border-none focus:ring-0" placeholder="0.00" ${amountType === 'send' ? 'readonly' : ''}>
-                                         <select id="receive-currency" class="form-select !p-2 !pr-8 w-32 font-semibold bg-background-secondary border-border-secondary">${currencyOptions(toCurrency)}</select>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Analysis Panel -->
-                            <div id="quote-container" class="lg:col-span-2 bg-background-dark rounded-xl shadow-inner-premium border border-border-secondary relative overflow-hidden min-h-[260px]">
-                                <!-- Quote will be rendered here by UI.updateDispatchQuote -->
-                            </div>
-                        </div>
-                        <div class="mt-12 flex justify-between">
-                            <button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(1)"><i class="fas fa-arrow-left mr-2"></i>Previous</button>
-                            <button class="btn-gold font-bold py-3 px-10 rounded-lg text-lg" onclick="Logic.setWizardStep(3)">Next Step <i class="fas fa-arrow-right ml-2"></i></button>
-                        </div>
-                    </div>`;
-                },
-                renderWizardStep3: () => `
-                    <div id="step-3" class="wizard-step">
-                        <div class="text-center mb-8">
-                            <span class="text-sm font-bold text-primary-azure font-mono tracking-widest">STEP 3: DISPATCH</span>
-                            <h3 class="text-2xl font-bold text-white mt-1">Final Confirmation</h3>
-                            <p class="text-text-secondary mt-2">Review the final details and select your payment method to dispatch the Karavan.</p>
-                        </div>
-                        
-                        <div id="final-summary-container" class="max-w-xl mx-auto mb-8">
-                           <!-- Final summary will be rendered here by Logic.setWizardStep(3) -->
-                        </div>
-
-                        <div class="max-w-xl mx-auto">
-                            <h4 class="font-semibold text-center text-text-secondary mb-4">Select Your On-Ramp Method</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="onramp-selector">
-                                <div data-method="fiat" class="role-selector-card p-6 rounded-xl cursor-pointer active">
-                                    <div class="flex items-center gap-4">
-                                        <i class="fas fa-university text-3xl text-primary-azure"></i>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <h5 class="font-bold text-white">Bank Transfer</h5>
-                                            <p class="text-xs text-text-muted">Pay via local bank transfer (e.g., PayNow, Interac).</p>
+                                            <label class="text-sm font-medium text-text-secondary block mb-2">You Send</label>
+                                            <div class="flex">
+                                                <input type="number" id="send-amount" class="form-input rounded-r-none" value="${tx.details.amount || ''}">
+                                                <select id="send-currency" class="form-select rounded-l-none w-32">${currencyOptions(tx.details.fromCurrency)}</select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="text-sm font-medium text-text-secondary block mb-2">Recipient Receives</label>
+                                             <div class="flex">
+                                                <input type="number" id="receive-amount" class="form-input rounded-r-none" placeholder="0.00">
+                                                <select id="receive-currency" class="form-select rounded-l-none w-32">${currencyOptions(tx.details.toCurrency)}</select>
+                                            </div>
                                         </div>
                                     </div>
+                                    ${!isRemit ? `
+                                    <div>
+                                        <label class="text-sm font-medium text-text-secondary block mb-2">Invoice Reference & Document</label>
+                                        <div class="flex gap-4">
+                                            <input type="text" id="invoice-ref" placeholder="e.g., INV-2025-08-24" class="form-input flex-grow" value="${tx.details.invoiceRef || ''}">
+                                            <button class="btn-secondary px-4 whitespace-nowrap"><i class="fas fa-upload mr-2"></i>Upload PDF</button>
+                                        </div>
+                                    </div>` : ''}
+                                     <div>
+                                        <label class="text-sm font-medium text-text-secondary block mb-2">On-Ramp Method (How you will pay)</label>
+                                        <select id="onramp-method-select" class="form-select">
+                                            <option value="fiat_paynow">Fiat via PayNow (Singapore)</option>
+                                            <option value="crypto_usdt">Crypto via USDT (TRC-20)</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div data-method="crypto" class="role-selector-card p-6 rounded-xl cursor-pointer">
-                                    <div class="flex items-center gap-4">
-                                       <i class="fab fa-btc text-3xl text-warning-color"></i>
-                                       <div>
-                                            <h5 class="font-bold text-white">Crypto (USDT/USDC)</h5>
-                                            <p class="text-xs text-text-muted">Pay directly from your digital wallet for the lowest fees.</p>
-                                       </div>
+                                <!-- Analysis Panel -->
+                                <div id="quote-container" class="lg:col-span-2">
+                                    <!-- Quote will be rendered here by UI.updateDispatchQuote -->
+                                </div>
+                            </div>
+                            <div class="mt-12 flex justify-between items-center">
+                                <button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.cancelTransaction()"><i class="fas fa-times mr-2"></i>Cancel</button>
+                                <button id="wizard-next-btn" class="btn-gold font-bold py-3 px-10 rounded-lg text-lg" onclick="Logic.confirmAndFund()" disabled>Confirm & Proceed to Funding <i class="fas fa-arrow-right ml-2"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+                },
+                renderFundingModal: () => {
+                    const { envelopeId, fundingDetails } = AppState.transaction;
+                    return `
+                        <div class="p-8 relative">
+                            <button id="modal-close-btn" class="absolute top-4 right-4 text-text-muted hover:text-white transition-colors"><i class="fas fa-times fa-lg"></i></button>
+                            <div class="text-center">
+                                <h3 class="text-2xl font-bold text-white mb-2">Proceed with Funding</h3>
+                                <p class="text-text-secondary mb-6">Your transaction <strong class="font-mono text-premium-gold">${envelopeId}</strong> is ready for funding.</p>
+                            </div>
+                            <div class="bg-background-dark p-6 rounded-xl border border-border-secondary text-center space-y-4">
+                                <p class="text-text-muted">${fundingDetails.instructions}</p>
+                                <div class="text-center">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fundingDetails.qrValue)}" alt="QR Code" class="mx-auto rounded-lg border-4 border-white shadow-lg">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold text-text-secondary">${fundingDetails.label}</label>
+                                    <div class="mt-1 flex items-center justify-center bg-background-primary p-3 rounded-lg border border-border-color">
+                                        <span class="font-mono text-text-platinum break-all">${fundingDetails.value}</span>
+                                        <button class="ml-4 text-primary-azure hover:text-white" onclick="navigator.clipboard.writeText('${fundingDetails.value}'); Utils.showNotification('Copied to clipboard!', 'success');"><i class="fas fa-copy"></i></button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                            <div class="mt-6 text-center">
+                                <p class="text-sm text-text-muted">Once payment is sent, we will automatically detect it and proceed. This window can be closed.</p>
+                            </div>
+                        </div>`;
+                },
+                renderTransactionTracker: () => {
+                    const { type, envelopeId, details, quote, status, statusHistory } = AppState.transaction;
+                    
+                    const getStatusIcon = (s) => {
+                        if (s.completed) return '<i class="fas fa-check-circle text-success-color"></i>';
+                        if (s.active) return '<i class="fas fa-spinner fa-spin text-primary-azure"></i>';
+                        return '<i class="far fa-circle text-text-muted"></i>';
+                    };
+                    
+                    const getStatusClass = (s) => {
+                        if (s.completed) return 'text-text-platinum';
+                        if (s.active) return 'font-bold text-white';
+                        return 'text-text-muted';
+                    };
 
-                        <div class="mt-12 flex justify-between">
-                            <button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(2)"><i class="fas fa-arrow-left mr-2"></i>Previous</button>
-                            <button id="dispatch-btn" class="btn-gold font-bold py-3 px-10 rounded-lg text-lg disabled:opacity-50" disabled>
-                                <i class="fas fa-shield-alt mr-2"></i>Confirm & Dispatch Karavan
-                            </button>
+                    const steps = [
+                        { name: "Initiated", state: statusHistory.initiated },
+                        { name: "Awaiting Payment", state: statusHistory.funding },
+                        { name: "Compliance Firewall", state: statusHistory.compliance },
+                        { name: "Settlement in Progress", state: statusHistory.settling },
+                        { name: "Completed", state: statusHistory.complete },
+                    ];
+
+                    return `
+                    <div class="max-w-4xl mx-auto fade-in-up">
+                        <div class="text-center mb-8">
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Karavan Tracker</h2>
+                            <p class="text-text-secondary">Live status for Envelope ID: <strong class="font-mono text-premium-gold">${envelopeId}</strong></p>
                         </div>
-                    </div>`
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <!-- Status -->
+                            <div class="lg:col-span-1 glass-pane p-6 rounded-2xl">
+                                <h3 class="font-bold text-lg mb-4 text-white">Live Status</h3>
+                                <ul class="space-y-4">
+                                    ${steps.map((step, index) => `
+                                        <li class="flex items-center gap-4 ${getStatusClass(step.state)}">
+                                            <div class="w-6 h-6 flex items-center justify-center text-lg">${getStatusIcon(step.state)}</div>
+                                            <span>${step.name}</span>
+                                            ${index < steps.length - 1 ? '<div class="absolute left-3 top-7 h-5 w-px bg-border-accent"></div>' : ''}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                            <!-- Details -->
+                            <div class="lg:col-span-2 glass-pane p-6 rounded-2xl">
+                                <h3 class="font-bold text-lg mb-4 text-white">Transaction Summary</h3>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex justify-between"><span class="text-text-muted">You Sent</span><strong class="font-mono text-primary-azure">${Utils.formatCurrency(quote.sendAmount, details.fromCurrency)}</strong></div>
+                                    <div class="flex justify-between"><span class="text-text-muted">Recipient Received</span><strong class="font-mono text-success-color">${Utils.formatCurrency(quote.receiveAmount, details.toCurrency)}</strong></div>
+                                    <div class="border-t border-border-color my-3"></div>
+                                    <div class="flex justify-between"><span class="text-text-muted">Beneficiary</span><strong class="text-right">${details.recipient.name}</strong></div>
+                                    <div class="flex justify-between"><span class="text-text-muted">Destination</span><strong>${details.recipient.country}</strong></div>
+                                    ${type === 'pay' ? `<div class="flex justify-between"><span class="text-text-muted">Invoice Ref</span><strong class="font-mono">${details.invoiceRef}</strong></div>` : ''}
+                                </div>
+                                ${status === 'complete' ? `
+                                <div class="mt-8 text-center">
+                                    <button class="btn-gold font-bold py-3 px-8 rounded-lg"><i class="fas fa-file-download mr-2"></i>Download Proof of Settlement</button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                         <div class="mt-8 text-center">
+                            <button class="btn-secondary py-2 px-6 rounded-lg" onclick="UI.renderView('dashboard')"><i class="fas fa-tachometer-alt mr-2"></i>Return to Dashboard</button>
+                        </div>
+                    </div>`;
+                }
             };
-            
-const Logic = {
-                /**
-                 * [Supreme Initialization Protocol]
-                 * This function is the primary entry point for the entire Karavan application. It orchestrates the
-                 * initialization of all core components in the correct sequence to prevent race conditions and errors.
-                 */
+
+            // =========================================================================
+            // === LOGIC & WORKFLOW ENGINE (PROJECT KINESIS IMPLEMENTATION) ===
+            // =========================================================================
+            const Logic = {
                 init: () => {
                     UI.init();
-                    Logic.checkForAutoAuth();
                 },
-
-                /**
-                 * [Intelligent Auto-Authentication]
-                 * Checks for a referral ID in the URL parameters upon page load, allowing for seamless
-                 * entry into the platform from a direct link, bypassing manual entry.
-                 */
-                checkForAutoAuth: () => {
-                    const code = new URLSearchParams(window.location.search).get('referralId');
-                    if (code) {
+                checkForAutoAuth: async () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const referralId = urlParams.get('referralId');
+                    if (referralId) {
                         const input = document.getElementById('referral-id-input');
-                        if (input) {
-                            input.value = code;
-                            Logic.validateReferralId();
-                        }
+                        if (input) input.value = referralId;
+                        await Logic.validateReferralId();
+                    } else {
+                         UI.renderView('auth');
                     }
                 },
-
-                /**
-                 * [Secure Validation Engine]
-                 * Handles the validation of a user-provided Partner Referral ID. Manages the complete
-                 * UI state transition from input, to loading, to success or failure, providing
-                 * clear, real-time feedback to the user.
-                 */
                 validateReferralId: async () => {
                     const btn = document.getElementById('validate-id-btn');
                     const input = document.getElementById('referral-id-input');
@@ -613,272 +657,269 @@ const Logic = {
                     if (!btn || !input || !errorEl) return;
 
                     const referralId = input.value.trim().toUpperCase();
-                    if (!referralId) {
-                        errorEl.textContent = 'Partner ID cannot be empty.';
-                        return;
-                    }
+                    if (!referralId) { errorEl.textContent = 'Partner ID cannot be empty.'; return; }
                     
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
                     errorEl.textContent = '';
                     
                     try {
-                        const responseData = await Utils.createApiRequest('validateReferralId', 'POST', { referralId });
+                        const { data } = await Utils.createApiRequest('validateReferralId', 'POST', { referralId });
                         AppState.isAuthenticated = true;
-                        AppState.referralInfo = { id: responseData.referralId, partnerName: responseData.partnerName };
-                        Utils.showNotification(`Authentication Successful. Welcome, ${responseData.partnerName}.`, 'success');
-                        UI.renderView('role_select');
+                        AppState.referralInfo = { id: data.referralId, partnerName: data.partnerName };
+                        Utils.showNotification(`Authentication Successful. Welcome, ${data.partnerName}.`, 'success');
+                        
+                        UI.renderView('loading', { message: 'Fetching Market Data...' });
+                        const marketDataResponse = await Utils.createApiRequest('getMarketMatrixData', 'GET');
+                        AppState.marketData.marketMatrix = marketDataResponse.data;
+                        
+                        UI.renderView('dashboard');
                     } catch (error) {
                         errorEl.textContent = error.message;
                         btn.disabled = false;
                         btn.innerHTML = 'Authenticate';
                     }
                 },
-
-                /**
-                 * [Pinnacle Onboarding Initiator]
-                 * Triggers the UI to display the multi-step KYC and account creation modal for new users.
-                 */
-                initiateOnboarding: () => {
-                    Utils.showNotification('The automated onboarding portal is currently in development. Please contact GECAN™ directly for a Partner ID.', 'info');
-                    // In a future version, this would call a UI.renderOnboardingModal() function.
+                startNewTransaction: () => {
+                    UI.renderView('new_tx_type');
                 },
-
-                /**
-
-                 * [Stateful Role Selection Controller]
-                 * Sets the user's role in the AppState and triggers a re-render of the main view
-                 * to display the dashboard corresponding to the selected role.
-                 */
-                selectRole: async (role) => {
-                    AppState.userRole = role;
-                    if (role === 'partner') {
-                        Utils.showNotification('Liquidity Partner Hub is currently under development.', 'info');
-                        return; // Feature not yet implemented
-                    }
-                    UI.renderView('dispatcher_wizard');
-                    await Logic.initializeDispatchWizard();
-                },
-
-                /**
-                 * [Dispatch Wizard Initializer]
-                 * Sets up the initial state for the Karavan dispatch process, populates currency
-                 * dropdowns by fetching live market data, and then calculates an initial quote.
-                 */
-                initializeDispatchWizard: async () => {
-                    AppState.dispatch.step = 1;
-                    Logic.setWizardStep(1);
-
-                    try {
-                        // Fetch the live market matrix data to populate currencies.
-                        const marketMatrix = await Utils.createApiRequest('getMarketMatrixData', 'GET');
-                        AppState.marketData.marketMatrix = marketMatrix;
-                        
-                        // Filter for unique, transactable currencies from the matrix
-                        const availableCurrencies = [...new Set(marketMatrix.map(a => a.baseAsset))].sort();
-                        AppState.marketData.availableCurrencies = availableCurrencies;
-                        
-                        const sendCurrencyEl = document.getElementById('send-currency');
-                        const receiveCurrencyEl = document.getElementById('receive-currency');
-                        const recipientSelectEl = document.getElementById('recipient-select');
-
-                        if (sendCurrencyEl) sendCurrencyEl.innerHTML = availableCurrencies.map(c => `<option ${c === 'SGD' ? 'selected': ''}>${c}</option>`).join('');
-                        if (receiveCurrencyEl) receiveCurrencyEl.innerHTML = availableCurrencies.map(c => `<option ${c === 'PHP' ? 'selected': ''}>${c}</option>`).join('');
-                        
-                        // In a real scenario, contacts would be fetched via another API call.
-                        // For now, we'll use a placeholder.
-                        if (recipientSelectEl) recipientSelectEl.innerHTML = '<option value="" disabled selected>Select a verified beneficiary...</option><option value="1">Maria Reyes - BPI Philippines</option>';
-
-                        // Fetch an initial quote based on default values.
-                        await Logic.getLiveQuote();
-                    } catch (error) {
-                        Utils.showNotification(`Error initializing wizard: ${error.message}`, 'error');
-                        // Potentially render an error state for the wizard
-                    }
-                },
-
-                /**
-                 * [Supreme Live FX & Fee Engine v2.0]
-                 * This is the core of the quoting system. It reads the live asset prices from AppState.marketData,
-                 * calculates precise cross-rates, applies a dynamic fee structure, and handles both forward
-                 * ("You Send") and reverse ("Recipient Receives") calculations with pinnacle accuracy.
-                 */
-                getLiveQuote: async () => {
-                    const sendAmountEl = document.getElementById('send-amount');
-                    const receiveAmountEl = document.getElementById('receive-amount');
-                    const sendCurrencyEl = document.getElementById('send-currency');
-                    const receiveCurrencyEl = document.getElementById('receive-currency');
-                    const quoteContainer = document.getElementById('quote-container');
-
-                    if (!sendAmountEl || !receiveAmountEl || !quoteContainer) return;
-
-                    // Immediately clear previous quote and disable dispatch
-                    AppState.dispatch.quote = null;
-                    UI.updateDispatchQuote();
-
-                    const { amountType } = AppState.dispatch;
-                    const fromCurrency = sendCurrencyEl.value;
-                    const toCurrency = receiveCurrencyEl.value;
-                    const amount = parseFloat(amountType === 'send' ? sendAmountEl.value : receiveAmountEl.value) || 0;
-                    
-                    if (amount <= 0 || fromCurrency === toCurrency) {
-                        if(amountType === 'send') receiveAmountEl.value = '';
-                        else sendAmountEl.value = '';
-                        return; // No calculation needed
-                    }
-                    
-                    quoteContainer.innerHTML = `<div class="flex items-center justify-center h-full text-text-muted animate-pulse"><i class="fas fa-calculator text-2xl mr-3"></i> <span>Calculating institutional rate...</span></div>`;
-
-                    try {
-                        // Find the assets in our live market data
-                        const fromAsset = AppState.marketData.marketMatrix.find(a => a.baseAsset === fromCurrency && a.quoteAsset === 'USD');
-                        const toAsset = AppState.marketData.marketMatrix.find(a => a.baseAsset === toCurrency && a.quoteAsset === 'USD');
-
-                        if (!fromAsset || !toAsset || fromAsset.price <= 0 || toAsset.price <= 0) {
-                            throw new Error(`Live pricing for the ${fromCurrency}/${toCurrency} pair is currently unavailable.`);
-                        }
-
-                        // --- Pinnacle Cross-Rate Calculation ---
-                        // All rates are calculated via a common base (USD) for maximum flexibility.
-                        const institutionalRate = fromAsset.price / toAsset.price;
-                        const GECAN_FEE_PERCENTAGE = 0.60; // 0.60%
-                        
-                        let calculatedSendAmount, calculatedReceiveAmount, feeAmount;
-
-                        if (amountType === 'send') {
-                            calculatedSendAmount = amount;
-                            feeAmount = calculatedSendAmount * (GECAN_FEE_PERCENTAGE / 100);
-                            const netSendAmount = calculatedSendAmount - feeAmount;
-                            calculatedReceiveAmount = netSendAmount * institutionalRate;
-                            receiveAmountEl.value = calculatedReceiveAmount.toFixed(2);
-                        } else { // amountType is 'receive'
-                            calculatedReceiveAmount = amount;
-                            const grossSendAmount = calculatedReceiveAmount / institutionalRate;
-                            // Reverse calculate the fee: Gross = Net / (1 - FeeRate)
-                            calculatedSendAmount = grossSendAmount / (1 - (GECAN_FEE_PERCENTAGE / 100));
-                            feeAmount = calculatedSendAmount - grossSendAmount;
-                            sendAmountEl.value = calculatedSendAmount.toFixed(2);
-                        }
-
-                        // Store the definitive quote in the AppState
-                        AppState.dispatch.quote = {
-                            rate: institutionalRate,
-                            feePercentage: GECAN_FEE_PERCENTAGE.toFixed(2),
-                            fee: feeAmount,
-                            sendAmount: calculatedSendAmount,
-                            receiveAmount: calculatedReceiveAmount,
-                            fromCurrency: fromCurrency,
-                            toCurrency: toCurrency,
-                        };
-                        AppState.dispatch.sendAmount = calculatedSendAmount;
-                        AppState.dispatch.receiveAmount = calculatedReceiveAmount;
-                        AppState.dispatch.quoteExpiresAt = new Date(Date.now() + 30000); // Quote is valid for 30 seconds
-                        
-                        // Trigger UI update with the new, valid quote
-                        UI.updateDispatchQuote();
-
-                    } catch (error) {
-                        Utils.showNotification(`Could not fetch quote: ${error.message}`, 'error');
-                        quoteContainer.innerHTML = `<div class="text-center text-error-color p-4 flex flex-col items-center justify-center h-full"><i class="fas fa-exclamation-triangle mb-2"></i><span>Quote Unavailable</span><p class="text-xs text-text-muted mt-1">${error.message}</p></div>`;
-                        AppState.dispatch.quote = null;
-                    }
-                },
-                
-                swapAmountFocus: () => {
-                    const sendAmountEl = document.getElementById('send-amount');
-                    const receiveAmountEl = document.getElementById('receive-amount');
-                    const sendGroup = sendAmountEl.closest('.relative.group');
-                    const receiveGroup = receiveAmountEl.closest('.relative.group');
-
-                    if (AppState.dispatch.amountType === 'send') {
-                        AppState.dispatch.amountType = 'receive';
-                        sendAmountEl.readOnly = true;
-                        receiveAmountEl.readOnly = false;
-                        receiveGroup.classList.add('ring-2', 'ring-primary-azure');
-                        sendGroup.classList.remove('ring-2', 'ring-primary-azure');
-                        receiveAmountEl.focus();
-                    } else {
-                        AppState.dispatch.amountType = 'send';
-                        sendAmountEl.readOnly = false;
-                        receiveAmountEl.readOnly = true;
-                        sendGroup.classList.add('ring-2', 'ring-primary-azure');
-                        receiveGroup.classList.remove('ring-2', 'ring-primary-azure');
-                        sendAmountEl.focus();
-                    }
-                    
-                    Utils.showNotification(`Calculating based on ${AppState.dispatch.amountType.toUpperCase()} amount.`, 'info', 2000);
+                selectTransactionType: (type) => {
+                    AppState.transaction = {
+                        type, // 'remit' or 'pay'
+                        envelopeId: null,
+                        status: 'draft', // draft -> funding -> compliance -> settling -> complete
+                        statusHistory: {
+                            initiated: { active: false, completed: false },
+                            funding: { active: false, completed: false },
+                            compliance: { active: false, completed: false },
+                            settling: { active: false, completed: false },
+                            complete: { active: false, completed: false },
+                        },
+                        details: {
+                            recipientId: AppState.marketData.contacts[0].id,
+                            fromCurrency: 'SGD',
+                            toCurrency: 'PHP',
+                            amount: type === 'remit' ? 500 : 10000,
+                            amountType: 'send', // 'send' or 'receive'
+                            invoiceRef: '',
+                            onRampMethod: 'fiat_paynow',
+                        },
+                        quote: null,
+                        fundingDetails: null
+                    };
+                    UI.renderView('tx_wizard');
                     Logic.getLiveQuote();
                 },
-                
-                setWizardStep: (step) => {
-                    AppState.dispatch.step = step;
-                    document.querySelectorAll('.wizard-step').forEach((el, index) => {
-                        el.classList.remove('current', 'past', 'future');
-                        if (index + 1 === step) {
-                            el.classList.add('current');
-                        } else if (index + 1 < step) {
-                            el.classList.add('past');
-                        } else {
-                            el.classList.add('future');
-                        }
-                    });
-                    UI.updateProgressBar();
+                cancelTransaction: () => {
+                    AppState.transaction = null;
+                    if(AppState.ui.trackerInterval) clearInterval(AppState.ui.trackerInterval);
+                    Utils.showNotification('Transaction Cancelled', 'info');
+                    UI.renderView('dashboard');
                 },
+                updateTransactionDetails: () => {
+                    if (!AppState.transaction) return;
+                    const tx = AppState.transaction;
 
+                    tx.details.recipientId = document.getElementById('recipient-select')?.value || tx.details.recipientId;
+                    tx.details.fromCurrency = document.getElementById('send-currency')?.value || tx.details.fromCurrency;
+                    tx.details.toCurrency = document.getElementById('receive-currency')?.value || tx.details.toCurrency;
+                    tx.details.invoiceRef = document.getElementById('invoice-ref')?.value || tx.details.invoiceRef;
+                    tx.details.onRampMethod = document.getElementById('onramp-method-select')?.value || tx.details.onRampMethod;
+                    
+                    Logic.getLiveQuote();
+                },
+                getLiveQuote: async () => {
+                    if (!AppState.transaction) return;
+                    const { details } = AppState.transaction;
+                    const sendAmountEl = document.getElementById('send-amount');
+                    const receiveAmountEl = document.getElementById('receive-amount');
+                    
+                    const amount = parseFloat(details.amountType === 'send' ? sendAmountEl.value : receiveAmountEl.value) || 0;
+                    details.amount = amount;
+
+                    if (amount <= 0 || details.fromCurrency === details.toCurrency) {
+                        AppState.transaction.quote = null;
+                        if(details.amountType === 'send') receiveAmountEl.value = ''; else sendAmountEl.value = '';
+                        UI.updateDispatchQuote();
+                        return;
+                    }
+                    
+                    try {
+                        const fromAsset = AppState.marketData.marketMatrix.find(a => a.baseAsset === details.fromCurrency);
+                        const toAsset = AppState.marketData.marketMatrix.find(a => a.baseAsset === details.toCurrency);
+                        if (!fromAsset || !toAsset) throw new Error(`Pricing for ${details.fromCurrency}/${details.toCurrency} is unavailable.`);
+
+                        const institutionalRate = fromAsset.price / toAsset.price;
+                        
+                        // Dynamic Fee from Project Kinesis Business Model
+                        const getFeePercentage = () => {
+                            const valueUSD = (details.amountType === 'send' ? amount : amount / institutionalRate) * fromAsset.price;
+                            if (AppState.transaction.type === 'remit') return 0.60; // Flat 0.6% for Remit
+                            if (valueUSD > 1000000) return 0.15;
+                            if (valueUSD > 100000) return 0.25;
+                            return 0.35; // B2B Pay default tier
+                        };
+                        const feePercentage = getFeePercentage();
+
+                        let sendAmount, receiveAmount, feeAmount, netSendAmount;
+                        if (details.amountType === 'send') {
+                            sendAmount = amount;
+                            feeAmount = sendAmount * (feePercentage / 100);
+                            netSendAmount = sendAmount - feeAmount;
+                            receiveAmount = netSendAmount * institutionalRate;
+                            receiveAmountEl.value = receiveAmount.toFixed(2);
+                        } else { // receive
+                            receiveAmount = amount;
+                            netSendAmount = receiveAmount / institutionalRate;
+                            sendAmount = netSendAmount / (1 - (feePercentage / 100));
+                            feeAmount = sendAmount - netSendAmount;
+                            sendAmountEl.value = sendAmount.toFixed(2);
+                        }
+
+                        AppState.transaction.quote = {
+                            rate: institutionalRate,
+                            feePercentage: feePercentage.toFixed(2),
+                            feeAmount: feeAmount,
+                            sendAmount: sendAmount,
+                            netSendAmount: netSendAmount,
+                            receiveAmount: receiveAmount,
+                            expiresAt: new Date(Date.now() + 30000)
+                        };
+
+                        UI.updateDispatchQuote();
+                    } catch (error) {
+                        Utils.showNotification(error.message, 'error');
+                        AppState.transaction.quote = null;
+                        UI.updateDispatchQuote();
+                    }
+                },
                 startQuoteTimer: () => {
-                    if (AppState.dispatch.quoteTimer) clearInterval(AppState.dispatch.quoteTimer);
-                    const timerEl = document.getElementById('quote-timer');
-                    if (!timerEl) return;
+                    if (AppState.ui.quoteTimer) clearInterval(AppState.ui.quoteTimer);
+                    const timerBar = document.getElementById('quote-timer-bar');
+                    const countdownEl = document.getElementById('quote-countdown');
+                    if (!timerBar || !countdownEl) return;
 
                     const duration = 30000;
-                    const startTime = Date.now();
+                    let remaining = duration;
 
-                    AppState.dispatch.quoteTimer = setInterval(() => {
-                        const elapsed = Date.now() - startTime;
-                        const width = Math.max(0, 100 - (elapsed / duration) * 100);
-                        timerEl.style.width = `${width}%`;
+                    AppState.ui.quoteTimer = setInterval(() => {
+                        remaining -= 100;
+                        const width = Math.max(0, (remaining / duration) * 100);
+                        timerBar.style.width = `${width}%`;
+                        countdownEl.textContent = Math.ceil(remaining / 1000);
 
                         if (width <= 0) {
-                            clearInterval(AppState.dispatch.quoteTimer);
-                            AppState.dispatch.quote = null;
+                            clearInterval(AppState.ui.quoteTimer);
+                            AppState.transaction.quote = null;
                             UI.updateDispatchQuote();
                             Utils.showNotification('Quote expired due to market volatility. Please recalculate.', 'warning');
                         }
                     }, 100);
                 },
+                confirmAndFund: async () => {
+                    const tx = AppState.transaction;
+                    if (!tx || !tx.quote) {
+                        Utils.showNotification('Please generate a valid quote first.', 'error');
+                        return;
+                    }
+                    
+                    UI.renderView('loading', { message: 'Initiating Secure Envelope...' });
+                    try {
+                        const { data } = await Utils.createApiRequest('initiateTransaction', 'POST', {
+                            type: tx.type,
+                            fromCurrency: tx.details.fromCurrency,
+                            toCurrency: tx.details.toCurrency,
+                            sendAmount: tx.quote.sendAmount,
+                            receiveAmount: tx.quote.receiveAmount,
+                            onRampMethod: tx.details.onRampMethod
+                        });
+                        
+                        tx.envelopeId = data.envelopeId;
+                        tx.fundingDetails = data.fundingDetails;
+                        tx.status = 'funding';
+                        tx.details.recipient = AppState.marketData.contacts.find(c => c.id === tx.details.recipientId);
 
+                        Logic.updateStatus('initiated', true);
+                        Logic.updateStatus('funding', false, true);
+                        
+                        Utils.openModal(ComponentBuilders.renderFundingModal());
+                        UI.renderView('tx_tracker');
+                        Logic.startTransactionTracker();
+
+                    } catch(error) {
+                        Utils.showNotification(`Error initiating transaction: ${error.message}`, 'error');
+                        UI.renderView('tx_wizard');
+                    }
+                },
+                updateStatus: (statusKey, completed, active = false) => {
+                    const tx = AppState.transaction;
+                    if (tx && tx.statusHistory[statusKey]) {
+                        tx.statusHistory[statusKey].completed = completed;
+                        tx.statusHistory[statusKey].active = active;
+                    }
+                },
+                startTransactionTracker: () => {
+                    if (AppState.ui.trackerInterval) clearInterval(AppState.ui.trackerInterval);
+
+                    const tx = AppState.transaction;
+                    const sequence = ['funding', 'compliance', 'settling', 'complete'];
+                    let currentStepIndex = 0;
+
+                    AppState.ui.trackerInterval = setInterval(() => {
+                        const currentStep = sequence[currentStepIndex];
+                        Logic.updateStatus(currentStep, true, false);
+
+                        currentStepIndex++;
+                        if (currentStepIndex >= sequence.length) {
+                            clearInterval(AppState.ui.trackerInterval);
+                            tx.status = 'complete';
+                            Utils.showNotification(`Karavan ${tx.envelopeId} Completed!`, 'success');
+                            UI.renderView('tx_tracker');
+                            return;
+                        }
+
+                        const nextStep = sequence[currentStepIndex];
+                        tx.status = nextStep;
+                        Logic.updateStatus(nextStep, false, true);
+                        
+                        UI.renderView('tx_tracker'); // Re-render to show progress
+                    }, 4000); // Simulate each step taking 4 seconds
+                },
                 bindEventListenersForView: (view) => {
                     if (view === 'auth') {
                         document.getElementById('validate-id-btn')?.addEventListener('click', Logic.validateReferralId);
                         document.getElementById('referral-id-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') Logic.validateReferralId(); });
-                        document.getElementById('onboard-link')?.addEventListener('click', Logic.initiateOnboarding);
                     }
-                    if (view === 'role_select') {
-                        document.getElementById('role-dispatcher')?.addEventListener('click', () => Logic.selectRole('dispatcher'));
-                        document.getElementById('role-partner')?.addEventListener('click', () => Logic.selectRole('partner'));
+                    if (view === 'dashboard') {
+                        document.getElementById('new-transaction-btn')?.addEventListener('click', Logic.startNewTransaction);
                     }
-                    if(view === 'dispatcher_wizard'){
+                    if (view === 'new_tx_type') {
+                        document.getElementById('tx-type-remit')?.addEventListener('click', () => Logic.selectTransactionType('remit'));
+                        document.getElementById('tx-type-pay')?.addEventListener('click', () => Logic.selectTransactionType('pay'));
+                    }
+                    if (view === 'tx_wizard') {
                         const debouncedQuote = Utils.debounce(Logic.getLiveQuote, 500);
                         const sendAmountEl = document.getElementById('send-amount');
                         const receiveAmountEl = document.getElementById('receive-amount');
-                        
-                        sendAmountEl?.addEventListener('input', () => { AppState.dispatch.amountType = 'send'; receiveAmountEl.value = ''; debouncedQuote(); });
-                        receiveAmountEl?.addEventListener('input', () => { AppState.dispatch.amountType = 'receive'; sendAmountEl.value = ''; debouncedQuote(); });
 
-                        document.getElementById('send-currency')?.addEventListener('change', Logic.getLiveQuote);
-                        document.getElementById('receive-currency')?.addEventListener('change', Logic.getLiveQuote);
+                        sendAmountEl?.addEventListener('input', () => { AppState.transaction.details.amountType = 'send'; receiveAmountEl.value = ''; debouncedQuote(); });
+                        receiveAmountEl?.addEventListener('input', () => { AppState.transaction.details.amountType = 'receive'; sendAmountEl.value = ''; debouncedQuote(); });
+
+                        ['recipient-select', 'send-currency', 'receive-currency', 'invoice-ref', 'onramp-method-select'].forEach(id => {
+                            document.getElementById(id)?.addEventListener('change', Logic.updateTransactionDetails);
+                        });
                     }
                 }
             };
             
-            // This is the single, unified script execution entry point.
+            // =========================================================================
+            // === APPLICATION ENTRY POINT ===
+            // =========================================================================
             document.addEventListener('DOMContentLoaded', () => {
-                window.Logic = Logic;
-                window.UI = UI;
-                window.Utils = Utils;
-                window.ComponentBuilders = ComponentBuilders;
-                
+                // Expose core modules to window for debugging if needed
+                window.GECAN = { Logic, UI, Utils, ComponentBuilders, AppState };
                 Logic.init();
+            });
         })();
     </script>
 </body>
