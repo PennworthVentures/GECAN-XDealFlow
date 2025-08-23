@@ -24,7 +24,17 @@
                 extend: {
                     boxShadow: {
                         'inner-premium': 'inset 0 2px 8px 0 rgba(0, 0, 0, 0.5)',
-                        'gold-glow': '0 0 20px rgba(180, 151, 90, 0.5)',
+                        'gold-glow': '0 0 25px rgba(180, 151, 90, 0.6)',
+                        'azure-glow': '0 0 25px rgba(14, 165, 233, 0.5)',
+                    },
+                    keyframes: {
+                        'vortex-pulse': {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+                            '50%': { transform: 'scale(1.1)', opacity: '1' }
+                        }
+                    },
+                    animation: {
+                        'vortex-pulse': 'vortex-pulse 9s ease-in-out infinite alternate',
                     }
                 }
             }
@@ -40,40 +50,39 @@
 
     <style id="pinnacle-styles">
         /* ========================================================================= */
-        /* === PINNACLE CSS ENGINE v6.0 (KARAVAN EDITION) === */
-        /* This stylesheet is the definitive standard, ensuring visual consistency */
-        /* with the entire GECAN platform, plus Karavan-specific enhancements. */
+        /* === PINNACLE CSS ENGINE v6.1 (KARAVAN SUPREME EDITION) === */
         /* ========================================================================= */
-
         :root {
             --text-premium-gold: #EAE0C8;
             --brand-gecan-blue: #1c2e4a; --brand-gecan-gold: #b4975a; --primary-azure: #0ea5e9;
             --primary-sapphire: #3b82f6; --primary-royal: #6366f1; --primary-amethyst: #8b5cf6;
-            --primary-diamond: #f8fafc; --primary-dark: #0369a1;
-            --background-primary: #0a0a0f; --background-secondary: #1e293b; --background-light: #0f172a; --background-accent: #1e293b; --background-dark: #030712;
+            --background-primary: #0a0a0f; --background-secondary: #1e293b; --background-light: #0f172a; --background-dark: #030712;
             --background-glass: rgba(15, 23, 42, 0.8); --background-glass-premium: rgba(15, 23, 42, 0.9);
             --border-color: rgba(148, 163, 184, 0.2); --border-secondary: rgba(148, 163, 184, 0.25);
             --border-premium: rgba(148, 163, 184, 0.3); --border-accent: #64748b;
             --text-diamond: #f8fafc; --text-platinum: #e2e8f0; --text-silver: #cbd5e1;
-            --text-muted: #94a3b8; --text-subtle: #64748b; --text-primary: #f8fafc; --text-secondary: #a0aec0;
-            --glow-azure: rgba(14, 165, 233, 0.8); --glow-gold: rgba(180, 151, 90, 0.6);
+            --text-muted: #94a3b8; --text-primary: #f8fafc; --text-secondary: #a0aec0;
+            --glow-azure: rgba(14, 165, 233, 0.8); --glow-gold: rgba(180, 151, 90, 0.7);
             --success-color: #22c55e; --warning-color: #f59e0b; --error-color: #ef4444;
             --gradient-primary: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
             --gradient-gold: linear-gradient(135deg, #fde047, #b4975a);
             --shadow-ultra: 0 25px 50px -12px rgba(0, 0, 0, 0.25); --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
             --transform-ultra: translateY(-16px) rotateX(10deg) rotateY(5deg) scale(1.07);
         }
-
-        /* --- BASE STYLES & RESETS (BENCHMARKED) --- */
         * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
         html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        body { font-family: 'Inter', sans-serif; background: var(--background-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--background-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        ::-webkit-scrollbar { width: 8px; } ::webkit-scrollbar-track { background: var(--background-secondary); } ::webkit-scrollbar-thumb { background: var(--gradient-gold); border-radius: 4px; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--background-secondary); } ::-webkit-scrollbar-thumb { background: var(--gradient-gold); border-radius: 4px; }
         ::selection { background: var(--brand-gecan-gold); color: var(--background-dark); }
+        
+        /* --- SUPREME INTERACTIVE BACKGROUND ENGINE --- */
+        #interactive-background { position: fixed; inset: 0; z-index: -3; overflow: hidden; perspective: 1500px; background: radial-gradient(ellipse at center, rgba(6, 18, 42, 0.95) 0%, rgba(2, 8, 23, 0.98) 70%, rgba(0, 0, 0, 1) 100%); }
+        #background-vortex { position: absolute; width: 300px; height: 300px; background: conic-gradient(from 0deg, transparent, rgba(180, 151, 90, 0.1), rgba(99, 102, 241, 0.15), transparent); border-radius: 50%; z-index: 0; transition: transform 0.1s linear; animation: vortex-spin 10s linear infinite; }
+        #background-vortex::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(180, 151, 90, 0.2) 0%, rgba(99, 102, 241, 0.1) 30%, transparent 75%); animation: vortex-pulse 9s ease-in-out infinite alternate; }
+        @keyframes vortex-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        /* --- DYNAMIC BACKGROUND & PREMIUM HEADER (BENCHMARKED) --- */
-        #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
+        /* --- PREMIUM HEADER & NAVIGATION (BENCHMARKED) --- */
         .premium-header { position: sticky; top: 0; z-index: 50; background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-bottom: 1px solid var(--border-premium); box-shadow: var(--shadow-ultra); }
         .gecan-logo-container { perspective: 800px; }
         .gecan-logo-flipper { position: relative; width: 250px; height: 120px; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1); }
@@ -82,8 +91,7 @@
         .logo-front { font-family: 'Orbitron', monospace; font-weight: 900; font-size: 2.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 40px var(--glow-azure); }
         .logo-back img { height: 100%; width: auto; object-fit: contain; filter: brightness(1.1) drop-shadow(0 0 10px var(--brand-gecan-gold)) drop-shadow(0 0 25px var(--brand-gecan-blue)); transform: rotateY(180deg); }
         .logo-separator { width: 6px; height: 120px; background: var(--gradient-primary); border-radius: 4px; box-shadow: 0 0 30px var(--glow-azure); }
-
-        /* --- SUPREME NAVIGATION SYSTEM (BENCHMARKED) --- */
+        
         .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
         .nav-btn:hover:not(.active) { background: var(--background-glass-premium); color: var(--text-diamond); transform: var(--transform-ultra); box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure); border-color: var(--border-premium); }
         .nav-btn.active { background: linear-gradient(135deg, rgba(180, 151, 90, 0.65), rgba(234, 179, 8, 0.5)), var(--background-glass); color: var(--text-premium-gold); font-weight: 700; border-color: var(--brand-gecan-gold); filter: brightness(1.1); animation: premium-gold-glow 2.5s ease-in-out infinite; }
@@ -94,62 +102,36 @@
         .nav-icon-face { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; }
         .nav-icon-back { transform: rotateY(180deg); background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px var(--glow-gold); }
 
-        /* --- D. KARAVAN-SPECIFIC STYLES (SEVERELY ENHANCED) --- */
+        /* --- KARAVAN-SPECIFIC STYLES (SEVERELY ENHANCED) --- */
         .glass-pane { background: var(--background-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); }
         .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
-        .role-selector-card { 
-            border: 2px solid var(--border-color);
-            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-            transform-style: preserve-3d;
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(145deg, var(--background-light), var(--background-dark));
-        }
-        .role-selector-card:hover {
-            transform: perspective(1000px) translateY(-10px) rotateX(5deg) scale(1.03);
-            border-color: var(--brand-gecan-gold);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), 0 0 30px var(--glow-gold);
-        }
-        .role-selector-card.active {
-            border-color: var(--brand-gecan-gold);
-            background: linear-gradient(145deg, rgba(180, 151, 90, 0.1), rgba(180, 151, 90, 0.05));
-            box-shadow: 0 0 25px var(--glow-gold), inset 0 0 15px rgba(180, 151, 90, 0.1);
-        }
-        .role-selector-card .icon-wrapper {
-            transition: transform 0.4s ease;
-        }
-        .role-selector-card:hover .icon-wrapper {
-            transform: scale(1.1) translateY(-5px) translateZ(20px);
-        }
+        .role-selector-card { border: 2px solid var(--border-color); transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1); transform-style: preserve-3d; position: relative; overflow: hidden; background: linear-gradient(145deg, var(--background-light), var(--background-dark)); }
+        .role-selector-card:hover { transform: perspective(1000px) translateY(-10px) rotateX(5deg) scale(1.03); border-color: var(--brand-gecan-gold); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), 0 0 30px var(--glow-gold); }
+        .role-selector-card .icon-wrapper { transition: transform 0.4s ease; }
+        .role-selector-card:hover .icon-wrapper { transform: scale(1.1) translateY(-5px) translateZ(20px); }
 
-        .wizard-step-container {
-            position: relative;
-            perspective: 2000px;
-        }
-        .wizard-step {
-            position: absolute;
-            width: 100%;
-            transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease;
-            backface-visibility: hidden;
-        }
-        .wizard-step.future { transform: translateX(100%) rotateY(-45deg); opacity: 0; pointer-events: none; }
-        .wizard-step.past { transform: translateX(-100%) rotateY(45deg); opacity: 0; pointer-events: none; }
-        .wizard-step.current { transform: translateX(0) rotateY(0); opacity: 1; pointer-events: auto; position: relative; }
+        .wizard-step-container { position: relative; perspective: 2000px; }
+        .wizard-step { position: absolute; width: 100%; top: 0; left: 0; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease; backface-visibility: hidden; }
+        .wizard-step.future { transform: translateX(50%) rotateY(-60deg) scale(0.8); opacity: 0; pointer-events: none; }
+        .wizard-step.past { transform: translateX(-50%) rotateY(60deg) scale(0.8); opacity: 0; pointer-events: none; }
+        .wizard-step.current { transform: translateX(0) rotateY(0) scale(1); opacity: 1; pointer-events: auto; position: relative; }
         
-        .form-input { background-color: var(--background-dark); border: 1px solid var(--border-secondary); color: var(--text-primary); border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; font-size: 1rem; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+        .form-input, .form-select { background-color: var(--background-dark); border: 1px solid var(--border-secondary); color: var(--text-primary); border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; font-size: 1rem; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
         .form-input::placeholder { color: var(--text-muted); }
         .form-input:focus, .form-select:focus { outline: none; border-color: var(--brand-gecan-gold); box-shadow: 0 0 0 4px rgba(180, 151, 90, 0.2), inset 0 2px 4px rgba(0,0,0,0.3); }
         
-        .btn-gold { background: linear-gradient(135deg, var(--brand-gecan-gold), #a18143); border: 1px solid var(--brand-gecan-gold); color: var(--background-dark); text-shadow: 0 1px 1px rgba(255,255,255,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(180, 151, 90, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+        .btn-gold { background: var(--gradient-gold); border: 1px solid var(--brand-gecan-gold); color: var(--background-dark); text-shadow: 0 1px 1px rgba(255,255,255,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(180, 151, 90, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
         .btn-gold:hover:not(:disabled) { box-shadow: 0 8px 30px rgba(180, 151, 90, 0.5); transform: translateY(-3px); filter: brightness(1.1); }
         .btn-gold:disabled { background: var(--background-secondary); border-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; opacity: 0.5; box-shadow: none; }
+        .btn-secondary { background: var(--background-accent); border: 1px solid var(--border-color); color: var(--text-secondary); transition: all 0.3s; }
+        .btn-secondary:hover:not(:disabled) { background: var(--background-secondary); border-color: var(--border-accent); color: var(--text-primary); }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <div id="particles-js"></div>
+    <div id="interactive-background"><div id="background-vortex"></div></div>
     
     <!-- PREMIUM HEADER (BENCHMARKED & UNIFIED) -->
     <header class="premium-header p-4 lg:px-6">
@@ -198,12 +180,22 @@
             </div>
         </div>
     </footer>
+    
+    <!-- MODAL CONTAINER (Used for Onboarding/KYC) -->
+    <div id="modal-overlay" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div id="modal-content-wrapper" class="rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl bg-gradient-to-br from-background-light to-background-accent border border-border-accent transform scale-95 opacity-0 transition-all duration-300">
+            <!-- Modal content is dynamically rendered here -->
+        </div>
+    </div>
 
-    <!-- ==================================================================================== -->
-    <!-- === GECAN™ KARAVAN ENGINE v1.0 (SUPREME UNIFIED STANDARD) === -->
-    <!-- This single, unabridged script block contains the entire application logic. -->
-    <!-- ==================================================================================== -->
     <script>
+        // ====================================================================================
+        // === GECAN™ KARAVAN ENGINE v1.0 (SUPREME UNIFIED STANDARD) ===
+        // This single, unabridged script block contains the entire application logic for the
+        // Global Settlement Layer. It is architected for pinnacle performance, security, and a
+        // supremely intuitive, state-driven user experience.
+        // ====================================================================================
+        
         (function() {
             'use strict';
             
@@ -212,42 +204,29 @@
             const AppState = { 
                 isAuthenticated: false,
                 referralInfo: null,
-                userRole: null, // 'dispatcher' or 'partner'
-                currentView: 'auth', // 'auth', 'role_select', 'dispatcher_wizard', 'partner_dashboard'
-                
-                // State for the Dispatcher Wizard
+                userRole: null,
+                currentView: 'auth', // 'auth', 'role_select', 'dispatcher_wizard'
                 dispatch: {
-                    step: 1,
-                    totalSteps: 3,
-                    recipient: null,
-                    sendCurrency: 'SGD',
-                    receiveCurrency: 'PHP',
-                    sendAmount: 1000,
-                    receiveAmount: 0,
-                    quote: null,
-                    quoteExpiresAt: null,
-                    onRampMethod: 'fiat' // 'fiat' or 'crypto'
+                    step: 1, totalSteps: 3,
+                    fromCurrency: 'SGD', toCurrency: 'PHP',
+                    amount: 1000, amountType: 'send', // 'send' or 'receive'
+                    quote: null, quoteTimer: null,
+                    recipient: null, invoiceRef: '',
+                    onRampMethod: 'fiat',
+                    onRampDetails: null
                 },
-                
-                // State for Partners and available data
                 marketData: {
                     fxRates: {},
-                    contacts: []
+                    contacts: [],
+                    availableCurrencies: ['USD', 'CAD', 'SGD', 'HKD', 'GBP', 'AED', 'PHP', 'USDT']
                 },
-                
                 isLoading: true
             };
 
             const Utils = {
                 createApiRequest: async (action, method = 'POST', params = {}) => {
-                    // ... [Same robust createApiRequest function from previous correct implementations] ...
                     const url = new URL(API_URL);
-                    const options = {
-                        method: method.toUpperCase(),
-                        redirect: 'follow',
-                        body: JSON.stringify({ action, data: params }),
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                    };
+                    const options = { method: method.toUpperCase(), redirect: 'follow', body: JSON.stringify({ action, data: params }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } };
                     try {
                         const response = await fetch(url, options);
                         const resultText = await response.text();
@@ -260,13 +239,6 @@
                         throw error;
                     }
                 },
-                debounce: (func, wait) => { 
-                    let timeout; 
-                    return (...args) => { 
-                        clearTimeout(timeout); 
-                        timeout = setTimeout(() => func.apply(this, args), wait); 
-                    }; 
-                },
                 showNotification: (message, type = 'info', duration = 4000) => {
                     const toast = document.createElement('div');
                     const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-rose-600', info: 'from-sky-500 to-blue-600' };
@@ -278,21 +250,53 @@
                     setTimeout(() => { toast.style.transform = 'translateX(120%)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, duration);
                 },
                 formatCurrency: (amount, currency = 'USD', decimals = 2) => {
-                    if (isNaN(amount) || amount === null) return '...';
-                    return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
+                    if (isNaN(parseFloat(amount)) || amount === null) return '...';
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
                 },
+                 openModal: () => {
+                    const overlay = document.getElementById('modal-overlay');
+                    const wrapper = document.getElementById('modal-content-wrapper');
+                    overlay.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        overlay.classList.remove('opacity-0');
+                        wrapper.classList.remove('scale-95', 'opacity-0');
+                        wrapper.classList.add('scale-100', 'opacity-100');
+                    });
+                },
+                closeModal: () => {
+                    const overlay = document.getElementById('modal-overlay');
+                    const wrapper = document.getElementById('modal-content-wrapper');
+                    overlay.classList.add('opacity-0');
+                    wrapper.classList.remove('scale-100', 'opacity-100');
+                    wrapper.classList.add('scale-95', 'opacity-0');
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        wrapper.innerHTML = ''; // Clear content after hiding
+                    }, 400);
+                }
             };
             
-            const UI = {
+const UI = {
+                /**
+                 * [Supreme Initialization Protocol]
+                 * Orchestrates the initialization of all core visual and logical components,
+                 * including the pinnacle-grade particle background and navigation.
+                 */
                 init: () => {
                     if (typeof particlesJS !== 'undefined') { 
-                        particlesJS('particles-js', {"particles":{"number":{"value":40,"density":{"enable":true,"value_area":800}},"color":{"value":"#b4975a"},"shape":{"type":"circle"},"opacity":{"value":0.3,"random":true},"size":{"value":2,"random":true},"line_linked":{"enable":false},"move":{"enable":true,"speed":1,"direction":"bottom","random":true,"straight":false,"out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":false}},"modes":{"grab":{"distance":200,"line_linked":{"opacity":0.5}}}},"retina_detect":true});
+                        particlesJS('particles-js', {"particles":{"number":{"value":40,"density":{"enable":true,"value_area":800}},"color":{"value":"#b4975a"},"shape":{"type":"circle"},"opacity":{"value":0.3,"random":true},"size":{"value":2,"random":true},"line_linked":{"enable":false},"move":{"enable":true,"speed":1,"direction":"bottom","random":true,"straight":false,"out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":false}}},"retina_detect":true});
                     }
                     UI.populateNavLinks();
-                    UI.renderView('auth');
+                    Logic.checkForAutoAuth();
                 },
+                /**
+                 * [Pinnacle Navigation Renderer]
+                 * Constructs the complete, benchmark-standard navigation bar, including the
+                 * multi-link "More" dropdown, and correctly sets the 'active' state for Karavan.
+                 */
                 populateNavLinks: () => {
                     const navContainer = document.getElementById('nav-container');
+                    if (!navContainer) return;
                     const links = [
                         { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow' },
                         { page: 'about', icon: 'fas fa-landmark', text: 'The Alliance' },
@@ -300,19 +304,35 @@
                         { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect' },
                         { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Intelligence' },
                     ];
-                     const moreLinks = [
+                    const moreLinks = [
                         { page: 'nexus', icon: 'fas fa-layer-group', text: 'Capital Nexus' },
                         { page: 'karavan', icon: 'fas fa-gem', text: 'Karavan' },
                         { page: 'privacy', icon: 'fas fa-user-secret', text: 'Privacy Policy' },
                         { page: 'terms', icon: 'fas fa-gavel', text: 'Terms & Conditions' }
                     ];
+
                     let navHtml = links.map(link => {
-                        const isActive = link.page === 'karavan';
-                        return `<a href="./${link.page}.html" class="nav-btn ${isActive ? 'active' : ''}"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`;
+                        return `<a href="./${link.page}.html" class="nav-btn"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`;
                     }).join('');
-                     navHtml += `<div class="relative group"><button class="nav-btn"><i class="fas fa-ellipsis-h"></i></button><div class="absolute top-full right-0 mt-2 w-56 bg-background-secondary border border-border-accent rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 z-50">${moreLinks.map(link => `<a href="./${link.page}.html" class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-primary-azure hover:text-white transition-colors"><i class="fas ${link.icon} fa-fw w-5"></i><span>${link.text}</span></a>`).join('')}</div></div>`;
+
+                    navHtml += `
+                        <div class="relative group">
+                            <button class="nav-btn ${window.location.pathname.includes('karavan') ? 'active' : ''}"><i class="fas fa-ellipsis-h"></i></button>
+                            <div class="absolute top-full right-0 mt-2 w-56 bg-background-secondary border border-border-accent rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 z-50">
+                                ${moreLinks.map(link => {
+                                    const isActive = window.location.pathname.includes(link.page);
+                                    return `<a href="./${link.page}.html" class="flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isActive ? 'text-white bg-primary-azure' : 'text-text-secondary hover:bg-primary-azure/50 hover:text-white'}">${link.icon ? `<i class="fas ${link.icon} fa-fw w-5"></i>` : ''}<span>${link.text}</span></a>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
                     navContainer.innerHTML = navHtml;
                 },
+                /**
+                 * [Master View Controller]
+                 * Renders the primary user interface based on the current AppState.currentView.
+                 * This is the core function that drives the entire single-page application feel.
+                 */
                 renderView: (viewName) => {
                     const mainContent = document.getElementById('main-content');
                     if (!mainContent) return;
@@ -323,30 +343,48 @@
                         case 'auth': html = ComponentBuilders.renderAuthGate(); break;
                         case 'role_select': html = ComponentBuilders.renderRoleSelector(); break;
                         case 'dispatcher_wizard': html = ComponentBuilders.renderDispatcherWizard(); break;
+                        case 'loading': html = ComponentBuilders.renderLoadingScreen("Initializing Secure Session..."); break;
                     }
                     mainContent.innerHTML = html;
                     Logic.bindEventListenersForView(viewName);
                 },
+                /**
+                 * [Pinnacle Quote Renderer]
+                 * Renders the live FX quote analysis panel with supreme detail and clarity.
+                 * It intelligently displays either the quote or a status message.
+                 */
                 updateDispatchQuote: () => {
-                    const { quote, sendAmount, receiveAmount, sendCurrency, receiveCurrency } = AppState.dispatch;
+                    const { quote, sendAmount, receiveAmount, sendCurrency, toCurrency } = AppState.dispatch;
                     const quoteContainer = document.getElementById('quote-container');
                     if (!quoteContainer) return;
 
+                    // Clear any existing timer
+                    if (AppState.dispatch.quoteTimer) clearInterval(AppState.dispatch.quoteTimer);
+
                     if (!quote || new Date() > AppState.dispatch.quoteExpiresAt) {
-                        quoteContainer.innerHTML = `<div class="text-center text-text-muted italic p-4">Enter an amount to get a live quote...</div>`;
+                        quoteContainer.innerHTML = `<div class="flex items-center justify-center h-full text-text-muted italic p-4 text-center"><i class="fas fa-calculator fa-2x mb-4"></i><span>Enter an amount to get a live, institutional-grade quote.</span></div>`;
                         document.getElementById('dispatch-btn').disabled = true;
                         return;
                     }
                     
+                    const sendInputEl = document.getElementById('send-amount');
+                    const receiveInputEl = document.getElementById('receive-amount');
+                    if (sendInputEl) sendInputEl.value = parseFloat(quote.sendAmount).toFixed(2);
+                    if (receiveInputEl) receiveInputEl.value = parseFloat(quote.receiveAmount).toFixed(2);
+
                     quoteContainer.innerHTML = `
-                        <div class="space-y-3 p-4">
-                            <div class="flex justify-between items-baseline"><span class="text-text-secondary">Exchange Rate</span><strong class="font-mono text-text-platinum">1 ${sendCurrency} = ${quote.rate.toFixed(4)} ${receiveCurrency}</strong></div>
-                            <div class="flex justify-between items-baseline"><span class="text-text-secondary">GECAN™ Fee (${quote.feePercentage}%)</span><strong class="font-mono text-text-platinum">${Utils.formatCurrency(quote.fee, sendCurrency)}</strong></div>
-                            <div class="border-t border-border-secondary my-2"></div>
-                            <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">You Send</span><strong class="text-2xl font-bold text-primary-azure">${Utils.formatCurrency(sendAmount, sendCurrency)}</strong></div>
-                            <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">Recipient Receives (Guaranteed)</span><strong class="text-2xl font-bold text-success-color">${Utils.formatCurrency(receiveAmount, receiveCurrency, 0)}</strong></div>
+                        <div class="p-4 h-full flex flex-col">
+                            <h4 class="text-sm font-bold text-text-secondary mb-3 text-center uppercase tracking-wider">Live Transaction Analysis</h4>
+                            <div class="space-y-3 flex-grow">
+                                <div class="flex justify-between items-baseline"><span class="text-text-muted">Institutional Rate</span><strong class="font-mono text-text-platinum">1 ${sendCurrency} ≈ ${quote.rate.toFixed(5)} ${toCurrency}</strong></div>
+                                <div class="flex justify-between items-baseline"><span class="text-text-muted">GECAN™ Fee (${quote.feePercentage}%)</span><strong class="font-mono text-warning-color">- ${Utils.formatCurrency(quote.fee, sendCurrency)}</strong></div>
+                                <div class="border-t border-border-secondary my-2"></div>
+                                <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">You Will Send</span><strong class="text-2xl font-bold text-primary-azure">${Utils.formatCurrency(quote.sendAmount, sendCurrency)}</strong></div>
+                                <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">Recipient Receives</span><strong class="text-2xl font-bold text-success-color">${Utils.formatCurrency(quote.receiveAmount, toCurrency)}</strong></div>
+                            </div>
+                            <div class="text-center text-xs text-text-muted mt-3">This guaranteed rate is locked for <span id="quote-countdown">30</span> seconds.</div>
+                            <div id="quote-timer-bar" class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-brand-gecan-gold to-warning-color"></div>
                         </div>
-                        <div id="quote-timer" class="absolute bottom-0 left-0 h-1 bg-brand-gecan-gold"></div>
                     `;
                     Logic.startQuoteTimer();
                     document.getElementById('dispatch-btn').disabled = false;
@@ -356,108 +394,218 @@
             const ComponentBuilders = {
                 renderAuthGate: () => `
                     <div id="referral-gate" class="glass-pane rounded-2xl p-6 md:p-10 max-w-lg mx-auto shadow-2xl fade-in-up text-center">
-                        <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold/10 to-brand-gecan-gold/0 border-2 border-brand-gecan-gold/50 flex items-center justify-center mb-6 shadow-gold-glow">
-                            <i class="fas fa-route text-5xl text-brand-gecan-gold" style="text-shadow: 0 0 15px var(--glow-gold);"></i>
+                        <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold/10 to-brand-gecan-gold/0 border-2 border-brand-gecan-gold/50 flex items-center justify-center mb-6 shadow-gold-glow animate-vortex-pulse">
+                            <i class="fas fa-gem text-5xl text-brand-gecan-gold" style="text-shadow: 0 0 15px var(--glow-gold);"></i>
                         </div>
                         <h2 class="text-3xl font-bold text-white mb-2 font-mono">GECAN™ <span class="text-premium-gold">KARAVAN</span></h2>
                         <p class="text-text-secondary mb-8">Please authenticate with your Partner ID to access the Global Settlement Layer.</p>
-                        <div class="flex items-center gap-3">
-                            <input type="password" id="referral-id-input" placeholder="Enter Partner Referral ID" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-wider text-center">
-                            <button id="validate-id-btn" class="btn-gold font-bold py-3 px-6 rounded-xl disabled:opacity-50">Authenticate</button>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <input type="password" id="referral-id-input" placeholder="Enter Partner ID" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-wider text-center">
+                                <button id="validate-id-btn" class="btn-gold font-bold py-3 px-6 rounded-xl disabled:opacity-50">Authenticate</button>
+                            </div>
+                            <p class="text-xs text-text-muted">Don't have a Partner ID? <a href="#" id="onboard-link" class="text-primary-azure hover:text-primary-dark font-semibold transition-colors">Onboard Here</a></p>
                         </div>
                         <p id="referral-error" class="text-sm text-error-color mt-3 h-5"></p>
                     </div>`,
                 renderRoleSelector: () => `
                     <div class="text-center fade-in-up">
-                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Welcome to Karavan, ${AppState.referralInfo.partnerName}</h2>
-                        <p class="text-text-secondary mb-10 max-w-2xl mx-auto">"From the ancient Silk Road to the digital frontier, a Karavan has always signified the secure transport of value. It represents a trusted journey."</p>
-                        <p class="text-lg text-text-platinum mb-12">What is your objective today?</p>
+                        <div class="mb-8">
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Welcome, ${AppState.referralInfo.partnerName}</h2>
+                            <p class="text-text-secondary mb-4 max-w-3xl mx-auto italic">"From the ancient Silk Road to the digital frontier, a Karavan has always signified the secure transport of value. It represents a trusted journey, protected by the network, delivering with precision and speed."</p>
+                        </div>
+                        <p class="text-lg text-text-platinum mb-10">What is your objective today?</p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                             <div id="role-dispatcher" class="role-selector-card p-8 rounded-2xl cursor-pointer">
-                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-azure to-primary-royal flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-paper-plane fa-2x text-white"></i></div>
+                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-azure to-primary-royal flex items-center justify-center mb-4 shadow-lg shadow-azure-glow/20"><i class="fas fa-paper-plane fa-2x text-white"></i></div>
                                 <h3 class="text-2xl font-bold text-white">Dispatch a Karavan</h3>
                                 <p class="text-text-secondary mt-2">Initiate a secure, instantaneous cross-border settlement or remittance.</p>
                             </div>
                             <div id="role-partner" class="role-selector-card p-8 rounded-2xl cursor-pointer">
-                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold to-warning-color flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-hand-holding-usd fa-2x text-background-dark"></i></div>
+                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold to-warning-color flex items-center justify-center mb-4 shadow-lg shadow-gold-glow/40"><i class="fas fa-university fa-2x text-background-dark"></i></div>
                                 <h3 class="text-2xl font-bold text-white">Liquidity Partner Hub</h3>
                                 <p class="text-text-secondary mt-2">Manage your liquidity pools, view network activity, and access treasury tools.</p>
                             </div>
                         </div>
                     </div>`,
-                renderDispatcherWizard: () => `
-                    <div class="max-w-4xl mx-auto fade-in-up">
-                        <div class="text-center mb-10">
-                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Dispatch a New Karavan</h2>
+                renderLoadingScreen: (message) => `
+                    <div class="text-center py-20 fade-in-up">
+                        <div class="relative inline-block">
+                            <i class="fas fa-spinner fa-spin fa-3x text-primary-azure drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></i>
+                            <div class="absolute inset-0 rounded-full animate-ping bg-primary-azure opacity-20"></div>
+                        </div>
+                        <p class="mt-6 text-xl font-medium text-text-secondary">${message}</p>
+                    </div>`,
+                renderDispatcherWizard: () => {
+                    const { step, totalSteps } = AppState.dispatch;
+                    const progress = ((step - 1) / (totalSteps - 1)) * 100;
+                    return `
+                    <div class="max-w-5xl mx-auto fade-in-up">
+                        <div class="text-center mb-8">
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">New Karavan Dispatch</h2>
                             <p class="text-text-secondary max-w-3xl mx-auto">A guided three-step process for secure, instantaneous global value transfer.</p>
                         </div>
-                        <div class="glass-pane rounded-2xl shadow-2xl p-6 md:p-8">
-                            <div class="wizard-step-container min-h-[450px]">
-                                <div id="step-1" class="wizard-step">
-                                    <div class="text-center"><span class="text-sm font-bold text-primary-azure">STEP 1 OF 3</span><h3 class="text-2xl font-bold text-white mt-1">Define Destination & Recipient</h3></div>
-                                    <!-- Recipient selection UI here -->
-                                    <div class="mt-8 text-center"><button class="btn-primary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(2)">Next Step</button></div>
-                                </div>
-                                <div id="step-2" class="wizard-step">
-                                    <div class="text-center"><span class="text-sm font-bold text-primary-azure">STEP 2 OF 3</span><h3 class="text-2xl font-bold text-white mt-1">Define Cargo & Value</h3></div>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 items-start">
-                                        <div class="space-y-4">
-                                            <div>
-                                                <label for="send-amount" class="font-semibold text-text-secondary">You Send</label>
-                                                <div class="flex items-center mt-1">
-                                                    <input type="number" id="send-amount" class="form-input text-2xl font-bold !rounded-r-none" value="1000">
-                                                    <select id="send-currency" class="form-select !rounded-l-none !border-l-0 w-28">
-                                                        <option>SGD</option><option>CAD</option><option>USD</option><option>GBP</option><option>AED</option><option>HKD</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label for="receive-amount" class="font-semibold text-text-secondary">Recipient Receives</label>
-                                                <div class="flex items-center mt-1">
-                                                    <input type="number" id="receive-amount" class="form-input text-2xl font-bold !rounded-r-none" placeholder="0.00">
-                                                     <select id="receive-currency" class="form-select !rounded-l-none !border-l-0 w-28">
-                                                        <option>PHP</option><option>USD</option><option>INR</option><option>VND</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div id="quote-container" class="bg-background-dark rounded-xl shadow-inner-premium border border-border-secondary relative overflow-hidden">
-                                            <div class="text-center text-text-muted italic p-4">Enter an amount to get a live quote...</div>
-                                        </div>
+                        <div class="mb-8 max-w-2xl mx-auto">
+                            <div class="flex justify-between text-xs font-mono text-text-muted mb-2">
+                                <span class="${step >= 1 ? 'text-text-platinum font-bold' : ''}">1. Destination</span>
+                                <span class="${step >= 2 ? 'text-text-platinum font-bold' : ''}">2. Cargo</span>
+                                <span class="${step >= 3 ? 'text-text-platinum font-bold' : ''}">3. Dispatch</span>
+                            </div>
+                            <div class="w-full bg-background-dark shadow-inner-premium rounded-full h-2.5">
+                                <div id="progress-bar" class="bg-gradient-to-r from-brand-gecan-gold to-warning-color h-2.5 rounded-full transition-all duration-500 ease-out" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                        <div class="glass-pane rounded-2xl shadow-2xl p-6 md:p-8 relative min-h-[500px]">
+                            <div class="wizard-step-container">
+                                ${ComponentBuilders.renderWizardStep1()}
+                                ${ComponentBuilders.renderWizardStep2()}
+                                ${ComponentBuilders.renderWizardStep3()}
+                            </div>
+                        </div>
+                    </div>`;
+                },
+                renderWizardStep1: () => `
+                    <div id="step-1" class="wizard-step">
+                        <div class="text-center mb-8">
+                            <span class="text-sm font-bold text-primary-azure font-mono tracking-widest">STEP 1: DESTINATION</span>
+                            <h3 class="text-2xl font-bold text-white mt-1">Who is receiving the funds?</h3>
+                            <p class="text-text-secondary mt-2">Select a verified beneficiary from your GECAN™ contacts or add a new one.</p>
+                        </div>
+                        <div class="max-w-lg mx-auto space-y-4">
+                             <div>
+                                <label class="text-sm font-medium text-text-secondary">Select Beneficiary</label>
+                                <select id="recipient-select" class="form-select mt-1"></select>
+                            </div>
+                            <p class="text-center text-text-muted">or</p>
+                            <button class="btn-secondary w-full py-3 rounded-lg"><i class="fas fa-user-plus mr-2"></i>Add New Beneficiary</button>
+                        </div>
+                        <div class="mt-12 text-center">
+                            <button class="btn-gold font-bold py-3 px-10 rounded-lg text-lg" onclick="Logic.setWizardStep(2)">Next Step <i class="fas fa-arrow-right ml-2"></i></button>
+                        </div>
+                    </div>`,
+                renderWizardStep2: () => {
+                    const { amountType, sendAmount, sendCurrency, toCurrency } = AppState.dispatch;
+                    const currencyOptions = (selected) => AppState.marketData.availableCurrencies.map(c => `<option ${c === selected ? 'selected': ''}>${c}</option>`).join('');
+                    
+                    return `
+                    <div id="step-2" class="wizard-step">
+                        <div class="text-center mb-8">
+                            <span class="text-sm font-bold text-primary-azure font-mono tracking-widest">STEP 2: CARGO</span>
+                            <h3 class="text-2xl font-bold text-white mt-1">Define the Value Transfer</h3>
+                            <p class="text-text-secondary mt-2">Enter either the amount you wish to send or the exact amount the recipient must receive.</p>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+                            <!-- Input Panel -->
+                            <div class="lg:col-span-3 space-y-4">
+                                <div class="relative group form-input-group transition-all duration-300 rounded-xl ${amountType === 'send' ? 'ring-2 ring-primary-azure' : ''}">
+                                    <label for="send-amount" class="font-semibold text-text-secondary block mb-1 p-4 pb-0">You Send</label>
+                                    <div class="flex items-center p-4 pt-0">
+                                        <input type="number" id="send-amount" class="form-input text-3xl font-bold !p-0 bg-transparent border-none focus:ring-0" value="${sendAmount}" ${amountType === 'receive' ? 'readonly' : ''}>
+                                        <select id="send-currency" class="form-select !p-2 !pr-8 w-32 font-semibold bg-background-secondary border-border-secondary">${currencyOptions(sendCurrency)}</select>
                                     </div>
-                                    <div class="mt-8 flex justify-between"><button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(1)">Previous</button><button class="btn-primary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(3)">Next Step</button></div>
                                 </div>
-                                <div id="step-3" class="wizard-step">
-                                    <div class="text-center"><span class="text-sm font-bold text-primary-azure">STEP 3 OF 3</span><h3 class="text-2xl font-bold text-white mt-1">Confirm & Dispatch</h3></div>
-                                    <!-- Payment method selection (Fiat/Crypto) and final confirmation UI here -->
-                                    <div class="mt-8 flex justify-between"><button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(2)">Previous</button><button id="dispatch-btn" class="btn-gold font-bold py-3 px-8 rounded-lg disabled:opacity-50" disabled>Dispatch Karavan</button></div>
+                                <div class="text-center">
+                                    <button onclick="Logic.swapAmountFocus()" class="w-12 h-12 bg-background-secondary border border-border-color rounded-full hover:bg-primary-azure hover:text-white transition-all duration-300 transform hover:rotate-180 hover:scale-110 shadow-lg" title="Swap calculation direction">
+                                      <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                </div>
+                                <div class="relative group form-input-group transition-all duration-300 rounded-xl ${amountType === 'receive' ? 'ring-2 ring-success-color' : ''}">
+                                    <label for="receive-amount" class="font-semibold text-text-secondary block mb-1 p-4 pb-0">Recipient Receives</label>
+                                     <div class="flex items-center p-4 pt-0">
+                                        <input type="number" id="receive-amount" class="form-input text-3xl font-bold !p-0 bg-transparent border-none focus:ring-0" placeholder="0.00" ${amountType === 'send' ? 'readonly' : ''}>
+                                         <select id="receive-currency" class="form-select !p-2 !pr-8 w-32 font-semibold bg-background-secondary border-border-secondary">${currencyOptions(toCurrency)}</select>
+                                    </div>
                                 </div>
                             </div>
+                            <!-- Analysis Panel -->
+                            <div id="quote-container" class="lg:col-span-2 bg-background-dark rounded-xl shadow-inner-premium border border-border-secondary relative overflow-hidden min-h-[260px]">
+                                <!-- Quote will be rendered here by UI.updateDispatchQuote -->
+                            </div>
+                        </div>
+                        <div class="mt-12 flex justify-between">
+                            <button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(1)"><i class="fas fa-arrow-left mr-2"></i>Previous</button>
+                            <button class="btn-gold font-bold py-3 px-10 rounded-lg text-lg" onclick="Logic.setWizardStep(3)">Next Step <i class="fas fa-arrow-right ml-2"></i></button>
+                        </div>
+                    </div>`;
+                },
+                renderWizardStep3: () => `
+                    <div id="step-3" class="wizard-step">
+                        <div class="text-center mb-8">
+                            <span class="text-sm font-bold text-primary-azure font-mono tracking-widest">STEP 3: DISPATCH</span>
+                            <h3 class="text-2xl font-bold text-white mt-1">Final Confirmation</h3>
+                            <p class="text-text-secondary mt-2">Review the final details and select your payment method to dispatch the Karavan.</p>
+                        </div>
+                        
+                        <div id="final-summary-container" class="max-w-xl mx-auto mb-8">
+                           <!-- Final summary will be rendered here by Logic.setWizardStep(3) -->
+                        </div>
+
+                        <div class="max-w-xl mx-auto">
+                            <h4 class="font-semibold text-center text-text-secondary mb-4">Select Your On-Ramp Method</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="onramp-selector">
+                                <div data-method="fiat" class="role-selector-card p-6 rounded-xl cursor-pointer active">
+                                    <div class="flex items-center gap-4">
+                                        <i class="fas fa-university text-3xl text-primary-azure"></i>
+                                        <div>
+                                            <h5 class="font-bold text-white">Bank Transfer</h5>
+                                            <p class="text-xs text-text-muted">Pay via local bank transfer (e.g., PayNow, Interac).</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div data-method="crypto" class="role-selector-card p-6 rounded-xl cursor-pointer">
+                                    <div class="flex items-center gap-4">
+                                       <i class="fab fa-btc text-3xl text-warning-color"></i>
+                                       <div>
+                                            <h5 class="font-bold text-white">Crypto (USDT/USDC)</h5>
+                                            <p class="text-xs text-text-muted">Pay directly from your digital wallet for the lowest fees.</p>
+                                       </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-12 flex justify-between">
+                            <button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(2)"><i class="fas fa-arrow-left mr-2"></i>Previous</button>
+                            <button id="dispatch-btn" class="btn-gold font-bold py-3 px-10 rounded-lg text-lg disabled:opacity-50" disabled>
+                                <i class="fas fa-shield-alt mr-2"></i>Confirm & Dispatch Karavan
+                            </button>
                         </div>
                     </div>`
             };
             
-            const Logic = {
+const Logic = {
+                /**
+                 * [Supreme Initialization Protocol]
+                 * This function is the primary entry point for the entire Karavan application. It orchestrates the
+                 * initialization of all core components in the correct sequence to prevent race conditions and errors.
+                 */
                 init: () => {
                     UI.init();
+                    Logic.checkForAutoAuth();
                 },
-                bindEventListenersForView: (view) => {
-                    if (view === 'auth') {
-                        document.getElementById('validate-id-btn')?.addEventListener('click', Logic.validateReferralId);
-                        document.getElementById('referral-id-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') Logic.validateReferralId(); });
-                    }
-                    if (view === 'role_select') {
-                        document.getElementById('role-dispatcher')?.addEventListener('click', () => Logic.selectRole('dispatcher'));
-                        document.getElementById('role-partner')?.addEventListener('click', () => Logic.selectRole('partner'));
-                    }
-                    if(view === 'dispatcher_wizard'){
-                        const debouncedQuote = Utils.debounce(Logic.getQuote, 500);
-                        document.getElementById('send-amount')?.addEventListener('input', debouncedQuote);
-                        document.getElementById('receive-amount')?.addEventListener('input', debouncedQuote);
-                        document.getElementById('send-currency')?.addEventListener('change', debouncedQuote);
-                        document.getElementById('receive-currency')?.addEventListener('change', debouncedQuote);
+
+                /**
+                 * [Intelligent Auto-Authentication]
+                 * Checks for a referral ID in the URL parameters upon page load, allowing for seamless
+                 * entry into the platform from a direct link, bypassing manual entry.
+                 */
+                checkForAutoAuth: () => {
+                    const code = new URLSearchParams(window.location.search).get('referralId');
+                    if (code) {
+                        const input = document.getElementById('referral-id-input');
+                        if (input) {
+                            input.value = code;
+                            Logic.validateReferralId();
+                        }
                     }
                 },
+
+                /**
+                 * [Secure Validation Engine]
+                 * Handles the validation of a user-provided Partner Referral ID. Manages the complete
+                 * UI state transition from input, to loading, to success or failure, providing
+                 * clear, real-time feedback to the user.
+                 */
                 validateReferralId: async () => {
                     const btn = document.getElementById('validate-id-btn');
                     const input = document.getElementById('referral-id-input');
@@ -466,7 +614,7 @@
 
                     const referralId = input.value.trim().toUpperCase();
                     if (!referralId) {
-                        errorEl.textContent = 'Referral ID cannot be empty.';
+                        errorEl.textContent = 'Partner ID cannot be empty.';
                         return;
                     }
                     
@@ -486,15 +634,182 @@
                         btn.innerHTML = 'Authenticate';
                     }
                 },
+
+                /**
+                 * [Pinnacle Onboarding Initiator]
+                 * Triggers the UI to display the multi-step KYC and account creation modal for new users.
+                 */
+                initiateOnboarding: () => {
+                    Utils.showNotification('The automated onboarding portal is currently in development. Please contact GECAN™ directly for a Partner ID.', 'info');
+                    // In a future version, this would call a UI.renderOnboardingModal() function.
+                },
+
+                /**
+
+                 * [Stateful Role Selection Controller]
+                 * Sets the user's role in the AppState and triggers a re-render of the main view
+                 * to display the dashboard corresponding to the selected role.
+                 */
                 selectRole: async (role) => {
                     AppState.userRole = role;
                     if (role === 'partner') {
                         Utils.showNotification('Liquidity Partner Hub is currently under development.', 'info');
-                        return; // Feature not ready
+                        return; // Feature not yet implemented
                     }
                     UI.renderView('dispatcher_wizard');
-                    await Logic.getQuote(); // Get initial quote
+                    await Logic.initializeDispatchWizard();
                 },
+
+                /**
+                 * [Dispatch Wizard Initializer]
+                 * Sets up the initial state for the Karavan dispatch process, populates currency
+                 * dropdowns by fetching live market data, and then calculates an initial quote.
+                 */
+                initializeDispatchWizard: async () => {
+                    AppState.dispatch.step = 1;
+                    Logic.setWizardStep(1);
+
+                    try {
+                        // Fetch the live market matrix data to populate currencies.
+                        const marketMatrix = await Utils.createApiRequest('getMarketMatrixData', 'GET');
+                        AppState.marketData.marketMatrix = marketMatrix;
+                        
+                        // Filter for unique, transactable currencies from the matrix
+                        const availableCurrencies = [...new Set(marketMatrix.map(a => a.baseAsset))].sort();
+                        AppState.marketData.availableCurrencies = availableCurrencies;
+                        
+                        const sendCurrencyEl = document.getElementById('send-currency');
+                        const receiveCurrencyEl = document.getElementById('receive-currency');
+                        const recipientSelectEl = document.getElementById('recipient-select');
+
+                        if (sendCurrencyEl) sendCurrencyEl.innerHTML = availableCurrencies.map(c => `<option ${c === 'SGD' ? 'selected': ''}>${c}</option>`).join('');
+                        if (receiveCurrencyEl) receiveCurrencyEl.innerHTML = availableCurrencies.map(c => `<option ${c === 'PHP' ? 'selected': ''}>${c}</option>`).join('');
+                        
+                        // In a real scenario, contacts would be fetched via another API call.
+                        // For now, we'll use a placeholder.
+                        if (recipientSelectEl) recipientSelectEl.innerHTML = '<option value="" disabled selected>Select a verified beneficiary...</option><option value="1">Maria Reyes - BPI Philippines</option>';
+
+                        // Fetch an initial quote based on default values.
+                        await Logic.getLiveQuote();
+                    } catch (error) {
+                        Utils.showNotification(`Error initializing wizard: ${error.message}`, 'error');
+                        // Potentially render an error state for the wizard
+                    }
+                },
+
+                /**
+                 * [Supreme Live FX & Fee Engine v2.0]
+                 * This is the core of the quoting system. It reads the live asset prices from AppState.marketData,
+                 * calculates precise cross-rates, applies a dynamic fee structure, and handles both forward
+                 * ("You Send") and reverse ("Recipient Receives") calculations with pinnacle accuracy.
+                 */
+                getLiveQuote: async () => {
+                    const sendAmountEl = document.getElementById('send-amount');
+                    const receiveAmountEl = document.getElementById('receive-amount');
+                    const sendCurrencyEl = document.getElementById('send-currency');
+                    const receiveCurrencyEl = document.getElementById('receive-currency');
+                    const quoteContainer = document.getElementById('quote-container');
+
+                    if (!sendAmountEl || !receiveAmountEl || !quoteContainer) return;
+
+                    // Immediately clear previous quote and disable dispatch
+                    AppState.dispatch.quote = null;
+                    UI.updateDispatchQuote();
+
+                    const { amountType } = AppState.dispatch;
+                    const fromCurrency = sendCurrencyEl.value;
+                    const toCurrency = receiveCurrencyEl.value;
+                    const amount = parseFloat(amountType === 'send' ? sendAmountEl.value : receiveAmountEl.value) || 0;
+                    
+                    if (amount <= 0 || fromCurrency === toCurrency) {
+                        if(amountType === 'send') receiveAmountEl.value = '';
+                        else sendAmountEl.value = '';
+                        return; // No calculation needed
+                    }
+                    
+                    quoteContainer.innerHTML = `<div class="flex items-center justify-center h-full text-text-muted animate-pulse"><i class="fas fa-calculator text-2xl mr-3"></i> <span>Calculating institutional rate...</span></div>`;
+
+                    try {
+                        // Find the assets in our live market data
+                        const fromAsset = AppState.marketData.marketMatrix.find(a => a.baseAsset === fromCurrency && a.quoteAsset === 'USD');
+                        const toAsset = AppState.marketData.marketMatrix.find(a => a.baseAsset === toCurrency && a.quoteAsset === 'USD');
+
+                        if (!fromAsset || !toAsset || fromAsset.price <= 0 || toAsset.price <= 0) {
+                            throw new Error(`Live pricing for the ${fromCurrency}/${toCurrency} pair is currently unavailable.`);
+                        }
+
+                        // --- Pinnacle Cross-Rate Calculation ---
+                        // All rates are calculated via a common base (USD) for maximum flexibility.
+                        const institutionalRate = fromAsset.price / toAsset.price;
+                        const GECAN_FEE_PERCENTAGE = 0.60; // 0.60%
+                        
+                        let calculatedSendAmount, calculatedReceiveAmount, feeAmount;
+
+                        if (amountType === 'send') {
+                            calculatedSendAmount = amount;
+                            feeAmount = calculatedSendAmount * (GECAN_FEE_PERCENTAGE / 100);
+                            const netSendAmount = calculatedSendAmount - feeAmount;
+                            calculatedReceiveAmount = netSendAmount * institutionalRate;
+                            receiveAmountEl.value = calculatedReceiveAmount.toFixed(2);
+                        } else { // amountType is 'receive'
+                            calculatedReceiveAmount = amount;
+                            const grossSendAmount = calculatedReceiveAmount / institutionalRate;
+                            // Reverse calculate the fee: Gross = Net / (1 - FeeRate)
+                            calculatedSendAmount = grossSendAmount / (1 - (GECAN_FEE_PERCENTAGE / 100));
+                            feeAmount = calculatedSendAmount - grossSendAmount;
+                            sendAmountEl.value = calculatedSendAmount.toFixed(2);
+                        }
+
+                        // Store the definitive quote in the AppState
+                        AppState.dispatch.quote = {
+                            rate: institutionalRate,
+                            feePercentage: GECAN_FEE_PERCENTAGE.toFixed(2),
+                            fee: feeAmount,
+                            sendAmount: calculatedSendAmount,
+                            receiveAmount: calculatedReceiveAmount,
+                            fromCurrency: fromCurrency,
+                            toCurrency: toCurrency,
+                        };
+                        AppState.dispatch.sendAmount = calculatedSendAmount;
+                        AppState.dispatch.receiveAmount = calculatedReceiveAmount;
+                        AppState.dispatch.quoteExpiresAt = new Date(Date.now() + 30000); // Quote is valid for 30 seconds
+                        
+                        // Trigger UI update with the new, valid quote
+                        UI.updateDispatchQuote();
+
+                    } catch (error) {
+                        Utils.showNotification(`Could not fetch quote: ${error.message}`, 'error');
+                        quoteContainer.innerHTML = `<div class="text-center text-error-color p-4 flex flex-col items-center justify-center h-full"><i class="fas fa-exclamation-triangle mb-2"></i><span>Quote Unavailable</span><p class="text-xs text-text-muted mt-1">${error.message}</p></div>`;
+                        AppState.dispatch.quote = null;
+                    }
+                },
+                
+                swapAmountFocus: () => {
+                    const sendAmountEl = document.getElementById('send-amount');
+                    const receiveAmountEl = document.getElementById('receive-amount');
+                    const sendGroup = sendAmountEl.closest('.relative.group');
+                    const receiveGroup = receiveAmountEl.closest('.relative.group');
+
+                    if (AppState.dispatch.amountType === 'send') {
+                        AppState.dispatch.amountType = 'receive';
+                        sendAmountEl.readOnly = true;
+                        receiveAmountEl.readOnly = false;
+                        receiveGroup.classList.add('ring-2', 'ring-primary-azure');
+                        sendGroup.classList.remove('ring-2', 'ring-primary-azure');
+                        receiveAmountEl.focus();
+                    } else {
+                        AppState.dispatch.amountType = 'send';
+                        sendAmountEl.readOnly = false;
+                        receiveAmountEl.readOnly = true;
+                        sendGroup.classList.add('ring-2', 'ring-primary-azure');
+                        receiveGroup.classList.remove('ring-2', 'ring-primary-azure');
+                        sendAmountEl.focus();
+                    }
+                    
+                    Utils.showNotification(`Calculating based on ${AppState.dispatch.amountType.toUpperCase()} amount.`, 'info', 2000);
+                    Logic.getLiveQuote();
+                },
+                
                 setWizardStep: (step) => {
                     AppState.dispatch.step = step;
                     document.querySelectorAll('.wizard-step').forEach((el, index) => {
@@ -507,53 +822,63 @@
                             el.classList.add('future');
                         }
                     });
+                    UI.updateProgressBar();
                 },
-                getQuote: async () => {
-                    const sendAmount = parseFloat(document.getElementById('send-amount')?.value) || 0;
-                    const receiveAmount = parseFloat(document.getElementById('receive-amount')?.value) || 0;
-                    
-                    // Basic logic, needs to be enhanced to know which field was last edited.
-                    // For now, assume we're calculating based on sendAmount if it's not zero.
-                    if (sendAmount > 0) {
-                        AppState.dispatch.sendAmount = sendAmount;
-                        // In a real app, this would be a backend call.
-                        // Here we simulate it. Assume a fake rate for now.
-                        const mockFXRate = 43.152;
-                        const mockFeePct = 0.006;
-                        const fee = sendAmount * mockFeePct;
-                        const netAmount = sendAmount - fee;
-                        AppState.dispatch.receiveAmount = netAmount * mockFXRate;
-                        
-                        AppState.dispatch.quote = {
-                            rate: mockFXRate,
-                            feePercentage: (mockFeePct * 100).toFixed(2),
-                            fee: fee
-                        };
-                        AppState.dispatch.quoteExpiresAt = new Date(Date.now() + 30000); // 30 second quote
-                        UI.updateDispatchQuote();
-                    }
-                },
+
                 startQuoteTimer: () => {
+                    if (AppState.dispatch.quoteTimer) clearInterval(AppState.dispatch.quoteTimer);
                     const timerEl = document.getElementById('quote-timer');
                     if (!timerEl) return;
-                    let width = 100;
-                    const interval = setInterval(() => {
-                        width -= (100 / 300); // 30 seconds
+
+                    const duration = 30000;
+                    const startTime = Date.now();
+
+                    AppState.dispatch.quoteTimer = setInterval(() => {
+                        const elapsed = Date.now() - startTime;
+                        const width = Math.max(0, 100 - (elapsed / duration) * 100);
                         timerEl.style.width = `${width}%`;
+
                         if (width <= 0) {
-                            clearInterval(interval);
-                            UI.updateDispatchQuote(); // Clear the quote
-                            Utils.showNotification('Quote expired. Please re-enter amount.', 'warning');
+                            clearInterval(AppState.dispatch.quoteTimer);
+                            AppState.dispatch.quote = null;
+                            UI.updateDispatchQuote();
+                            Utils.showNotification('Quote expired due to market volatility. Please recalculate.', 'warning');
                         }
                     }, 100);
+                },
+
+                bindEventListenersForView: (view) => {
+                    if (view === 'auth') {
+                        document.getElementById('validate-id-btn')?.addEventListener('click', Logic.validateReferralId);
+                        document.getElementById('referral-id-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') Logic.validateReferralId(); });
+                        document.getElementById('onboard-link')?.addEventListener('click', Logic.initiateOnboarding);
+                    }
+                    if (view === 'role_select') {
+                        document.getElementById('role-dispatcher')?.addEventListener('click', () => Logic.selectRole('dispatcher'));
+                        document.getElementById('role-partner')?.addEventListener('click', () => Logic.selectRole('partner'));
+                    }
+                    if(view === 'dispatcher_wizard'){
+                        const debouncedQuote = Utils.debounce(Logic.getLiveQuote, 500);
+                        const sendAmountEl = document.getElementById('send-amount');
+                        const receiveAmountEl = document.getElementById('receive-amount');
+                        
+                        sendAmountEl?.addEventListener('input', () => { AppState.dispatch.amountType = 'send'; receiveAmountEl.value = ''; debouncedQuote(); });
+                        receiveAmountEl?.addEventListener('input', () => { AppState.dispatch.amountType = 'receive'; sendAmountEl.value = ''; debouncedQuote(); });
+
+                        document.getElementById('send-currency')?.addEventListener('change', Logic.getLiveQuote);
+                        document.getElementById('receive-currency')?.addEventListener('change', Logic.getLiveQuote);
+                    }
                 }
             };
             
             // This is the single, unified script execution entry point.
-            document.addEventListener('DOMContentLoaded', Logic.init);
-            
-            // Expose main controllers to the global scope for inline event handlers (onclick).
-            window.Logic = Logic;
+            document.addEventListener('DOMContentLoaded', () => {
+                window.Logic = Logic;
+                window.UI = UI;
+                window.Utils = Utils;
+                window.ComponentBuilders = ComponentBuilders;
+                
+                Logic.init();
         })();
     </script>
 </body>
