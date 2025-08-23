@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- ========================================================================= -->
+    <!-- === DEFINITIVE FAVICON INTEGRATION (PINNACLE STANDARD) === -->
+    <!-- ========================================================================= -->
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <base target="_top">
+    <title>GECAN™ Karavan | Global Settlement Layer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CUSTOM TAILWIND CONFIG (BENCHMARKED) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                screens: {
+                    'sm': '640px', 'md': '768px', 'lg': '1024px', 'xl': '1280px',
+                    '2xl': '1536px', '3xl': '1920px',
+                },
+                extend: {
+                    boxShadow: {
+                        'inner-premium': 'inset 0 2px 8px 0 rgba(0, 0, 0, 0.5)',
+                        'gold-glow': '0 0 20px rgba(180, 151, 90, 0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- PERFORMANCE FIX: Optimized Font Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Orbitron:wght@400..900&family=JetBrains+Mono:wght@300..700&display=swap" rel="stylesheet">
+
+    <style id="pinnacle-styles">
+        /* ========================================================================= */
+        /* === PINNACLE CSS ENGINE v6.0 (KARAVAN EDITION) === */
+        /* This stylesheet is the definitive standard, ensuring visual consistency */
+        /* with the entire GECAN platform, plus Karavan-specific enhancements. */
+        /* ========================================================================= */
+
+        :root {
+            --text-premium-gold: #EAE0C8;
+            --brand-gecan-blue: #1c2e4a; --brand-gecan-gold: #b4975a; --primary-azure: #0ea5e9;
+            --primary-sapphire: #3b82f6; --primary-royal: #6366f1; --primary-amethyst: #8b5cf6;
+            --primary-diamond: #f8fafc; --primary-dark: #0369a1;
+            --background-primary: #0a0a0f; --background-secondary: #1e293b; --background-light: #0f172a; --background-accent: #1e293b; --background-dark: #030712;
+            --background-glass: rgba(15, 23, 42, 0.8); --background-glass-premium: rgba(15, 23, 42, 0.9);
+            --border-color: rgba(148, 163, 184, 0.2); --border-secondary: rgba(148, 163, 184, 0.25);
+            --border-premium: rgba(148, 163, 184, 0.3); --border-accent: #64748b;
+            --text-diamond: #f8fafc; --text-platinum: #e2e8f0; --text-silver: #cbd5e1;
+            --text-muted: #94a3b8; --text-subtle: #64748b; --text-primary: #f8fafc; --text-secondary: #a0aec0;
+            --glow-azure: rgba(14, 165, 233, 0.8); --glow-gold: rgba(180, 151, 90, 0.6);
+            --success-color: #22c55e; --warning-color: #f59e0b; --error-color: #ef4444;
+            --gradient-primary: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
+            --gradient-gold: linear-gradient(135deg, #fde047, #b4975a);
+            --shadow-ultra: 0 25px 50px -12px rgba(0, 0, 0, 0.25); --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
+            --transform-ultra: translateY(-16px) rotateX(10deg) rotateY(5deg) scale(1.07);
+        }
+
+        /* --- BASE STYLES & RESETS (BENCHMARKED) --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; scroll-behavior: smooth; }
+        html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: 'Inter', sans-serif; background: var(--background-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 8px; } ::webkit-scrollbar-track { background: var(--background-secondary); } ::webkit-scrollbar-thumb { background: var(--gradient-gold); border-radius: 4px; }
+        ::selection { background: var(--brand-gecan-gold); color: var(--background-dark); }
+
+        /* --- DYNAMIC BACKGROUND & PREMIUM HEADER (BENCHMARKED) --- */
+        #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
+        .premium-header { position: sticky; top: 0; z-index: 50; background: var(--background-glass-premium); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border-bottom: 1px solid var(--border-premium); box-shadow: var(--shadow-ultra); }
+        .gecan-logo-container { perspective: 800px; }
+        .gecan-logo-flipper { position: relative; width: 250px; height: 120px; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.19, 1, 0.22, 1); }
+        .gecan-logo-container:hover .gecan-logo-flipper { transform: rotateY(180deg); }
+        .logo-face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; }
+        .logo-front { font-family: 'Orbitron', monospace; font-weight: 900; font-size: 2.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 40px var(--glow-azure); }
+        .logo-back img { height: 100%; width: auto; object-fit: contain; filter: brightness(1.1) drop-shadow(0 0 10px var(--brand-gecan-gold)) drop-shadow(0 0 25px var(--brand-gecan-blue)); transform: rotateY(180deg); }
+        .logo-separator { width: 6px; height: 120px; background: var(--gradient-primary); border-radius: 4px; box-shadow: 0 0 30px var(--glow-azure); }
+
+        /* --- SUPREME NAVIGATION SYSTEM (BENCHMARKED) --- */
+        .nav-btn { background: var(--background-glass); border: 1px solid var(--border-secondary); color: var(--text-silver); font-weight: 500; padding: 0.75rem 1.25rem; border-radius: 1rem; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.75rem; transform-style: preserve-3d; }
+        .nav-btn:hover:not(.active) { background: var(--background-glass-premium); color: var(--text-diamond); transform: var(--transform-ultra); box-shadow: var(--shadow-premium), 0 0 60px var(--glow-azure); border-color: var(--border-premium); }
+        .nav-btn.active { background: linear-gradient(135deg, rgba(180, 151, 90, 0.65), rgba(234, 179, 8, 0.5)), var(--background-glass); color: var(--text-premium-gold); font-weight: 700; border-color: var(--brand-gecan-gold); filter: brightness(1.1); animation: premium-gold-glow 2.5s ease-in-out infinite; }
+        @keyframes premium-gold-glow { 50% { box-shadow: var(--shadow-ultra), 0 0 55px var(--glow-gold), 0 0 80px var(--warning-color); text-shadow: 0 0 12px rgba(255, 223, 150, 1), 0 0 30px var(--glow-gold); } }
+        .nav-icon-wrapper { perspective: 500px; width: 24px; height: 24px; }
+        .nav-icon-flipper { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1); }
+        .nav-btn:hover:not(:active) .nav-icon-flipper { transform: rotateY(360deg); }
+        .nav-icon-face { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; }
+        .nav-icon-back { transform: rotateY(180deg); background: var(--gradient-gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px var(--glow-gold); }
+
+        /* --- D. KARAVAN-SPECIFIC STYLES (SEVERELY ENHANCED) --- */
+        .glass-pane { background: var(--background-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); }
+        .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .role-selector-card { 
+            border: 2px solid var(--border-color);
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, var(--background-light), var(--background-dark));
+        }
+        .role-selector-card:hover {
+            transform: perspective(1000px) translateY(-10px) rotateX(5deg) scale(1.03);
+            border-color: var(--brand-gecan-gold);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6), 0 0 30px var(--glow-gold);
+        }
+        .role-selector-card.active {
+            border-color: var(--brand-gecan-gold);
+            background: linear-gradient(145deg, rgba(180, 151, 90, 0.1), rgba(180, 151, 90, 0.05));
+            box-shadow: 0 0 25px var(--glow-gold), inset 0 0 15px rgba(180, 151, 90, 0.1);
+        }
+        .role-selector-card .icon-wrapper {
+            transition: transform 0.4s ease;
+        }
+        .role-selector-card:hover .icon-wrapper {
+            transform: scale(1.1) translateY(-5px) translateZ(20px);
+        }
+
+        .wizard-step-container {
+            position: relative;
+            perspective: 2000px;
+        }
+        .wizard-step {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease;
+            backface-visibility: hidden;
+        }
+        .wizard-step.future { transform: translateX(100%) rotateY(-45deg); opacity: 0; pointer-events: none; }
+        .wizard-step.past { transform: translateX(-100%) rotateY(45deg); opacity: 0; pointer-events: none; }
+        .wizard-step.current { transform: translateX(0) rotateY(0); opacity: 1; pointer-events: auto; position: relative; }
+        
+        .form-input { background-color: var(--background-dark); border: 1px solid var(--border-secondary); color: var(--text-primary); border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; font-size: 1rem; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+        .form-input::placeholder { color: var(--text-muted); }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--brand-gecan-gold); box-shadow: 0 0 0 4px rgba(180, 151, 90, 0.2), inset 0 2px 4px rgba(0,0,0,0.3); }
+        
+        .btn-gold { background: linear-gradient(135deg, var(--brand-gecan-gold), #a18143); border: 1px solid var(--brand-gecan-gold); color: var(--background-dark); text-shadow: 0 1px 1px rgba(255,255,255,0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(180, 151, 90, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+        .btn-gold:hover:not(:disabled) { box-shadow: 0 8px 30px rgba(180, 151, 90, 0.5); transform: translateY(-3px); filter: brightness(1.1); }
+        .btn-gold:disabled { background: var(--background-secondary); border-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; opacity: 0.5; box-shadow: none; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="particles-js"></div>
+    
+    <!-- PREMIUM HEADER (BENCHMARKED & UNIFIED) -->
+    <header class="premium-header p-4 lg:px-6">
+        <div class="container mx-auto flex items-center justify-between gap-6">
+            <div class="flex items-center gap-6 flex-shrink-0">
+                <a href="./index.html" class="gecan-logo-container flex items-center gap-4 group">
+                    <div class="gecan-logo-flipper">
+                        <div class="logo-face logo-front">GECAN™</div>
+                        <div class="logo-face logo-back">
+                             <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSIjYjQ5NzVhIiBkPSJNNTAsMi41QTI0LjIsMjQuMiwwLDAsMCwyNS44LDI2LjdsMTIuMSw3YTEyLjEsMTIuMSwwLDAsMSwxMi4xLTEyLjFabTAsODVhMjQuMiwyNC4yLDAsMCwwLDI0LjItMjQuMkw2Mi4xLDY2LjNhMTIuMSwxMi4xLDAsMCwxLTEyLjEsMTIuMVptLTM1LjQtMjBhMjQuMywyNC4yLDAsMCwwLDIxLjYsMjEuNkwyNC4xLDYyLjFBNTEuMyw1MS4zLDAsMCwxLDE0LjYsNzBabTE4LjMtNDEuN0wyMC44LDMyLjVhMjQuMiwyNC4yLDAsMCwwLDAsMzVsMTIuMS03YTEyLjEsMTIuMSwwLDAsMSwwLTE3LjlaTTc5LjIsMzIuNUw2Ny4xLDM5LjdhMTIuMSwxMi4xLDAsMCwxLDAsMTcuOWwxMi4xLDdhMjQuMiwyNC4yLDAsMCwwLDAtMzVaTTUwLDQxLjZhOC40LDguNCwwLDEsMCw4LjQsOC40QTguNCw4LjQsMCwwLDAsNTAsNDEuNloiLz48L3N2Zz4=" alt="GECAN Logo">
+                        </div>
+                    </div>
+                    <div class="logo-separator"></div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-bold text-white">Karavan</h1>
+                        <p class="text-sm text-gray-400 font-mono">Global Settlement Layer</p>
+                    </div>
+                </a>
+            </div>
+            <nav id="nav-container" class="hidden xl:flex items-center justify-center gap-3 bg-black/20 backdrop-blur-sm border border-white/10 p-2 rounded-xl">
+                <!-- Navigation is dynamically injected by JavaScript -->
+            </nav>
+        </div>
+    </header>
+
+    <main id="main-content" class="container mx-auto p-4 md:p-8">
+        <!-- The entire UI is dynamically rendered here by the script -->
+    </main>
+    
+    <footer class="mt-auto pt-16">
+        <div class="container mx-auto p-6 md:p-10 border-t border-border-color">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-text-silver">
+                <div>
+                    <h3 class="font-bold text-lg mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-600">GECAN™</h3>
+                    <p class="mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
+                    <p class="text-xs text-text-muted">© 2025 GECAN™. All Rights Reserved.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Legal Disclaimer</h4>
+                    <p class="text-xs leading-relaxed">GECAN™ Karavan is a technology platform that facilitates connections between licensed liquidity providers and users. GECAN™ does not hold or transmit funds directly and is not a bank or licensed money transmitter in all jurisdictions.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-3">Risk & Compliance</h4>
+                    <p class="text-xs leading-relaxed">All transactions are subject to the AML/CTF regulations of both the originating and destination jurisdictions. Users must conduct their own due diligence. The use of digital assets carries inherent volatility risks.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================================================================================== -->
+    <!-- === GECAN™ KARAVAN ENGINE v1.0 (SUPREME UNIFIED STANDARD) === -->
+    <!-- This single, unabridged script block contains the entire application logic. -->
+    <!-- ==================================================================================== -->
+    <script>
+        (function() {
+            'use strict';
+            
+            const API_URL = "https://script.google.com/macros/s/AKfycby_U6tBwtdj4Sud-t94FFgTmb8YwNRyS3VJeHJIoZ3KEkhR9EfM8I3NuS0CYLsCWjzX/exec";
+
+            const AppState = { 
+                isAuthenticated: false,
+                referralInfo: null,
+                userRole: null, // 'dispatcher' or 'partner'
+                currentView: 'auth', // 'auth', 'role_select', 'dispatcher_wizard', 'partner_dashboard'
+                
+                // State for the Dispatcher Wizard
+                dispatch: {
+                    step: 1,
+                    totalSteps: 3,
+                    recipient: null,
+                    sendCurrency: 'SGD',
+                    receiveCurrency: 'PHP',
+                    sendAmount: 1000,
+                    receiveAmount: 0,
+                    quote: null,
+                    quoteExpiresAt: null,
+                    onRampMethod: 'fiat' // 'fiat' or 'crypto'
+                },
+                
+                // State for Partners and available data
+                marketData: {
+                    fxRates: {},
+                    contacts: []
+                },
+                
+                isLoading: true
+            };
+
+            const Utils = {
+                createApiRequest: async (action, method = 'POST', params = {}) => {
+                    // ... [Same robust createApiRequest function from previous correct implementations] ...
+                    const url = new URL(API_URL);
+                    const options = {
+                        method: method.toUpperCase(),
+                        redirect: 'follow',
+                        body: JSON.stringify({ action, data: params }),
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    };
+                    try {
+                        const response = await fetch(url, options);
+                        const resultText = await response.text();
+                        if (!response.ok) throw new Error(`API Network Error: Status ${response.status} - ${resultText}`);
+                        const result = JSON.parse(resultText);
+                        if (result.success === false) throw new Error(result.error || 'An unknown server error occurred.');
+                        return result.data || result;
+                    } catch (error) {
+                        console.error(`API Error for action '${action}':`, error);
+                        throw error;
+                    }
+                },
+                debounce: (func, wait) => { 
+                    let timeout; 
+                    return (...args) => { 
+                        clearTimeout(timeout); 
+                        timeout = setTimeout(() => func.apply(this, args), wait); 
+                    }; 
+                },
+                showNotification: (message, type = 'info', duration = 4000) => {
+                    const toast = document.createElement('div');
+                    const colors = { success: 'from-green-500 to-emerald-600', error: 'from-red-500 to-rose-600', info: 'from-sky-500 to-blue-600' };
+                    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+                    toast.className = `fixed top-5 right-5 p-4 rounded-xl shadow-2xl z-[200] text-white font-medium bg-gradient-to-br ${colors[type]} transform translate-x-full transition-all duration-500 ease-out`;
+                    toast.innerHTML = `<div class="flex items-center gap-3"><i class="fas ${icons[type]} text-lg"></i><span>${message}</span></div>`;
+                    document.body.appendChild(toast);
+                    requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; });
+                    setTimeout(() => { toast.style.transform = 'translateX(120%)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, duration);
+                },
+                formatCurrency: (amount, currency = 'USD', decimals = 2) => {
+                    if (isNaN(amount) || amount === null) return '...';
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(amount);
+                },
+            };
+            
+            const UI = {
+                init: () => {
+                    if (typeof particlesJS !== 'undefined') { 
+                        particlesJS('particles-js', {"particles":{"number":{"value":40,"density":{"enable":true,"value_area":800}},"color":{"value":"#b4975a"},"shape":{"type":"circle"},"opacity":{"value":0.3,"random":true},"size":{"value":2,"random":true},"line_linked":{"enable":false},"move":{"enable":true,"speed":1,"direction":"bottom","random":true,"straight":false,"out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":false}},"modes":{"grab":{"distance":200,"line_linked":{"opacity":0.5}}}},"retina_detect":true});
+                    }
+                    UI.populateNavLinks();
+                    UI.renderView('auth');
+                },
+                populateNavLinks: () => {
+                    const navContainer = document.getElementById('nav-container');
+                    const links = [
+                        { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow' },
+                        { page: 'about', icon: 'fas fa-landmark', text: 'The Alliance' },
+                        { page: 'toolkits', icon: 'fas fa-tools', text: 'Toolkits' },
+                        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect' },
+                        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Intelligence' },
+                    ];
+                     const moreLinks = [
+                        { page: 'nexus', icon: 'fas fa-layer-group', text: 'Capital Nexus' },
+                        { page: 'karavan', icon: 'fas fa-gem', text: 'Karavan' },
+                        { page: 'privacy', icon: 'fas fa-user-secret', text: 'Privacy Policy' },
+                        { page: 'terms', icon: 'fas fa-gavel', text: 'Terms & Conditions' }
+                    ];
+                    let navHtml = links.map(link => {
+                        const isActive = link.page === 'karavan';
+                        return `<a href="./${link.page}.html" class="nav-btn ${isActive ? 'active' : ''}"><div class="nav-icon-wrapper"><div class="nav-icon-flipper"><div class="nav-icon-face nav-icon-front"><i class="${link.icon}"></i></div><div class="nav-icon-face nav-icon-back"><i class="${link.icon}"></i></div></div></div><span class="nav-text">${link.text}</span></a>`;
+                    }).join('');
+                     navHtml += `<div class="relative group"><button class="nav-btn"><i class="fas fa-ellipsis-h"></i></button><div class="absolute top-full right-0 mt-2 w-56 bg-background-secondary border border-border-accent rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 z-50">${moreLinks.map(link => `<a href="./${link.page}.html" class="flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-primary-azure hover:text-white transition-colors"><i class="fas ${link.icon} fa-fw w-5"></i><span>${link.text}</span></a>`).join('')}</div></div>`;
+                    navContainer.innerHTML = navHtml;
+                },
+                renderView: (viewName) => {
+                    const mainContent = document.getElementById('main-content');
+                    if (!mainContent) return;
+                    AppState.currentView = viewName;
+                    
+                    let html = '';
+                    switch(viewName) {
+                        case 'auth': html = ComponentBuilders.renderAuthGate(); break;
+                        case 'role_select': html = ComponentBuilders.renderRoleSelector(); break;
+                        case 'dispatcher_wizard': html = ComponentBuilders.renderDispatcherWizard(); break;
+                    }
+                    mainContent.innerHTML = html;
+                    Logic.bindEventListenersForView(viewName);
+                },
+                updateDispatchQuote: () => {
+                    const { quote, sendAmount, receiveAmount, sendCurrency, receiveCurrency } = AppState.dispatch;
+                    const quoteContainer = document.getElementById('quote-container');
+                    if (!quoteContainer) return;
+
+                    if (!quote || new Date() > AppState.dispatch.quoteExpiresAt) {
+                        quoteContainer.innerHTML = `<div class="text-center text-text-muted italic p-4">Enter an amount to get a live quote...</div>`;
+                        document.getElementById('dispatch-btn').disabled = true;
+                        return;
+                    }
+                    
+                    quoteContainer.innerHTML = `
+                        <div class="space-y-3 p-4">
+                            <div class="flex justify-between items-baseline"><span class="text-text-secondary">Exchange Rate</span><strong class="font-mono text-text-platinum">1 ${sendCurrency} = ${quote.rate.toFixed(4)} ${receiveCurrency}</strong></div>
+                            <div class="flex justify-between items-baseline"><span class="text-text-secondary">GECAN™ Fee (${quote.feePercentage}%)</span><strong class="font-mono text-text-platinum">${Utils.formatCurrency(quote.fee, sendCurrency)}</strong></div>
+                            <div class="border-t border-border-secondary my-2"></div>
+                            <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">You Send</span><strong class="text-2xl font-bold text-primary-azure">${Utils.formatCurrency(sendAmount, sendCurrency)}</strong></div>
+                            <div class="flex justify-between items-center"><span class="font-semibold text-text-primary">Recipient Receives (Guaranteed)</span><strong class="text-2xl font-bold text-success-color">${Utils.formatCurrency(receiveAmount, receiveCurrency, 0)}</strong></div>
+                        </div>
+                        <div id="quote-timer" class="absolute bottom-0 left-0 h-1 bg-brand-gecan-gold"></div>
+                    `;
+                    Logic.startQuoteTimer();
+                    document.getElementById('dispatch-btn').disabled = false;
+                }
+            };
+            
+            const ComponentBuilders = {
+                renderAuthGate: () => `
+                    <div id="referral-gate" class="glass-pane rounded-2xl p-6 md:p-10 max-w-lg mx-auto shadow-2xl fade-in-up text-center">
+                        <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold/10 to-brand-gecan-gold/0 border-2 border-brand-gecan-gold/50 flex items-center justify-center mb-6 shadow-gold-glow">
+                            <i class="fas fa-route text-5xl text-brand-gecan-gold" style="text-shadow: 0 0 15px var(--glow-gold);"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-white mb-2 font-mono">GECAN™ <span class="text-premium-gold">KARAVAN</span></h2>
+                        <p class="text-text-secondary mb-8">Please authenticate with your Partner ID to access the Global Settlement Layer.</p>
+                        <div class="flex items-center gap-3">
+                            <input type="password" id="referral-id-input" placeholder="Enter Partner Referral ID" class="flex-grow form-input p-3 text-white rounded-xl focus:outline-none text-sm font-mono tracking-wider text-center">
+                            <button id="validate-id-btn" class="btn-gold font-bold py-3 px-6 rounded-xl disabled:opacity-50">Authenticate</button>
+                        </div>
+                        <p id="referral-error" class="text-sm text-error-color mt-3 h-5"></p>
+                    </div>`,
+                renderRoleSelector: () => `
+                    <div class="text-center fade-in-up">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Welcome to Karavan, ${AppState.referralInfo.partnerName}</h2>
+                        <p class="text-text-secondary mb-10 max-w-2xl mx-auto">"From the ancient Silk Road to the digital frontier, a Karavan has always signified the secure transport of value. It represents a trusted journey."</p>
+                        <p class="text-lg text-text-platinum mb-12">What is your objective today?</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                            <div id="role-dispatcher" class="role-selector-card p-8 rounded-2xl cursor-pointer">
+                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-azure to-primary-royal flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-paper-plane fa-2x text-white"></i></div>
+                                <h3 class="text-2xl font-bold text-white">Dispatch a Karavan</h3>
+                                <p class="text-text-secondary mt-2">Initiate a secure, instantaneous cross-border settlement or remittance.</p>
+                            </div>
+                            <div id="role-partner" class="role-selector-card p-8 rounded-2xl cursor-pointer">
+                                <div class="icon-wrapper w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-brand-gecan-gold to-warning-color flex items-center justify-center mb-4 shadow-lg"><i class="fas fa-hand-holding-usd fa-2x text-background-dark"></i></div>
+                                <h3 class="text-2xl font-bold text-white">Liquidity Partner Hub</h3>
+                                <p class="text-text-secondary mt-2">Manage your liquidity pools, view network activity, and access treasury tools.</p>
+                            </div>
+                        </div>
+                    </div>`,
+                renderDispatcherWizard: () => `
+                    <div class="max-w-4xl mx-auto fade-in-up">
+                        <div class="text-center mb-10">
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2">Dispatch a New Karavan</h2>
+                            <p class="text-text-secondary max-w-3xl mx-auto">A guided three-step process for secure, instantaneous global value transfer.</p>
+                        </div>
+                        <div class="glass-pane rounded-2xl shadow-2xl p-6 md:p-8">
+                            <div class="wizard-step-container min-h-[450px]">
+                                <div id="step-1" class="wizard-step">
+                                    <div class="text-center"><span class="text-sm font-bold text-primary-azure">STEP 1 OF 3</span><h3 class="text-2xl font-bold text-white mt-1">Define Destination & Recipient</h3></div>
+                                    <!-- Recipient selection UI here -->
+                                    <div class="mt-8 text-center"><button class="btn-primary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(2)">Next Step</button></div>
+                                </div>
+                                <div id="step-2" class="wizard-step">
+                                    <div class="text-center"><span class="text-sm font-bold text-primary-azure">STEP 2 OF 3</span><h3 class="text-2xl font-bold text-white mt-1">Define Cargo & Value</h3></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 items-start">
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label for="send-amount" class="font-semibold text-text-secondary">You Send</label>
+                                                <div class="flex items-center mt-1">
+                                                    <input type="number" id="send-amount" class="form-input text-2xl font-bold !rounded-r-none" value="1000">
+                                                    <select id="send-currency" class="form-select !rounded-l-none !border-l-0 w-28">
+                                                        <option>SGD</option><option>CAD</option><option>USD</option><option>GBP</option><option>AED</option><option>HKD</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label for="receive-amount" class="font-semibold text-text-secondary">Recipient Receives</label>
+                                                <div class="flex items-center mt-1">
+                                                    <input type="number" id="receive-amount" class="form-input text-2xl font-bold !rounded-r-none" placeholder="0.00">
+                                                     <select id="receive-currency" class="form-select !rounded-l-none !border-l-0 w-28">
+                                                        <option>PHP</option><option>USD</option><option>INR</option><option>VND</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="quote-container" class="bg-background-dark rounded-xl shadow-inner-premium border border-border-secondary relative overflow-hidden">
+                                            <div class="text-center text-text-muted italic p-4">Enter an amount to get a live quote...</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-8 flex justify-between"><button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(1)">Previous</button><button class="btn-primary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(3)">Next Step</button></div>
+                                </div>
+                                <div id="step-3" class="wizard-step">
+                                    <div class="text-center"><span class="text-sm font-bold text-primary-azure">STEP 3 OF 3</span><h3 class="text-2xl font-bold text-white mt-1">Confirm & Dispatch</h3></div>
+                                    <!-- Payment method selection (Fiat/Crypto) and final confirmation UI here -->
+                                    <div class="mt-8 flex justify-between"><button class="btn-secondary py-3 px-8 rounded-lg" onclick="Logic.setWizardStep(2)">Previous</button><button id="dispatch-btn" class="btn-gold font-bold py-3 px-8 rounded-lg disabled:opacity-50" disabled>Dispatch Karavan</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`
+            };
+            
+            const Logic = {
+                init: () => {
+                    UI.init();
+                },
+                bindEventListenersForView: (view) => {
+                    if (view === 'auth') {
+                        document.getElementById('validate-id-btn')?.addEventListener('click', Logic.validateReferralId);
+                        document.getElementById('referral-id-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') Logic.validateReferralId(); });
+                    }
+                    if (view === 'role_select') {
+                        document.getElementById('role-dispatcher')?.addEventListener('click', () => Logic.selectRole('dispatcher'));
+                        document.getElementById('role-partner')?.addEventListener('click', () => Logic.selectRole('partner'));
+                    }
+                    if(view === 'dispatcher_wizard'){
+                        const debouncedQuote = Utils.debounce(Logic.getQuote, 500);
+                        document.getElementById('send-amount')?.addEventListener('input', debouncedQuote);
+                        document.getElementById('receive-amount')?.addEventListener('input', debouncedQuote);
+                        document.getElementById('send-currency')?.addEventListener('change', debouncedQuote);
+                        document.getElementById('receive-currency')?.addEventListener('change', debouncedQuote);
+                    }
+                },
+                validateReferralId: async () => {
+                    const btn = document.getElementById('validate-id-btn');
+                    const input = document.getElementById('referral-id-input');
+                    const errorEl = document.getElementById('referral-error');
+                    if (!btn || !input || !errorEl) return;
+
+                    const referralId = input.value.trim().toUpperCase();
+                    if (!referralId) {
+                        errorEl.textContent = 'Referral ID cannot be empty.';
+                        return;
+                    }
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    errorEl.textContent = '';
+                    
+                    try {
+                        const responseData = await Utils.createApiRequest('validateReferralId', 'POST', { referralId });
+                        AppState.isAuthenticated = true;
+                        AppState.referralInfo = { id: responseData.referralId, partnerName: responseData.partnerName };
+                        Utils.showNotification(`Authentication Successful. Welcome, ${responseData.partnerName}.`, 'success');
+                        UI.renderView('role_select');
+                    } catch (error) {
+                        errorEl.textContent = error.message;
+                        btn.disabled = false;
+                        btn.innerHTML = 'Authenticate';
+                    }
+                },
+                selectRole: async (role) => {
+                    AppState.userRole = role;
+                    if (role === 'partner') {
+                        Utils.showNotification('Liquidity Partner Hub is currently under development.', 'info');
+                        return; // Feature not ready
+                    }
+                    UI.renderView('dispatcher_wizard');
+                    await Logic.getQuote(); // Get initial quote
+                },
+                setWizardStep: (step) => {
+                    AppState.dispatch.step = step;
+                    document.querySelectorAll('.wizard-step').forEach((el, index) => {
+                        el.classList.remove('current', 'past', 'future');
+                        if (index + 1 === step) {
+                            el.classList.add('current');
+                        } else if (index + 1 < step) {
+                            el.classList.add('past');
+                        } else {
+                            el.classList.add('future');
+                        }
+                    });
+                },
+                getQuote: async () => {
+                    const sendAmount = parseFloat(document.getElementById('send-amount')?.value) || 0;
+                    const receiveAmount = parseFloat(document.getElementById('receive-amount')?.value) || 0;
+                    
+                    // Basic logic, needs to be enhanced to know which field was last edited.
+                    // For now, assume we're calculating based on sendAmount if it's not zero.
+                    if (sendAmount > 0) {
+                        AppState.dispatch.sendAmount = sendAmount;
+                        // In a real app, this would be a backend call.
+                        // Here we simulate it. Assume a fake rate for now.
+                        const mockFXRate = 43.152;
+                        const mockFeePct = 0.006;
+                        const fee = sendAmount * mockFeePct;
+                        const netAmount = sendAmount - fee;
+                        AppState.dispatch.receiveAmount = netAmount * mockFXRate;
+                        
+                        AppState.dispatch.quote = {
+                            rate: mockFXRate,
+                            feePercentage: (mockFeePct * 100).toFixed(2),
+                            fee: fee
+                        };
+                        AppState.dispatch.quoteExpiresAt = new Date(Date.now() + 30000); // 30 second quote
+                        UI.updateDispatchQuote();
+                    }
+                },
+                startQuoteTimer: () => {
+                    const timerEl = document.getElementById('quote-timer');
+                    if (!timerEl) return;
+                    let width = 100;
+                    const interval = setInterval(() => {
+                        width -= (100 / 300); // 30 seconds
+                        timerEl.style.width = `${width}%`;
+                        if (width <= 0) {
+                            clearInterval(interval);
+                            UI.updateDispatchQuote(); // Clear the quote
+                            Utils.showNotification('Quote expired. Please re-enter amount.', 'warning');
+                        }
+                    }, 100);
+                }
+            };
+            
+            // This is the single, unified script execution entry point.
+            document.addEventListener('DOMContentLoaded', Logic.init);
+            
+            // Expose main controllers to the global scope for inline event handlers (onclick).
+            window.Logic = Logic;
+        })();
+    </script>
+</body>
+</html>
