@@ -424,6 +424,60 @@
                         loginBtn.innerHTML = '<i class="fas fa-key mr-2"></i>Authenticate & Enter';
                     }
                 },
+
+        showSignupModal: () => {
+                const modal = document.getElementById('karavan-auth-modal');
+                modal.innerHTML = `
+                    <div class="dialog-content-wrapper">
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <h3 class="text-2xl font-bold text-white mb-2">Join GECAN™ Karavan</h3>
+                                <p class="text-text-silver">Create your account to access the Global Settlement Layer</p>
+                            </div>
+                            <form id="signup-form" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label class="block text-sm font-medium text-text-silver mb-2">Full Name</label><input type="text" id="signup-name" class="form-input" required></div>
+                                    <div><label class="block text-sm font-medium text-text-silver mb-2">Email Address</label><input type="email" id="signup-email" class="form-input" required></div>
+                                </div>
+                                <div><label class="block text-sm font-medium text-text-silver mb-2">Password</label><input type="password" id="signup-password" class="form-input" required></div>
+                                <div><label class="block text-sm font-medium text-text-silver mb-2">Account Type</label><select id="signup-persona" class="form-select" required><option value="">Choose account type...</option><option value="remit">Individual (Personal Remittances)</option><option value="pay">Institution (B2B Payments)</option></select></div>
+                                <div class="flex gap-3 pt-4"><button type="button" onclick="document.getElementById('karavan-auth-modal').close()" class="btn-secondary py-3 rounded-lg flex-1">Cancel</button><button type="submit" class="btn-primary py-3 rounded-lg flex-1"><i class="fas fa-user-plus mr-2"></i>Create Account</button></div>
+                            </form>
+                        </div>
+                    </div>`;
+                modal.showModal();
+                document.getElementById('signup-form')?.addEventListener('submit', Logic.handleSignup);
+            },
+
+            handleSignup: async (e) => {
+                e.preventDefault();
+                const signupData = {
+                    name: document.getElementById('signup-name').value,
+                    email: document.getElementById('signup-email').value,
+                    password: document.getElementById('signup-password').value,
+                    persona: document.getElementById('signup-persona').value
+                };
+                if (!signupData.name || !signupData.email || !signupData.password || !signupData.persona) {
+                    return Utils.showNotification('Please fill in all fields', 'error');
+                }
+
+                try {
+                    const response = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
+                    document.getElementById('karavan-auth-modal').close();
+                    Utils.showNotification(`Account created successfully! Your Karavan ID is: ${response.karavanId}`, 'success', 8000);
+                    document.getElementById('karavan-id').value = response.karavanId;
+                } catch (error) {
+                    Utils.showNotification(`Account creation failed: ${error.message}`, 'error');
+                }
+            },
+            
+            downloadProof: () => {
+                Utils.showNotification('Generating Proof of Settlement certificate...', 'info');
+                // In a real application, this would call a PDF generation API endpoint
+                setTimeout(() => {
+                    Utils.showNotification('Proof of Settlement certificate downloaded successfully.', 'success');
+                }, 1500);
+            },
                 
                 loadInitialData: async () => {
                     try {
@@ -593,254 +647,247 @@
                 }
             };
 
-// ========================================================================
-// === SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ===
-// This block contains the definitive, unabridged render functions.
-// ========================================================================
-const UI = {
-    init: async () => {
-        if (typeof particlesJS !== 'undefined') {
-            particlesJS('particles-js', { particles: { number: { value: 50, density: { enable: true, value_area: 800 } }, color: { value: '#b4975a' }, shape: { type: 'circle' }, opacity: { value: 0.3, random: true }, size: { value: 2, random: true }, line_linked: { enable: true, distance: 150, color: '#b4975a', opacity: 0.1, width: 1 }, move: { enable: true, speed: 1, direction: 'none', random: true } }, interactivity: { events: { onhover: { enable: true, mode: 'grab' } } } });
-        }
-        UI.populateNavLinks();
-        document.getElementById('initial-loader').style.display = 'none';
-    },
+            // --- SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ---
+            const UI = {
+                init: async () => {
+                    if (typeof particlesJS !== 'undefined') {
+                        particlesJS('particles-js', { particles: { number: { value: 50, density: { enable: true, value_area: 800 } }, color: { value: '#b4975a' }, shape: { type: 'circle' }, opacity: { value: 0.3, random: true }, size: { value: 2, random: true }, line_linked: { enable: true, distance: 150, color: '#b4975a', opacity: 0.1, width: 1 }, move: { enable: true, speed: 1, direction: 'none', random: true } }, interactivity: { events: { onhover: { enable: true, mode: 'grab' } } } });
+                    }
+                    UI.populateNavLinks();
+                    document.getElementById('initial-loader').style.display = 'none';
+                },
 
-    populateNavLinks: () => {
-        const navPlaceholder = document.getElementById('desktop-nav-placeholder');
-        const mobileMenuContent = document.getElementById('mobile-sidebar-content');
-        if (!navPlaceholder || !mobileMenuContent) return;
+                populateNavLinks: () => {
+                    const navPlaceholder = document.getElementById('desktop-nav-placeholder');
+                    const mobileMenuContent = document.getElementById('mobile-sidebar-content');
+                    if (!navPlaceholder || !mobileMenuContent) return;
 
-        // BENCHMARKED NAVIGATION LINKS
-        const links = [
-            { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
-            { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
-            { page: 'karavan', icon: 'fas fa-route', text: 'Karavan Settlement' }
-        ];
+                    const links = [
+                        { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
+                        { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
+                        { page: 'karavan', icon: 'fas fa-route', text: 'Karavan Settlement' }
+                    ];
+                    
+                    const navHtml = (isMobile = false) => links.map(link => {
+                        const isActive = window.location.pathname.includes(link.page);
+                        const navBtnBaseClasses = `nav-btn bg-[var(--background-glass)] border border-[var(--border-secondary)] text-[var(--text-silver)] font-medium p-3 rounded-xl transition-all duration-500 ease-in-out relative overflow-hidden cursor-pointer no-underline inline-flex items-center gap-3 transform-style-preserve-3d`;
+                        const navBtnHoverClasses = `hover:bg-[var(--background-glass-premium)] hover:text-[var(--text-diamond)] hover:translate-y-[-16px] hover:rotate-x-10 hover:rotate-y-5 hover:scale-105 hover:shadow-premium hover:border-[var(--border-premium)]`;
+                        const navBtnActiveClasses = `active bg-gradient-to-br from-[rgba(14,165,233,0.65)] to-[rgba(139,92,246,0.65)] text-[var(--text-diamond)] font-bold border-[var(--primary-azure)] brightness-110`;
+                        
+                        return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''} ${isMobile ? 'w-full justify-start' : ''}">
+                                    <i class="${link.icon} w-6 text-center text-lg"></i>
+                                    <span class="nav-text">${link.text}</span>
+                                </a>`;
+                    }).join('');
+                    
+                    navPlaceholder.innerHTML = `<nav class="hidden xl:flex items-center justify-center gap-3">${navHtml()}</nav>`;
+                    mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
+                },
 
-        // BENCHMARKED NAVIGATION BUTTON HTML STRUCTURE
-        const navHtml = (isMobile = false) => links.map(link => {
-            const isActive = window.location.pathname.includes(link.page);
-            const navBtnBaseClasses = `bg-[var(--background-glass)] border border-[var(--border-secondary)] text-[var(--text-silver)] font-medium p-3 rounded-xl transition-all duration-500 ease-in-out relative overflow-hidden cursor-pointer no-underline inline-flex items-center gap-3 transform-style-preserve-3d`;
-            const navBtnHoverClasses = `hover:bg-[var(--background-glass-premium)] hover:text-[var(--text-diamond)] hover:translate-y-[-16px] hover:rotate-x-10 hover:rotate-y-5 hover:scale-105 hover:shadow-premium hover:border-[var(--border-premium)]`;
-            const navBtnActiveClasses = `active:bg-gradient-to-br active:from-[rgba(14,165,233,0.65)] active:to-[rgba(139,92,246,0.65)] active:text-[var(--text-diamond)] active:font-bold active:border-[var(--primary-azure)] active:brightness-110`;
+                renderView: (viewName) => {
+                    const mainContent = document.getElementById('main-content');
+                    const views = { 
+                        auth: UI.renderAuthView, 
+                        role_select: UI.renderRoleSelectView, 
+                        tx_wizard: UI.renderTransactionWizard, 
+                        lp_dashboard: UI.renderLPDashboard, 
+                        tx_tracker: UI.renderTransactionTracker 
+                    };
+                    const renderFunction = views[viewName];
+                    if (renderFunction) {
+                        AppState.currentView = viewName;
+                        mainContent.innerHTML = renderFunction();
+                        Logic.bindEventListeners(viewName);
+                    }
+                },
 
-            return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''} ${isMobile ? 'w-full justify-start' : ''}">
-                        <i class="${link.icon} w-6 text-center text-lg"></i>
-                        <span class="nav-text">${link.text}</span>
-                    </a>`;
-        }).join('');
-
-        navPlaceholder.innerHTML = `<nav class="hidden xl:flex items-center justify-center gap-3">${navHtml()}</nav>`;
-        mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
-    },
-
-    renderView: (viewName) => {
-        const mainContent = document.getElementById('main-content');
-        const views = { 
-            auth: UI.renderAuthView, 
-            role_select: UI.renderRoleSelectView, 
-            tx_wizard: UI.renderTransactionWizard, 
-            lp_dashboard: UI.renderLPDashboard, 
-            tx_tracker: UI.renderTransactionTracker 
-        };
-        const renderFunction = views[viewName];
-        if (renderFunction) {
-            AppState.currentView = viewName;
-            mainContent.innerHTML = renderFunction();
-            mainContent.style.opacity = '0';
-            requestAnimationFrame(() => {
-                mainContent.style.transition = 'opacity 0.5s ease';
-                mainContent.style.opacity = '1';
-            });
-            Logic.bindEventListeners(viewName);
-        }
-    },
-
-    renderAuthView: () => `
-        <div class="min-h-[80vh] flex items-center justify-center p-4">
-            <div class="auth-modal glass-premium">
-                <div class="text-center mb-8">
-                    <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-primary-azure to-primary-royal mb-4 shadow-premium animate-[float_6s_ease-in-out_infinite]">
-                        <i class="fas fa-shield-alt text-4xl text-white"></i>
-                    </div>
-                    <h2 class="text-3xl font-bold text-white mb-2">Secure Access Portal</h2>
-                    <p class="text-text-muted">Authenticate to enter the GECAN™ Karavan Global Settlement Layer</p>
-                </div>
-                <form id="auth-form" class="space-y-6">
-                    <input type="text" id="karavan-id" class="form-input" placeholder="Enter your Karavan ID" required>
-                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
-                    <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key mr-2"></i>Authenticate & Enter</button>
-                </form>
-            </div>
-        </div>`,
-
-    renderRoleSelectView: () => `
-        <div class="max-w-6xl mx-auto text-center">
-            <div class="mb-12" style="animation: slide-in 0.8s ease-out forwards;">
-                <h2 class="text-4xl lg:text-5xl font-bold text-white mb-4">
-                    Welcome, <span class="bg-gradient-to-r from-yellow-300 via-brand-gecan-gold to-yellow-500 bg-clip-text text-transparent">${AppState.currentUser?.partnerName}</span>
-                </h2>
-                <p class="text-xl text-text-platinum max-w-4xl mx-auto leading-relaxed">
-                    From the ancient Silk Road to the digital frontier, a Karavan has always signified the secure transport of value across borders. Choose your mission:
-                </p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div id="role-remit" class="role-card" style="animation: slide-in 1.0s ease-out forwards; opacity: 0;">
-                    <div class="role-icon bg-gradient-to-br from-primary-azure to-primary-sapphire"><i class="fas fa-paper-plane text-white"></i></div>
-                    <h3 class="text-2xl font-bold text-white mb-3">GECAN™ Remit</h3>
-                    <p class="text-text-silver mb-4">Send money to family and friends with lightning speed and minimal fees.</p>
-                </div>
-                <div id="role-pay" class="role-card" style="animation: slide-in 1.2s ease-out forwards; opacity: 0;">
-                    <div class="role-icon bg-gradient-to-br from-brand-gecan-gold to-warning-color"><i class="fas fa-building text-background-dark"></i></div>
-                    <h3 class="text-2xl font-bold text-white mb-3">GECAN™ Pay</h3>
-                    <p class="text-text-silver mb-4">Execute B2B payments and trade settlements with institutional precision.</p>
-                </div>
-                ${AppState.currentUser?.persona === 'lp' ? `
-                <div id="role-lp" class="role-card" style="animation: slide-in 1.4s ease-out forwards; opacity: 0;">
-                    <div class="role-icon bg-gradient-to-br from-primary-royal to-primary-amethyst"><i class="fas fa-network-wired text-white"></i></div>
-                    <h3 class="text-2xl font-bold text-white mb-3">LP Dashboard</h3>
-                    <p class="text-text-silver mb-4">Manage liquidity pools and monitor network performance.</p>
-                </div>` : ''}
-            </div>
-        </div>`,
-
-    renderTransactionWizard: () => {
-        const { transaction } = AppState;
-        if (!transaction) return '';
-        return `
-            <div class="wizard-container">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl lg:text-4xl font-bold text-white mb-2">New Karavan Dispatch</h2>
-                    <p class="text-lg text-text-silver">${transaction.type === 'remit' ? 'Personal Remittance' : 'Institutional Payment'} • Guided Secure Transfer Protocol</p>
-                </div>
-                ${UI.renderWizardStep('destination', 'Define Destination', 'fa-map-marker-alt')}
-                ${UI.renderWizardStep('amount', 'Define Amount & Currency', 'fa-calculator')}
-                ${UI.renderWizardStep('review', 'Review & Dispatch', 'fa-rocket')}
-            </div>`;
-    },
-
-    renderWizardStep: (stepId, title, icon) => {
-        const { transaction } = AppState;
-        const isActive = transaction.activeStep === stepId;
-        const isCompleted = transaction.steps[stepId]?.completed;
-        const isDisabled = UI.isStepDisabled(stepId);
-        return `
-            <div class="step-card ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${isDisabled ? 'opacity-50' : ''}">
-                <div class="step-header" onclick="${isDisabled ? '' : `Logic.setActiveStep('${stepId}')`}">
-                    <div class="step-number"><i class="fas ${isCompleted ? 'fa-check' : icon}"></i></div>
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold text-white">${title}</h3>
-                        ${isCompleted ? `<p class="text-sm text-brand-gecan-gold font-semibold">Completed</p>` : ''}
-                    </div>
-                    <i class="fas fa-chevron-down text-text-muted transition-transform ${isActive ? 'rotate-180' : ''}"></i>
-                </div>
-                <div class="step-content" style="max-height: ${isActive ? '800px' : '0'};">
-                    <div class="step-inner">${UI.renderStepContent(stepId)}</div>
-                </div>
-            </div>`;
-    },
-
-    isStepDisabled: (stepId) => {
-        const { transaction } = AppState;
-        const stepOrder = ['destination', 'amount', 'review'];
-        const currentIndex = stepOrder.indexOf(stepId);
-        for (let i = 0; i < currentIndex; i++) {
-            if (!transaction.steps[stepOrder[i]]?.completed) return true;
-        }
-        return false;
-    },
-
-    renderStepContent: (stepId) => {
-        const { transaction, marketData } = AppState;
-        switch (stepId) {
-            case 'destination':
-                return `
-                    <div class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-text-silver mb-2">Select Beneficiary</label>
-                                <select id="beneficiary-select" class="form-select">${marketData.beneficiaries.map(b => `<option value="${b.id}" ${transaction.recipientId === b.id ? 'selected' : ''}>${b.name} (${b.country})</option>`).join('')}</select>
+                renderAuthView: () => `
+                    <div class="min-h-[80vh] flex items-center justify-center p-4">
+                        <div class="auth-modal glass-premium">
+                            <div class="text-center mb-8">
+                                <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-primary-azure to-primary-royal mb-4 shadow-premium animate-[float_6s_ease-in-out_infinite]">
+                                    <i class="fas fa-shield-alt text-4xl text-white"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold text-white mb-2">Secure Access Portal</h2>
+                                <p class="text-text-muted">Authenticate to enter the GECAN™ Karavan Global Settlement Layer</p>
                             </div>
-                            <div class="flex items-end"><button id="add-beneficiary-btn" class="btn-secondary w-full py-3 rounded-lg"><i class="fas fa-user-plus mr-2"></i>Add New</button></div>
+                            <form id="auth-form" class="space-y-6">
+                                <input type="text" id="karavan-id" class="form-input" placeholder="Enter your Karavan ID" required>
+                                <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                                <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key mr-2"></i>Authenticate & Enter</button>
+                            </form>
+                            <div class="text-center mt-6"><p class="text-sm text-text-muted">New to GECAN™? <button id="show-signup" class="text-primary-azure hover:text-primary-sapphire font-semibold">Create Account</button></p></div>
                         </div>
-                        ${transaction.type === 'pay' ? `<div><label class="block text-sm font-medium text-text-silver mb-2">Invoice Reference</label><input type="text" id="invoice-ref" class="form-input" placeholder="e.g., INV-2025-001" value="${transaction.invoiceRef || ''}"></div>` : ''}
-                        <button id="confirm-destination" class="btn-primary py-3 rounded-lg w-full md:w-auto"><i class="fas fa-check mr-2"></i>Confirm Destination</button>
-                    </div>`;
-            case 'amount':
-                return `
-                    <div class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">You Send</h4><div class="space-y-4"><input type="number" id="send-amount" class="form-input text-xl text-center font-mono" placeholder="0.00" value="${transaction.sendAmount || ''}"><select id="send-currency" class="form-select">${marketData.availableCurrencies.map(c => `<option value="${c}" ${transaction.sendCurrency === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
-                            <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">Recipient Receives</h4><div class="space-y-4"><div class="form-input text-xl text-center font-mono bg-background-dark cursor-not-allowed flex items-center justify-center"><span id="receive-amount">${parseFloat(transaction.receiveAmount || 0).toFixed(2)}</span></div><select id="receive-currency" class="form-select">${marketData.availableCurrencies.map(c => `<option value="${c}" ${transaction.receiveCurrency === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
-                        </div>
-                        <div id="quote-panel" class="quote-panel glass-premium p-6 rounded-xl hidden"><div class="quote-timer"><div id="quote-progress" class="quote-progress" style="width: 100%"></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"><div class="text-center"><span class="text-text-muted">Exchange Rate</span><div class="font-mono text-white" id="exchange-rate">-</div></div><div class="text-center"><span class="text-text-muted">GECAN™ Fee</span><div class="font-mono text-warning-color" id="fee-amount">-</div></div><div class="text-center"><span class="text-text-muted">Est. Arrival</span><div class="font-mono text-success-color">Sub-5 Minutes</div></div></div></div>
-                        <button id="confirm-amount" class="btn-primary py-3 rounded-lg w-full md:w-auto" disabled><i class="fas fa-lock mr-2"></i>Lock Quote & Continue</button>
-                    </div>`;
-            case 'review':
-                return `
-                    <div class="space-y-6">
-                        <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">Transaction Summary</h4><div class="space-y-3"><div class="flex justify-between"><span class="text-text-silver">Recipient:</span><span class="text-white font-medium" id="summary-recipient">-</span></div><div class="flex justify-between"><span class="text-text-silver">You Send:</span><span class="text-white font-mono" id="summary-send">-</span></div><div class="flex justify-between"><span class="text-text-silver">They Receive:</span><span class="text-white font-mono" id="summary-receive">-</span></div><div class="flex justify-between"><span class="text-text-silver">Exchange Rate:</span><span class="text-white font-mono" id="summary-rate">-</span></div><div class="flex justify-between border-t border-border-color pt-3"><span class="text-text-silver">Total Fee:</span><span class="text-warning-color font-mono" id="summary-fee">-</span></div></div></div>
-                        <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">Payment Method</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="payment-methods"><div data-method="crypto" class="p-4 border-2 border-border-color rounded-xl cursor-pointer hover:border-brand-gecan-gold transition-colors" onclick="Logic.selectPaymentMethod('crypto')"><div class="flex items-center gap-3"><i class="fas fa-coins text-primary-azure"></i><div><div class="font-semibold text-white">Crypto Transfer</div><div class="text-sm text-text-muted">USDT/USDC</div></div></div></div><div data-method="bank" class="p-4 border-2 border-border-color rounded-xl cursor-pointer hover:border-brand-gecan-gold transition-colors" onclick="Logic.selectPaymentMethod('bank')"><div class="flex items-center gap-3"><i class="fas fa-university text-brand-gecan-gold"></i><div><div class="font-semibold text-white">Bank Transfer</div><div class="text-sm text-text-muted">Local Banking</div></div></div></div></div></div>
-                        <button id="dispatch-karavan" class="btn-gold w-full text-xl py-4 rounded-lg animate-[glow-pulse_2s_ease-in-out_infinite]" disabled><i class="fas fa-rocket mr-2"></i>Dispatch Karavan</button>
-                    </div>`;
-            default: return '';
-        }
-    },
-    
-    renderTransactionTracker: () => {
-        const { transaction } = AppState;
-        const stages = [
-            { id: 'initiated', label: 'Initiated', icon: 'fa-play-circle' },
-            { id: 'payment', label: 'Payment', icon: 'fa-credit-card' },
-            { id: 'compliance', label: 'Compliance', icon: 'fa-shield-alt' },
-            { id: 'settlement', label: 'Settlement', icon: 'fa-exchange-alt' },
-            { id: 'completed', label: 'Completed', icon: 'fa-check-circle' }
-        ];
-        const currentStageIndex = stages.findIndex(s => s.id === transaction.status);
-        return `
-            <div class="max-w-4xl mx-auto">
-                <div class="text-center mb-12"><h2 class="text-3xl font-bold text-white mb-2">Karavan Dispatch Tracker</h2><p class="text-lg text-text-silver font-mono">ID: ${transaction.id}</p></div>
-                <div class="glass-premium p-8 rounded-2xl mb-8">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center"><div class="glass p-4 rounded-xl"><div class="text-text-muted text-sm">Amount Sent</div><div class="text-2xl font-bold text-white mt-1">${Utils.formatCurrency(transaction.sendAmount, transaction.sendCurrency)}</div></div><div class="glass p-4 rounded-xl"><div class="text-text-muted text-sm">Amount Received</div><div class="text-2xl font-bold text-primary-azure mt-1">${Utils.formatCurrency(transaction.receiveAmount, transaction.receiveCurrency)}</div></div><div class="glass p-4 rounded-xl"><div class="text-text-muted text-sm">Est. Arrival</div><div class="text-2xl font-bold text-success-color mt-1">Sub-5 Minutes</div></div></div>
-                    <div class="tracker-timeline">${stages.map((stage, index) => `<div class="tracker-step ${index < currentStageIndex ? 'completed' : ''} ${index === currentStageIndex ? 'active' : ''}"><div class="tracker-dot"><i class="fas ${stage.icon}"></i></div><div class="text-sm text-center mt-2"><div class="font-medium text-white">${stage.label}</div></div></div>`).join('')}</div>
-                </div>
-                <div class="text-center space-x-4"><button onclick="UI.renderView('role_select')" class="btn-primary py-3 px-6 rounded-lg"><i class="fas fa-plus mr-2"></i>New Transaction</button><button class="btn-secondary py-3 px-6 rounded-lg"><i class="fas fa-download mr-2"></i>Download Proof</button></div>
-            </div>`;
-    },
+                    </div>`,
 
-    renderLPDashboard: () => `
-        <div class="max-w-6xl mx-auto"><div class="text-center mb-12"><h2 class="text-3xl font-bold text-white mb-2">Liquidity Partner Dashboard</h2><p class="text-lg text-text-silver">Manage your liquidity pools and monitor network performance</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Available Liquidity</h3><i class="fas fa-wallet text-primary-azure text-xl"></i></div><div class="text-2xl font-bold text-success-color mb-2">$2.5M USD</div><div class="text-sm text-text-muted">Across all currencies</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">24H Volume</h3><i class="fas fa-chart-line text-brand-gecan-gold text-xl"></i></div><div class="text-2xl font-bold text-primary-azure mb-2">$487K</div><div class="text-sm text-success-color">+12.5% vs yesterday</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Fees Earned</h3><i class="fas fa-coins text-warning-color text-xl"></i></div><div class="text-2xl font-bold text-warning-color mb-2">$1,247</div><div class="text-sm text-text-muted">This month</div></div></div><div class="glass-premium p-6 rounded-xl"><h3 class="text-xl font-bold text-white mb-4">Recent Settlement Requests</h3><div class="space-y-3">${[1,2,3,4,5].map(i => `<div class="flex items-center justify-between p-4 bg-background-dark rounded-lg"><div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-success-color"></div><div><div class="font-medium text-white">SGD ${(Math.random() * 10000).toFixed(0)} → PHP</div><div class="text-sm text-text-muted">${Math.floor(Date.now() / 1000) - (i * 300)} seconds ago</div></div></div><div class="text-success-color font-medium">Completed</div></div>`).join('')}</div></div></div>`,
-    
-    renderAddBeneficiaryModal: () => `
-        <div class="dialog-content-wrapper">
-            <div class="p-8">
-                <div class="text-center mb-6"><h3 class="text-2xl font-bold text-white mb-2">Add New Beneficiary</h3><p class="text-text-silver">Add a trusted recipient for your transfers</p></div>
-                <form id="beneficiary-form" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium text-text-silver mb-2">Full Name</label><input type="text" id="ben-name" class="form-input" required></div>
-                        <div><label class="block text-sm font-medium text-text-silver mb-2">Country</label><select id="ben-country" class="form-select" required><option value="">Select country...</option><option value="Philippines">Philippines</option><option value="Singapore">Singapore</option><option value="Malaysia">Malaysia</option><option value="Thailand">Thailand</option></select></div>
-                    </div>
-                    <div><label class="block text-sm font-medium text-text-silver mb-2">Mobile Number</label><input type="tel" id="ben-mobile" class="form-input" placeholder="+63 9XX XXX XXXX" required></div>
-                    <div><label class="block text-sm font-medium text-text-silver mb-2">Payout Method</label><select id="ben-method" class="form-select" required><option value="">Select method...</option><option value="bank">Bank Transfer</option><option value="ewallet">Digital Wallet</option><option value="cash">Cash Pickup</option></select></div>
-                    <div id="bank-details-container" class="hidden">
-                        <label class="block text-sm font-medium text-text-silver mb-2">Bank Details</label>
-                        <textarea id="ben-bank-details" class="form-input" rows="3" placeholder="Bank Name, Account Number, Branch..."></textarea>
-                    </div>
-                    <div class="flex gap-3 pt-4"><button type="button" onclick="document.getElementById('beneficiary-modal').close()" class="btn-secondary py-3 rounded-lg flex-1">Cancel</button><button type="submit" class="btn-primary py-3 rounded-lg flex-1"><i class="fas fa-user-plus mr-2"></i>Add Beneficiary</button></div>
-                </form>
-            </div>
-        </div>`,
-    
-    toggleBankDetails: (e) => {
-        const container = document.getElementById('bank-details-container');
-        if (e.target.value === 'bank') {
-            container.classList.remove('hidden');
-        } else {
-            container.classList.add('hidden');
-        }
-    }
-};
+                renderRoleSelectView: () => `
+                    <div class="max-w-6xl mx-auto text-center">
+                        <div class="mb-12" style="animation: slide-in 0.8s ease-out forwards;">
+                            <h2 class="text-4xl lg:text-5xl font-bold text-white mb-4">
+                                Welcome, <span class="bg-gradient-to-r from-yellow-300 via-brand-gecan-gold to-yellow-500 bg-clip-text text-transparent">${AppState.currentUser?.partnerName}</span>
+                            </h2>
+                            <p class="text-xl text-text-platinum max-w-4xl mx-auto leading-relaxed">
+                                From the ancient Silk Road to the digital frontier, a Karavan has always signified the secure transport of value across borders. Choose your mission:
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div id="role-remit" class="role-card" style="animation: slide-in 1.0s ease-out forwards; opacity: 0;">
+                                <div class="role-icon bg-gradient-to-br from-primary-azure to-primary-sapphire"><i class="fas fa-paper-plane text-white"></i></div>
+                                <h3 class="text-2xl font-bold text-white mb-3">GECAN™ Remit</h3>
+                                <p class="text-text-silver mb-4">Send money to family and friends with lightning speed and minimal fees.</p>
+                            </div>
+                            <div id="role-pay" class="role-card" style="animation: slide-in 1.2s ease-out forwards; opacity: 0;">
+                                <div class="role-icon bg-gradient-to-br from-brand-gecan-gold to-warning-color"><i class="fas fa-building text-background-dark"></i></div>
+                                <h3 class="text-2xl font-bold text-white mb-3">GECAN™ Pay</h3>
+                                <p class="text-text-silver mb-4">Execute B2B payments and trade settlements with institutional precision.</p>
+                            </div>
+                            ${AppState.currentUser?.persona === 'lp' ? `
+                            <div id="role-lp" class="role-card" style="animation: slide-in 1.4s ease-out forwards; opacity: 0;">
+                                <div class="role-icon bg-gradient-to-br from-primary-royal to-primary-amethyst"><i class="fas fa-network-wired text-white"></i></div>
+                                <h3 class="text-2xl font-bold text-white mb-3">LP Dashboard</h3>
+                                <p class="text-text-silver mb-4">Manage liquidity pools and monitor network performance.</p>
+                            </div>` : ''}
+                        </div>
+                    </div>`,
+
+                renderTransactionWizard: () => {
+                    const { transaction } = AppState;
+                    if (!transaction) return '';
+                    return `
+                        <div class="wizard-container">
+                            <div class="text-center mb-12">
+                                <h2 class="text-3xl lg:text-4xl font-bold text-white mb-2">New Karavan Dispatch</h2>
+                                <p class="text-lg text-text-silver">${transaction.type === 'remit' ? 'Personal Remittance' : 'Institutional Payment'} • Guided Secure Transfer Protocol</p>
+                            </div>
+                            ${UI.renderWizardStep('destination', 'Define Destination', 'fa-map-marker-alt')}
+                            ${UI.renderWizardStep('amount', 'Define Amount & Currency', 'fa-calculator')}
+                            ${UI.renderWizardStep('review', 'Review & Dispatch', 'fa-rocket')}
+                        </div>`;
+                },
+
+                renderWizardStep: (stepId, title, icon) => {
+                    const { transaction } = AppState;
+                    const isActive = transaction.activeStep === stepId;
+                    const isCompleted = transaction.steps[stepId]?.completed;
+                    const isDisabled = UI.isStepDisabled(stepId);
+                    return `
+                        <div class="step-card ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${isDisabled ? 'opacity-50' : ''}">
+                            <div class="step-header" onclick="${isDisabled ? '' : `Logic.setActiveStep('${stepId}')`}">
+                                <div class="step-number"><i class="fas ${isCompleted ? 'fa-check' : icon}"></i></div>
+                                <div class="flex-1"><h3 class="text-xl font-bold text-white">${title}</h3>${isCompleted ? `<p class="text-sm text-brand-gecan-gold font-semibold">Completed</p>` : ''}</div>
+                                <i class="fas fa-chevron-down text-text-muted transition-transform ${isActive ? 'rotate-180' : ''}"></i>
+                            </div>
+                            <div class="step-content" style="max-height: ${isActive ? '800px' : '0'};">
+                                <div class="step-inner">${UI.renderStepContent(stepId)}</div>
+                            </div>
+                        </div>`;
+                },
+
+                isStepDisabled: (stepId) => {
+                    const { transaction } = AppState;
+                    const stepOrder = ['destination', 'amount', 'review'];
+                    const currentIndex = stepOrder.indexOf(stepId);
+                    for (let i = 0; i < currentIndex; i++) {
+                        if (!transaction.steps[stepOrder[i]]?.completed) return true;
+                    }
+                    return false;
+                },
+
+                renderStepContent: (stepId) => {
+                    const { transaction, marketData } = AppState;
+                    switch (stepId) {
+                        case 'destination':
+                            return `
+                                <div class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-medium text-text-silver mb-2">Select Beneficiary</label>
+                                            <select id="beneficiary-select" class="form-select">${marketData.beneficiaries.map(b => `<option value="${b.id}" ${transaction.recipientId === b.id ? 'selected' : ''}>${b.name} (${b.country})</option>`).join('')}</select>
+                                        </div>
+                                        <div class="flex items-end"><button id="add-beneficiary-btn" class="btn-secondary w-full py-3 rounded-lg"><i class="fas fa-user-plus mr-2"></i>Add New</button></div>
+                                    </div>
+                                    ${transaction.type === 'pay' ? `<div><label class="block text-sm font-medium text-text-silver mb-2">Invoice Reference</label><input type="text" id="invoice-ref" class="form-input" placeholder="e.g., INV-2025-001" value="${transaction.invoiceRef || ''}"></div>` : ''}
+                                    <button id="confirm-destination" class="btn-primary py-3 rounded-lg w-full md:w-auto"><i class="fas fa-check mr-2"></i>Confirm Destination</button>
+                                </div>`;
+                        case 'amount':
+                            return `
+                                <div class="space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">You Send</h4><div class="space-y-4"><input type="number" id="send-amount" class="form-input text-xl text-center font-mono" placeholder="0.00" value="${transaction.sendAmount || ''}"><select id="send-currency" class="form-select">${marketData.availableCurrencies.map(c => `<option value="${c}" ${transaction.sendCurrency === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+                                        <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">Recipient Receives</h4><div class="space-y-4"><div class="form-input text-xl text-center font-mono bg-background-dark cursor-not-allowed flex items-center justify-center"><span id="receive-amount">${parseFloat(transaction.receiveAmount || 0).toFixed(2)}</span></div><select id="receive-currency" class="form-select">${marketData.availableCurrencies.map(c => `<option value="${c}" ${transaction.receiveCurrency === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+                                    </div>
+                                    <div id="quote-panel" class="quote-panel glass-premium p-6 rounded-xl hidden"><div class="quote-timer"><div id="quote-progress" class="quote-progress" style="width: 100%"></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"><div class="text-center"><span class="text-text-muted">Exchange Rate</span><div class="font-mono text-white" id="exchange-rate">-</div></div><div class="text-center"><span class="text-text-muted">GECAN™ Fee</span><div class="font-mono text-warning-color" id="fee-amount">-</div></div><div class="text-center"><span class="text-text-muted">Est. Arrival</span><div class="font-mono text-success-color">Sub-5 Minutes</div></div></div></div>
+                                    <button id="confirm-amount" class="btn-primary py-3 rounded-lg w-full md:w-auto" disabled><i class="fas fa-lock mr-2"></i>Lock Quote & Continue</button>
+                                </div>`;
+                        case 'review':
+                            return `
+                                <div class="space-y-6">
+                                    <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">Transaction Summary</h4><div class="space-y-3"><div class="flex justify-between"><span class="text-text-silver">Recipient:</span><span class="text-white font-medium" id="summary-recipient">-</span></div><div class="flex justify-between"><span class="text-text-silver">You Send:</span><span class="text-white font-mono" id="summary-send">-</span></div><div class="flex justify-between"><span class="text-text-silver">They Receive:</span><span class="text-white font-mono" id="summary-receive">-</span></div><div class="flex justify-between"><span class="text-text-silver">Exchange Rate:</span><span class="text-white font-mono" id="summary-rate">-</span></div><div class="flex justify-between border-t border-border-color pt-3"><span class="text-text-silver">Total Fee:</span><span class="text-warning-color font-mono" id="summary-fee">-</span></div></div></div>
+                                    <div class="glass-premium p-6 rounded-xl"><h4 class="text-lg font-bold text-white mb-4">Payment Method</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="payment-methods"><div data-method="crypto" class="p-4 border-2 border-border-color rounded-xl cursor-pointer hover:border-brand-gecan-gold transition-colors" onclick="Logic.selectPaymentMethod('crypto')"><div class="flex items-center gap-3"><i class="fas fa-coins text-primary-azure"></i><div><div class="font-semibold text-white">Crypto Transfer</div><div class="text-sm text-text-muted">USDT/USDC</div></div></div></div><div data-method="bank" class="p-4 border-2 border-border-color rounded-xl cursor-pointer hover:border-brand-gecan-gold transition-colors" onclick="Logic.selectPaymentMethod('bank')"><div class="flex items-center gap-3"><i class="fas fa-university text-brand-gecan-gold"></i><div><div class="font-semibold text-white">Bank Transfer</div><div class="text-sm text-text-muted">Local Banking</div></div></div></div></div></div>
+                                    <button id="dispatch-karavan" class="btn-gold w-full text-xl py-4 rounded-lg animate-[glow-pulse_2s_ease-in-out_infinite]" disabled><i class="fas fa-rocket mr-2"></i>Dispatch Karavan</button>
+                                </div>`;
+                        default: return '';
+                    }
+                },
+                
+                renderTransactionTracker: () => {
+                    const { transaction } = AppState;
+                    if (!transaction) return '';
+                    const stages = [ { id: 'initiated', label: 'Initiated', icon: 'fa-play-circle' }, { id: 'payment', label: 'Payment', icon: 'fa-credit-card' }, { id: 'compliance', label: 'Compliance', icon: 'fa-shield-alt' }, { id: 'settlement', label: 'Settlement', icon: 'fa-exchange-alt' }, { id: 'completed', label: 'Completed', icon: 'fa-check-circle' }];
+                    const currentStageIndex = stages.findIndex(s => s.id === transaction.status);
+                    return `
+                        <div class="max-w-4xl mx-auto">
+                            <div class="text-center mb-12"><h2 class="text-3xl font-bold text-white mb-2">Karavan Dispatch Tracker</h2><p class="text-lg text-text-silver font-mono">ID: ${transaction.id}</p></div>
+                            <div class="glass-premium p-8 rounded-2xl mb-8">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center"><div class="glass p-4 rounded-xl"><div class="text-text-muted text-sm">Amount Sent</div><div class="text-2xl font-bold text-white mt-1">${Utils.formatCurrency(transaction.sendAmount, transaction.sendCurrency)}</div></div><div class="glass p-4 rounded-xl"><div class="text-text-muted text-sm">Amount Received</div><div class="text-2xl font-bold text-primary-azure mt-1">${Utils.formatCurrency(transaction.receiveAmount, transaction.receiveCurrency)}</div></div><div class="glass p-4 rounded-xl"><div class="text-text-muted text-sm">Est. Arrival</div><div class="text-2xl font-bold text-success-color mt-1">Sub-5 Minutes</div></div></div>
+                                <div class="tracker-timeline">${stages.map((stage, index) => `<div class="tracker-step ${index < currentStageIndex ? 'completed' : ''} ${index === currentStageIndex ? 'active' : ''}"><div class="tracker-dot"><i class="fas ${stage.icon}"></i></div><div class="text-sm text-center mt-2"><div class="font-medium text-white">${stage.label}</div></div></div>`).join('')}</div>
+                            </div>
+                            <div class="text-center space-x-4"><button onclick="UI.renderView('role_select')" class="btn-primary py-3 px-6 rounded-lg"><i class="fas fa-plus mr-2"></i>New Transaction</button><button onclick="Logic.downloadProof()" class="btn-secondary py-3 px-6 rounded-lg"><i class="fas fa-download mr-2"></i>Download Proof</button></div>
+                        </div>`;
+                },
+
+                renderLPDashboard: () => `
+                    <div class="max-w-6xl mx-auto"><div class="text-center mb-12"><h2 class="text-3xl font-bold text-white mb-2">Liquidity Partner Dashboard</h2><p class="text-lg text-text-silver">Manage your liquidity pools and monitor network performance</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Available Liquidity</h3><i class="fas fa-wallet text-primary-azure text-xl"></i></div><div class="text-2xl font-bold text-success-color mb-2">$2.5M USD</div><div class="text-sm text-text-muted">Across all currencies</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">24H Volume</h3><i class="fas fa-chart-line text-brand-gecan-gold text-xl"></i></div><div class="text-2xl font-bold text-primary-azure mb-2">$487K</div><div class="text-sm text-success-color">+12.5% vs yesterday</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Fees Earned</h3><i class="fas fa-coins text-warning-color text-xl"></i></div><div class="text-2xl font-bold text-warning-color mb-2">$1,247</div><div class="text-sm text-text-muted">This month</div></div></div><div class="glass-premium p-6 rounded-xl"><h3 class="text-xl font-bold text-white mb-4">Recent Settlement Requests</h3><div class="space-y-3">${[1,2,3,4,5].map(i => `<div class="flex items-center justify-between p-4 bg-background-dark rounded-lg"><div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-success-color"></div><div><div class="font-medium text-white">SGD ${(Math.random() * 10000).toFixed(0)} → PHP</div><div class="text-sm text-text-muted">${i * 5} minutes ago</div></div></div><div class="text-success-color font-medium">Completed</div></div>`).join('')}</div></div></div>`,
+                
+                renderAddBeneficiaryModal: () => `
+                    <div class="dialog-content-wrapper">
+                        <div class="p-8">
+                            <div class="text-center mb-6"><h3 class="text-2xl font-bold text-white mb-2">Add New Beneficiary</h3><p class="text-text-silver">Add a trusted recipient for your transfers</p></div>
+                            <form id="beneficiary-form" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div><label class="block text-sm font-medium text-text-silver mb-2">Full Name</label><input type="text" id="ben-name" class="form-input" required></div>
+                                    <div><label class="block text-sm font-medium text-text-silver mb-2">Country</label><select id="ben-country" class="form-select" required><option value="">Select country...</option><option value="Philippines">Philippines</option><option value="Singapore">Singapore</option><option value="Malaysia">Malaysia</option><option value="Thailand">Thailand</option></select></div>
+                                </div>
+                                <div><label class="block text-sm font-medium text-text-silver mb-2">Mobile Number</label><input type="tel" id="ben-mobile" class="form-input" placeholder="+63 9XX XXX XXXX" required></div>
+                                <div><label class="block text-sm font-medium text-text-silver mb-2">Payout Method</label><select id="ben-method" class="form-select" required><option value="">Select method...</option><option value="bank">Bank Transfer</option><option value="ewallet">Digital Wallet</option><option value="cash">Cash Pickup</option></select></div>
+                                <div id="bank-details-container" class="hidden"><label class="block text-sm font-medium text-text-silver mb-2">Bank Details</label><textarea id="ben-bank-details" class="form-input" rows="3" placeholder="Bank Name, Account Number, Branch..."></textarea></div>
+                                <div class="flex gap-3 pt-4"><button type="button" onclick="document.getElementById('beneficiary-modal').close()" class="btn-secondary py-3 rounded-lg flex-1">Cancel</button><button type="submit" class="btn-primary py-3 rounded-lg flex-1"><i class="fas fa-user-plus mr-2"></i>Add Beneficiary</button></div>
+                            </form>
+                        </div>
+                    </div>`,
+                
+                toggleBankDetails: (e) => {
+                    const container = document.getElementById('bank-details-container');
+                    if (e.target.value === 'bank') {
+                        container.classList.remove('hidden');
+                    } else {
+                        container.classList.add('hidden');
+                    }
+                },
+                
+                startHoloStream: () => {
+                    const track = document.getElementById('holo-track');
+                    if (!track || !AppState.marketData.rates.length) return;
+                    const items = AppState.marketData.rates.filter(r => r.status !== 'API ERR').map(rate => {
+                        const isUp = Math.random() > 0.5;
+                        const colorClass = isUp ? 'text-green-400' : 'text-red-400';
+                        const icon = isUp ? 'fa-arrow-up' : 'fa-arrow-down';
+                        return `<div class="holo-item"><span class="text-white font-bold">${rate.baseAsset}/${rate.quoteAsset}</span><span class="ml-2 ${colorClass}">${parseFloat(rate.price).toFixed(4)}</span><i class="fas ${icon} text-xs ml-1 ${colorClass}"></i></div>`;
+                    }).join('');
+                    const content = items.repeat(5); // Repeat for seamless looping
+                    track.innerHTML = content + content;
+                }
+            };
 
             // Initialize
             Logic.init();
