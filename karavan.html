@@ -42,6 +42,46 @@
     </script>
 
     <style>
+
+        /* --- SUPREME NAVIGATION DROPDOWN ENGINE --- */
+        .nav-dropdown {
+            position: relative;
+        }
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 120%;
+            right: 0;
+            min-width: 280px;
+            background: var(--background-glass-premium);
+            border: 1px solid var(--border-premium);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-premium);
+            padding: 0.75rem;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .nav-dropdown-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            color: var(--text-silver);
+            font-weight: 500;
+        }
+        .nav-dropdown-link:hover {
+            background-color: var(--background-secondary);
+            color: var(--text-diamond);
+        }
         /* ========================================================================= */
         /* === PINNACLE CSS ENGINE v5.0 (KARAVAN SUPREME EDITION) === */
         /* This stylesheet is the definitive standard, ensuring visual supremacy */
@@ -219,11 +259,12 @@
     <header class="premium-header p-4 lg:px-6">
         <div class="container mx-auto flex items-center justify-between gap-6">
             <div class="flex items-center gap-6 flex-shrink-0">
-                <a href="#" class="gecan-logo-container flex items-center gap-4 group">
+                <!-- DEFINITIVE FIX: The entire logo container is now a link to index.html -->
+                <a href="./index.html" id="logo-link" class="gecan-logo-container flex items-center gap-4 group">
                     <div class="gecan-logo-flipper">
                         <div class="logo-face logo-front">GECAN™</div>
                         <div class="logo-face logo-back">
-                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSIjYjQ5NzVhIiBkPSJNNTAsMi41QTI0LjIsMjQuMiwwLDAsMCwyNS44LDI2LjdsMTIuMSw3YTEyLjEsMTIuMSwwLDAsMSwxMi4xLTEyLjFabTAsODVhMjQuMiwyNC4yLDAsMCwwLDI0LjItMjQuMkw2Mi4xLDY2LjNhMTIuMSwxMi4xLDAsMCwxLTEyLjEsMTIuMVptLTM1LjQtMjBhMjQuMywyNC4yLDAsMCwwLDIxLjYsMjEuNkwyNC4xLDYyLjFBNTEuMyw1MS4zLDAsMCwxLDE0LjYsNzBabTE4LjMtNDEuN0wyMC44LDMyLjVhMjQuMiwyNC4yLDAsMCwwLDAsMzVsMTIuMS03YTEyLjEsMTIuMSwwLDAsMSwwLTE3LjlaTTc5LjIsMzIuNUw2Ny4xLDM5LjdhMTIuMSwxMi4xLDAsMCwxLDAsMTcuOWwxMi4xLDdhMjQuMiwyNC4yLDAsMCwwLDAtMzVaTTUwLDQxLjZhOC40LDguNCwwLDEsMCw4LjQsOC40QTguNCw4LjQsMCwwLDAsNTAsNDEuNloiLz48L3N2Zz4=" alt="GECAN Logo">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSIjYjQ5NzVhIiBkPSJNNTAsMi41QTI0LjIsMjQuMiwwLDAsMCwyNS44LDI2LjdsMTIuMSw3YTEyLjEsMTIuMSwwLDAsMSwxMi4xLTEyLjFabTAsODVhMjQuMiwyNC4yLDAsMCwwLDI0LjItMjQuMkw2Mi4xLDY2LjNhMTIuMSwxMi4xLDAsMCwxLTEyLjEsMTIuMVptLTM1LjQtMjBhMjQuMywyNC4yLDAsMCwwLDIxLjYsMjEuNkwyNC4xLDYyLjFBNTEuMyw1MS4zLDAsMCwxLDE0LjYsNzBabTE4LjMtNDEuN0wyMC44LDMyLjVhMjQuMiwyNC4yLDAsMCwwLDAsMzVsMTIuMS03YTEyLjEsMTIuMSwwLDAsMSwwLTE3LjlaTTc5LjIsMzIuNUw2Ny4xLDM5LjdhMTIuMSwxMi4xLDAsMCwxLDAsMTcuOWwxMi4xLDdhMjQuMiwyNC4yLDAsMCwwLDAtMzVaTTUwLDQ5LjZhOC40LDguNCwwLDEsMCw4LjQsOC40QTguNCw4LjQsMCwwLDAsNTAsNDkuNloiLz48L3N2Zz4=" alt="GECAN Logo">
                         </div>
                     </div>
                 </a>
@@ -233,6 +274,7 @@
                     <p class="text-sm text-text-muted font-mono">Global Settlement Layer</p>
                 </div>
             </div>
+            <!-- This placeholder will be populated by the upgraded JavaScript function -->
             <div id="desktop-nav-placeholder" class="flex-grow">
                 <!-- Navigation will be dynamically injected -->
             </div>
@@ -375,11 +417,82 @@
 
             // --- SECTION 3: CORE LOGIC ENGINE ---
             const Logic = {
-                init: async () => {
+
+                /**
+                 * [NEW & CRITICAL] Securely saves the authenticated user's data to sessionStorage.
+                 * This function is the heart of the session persistence engine.
+                 * @param {object} user - The user object received from a successful login.
+                 */
+                persistSession: (user) => {
+                    if (!user) return;
+                    // We store a 'session' object containing the user data and a timestamp.
+                    // We NEVER store the password.
+                    const sessionData = {
+                        user: user,
+                        loginTimestamp: Date.now()
+                    };
+                    sessionStorage.setItem('gecanKaravanSession', JSON.stringify(sessionData));
+                },
+
+                /**
+                 * [NEW & CRITICAL] Checks for a valid session upon page load.
+                 * If a session exists, it re-hydrates the AppState, bypassing the login screen.
+                 * @returns {boolean} True if a valid session was restored, false otherwise.
+                 */
+                checkSession: () => {
+                    const sessionDataString = sessionStorage.getItem('gecanKaravanSession');
+                    if (!sessionDataString) return false;
+
+                    try {
+                        const sessionData = JSON.parse(sessionDataString);
+                        // Optional: Add a timeout check for extra security (e.g., 8 hours)
+                        // const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
+                        // if (Date.now() - sessionData.loginTimestamp > sessionDuration) {
+                        //     Logic.logout(); // Session expired
+                        //     return false;
+                        // }
+
+                        // Re-hydrate the application state with the stored user data.
+                        AppState.isAuthenticated = true;
+                        AppState.currentUser = sessionData.user;
+                        return true;
+                    } catch (error) {
+                        console.error("Failed to parse session data:", error);
+                        Logic.logout(); // Clear corrupted session data
+                        return false;
+                    }
+                },
+
+                /**
+                 * [NEW & CRITICAL] Clears the session from storage and resets the application state.
+                 * This function provides a secure logout mechanism.
+                 */
+                logout: () => {
+                    sessionStorage.removeItem('gecanKaravanSession');
+                    AppState.isAuthenticated = false;
+                    AppState.currentUser = null;
+                    // Redirect to the login screen for a clean user experience.
+                    UI.renderView('auth');
+                },
+                
+init: async () => {
                     try {
                         await UI.init();
                         Logic.initMobileUI();
-                        UI.renderView('auth');
+
+                        // --- DEFINITIVE SESSION CHECK ---
+                        // This is the critical new step in the initialization process.
+                        if (Logic.checkSession()) {
+                            // A valid session was found. User is already logged in.
+                            Utils.showNotification(`Welcome back, ${AppState.currentUser.partnerName}! Session restored.`, 'success');
+                            // Load their data and go directly to the role selection screen.
+                            await Logic.loadInitialData();
+                            UI.renderView('role_select');
+                        } else {
+                            // No valid session. Show the login screen as normal.
+                            UI.renderView('auth');
+                        }
+
                     } catch (error) {
                         console.error('Application initialization failed:', error);
                         document.getElementById('initial-loader').innerHTML = `<p class="text-center text-error-color">Critical Initialization Failure. Please refresh.</p>`;
@@ -433,6 +546,11 @@ bindEventListeners: (viewName) => {
                         const response = await Utils.createApiRequest('karavanAuthenticate', 'POST', { karavanId, password });
                         AppState.isAuthenticated = true;
                         AppState.currentUser = response.user;
+                        
+                        // --- DEFINITIVE SESSION PERSISTENCE ---
+                        // On successful login, we now save the session.
+                        Logic.persistSession(response.user);
+
                         Utils.showNotification(`Authentication successful. Welcome, ${AppState.currentUser.partnerName}!`, 'success');
                         await Logic.loadInitialData();
                         UI.renderView('role_select');
@@ -440,7 +558,7 @@ bindEventListeners: (viewName) => {
                         Utils.showNotification(error.message, 'error');
                     } finally {
                         loginBtn.disabled = false;
-                        loginBtn.innerHTML = '<i class="fas fa-key mr-2"></i>Authenticate & Enter';
+                        loginBtn.innerHTML = '<i class="fas fa-key mr-2"></i>Unlock & Proceed';
                     }
                 },
 
@@ -752,31 +870,92 @@ loadInitialData: async () => {
                     }
                 },
 
+                /**
+                 * [DEFINITIVE & UNIFIED v4.0 - SCALABLE NAVIGATION ARCHITECTURE]
+                 * Populates all navigation menus from a central source of truth. This version is
+                 * severely upgraded to include ALL links from the index.html benchmark and introduces
+                 * a scalable, prestigious "More" dropdown menu to accommodate future platform expansion
+                 * without cluttering the UI. It is the pinnacle standard for GECAN navigation.
+                 */
                 populateNavLinks: () => {
                     const navPlaceholder = document.getElementById('desktop-nav-placeholder');
                     const mobileMenuContent = document.getElementById('mobile-sidebar-content');
                     if (!navPlaceholder || !mobileMenuContent) return;
 
-                    const links = [
+                    const path = window.location.pathname;
+                    const currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
+
+                    // --- 1. Definitive, Complete Link Array (Synthesized from ALL benchmarks) ---
+                    const primaryLinks = [
                         { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
                         { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
                         { page: 'karavan', icon: 'fas fa-route', text: 'Karavan Settlement' }
                     ];
-                    
-                    const navHtml = (isMobile = false) => links.map(link => {
-                        const isActive = window.location.pathname.includes(link.page);
+
+                    const secondaryLinks = [
+                        { page: 'about', icon: 'fas fa-landmark', text: 'About The Alliance' },
+                        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' },
+                        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
+                        // Future-proof links
+                        { page: 'nexus', icon: 'fas fa-university', text: 'Nexus Capital' },
+                        { page: 'privacy', icon: 'fas fa-user-secret', text: 'Privacy Policy' }
+                    ];
+
+                    // --- 2. Pinnacle-Grade HTML Generation Engine (with Dropdown Logic) ---
+                    const navHtml = (isMobile = false) => {
                         const navBtnBaseClasses = `nav-btn bg-[var(--background-glass)] border border-[var(--border-secondary)] text-[var(--text-silver)] font-medium p-3 rounded-xl transition-all duration-500 ease-in-out relative overflow-hidden cursor-pointer no-underline inline-flex items-center gap-3 transform-style-preserve-3d`;
                         const navBtnHoverClasses = `hover:bg-[var(--background-glass-premium)] hover:text-[var(--text-diamond)] hover:translate-y-[-16px] hover:rotate-x-10 hover:rotate-y-5 hover:scale-105 hover:shadow-premium hover:border-[var(--border-premium)]`;
                         const navBtnActiveClasses = `active bg-gradient-to-br from-[rgba(14,165,233,0.65)] to-[rgba(139,92,246,0.65)] text-[var(--text-diamond)] font-bold border-[var(--primary-azure)] brightness-110`;
                         
-                        return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''} ${isMobile ? 'w-full justify-start' : ''}">
-                                    <i class="${link.icon} w-6 text-center text-lg"></i>
-                                    <span class="nav-text">${link.text}</span>
-                                </a>`;
-                    }).join('');
+                        let linksHtml = primaryLinks.map(link => {
+                            const isActive = (currentPageFile === link.page);
+                            return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''} ${isMobile ? 'w-full justify-start' : ''}"><i class="${link.icon} w-6 text-center text-lg"></i><span>${link.text}</span></a>`;
+                        }).join('');
+
+                        if (isMobile) {
+                            // On mobile, render all links as a simple, scrollable list for best UX.
+                            linksHtml += `<div class="px-4 pt-4 pb-2 text-xs font-bold text-text-muted uppercase">More</div>`;
+                            linksHtml += secondaryLinks.map(link => {
+                                const isActive = (currentPageFile === link.page);
+                                return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''} w-full justify-start"><i class="${link.icon} w-6 text-center text-lg"></i><span>${link.text}</span></a>`;
+                            }).join('');
+                        } else {
+                            // On desktop, create the prestigious "More" dropdown.
+                            linksHtml += `
+                                <div class="nav-dropdown">
+                                    <button class="${navBtnBaseClasses} ${navBtnHoverClasses}">
+                                        <i class="fas fa-ellipsis-h w-6 text-center text-lg"></i>
+                                        <span>More</span>
+                                    </button>
+                                    <div class="nav-dropdown-content">
+                                        <div class="space-y-2">
+                                            ${secondaryLinks.map(link => `
+                                                <a href="./${link.page}.html" class="nav-dropdown-link">
+                                                    <i class="${link.icon} w-6 text-center text-lg text-text-muted"></i>
+                                                    <span>${link.text}</span>
+                                                </a>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>`;
+                        }
+
+                        // --- 3. Integrated, Session-Aware Logout Button ---
+                        if (AppState.isAuthenticated) {
+                            const logoutBtnBaseClasses = `nav-btn bg-red-900/50 border border-red-500/30 text-red-300 font-medium p-3 rounded-xl transition-all duration-500 ease-in-out relative overflow-hidden cursor-pointer no-underline inline-flex items-center gap-3 transform-style-preserve-3d`;
+                            const logoutBtnHoverClasses = `hover:bg-red-500/50 hover:text-white hover:translate-y-[-16px] hover:rotate-x-10 hover:rotate-y-5 hover:scale-105 hover:shadow-premium hover:border-red-400`;
+                            
+                            linksHtml += `<button onclick="Logic.logout()" class="${logoutBtnBaseClasses} ${logoutBtnHoverClasses} ${isMobile ? 'w-full justify-start' : ''}" title="Logout"><i class="fas fa-sign-out-alt w-6 text-center text-lg"></i><span>Logout</span></button>`;
+                        }
+                        return linksHtml;
+                    };
                     
-                    navPlaceholder.innerHTML = `<nav class="hidden xl:flex items-center justify-center gap-3">${navHtml()}</nav>`;
+                    // --- 4. Consistent DOM Injection ---
+                    navPlaceholder.innerHTML = `<nav class="hidden xl:flex items-center justify-center gap-3">${navHtml(false)}</nav>`;
                     mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
+
+                    // Definitive fix: Ensure the logo link is always correct, although now handled by the <a> tag in HTML.
+                    document.getElementById('logo-link').href = './index.html';
                 },
 
                 renderView: (viewName) => {
