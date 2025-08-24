@@ -797,29 +797,86 @@ loadInitialData: async () => {
                 },
 
                 renderAuthView: () => `
-                    <div class="min-h-[80vh] flex items-center justify-center p-4">
-                        <div class="auth-modal glass-premium">
-                            <div class="text-center mb-8">
-                                <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-primary-azure to-primary-royal mb-4 shadow-premium animate-[float_6s_ease-in-out_infinite]">
-                                    <i class="fas fa-shield-alt text-4xl text-white"></i>
+                    <!-- ========================================================================= -->
+                    <!-- === THE KARAVAN THRESHOLD: PINNACLE AUTHENTICATION SUITE === -->
+                    <!-- ========================================================================= -->
+                    <style>
+                        /* SUPREME VAULT & VALUE STREAM ANIMATION ENGINE */
+                        @keyframes stream-in-1 {
+                            0% { transform: translate(-100vw, -50vh) scale(0.2) rotate(-360deg); opacity: 0; }
+                            80% { opacity: 0.7; }
+                            100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0; }
+                        }
+                        @keyframes stream-in-2 {
+                            0% { transform: translate(100vw, -40vh) scale(0.3) rotate(270deg); opacity: 0; }
+                            80% { opacity: 0.6; }
+                            100% { transform: translate(0, 0) scale(1.2) rotate(0deg); opacity: 0; }
+                        }
+                        @keyframes stream-in-3 {
+                            0% { transform: translate(-80vw, 100vh) scale(0.25) rotate(45deg); opacity: 0; }
+                            80% { opacity: 0.8; }
+                            100% { transform: translate(0, 0) scale(0.9) rotate(0deg); opacity: 0; }
+                        }
+                        .value-stream-element {
+                            position: absolute;
+                            font-family: 'Font Awesome 6 Free';
+                            font-weight: 900;
+                            will-change: transform, opacity;
+                            font-size: 2rem;
+                            text-shadow: 0 0 15px currentColor;
+                        }
+                        
+                        @keyframes vault-icon-pulse {
+                           0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(180, 151, 90, 0.4); }
+                           50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(180, 151, 90, 0.8); }
+                        }
+                        @keyframes vault-icon-rotate {
+                           from { transform: rotateY(0deg); }
+                           to { transform: rotateY(360deg); }
+                        }
+                    </style>
+
+                    <div class="min-h-[80vh] flex items-center justify-center p-4 relative overflow-hidden" style="perspective: 1500px;">
+                        
+                        <!-- SUPREME VALUE STREAM ANIMATION LAYER -->
+                        <div id="value-stream-container" class="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+                            <div class="value-stream-element text-yellow-400" style="animation: stream-in-1 4s linear infinite 0.5s;">&#xf51e;</div> <!-- gold coin -->
+                            <div class="value-stream-element text-green-400" style="animation: stream-in-2 3.5s linear infinite 1s;">&#xf155;</div> <!-- fiat bill -->
+                            <div class="value-stream-element text-sky-400" style="animation: stream-in-3 4.5s linear infinite 1.5s;">&#xf0AE;</div> <!-- tether symbol -->
+                            <div class="value-stream-element text-yellow-400" style="animation: stream-in-2 5s linear infinite 2s;">&#xf51e;</div>
+                            <div class="value-stream-element text-green-400" style="animation: stream-in-3 3.8s linear infinite 2.5s;">&#xf155;</div>
+                        </div>
+
+                        <!-- THE ANCIENT DIGITAL VAULT -->
+                        <div class="auth-modal glass-premium relative transform-style-preserve-3d transition-transform duration-500 hover:rotate-x-5 hover:-rotate-y-3" style="transform: rotateX(10deg) rotateY(-5deg);">
+                            <div class="vault-door-panel p-12 bg-gradient-to-b from-[var(--background-dark)] to-[var(--background-primary)] rounded-xl shadow-inner shadow-black/50">
+                                <div class="text-center mb-8">
+                                    <div class="vault-icon-container w-24 h-24 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-[#33260e] to-[#1a1307] mb-6 shadow-quantum border-2 border-[var(--brand-gecan-gold)]"
+                                         style="animation: vault-icon-pulse 3s infinite, vault-icon-rotate 30s linear infinite;">
+                                        <i class="fas fa-vault text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500" style="text-shadow: 0 0 15px var(--brand-gecan-gold);"></i>
+                                    </div>
+                                    <h2 class="text-3xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">The Karavan Threshold</h2>
+                                    <p class="text-text-muted">Present your credentials to unlock the digital silk road.</p>
                                 </div>
-                                <h2 class="text-3xl font-bold text-white mb-2">Secure Access Portal</h2>
-                                <p class="text-text-muted">Authenticate to enter the GECAN™ Karavan Global Settlement Layer</p>
-                            </div>
-                            <form id="auth-form" class="space-y-6">
-                                <input type="text" id="karavan-id" class="form-input" placeholder="Enter your Karavan ID" required>
-                                <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
-                                <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key mr-2"></i>Authenticate & Enter</button>
-                            </form>
-                            
-                            <div class="text-center mt-6">
-                                <p class="text-sm text-text-muted">
-                                    New to GECAN™? 
-                                    <!-- DEFINITIVE FIX: Reverted to using an ID for robust event binding -->
-                                    <button id="show-signup" class="text-primary-azure hover:text-primary-sapphire font-semibold">
-                                        Create Account
-                                    </button>
-                                </p>
+                                <form id="auth-form" class="space-y-6">
+                                    <div class="relative group">
+                                        <i class="fas fa-user-shield absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                        <input type="text" id="karavan-id" class="form-input !pl-12" placeholder="Enter your Karavan ID" required>
+                                    </div>
+                                    <div class="relative group">
+                                        <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                        <input type="password" id="password" class="form-input !pl-12" placeholder="Enter your password" required>
+                                    </div>
+                                    <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key mr-2"></i>Unlock & Proceed</button>
+                                </form>
+                                <div class="text-center mt-8">
+                                    <p class="text-sm text-text-muted">
+                                        New to the Alliance? 
+                                        <button id="show-signup" class="text-yellow-400 hover:text-yellow-300 font-semibold transition-all duration-300 hover:underline hover:brightness-110">
+                                            Register your Karavan
+                                        </button>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>`,
