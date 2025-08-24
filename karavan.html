@@ -425,29 +425,71 @@
                     }
                 },
 
-        showSignupModal: () => {
-                const modal = document.getElementById('karavan-auth-modal');
-                modal.innerHTML = `
-                    <div class="dialog-content-wrapper">
-                        <div class="p-8">
-                            <div class="text-center mb-6">
-                                <h3 class="text-2xl font-bold text-white mb-2">Join GECAN™ Karavan</h3>
-                                <p class="text-text-silver">Create your account to access the Global Settlement Layer</p>
-                            </div>
-                            <form id="signup-form" class="space-y-4">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div><label class="block text-sm font-medium text-text-silver mb-2">Full Name</label><input type="text" id="signup-name" class="form-input" required></div>
-                                    <div><label class="block text-sm font-medium text-text-silver mb-2">Email Address</label><input type="email" id="signup-email" class="form-input" required></div>
+                showSignupModal: () => {
+                    // 1. Target the correct, existing <dialog> element.
+                    const modal = document.getElementById('karavan-auth-modal');
+                    if (!modal) {
+                        return Utils.showNotification('UI Integrity Error: Authentication modal not found.', 'error');
+                    }
+
+                    // 2. Render the pinnacle-grade signup form, ensuring it's wrapped in the standard .dialog-content-wrapper.
+                    const signupContentHTML = `
+                        <div class="dialog-content-wrapper">
+                            <div class="p-8">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div class="text-center w-full">
+                                        <h3 class="text-2xl font-bold text-white mb-2">Join GECAN™ Karavan</h3>
+                                        <p class="text-text-silver">Create your account to access the Global Settlement Layer</p>
+                                    </div>
+                                    <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors -mt-4 -mr-4">&times;</button>
                                 </div>
-                                <div><label class="block text-sm font-medium text-text-silver mb-2">Password</label><input type="password" id="signup-password" class="form-input" required></div>
-                                <div><label class="block text-sm font-medium text-text-silver mb-2">Account Type</label><select id="signup-persona" class="form-select" required><option value="">Choose account type...</option><option value="remit">Individual (Personal Remittances)</option><option value="pay">Institution (B2B Payments)</option></select></div>
-                                <div class="flex gap-3 pt-4"><button type="button" onclick="document.getElementById('karavan-auth-modal').close()" class="btn-secondary py-3 rounded-lg flex-1">Cancel</button><button type="submit" class="btn-primary py-3 rounded-lg flex-1"><i class="fas fa-user-plus mr-2"></i>Create Account</button></div>
-                            </form>
+
+                                <form id="signup-form" class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-silver mb-2">Full Name</label>
+                                            <input type="text" id="signup-name" class="form-input" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-silver mb-2">Email Address</label>
+                                            <input type="email" id="signup-email" class="form-input" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-silver mb-2">Password</label>
+                                        <input type="password" id="signup-password" class="form-input" required>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-silver mb-2">Account Type</label>
+                                        <select id="signup-persona" class="form-select" required>
+                                            <option value="">Choose account type...</option>
+                                            <option value="remit">Individual (Personal Remittances)</option>
+                                            <option value="pay">Institution (B2B Payments)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="flex gap-3 pt-4">
+                                        <button type="button" onclick="document.getElementById('karavan-auth-modal').close()" class="btn-secondary py-3 rounded-lg flex-1">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
+                                            <i class="fas fa-user-plus mr-2"></i>Create Account
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>`;
-                modal.showModal();
-                document.getElementById('signup-form')?.addEventListener('submit', Logic.handleSignup);
-            },
+                    `;
+                    
+                    // 3. Inject the HTML and use the standard .showModal() method.
+                    modal.innerHTML = signupContentHTML;
+                    modal.showModal();
+                    
+                    // 4. Attach the event listener for the newly created form.
+                    document.getElementById('signup-form')?.addEventListener('submit', Logic.handleSignup);
+                },
 
             handleSignup: async (e) => {
                 e.preventDefault();
@@ -470,6 +512,15 @@
                     Utils.showNotification(`Account creation failed: ${error.message}`, 'error');
                 }
             },
+
+bindAuthListeners: () => {
+                    const form = document.getElementById('auth-form');
+                    const showSignup = document.getElementById('show-signup');
+
+                    form?.addEventListener('submit', Logic.handleLogin);
+                    // This listener is now correctly attached and will call the upgraded function.
+                    showSignup?.addEventListener('click', Logic.showSignupModal); 
+                },
             
             downloadProof: () => {
                 Utils.showNotification('Generating Proof of Settlement certificate...', 'info');
