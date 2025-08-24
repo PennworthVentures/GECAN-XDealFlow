@@ -721,11 +721,35 @@ loadInitialData: async () => {
             // --- SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ---
             const UI = {
                 init: async () => {
-                    if (typeof particlesJS !== 'undefined') {
-                        particlesJS('particles-js', { particles: { number: { value: 50, density: { enable: true, value_area: 800 } }, color: { value: '#b4975a' }, shape: { type: 'circle' }, opacity: { value: 0.3, random: true }, size: { value: 2, random: true }, line_linked: { enable: true, distance: 150, color: '#b4975a', opacity: 0.1, width: 1 }, move: { enable: true, speed: 1, direction: 'none', random: true } }, interactivity: { events: { onhover: { enable: true, mode: 'grab' } } } });
-                    }
                     UI.populateNavLinks();
                     document.getElementById('initial-loader').style.display = 'none';
+
+                    try {
+                        // Attempt to fetch the dynamic, server-side theme configuration first.
+                        const themeJson = await Utils.createApiRequest('getActiveThemeConfig', 'GET');
+                        UI.renderParticles(JSON.parse(themeJson));
+                    } catch (error) {
+                        // If the API call fails or returns invalid data, fall back to the default theme.
+                        console.warn("Could not fetch dynamic theme. Falling back to default.", error);
+                        const defaultConfig = {
+                            "particles": { "number": { "value": 50, "density": { "enable": true, "value_area": 800 } }, "color": { "value": ["#0ea5e9", "#6366f1", "#8b5cf6"] }, "shape": { "type": "circle" }, "opacity": { "value": 0.6, "random": true, "anim": { "enable": true, "speed": 0.5, "opacity_min": 0.1 } }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#475569", "opacity": 0.4, "width": 1 }, "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "out_mode": "out" } },
+                            "interactivity": { "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } }, "modes": { "grab": { "distance": 200, "line_linked": { "opacity": 0.6 } }, "push": { "particles_nb": 4 } } }
+                        };
+                        UI.renderParticles(defaultConfig);
+                    }
+                },
+
+                /**
+                 * [NEW & INTEGRATED] Dynamically renders the particle.js background using a provided configuration.
+                 * This function is now integral to the theme-aware architecture.
+                 * @param {object} config - A valid particle.js configuration object.
+                 */
+                renderParticles: (config) => {
+                    if (typeof particlesJS !== 'undefined' && config) {
+                        particlesJS('particles-js', config);
+                    } else {
+                        console.warn("particles.js library not found or config is invalid, skipping background rendering.");
+                    }
                 },
 
                 populateNavLinks: () => {
