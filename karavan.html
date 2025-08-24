@@ -381,9 +381,11 @@
                 bindEventListeners: (viewName) => {
                     const binders = {
                         auth: () => {
-                            // The listener for #show-signup is no longer needed here, as it's now a direct onclick.
-                            // We ONLY bind the form submission.
+                            // The listener for form submission
                             document.getElementById('auth-form')?.addEventListener('submit', Logic.handleLogin);
+                            // DEFINITIVE FIX: The listener for the signup button is restored here.
+                            // This ensures it's only attached AFTER the button exists in the DOM and AFTER Logic is defined.
+                            document.getElementById('show-signup')?.addEventListener('click', Logic.showSignupModal);
                         },
                         role_select: () => {
                             document.getElementById('role-remit')?.addEventListener('click', () => Logic.selectRole('remit'));
@@ -771,15 +773,16 @@ bindAuthListeners: () => {
                                 <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
                                 <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key mr-2"></i>Authenticate & Enter</button>
                             </form>
-                            // NEW, PINNACLE-GRADE, AND CORRECTED CODE
-<div class="text-center mt-6">
-    <p class="text-sm text-text-muted">
-        New to GECAN™? 
-        <button onclick="Logic.showSignupModal()" class="text-primary-azure hover:text-primary-sapphire font-semibold">
-            Create Account
-        </button>
-    </p>
-</div>
+                            
+                            <div class="text-center mt-6">
+                                <p class="text-sm text-text-muted">
+                                    New to GECAN™? 
+                                    <!-- DEFINITIVE FIX: Reverted to using an ID for robust event binding -->
+                                    <button id="show-signup" class="text-primary-azure hover:text-primary-sapphire font-semibold">
+                                        Create Account
+                                    </button>
+                                </p>
+                            </div>
                         </div>
                     </div>`,
 
