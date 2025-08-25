@@ -782,7 +782,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbwAJOeG75TAraJC7FKq2SkuyouRNaFN3Q5jBEG4q58VIsff91rEF7Pu97gbASEZWRu1/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbyr1StYBzk5yQ3WvUCW41ieiGpjyoa5a7yIblra7WkoQAesvcVaUq1ykrPIEuYQfJus/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -1067,6 +1067,11 @@ handleLogin: async (e) => {
 
     try {
         const response = await Utils.createApiRequest('karavanAuthenticate', 'POST', { karavanId, password });
+
+    // [CRITICAL UPGRADE] Check the user's status after successful authentication.
+    if (response.user && response.user.status !== 'ACTIVE') {
+        throw new Error('This account is pending verification. Please check your email to activate it.');
+    }
         AppState.isAuthenticated = true;
         AppState.currentUser = response.user;
         
@@ -2602,10 +2607,11 @@ handleSignup: async (e) => {
         // Premium post-success workflow
         setTimeout(() => {
             document.getElementById('karavan-auth-modal')?.close();
-            Utils.showNotification(
-                `🎉 Account created successfully! Your Karavan ID: <strong style="font-family: monospace; color: #10b981;">${createResponse.karavanId}</strong>`, 
-                'success', 12000
-            );
+    Utils.showNotification(
+        `🎉 Account created! <strong style="color: #f59e0b;">Please check your email to activate your account.</strong>`, 
+        'success', 
+        15000 // Longer duration so user can read it
+    );
             UI.renderView('auth');
             setTimeout(() => {
                 const karavanIdInput = document.getElementById('karavan-id');
