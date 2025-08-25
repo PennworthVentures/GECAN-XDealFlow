@@ -235,31 +235,33 @@
         @keyframes stream-in-3 { 0% { transform: translate(-80vw, 100vh) scale(0.25) rotate(45deg); opacity: 0; } 80% { opacity: 0.8; } 100% { transform: translate(0, 0) scale(0.9) rotate(0deg); opacity: 0; } }
         .value-stream-element { position: absolute; font-family: 'Font Awesome 6 Free'; font-weight: 900; will-change: transform, opacity; font-size: 2rem; text-shadow: 0 0 15px currentColor; }
         
-        /* --- D2. THE KARAVAN THRESHOLD v3.0 (Login Modal - Severely Upgraded) --- */
+        /* --- D2. THE KARAVAN THRESHOLD v3.1 (Login/Signup Modal - Animation & Text Restored) --- */
         .auth-modal-v2 {
             width: 100%;
-            max-width: 520px; /* Increased size for a more commanding presence */
+            max-width: 520px;
             background: radial-gradient(ellipse at top, var(--background-light) 0%, var(--background-dark) 90%);
             border: 1px solid var(--border-premium);
             box-shadow: var(--shadow-quantum), 
                         inset 0 2px 0px rgba(255, 255, 255, 0.05);
-            border-radius: 2rem; /* Softer, more premium curvature */
+            border-radius: 2rem;
             position: relative;
             transform-style: preserve-3d;
             transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
         }
         .auth-modal-v2:hover {
-            transform: translateY(-10px) rotateX(8deg) !important; /* Force a more dramatic hover effect */
+            transform: translateY(-10px) rotateX(8deg) !important;
         }
+
         .vault-icon-v2 {
-            width: 110px; height: 110px; /* Significantly larger icon */
+            width: 110px; height: 110px;
             background: linear-gradient(145deg, #382c12, #1a1307);
             border: 3px solid var(--brand-gecan-gold);
             box-shadow: 0 0 40px var(--glow-gold), 
                         inset 0 3px 6px rgba(0,0,0,0.6),
                         0 0 0 5px rgba(0,0,0,0.3);
             animation: vault-icon-breathe 4s ease-in-out infinite;
-            transform-style: preserve-3d;
+            /* DEFINITIVE FIX: This property is critical for 3D child animations */
+            transform-style: preserve-3d; 
         }
         @keyframes vault-icon-breathe {
             50% { 
@@ -270,21 +272,23 @@
             }
         }
         .vault-icon-v2 .vault-icon-inner {
-            /* New inner layer for more depth */
             width: 85%; height: 85%;
             border-radius: 50%;
             display: grid;
             place-items: center;
             background: radial-gradient(circle, #2c210e, #1a1307);
-            transform: translateZ(10px);
-        }
-        .vault-icon-v2 i {
-            font-size: 3rem; /* Larger symbol */
-            text-shadow: 0 0 20px var(--brand-gecan-gold);
+            /* DEFINITIVE FIX: Apply 3D transform directly to the inner element */
+            transform: translateZ(10px); 
             animation: vault-inner-spin 40s linear infinite;
         }
+        .vault-icon-v2 i {
+            font-size: 3rem;
+            text-shadow: 0 0 20px var(--brand-gecan-gold);
+        }
         @keyframes vault-inner-spin { 
-            to { transform: rotateY(360deg) translateZ(10px); } 
+            /* DEFINITIVE FIX: The animation now correctly targets the 3D transform property */
+            from { transform: translateZ(10px) rotateY(0deg); }
+            to { transform: translateZ(10px) rotateY(360deg); } 
         }
 
         .form-input-v2 {
@@ -898,19 +902,18 @@ bindEventListeners: (viewName) => {
 
                 showSignupModal: () => {
                     const modal = document.getElementById('karavan-auth-modal');
-                    if (!modal) {
-                        return Utils.showNotification('UI Integrity Error: Authentication modal not found.', 'error');
-                    }
+                    if (!modal) return;
 
-                    // This is the definitive, benchmark-aligned HTML structure.
-                    const signupContentHTML = `
+                    modal.innerHTML = `
                         <div class="dialog-content-wrapper" style="max-width: 48rem;">
                             <div class="auth-modal auth-modal-v2 glass-premium !p-0 relative">
                                 <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6 z-10">&times;</button>
                                 <div class="p-8 md:p-12">
                                     <div class="text-center mb-8">
-                                        <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-brand-gecan-gold/10 to-brand-gecan-gold/5 border-2 border-brand-gecan-gold/50 mb-4 shadow-gold-glow animate-glow-pulse">
-                                            <i class="fas fa-user-plus text-4xl text-brand-gecan-gold"></i>
+                                        <div class="vault-icon-v2 w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-4">
+                                            <div class="vault-icon-inner">
+                                                <i class="fas fa-user-plus text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i>
+                                            </div>
                                         </div>
                                         <h3 class="text-3xl font-bold text-text-diamond mb-2 font-['Orbitron',_sans-serif]">Register your Karavan</h3>
                                         <p class="text-text-silver">Forge your key to the digital silk road.</p>
@@ -975,7 +978,7 @@ bindEventListeners: (viewName) => {
                                             Sign Up with Google
                                         </button>
                                         <div class="flex items-center gap-6 pt-6">
-                                            <button type="button" onclick="UI.renderView('auth')" class="text-text-muted hover:text-white transition-colors">
+                                            <button type="button" onclick="UI.renderView('auth')" class="text-text-muted hover:text-white transition-colors font-semibold">
                                                 Back to Login
                                             </button>
                                             <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
@@ -987,13 +990,11 @@ bindEventListeners: (viewName) => {
                             </div>
                         </div>
                     `;
-                    
                     modal.innerHTML = signupContentHTML;
                     modal.showModal();
-                    
                     Logic.bindSignupListeners();
                 },
-
+                
                 // Add this new function
                 bindSignupListeners: () => {
                     const form = document.getElementById('signup-form');
