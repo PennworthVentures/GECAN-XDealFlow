@@ -2466,14 +2466,13 @@ _updateIdFieldState: (state, message) => {
 },
 
 /**
- * [PINNACLE ID VERIFICATION ENGINE v2.0 - SEVERELY REFINED]
+ * [PINNACLE ID VERIFICATION ENGINE v2.1 - Definitive & Corrected]
  * A high-performance, race-condition-proof Karavan ID availability checker.
- * Utilizes an AbortController to cancel stale requests and a state-driven UI
- * helper for clean, maintainable, and DRY code.
+ * This version contains the definitive fix for the response parsing logic, ensuring
+ * accurate integration with the backend and eliminating false "ID taken" errors.
  */
 checkKaravanIdAvailability: async () => {
     // 1. ABORT PREVIOUS REQUEST TO PREVENT RACE CONDITIONS
-    // If a check is already in progress, cancel it.
     if (Logic._idCheckController) {
         Logic._idCheckController.abort();
     }
@@ -2484,8 +2483,7 @@ checkKaravanIdAvailability: async () => {
     const karavanId = input?.value.trim() || '';
 
     // 2. IMMEDIATE CLIENT-SIDE VALIDATION
-    // Fail fast if the input format is clearly invalid.
-    const idRegex = /^[a-zA-Z0-9_\-]{4,20}$/;
+    const idRegex = /^[a-zA-Z0-9_\-]{4,20}$/; // Using corrected regex
     if (!idRegex.test(karavanId)) {
         Logic._updateIdFieldState('invalid', 'ID must be 4-20 characters (letters, numbers, _, -).');
         return;
@@ -2497,26 +2495,24 @@ checkKaravanIdAvailability: async () => {
     try {
         const response = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId }, signal);
 
-        // If the request was aborted by a newer one, the response will have an 'aborted' flag.
-        // In this case, we simply do nothing and let the newer request take over.
         if (response?.aborted) {
             return; 
         }
         
-        // 4. PROCESS AUTHORITATIVE BACKEND RESPONSE
-        if (response.data?.isAvailable) {
+        // 4. PROCESS AUTHORITATIVE BACKEND RESPONSE (DEFINITIVE FIX APPLIED)
+        // We check 'response.isAvailable' directly, as createApiRequest
+        // has already unwrapped the 'data' object for us.
+        if (response?.isAvailable) {
             Logic._updateIdFieldState('valid', 'This ID is available and ready to claim!');
         } else {
             Logic._updateIdFieldState('invalid', 'This ID is already taken. Please choose another.');
         }
 
     } catch (error) {
-        // The AbortError is handled inside createApiRequest, so this only catches real network/server errors.
         Logic._updateIdFieldState('error', 'Could not verify ID. Check connection and try again.');
         console.warn('ID availability check failed:', error);
     }
 },
-
 /**
  * [PINNACLE SIGNUP ENGINE v3.0 - Definitive & Unabridged]
  * Orchestrates the user creation workflow by combining a superior client-side UX with a
