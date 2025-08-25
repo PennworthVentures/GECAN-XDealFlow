@@ -902,25 +902,21 @@ bindEventListeners: (viewName) => {
                         return Utils.showNotification('UI Integrity Error: Authentication modal not found.', 'error');
                     }
 
-                    // This is the complete, synthesized HTML structure with all aesthetic, functional, and text color upgrades.
+                    // This is the definitive, benchmark-aligned HTML structure.
                     const signupContentHTML = `
-                        <div class="dialog-content-wrapper" style="max-width: 42rem;">
-                            <div class="auth-modal auth-modal-v2 glass-premium !p-0">
-                                <div class="p-8">
-                                    <div class="flex justify-between items-start mb-6">
-                                        <div class="text-center w-full">
-                                            <div class="vault-icon-v2 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4">
-                                                <div class="vault-icon-inner">
-                                                    <i class="fas fa-user-plus text-3xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i>
-                                                </div>
-                                            </div>
-                                            <h3 class="text-3xl font-bold text-text-diamond mb-2 font-['Orbitron',_sans-serif]">Register your Karavan</h3>
-                                            <p class="text-text-silver">Forge your key to the digital silk road.</p>
+                        <div class="dialog-content-wrapper" style="max-width: 48rem;">
+                            <div class="auth-modal auth-modal-v2 glass-premium !p-0 relative">
+                                <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6 z-10">&times;</button>
+                                <div class="p-8 md:p-12">
+                                    <div class="text-center mb-8">
+                                        <div class="w-24 h-24 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-brand-gecan-gold/10 to-brand-gecan-gold/5 border-2 border-brand-gecan-gold/50 mb-4 shadow-gold-glow animate-glow-pulse">
+                                            <i class="fas fa-user-plus text-4xl text-brand-gecan-gold"></i>
                                         </div>
-                                        <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6">&times;</button>
+                                        <h3 class="text-3xl font-bold text-text-diamond mb-2 font-['Orbitron',_sans-serif]">Register your Karavan</h3>
+                                        <p class="text-text-silver">Forge your key to the digital silk road.</p>
                                     </div>
 
-                                    <form id="signup-form" class="space-y-4">
+                                    <form id="signup-form" class="space-y-6">
                                         <div>
                                             <label class="block text-sm font-semibold text-text-platinum mb-2">Choose your Karavan ID</label>
                                             <div class="relative">
@@ -930,34 +926,32 @@ bindEventListeners: (viewName) => {
                                             </div>
                                             <p id="id-check-message" class="text-xs mt-1 h-4"></p>
                                         </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                                             <div>
                                                 <label class="block text-sm font-semibold text-text-platinum mb-2">Full Name</label>
                                                 <div class="relative group">
-                                                    <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                    <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--primary-azure)]"></i>
                                                     <input type="text" id="signup-name" class="form-input form-input-v2 !pl-12" required>
                                                 </div>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-semibold text-text-platinum mb-2">Email Address</label>
                                                 <div class="relative group">
-                                                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--primary-azure)]"></i>
                                                     <input type="email" id="signup-email" class="form-input form-input-v2 !pl-12" required>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label class="block text-sm font-semibold text-text-platinum mb-2">Password</label>
                                                 <div class="relative group">
-                                                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--primary-azure)]"></i>
                                                     <input type="password" id="signup-password" class="form-input form-input-v2 !pl-12" required>
                                                 </div>
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-semibold text-text-platinum mb-2">Confirm Password</label>
                                                 <div class="relative group">
-                                                     <i class="fas fa-check-double absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                     <i class="fas fa-check-double absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--primary-azure)]"></i>
                                                     <input type="password" id="signup-confirm-password" class="form-input form-input-v2 !pl-12" required>
                                                 </div>
                                             </div>
@@ -976,13 +970,12 @@ bindEventListeners: (viewName) => {
                                             <span class="flex-shrink mx-4 text-text-muted text-xs uppercase">Or</span>
                                             <div class="flex-grow border-t border-border-color"></div>
                                         </div>
-                                        <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300 text-text-platinum">
+                                        <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/5 border border-white/10 hover:bg-white/20 transition-all duration-300 text-text-platinum">
                                             <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.218,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
                                             Sign Up with Google
                                         </button>
-                                        <div class="flex gap-3 pt-4">
-                                            <!-- DEFINITIVE FUNCTIONALITY FIX -->
-                                            <button type="button" onclick="UI.renderView('auth')" class="btn-secondary py-3 rounded-lg flex-1">
+                                        <div class="flex items-center gap-6 pt-6">
+                                            <button type="button" onclick="UI.renderView('auth')" class="text-text-muted hover:text-white transition-colors">
                                                 Back to Login
                                             </button>
                                             <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
@@ -998,7 +991,6 @@ bindEventListeners: (viewName) => {
                     modal.innerHTML = signupContentHTML;
                     modal.showModal();
                     
-                    // This re-attaches all necessary listeners to the new form elements.
                     Logic.bindSignupListeners();
                 },
 
