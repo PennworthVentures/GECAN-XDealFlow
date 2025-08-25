@@ -2485,7 +2485,7 @@ checkKaravanIdAvailability: async () => {
 
     // 2. IMMEDIATE CLIENT-SIDE VALIDATION
     // Fail fast if the input format is clearly invalid.
-    const idRegex = /^[a-zA-Z0-9_-]{4,20}$/;
+    const idRegex = /^[a-zA-Z0-9_\-]{4,20}$/;
     if (!idRegex.test(karavanId)) {
         Logic._updateIdFieldState('invalid', 'ID must be 4-20 characters (letters, numbers, _, -).');
         return;
@@ -2517,6 +2517,13 @@ checkKaravanIdAvailability: async () => {
     }
 },
 
+/**
+ * [PINNACLE SIGNUP ENGINE v3.0 - Definitive & Unabridged]
+ * Orchestrates the user creation workflow by combining a superior client-side UX with a
+ * streamlined, single-source-of-truth transaction model. It provides immediate, per-field
+ * validation feedback while trusting the backend as the final arbiter, with intelligent
+ * error handling to guide the user to any server-side validation failures.
+ */
 handleSignup: async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -2524,71 +2531,53 @@ handleSignup: async (e) => {
 
     if (!submitButton) return;
 
-    // COMPREHENSIVE DATA COLLECTION
-    const firstName = document.getElementById('signup-firstname')?.value.trim() || '';
-    const lastName = document.getElementById('signup-lastname')?.value.trim() || '';
-    const password = document.getElementById('signup-password')?.value || '';
-    const confirmPassword = document.getElementById('signup-confirm-password')?.value || '';
-    
+    // 1. COMPREHENSIVE DATA COLLECTION
     const signupData = {
-        firstName,
-        lastName,
-        name: `${firstName} ${lastName}`.trim(),
+        firstName: document.getElementById('signup-firstname')?.value.trim() || '',
+        lastName: document.getElementById('signup-lastname')?.value.trim() || '',
+        name: `${document.getElementById('signup-firstname')?.value.trim() || ''} ${document.getElementById('signup-lastname')?.value.trim() || ''}`.trim(),
         email: document.getElementById('signup-email')?.value.trim() || '',
-        password,
+        password: document.getElementById('signup-password')?.value || '',
         persona: document.getElementById('signup-persona')?.value || '',
         karavanId: document.getElementById('signup-karavan-id')?.value.trim() || ''
     };
-
-    // MILITARY-GRADE VALIDATION
+    
+    // 2. IMMEDIATE CLIENT-SIDE VALIDATION FOR SUPERIOR UX
+    // This provides fast, per-field feedback but does not replace authoritative backend validation.
     const requiredFields = ['firstName', 'lastName', 'email', 'password', 'persona', 'karavanId'];
     const emptyFields = requiredFields.filter(field => !signupData[field]);
     
     if (emptyFields.length > 0) {
-        // Highlight empty fields with premium feedback
+        // [UX FEATURE RETAINED] - Your excellent per-field highlighting is preserved.
         emptyFields.forEach(fieldName => {
             const fieldMap = {
-                firstName: 'signup-firstname',
-                lastName: 'signup-lastname',
-                email: 'signup-email',
-                password: 'signup-password',
-                persona: 'signup-persona',
-                karavanId: 'signup-karavan-id'
+                firstName: 'signup-firstname', lastName: 'signup-lastname', email: 'signup-email',
+                password: 'signup-password', persona: 'signup-persona', karavanId: 'signup-karavan-id'
             };
-            
             const element = document.getElementById(fieldMap[fieldName]);
             if (element) {
                 element.style.borderColor = '#ef4444';
                 element.style.animation = 'premium-shake 0.5s ease-in-out';
                 setTimeout(() => {
                     element.style.animation = '';
-                    if (!element.classList.contains('is-valid')) {
-                        element.style.borderColor = '';
-                    }
+                    if (!element.classList.contains('is-valid')) { element.style.borderColor = ''; }
                 }, 500);
             }
         });
-        
         return Utils.showNotification('Please complete all required fields in all steps.', 'error');
     }
     
-    if (password !== confirmPassword) {
-        const passField = document.getElementById('signup-confirm-password');
-        if (passField) {
-            passField.style.borderColor = '#ef4444';
-            passField.style.animation = 'premium-shake 0.5s ease-in-out';
-            setTimeout(() => passField.style.animation = '', 500);
-        }
-        Logic.changeSignupStep(3); // Navigate to password step
-        return Utils.showNotification('Passwords do not match. Please verify your input.', 'error');
-    }
-    
-    if (password.length < 8) {
+    if (signupData.password.length < 8) {
         Logic.changeSignupStep(3);
         return Utils.showNotification('Password must be at least 8 characters long.', 'error');
     }
     
-    // PREMIUM LOADING STATE
+    if (signupData.password !== document.getElementById('signup-confirm-password')?.value) {
+        Logic.changeSignupStep(3);
+        return Utils.showNotification('Passwords do not match. Please verify your input.', 'error');
+    }
+    
+    // 3. SET PREMIUM LOADING STATE
     submitButton.disabled = true;
     const originalContent = submitButton.innerHTML;
     submitButton.style.transform = 'scale(0.98)';
@@ -2600,20 +2589,11 @@ handleSignup: async (e) => {
     `;
 
     try {
-        // PRE-FLIGHT ID AVAILABILITY VERIFICATION
-        const idCheckResponse = await Utils.createApiRequest('karavanCheckId', 'POST', { 
-            karavanId: signupData.karavanId 
-        });
-        
-        if (!idCheckResponse.data?.isAvailable) {
-            Logic.changeSignupStep(1); // Navigate back to ID selection
-            throw new Error('This Karavan ID is no longer available. Please choose another.');
-        }
-        
-        // SECURE ACCOUNT CREATION
+        // 4. PERFORM A SINGLE, AUTHORITATIVE API CALL
+        // [ARCHITECTURAL UPGRADE] The redundant pre-flight check is definitively removed.
         const createResponse = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
         
-        // SUCCESS ANIMATION SEQUENCE
+        // 5. PROCESS SUCCESSFUL CREATION
         submitButton.style.transform = 'scale(1.02)';
         submitButton.style.background = 'linear-gradient(135deg, #10b981, #059669)';
         submitButton.innerHTML = `
@@ -2623,39 +2603,25 @@ handleSignup: async (e) => {
             </div>
         `;
         
-        // Enhanced success workflow
+        // Premium post-success workflow
         setTimeout(() => {
             document.getElementById('karavan-auth-modal')?.close();
-            
             Utils.showNotification(
                 `🎉 Account created successfully! Your Karavan ID: <strong style="font-family: monospace; color: #10b981;">${createResponse.karavanId}</strong>`, 
-                'success', 
-                12000
+                'success', 12000
             );
-            
-            // Smooth transition to login
             UI.renderView('auth');
-            
             setTimeout(() => {
                 const karavanIdInput = document.getElementById('karavan-id');
                 if (karavanIdInput) {
                     karavanIdInput.value = createResponse.karavanId;
                     karavanIdInput.focus();
-                    
-                    // Premium focus animation
-                    karavanIdInput.style.transform = 'scale(1.02)';
-                    karavanIdInput.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
-                    setTimeout(() => {
-                        karavanIdInput.style.transform = '';
-                        karavanIdInput.style.boxShadow = '';
-                    }, 1000);
                 }
             }, 200);
-            
         }, 1500);
 
     } catch (error) {
-        // PREMIUM ERROR HANDLING
+        // 6. PROCESS PINNACLE-GRADE, CONTEXT-AWARE ERRORS
         submitButton.style.transform = 'scale(1)';
         submitButton.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
         submitButton.innerHTML = `
@@ -2665,32 +2631,28 @@ handleSignup: async (e) => {
             </div>
         `;
         
-        // Enhanced error feedback
-        const errorMessage = error.message || 'Account creation failed. Please try again.';
-        Utils.showNotification(`❌ ${errorMessage}`, 'error');
+        Utils.showNotification(`❌ ${error.message}`, 'error');
+        
+        // [ARCHITECTURAL UPGRADE] Intelligent UI navigation guides the user to the problem.
+        if (error.message.includes('Karavan ID')) {
+            Logic.changeSignupStep(1);
+            document.getElementById('signup-karavan-id')?.focus();
+        } else if (error.message.includes('email')) {
+            Logic.changeSignupStep(2);
+            document.getElementById('signup-email')?.focus();
+        } else if (error.message.includes('Password')) {
+            Logic.changeSignupStep(3);
+            document.getElementById('signup-password')?.focus();
+        }
         
         // Auto-restore button after delay
         setTimeout(() => {
             submitButton.style.background = '';
             submitButton.innerHTML = originalContent;
             submitButton.disabled = false;
-            submitButton.style.transform = 'scale(1)';
         }, 3000);
         
         console.error('Signup failed:', error);
-        
-    } finally {
-        // Ensure button is always restored (fallback)
-        setTimeout(() => {
-            if (submitButton.disabled) {
-                submitButton.disabled = false;
-                submitButton.style.transform = 'scale(1)';
-                if (submitButton.innerHTML.includes('Creating Account') || submitButton.innerHTML.includes('Creation Failed')) {
-                    submitButton.innerHTML = originalContent;
-                    submitButton.style.background = '';
-                }
-            }
-        }, 5000);
     }
 },
 
