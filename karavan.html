@@ -991,396 +991,1686 @@ bindEventListeners: (viewName) => {
                             document.getElementById('auth-form')?.addEventListener('submit', Logic.handleLogin);
                             document.getElementById('show-signup-btn')?.addEventListener('click', Logic.showSignupModal);
                         },
-                        role_select: () => {
-                            // DEFINITIVE FIX: Event listeners are now correctly and robustly bound here.
-                            document.getElementById('role-remit')?.addEventListener('click', () => Logic.selectRole('remit'));
-                            document.getElementById('role-pay')?.addEventListener('click', () => Logic.selectRole('pay'));
-                            document.getElementById('role-lp')?.addEventListener('click', () => UI.renderView('lp_dashboard'));
-                        },
-                        tx_wizard: () => {
-                            document.getElementById('confirm-destination')?.addEventListener('click', Logic.confirmDestination);
-                            document.getElementById('confirm-amount')?.addEventListener('click', Logic.confirmAmount);
-                            document.getElementById('dispatch-karavan')?.addEventListener('click', Logic.dispatchKaravan);
-                            document.getElementById('add-beneficiary-btn')?.addEventListener('click', Logic.showAddBeneficiaryModal);
-                            document.getElementById('send-amount')?.addEventListener('input', Logic.updateQuote);
-                            document.getElementById('send-currency')?.addEventListener('change', Logic.updateQuote);
-                            document.getElementById('receive-currency')?.addEventListener('change', Logic.updateQuote);
-                        }
-                    };
-                    if (binders[viewName]) binders[viewName]();
-                },
+        role_select: () => {
+            // DEFINITIVE FIX: Event listeners are now correctly and robustly bound here.
+            document.getElementById('role-remit')?.addEventListener('click', () => Logic.selectRole('remit'));
+            document.getElementById('role-pay')?.addEventListener('click', () => Logic.selectRole('pay'));
+            document.getElementById('role-lp')?.addEventListener('click', () => UI.renderView('lp_dashboard'));
+        },
+        tx_wizard: () => {
+            document.getElementById('confirm-destination')?.addEventListener('click', Logic.confirmDestination);
+            document.getElementById('confirm-amount')?.addEventListener('click', Logic.confirmAmount);
+            document.getElementById('dispatch-karavan')?.addEventListener('click', Logic.dispatchKaravan);
+            document.getElementById('add-beneficiary-btn')?.addEventListener('click', Logic.showAddBeneficiaryModal);
+            document.getElementById('send-amount')?.addEventListener('input', Logic.updateQuote);
+            document.getElementById('send-currency')?.addEventListener('change', Logic.updateQuote);
+            document.getElementById('receive-currency')?.addEventListener('change', Logic.updateQuote);
+        }
+    };
+    if (binders[viewName]) binders[viewName]();
+},
+handleLogin: async (e) => {
+    e.preventDefault();
+    const karavanId = document.getElementById('karavan-id').value.trim();
+    const password = document.getElementById('password').value;
+    const loginBtn = e.target.querySelector('button[type="submit"]');
 
-                handleLogin: async (e) => {
-                    e.preventDefault();
-                    const karavanId = document.getElementById('karavan-id').value.trim();
-                    const password = document.getElementById('password').value;
-                    const loginBtn = e.target.querySelector('button[type="submit"]');
+    if (!karavanId || !password) return Utils.showNotification('Please enter your credentials.', 'warning');
 
-                    if (!karavanId || !password) return Utils.showNotification('Please enter your credentials.', 'warning');
+    // PREMIUM LOADING STATE WITH 3D ANIMATION
+    loginBtn.disabled = true;
+    loginBtn.style.transform = 'scale(0.98)';
+    loginBtn.innerHTML = `
+        <div class="flex items-center justify-center gap-2">
+            <div class="premium-spinner"></div>
+            <span class="text-white font-semibold">Authenticating...</span>
+        </div>
+    `;
 
-                    loginBtn.disabled = true;
-                    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Authenticating...';
+    try {
+        const response = await Utils.createApiRequest('karavanAuthenticate', 'POST', { karavanId, password });
+        AppState.isAuthenticated = true;
+        AppState.currentUser = response.user;
+        
+        // --- DEFINITIVE SESSION PERSISTENCE ---
+        Logic.persistSession(response.user);
 
-                    try {
-                        const response = await Utils.createApiRequest('karavanAuthenticate', 'POST', { karavanId, password });
-                        AppState.isAuthenticated = true;
-                        AppState.currentUser = response.user;
+        // SUCCESS ANIMATION
+        loginBtn.style.transform = 'scale(1.02)';
+        loginBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle text-green-400"></i>
+                <span class="text-white font-semibold">Success!</span>
+            </div>
+        `;
+
+        Utils.showNotification(`Authentication successful. Welcome, ${AppState.currentUser.partnerName}!`, 'success');
+        await Logic.loadInitialData();
+        
+        setTimeout(() => {
+            UI.renderView('role_select');
+        }, 800);
+
+    } catch (error) {
+        // ERROR STATE ANIMATION
+        loginBtn.style.transform = 'scale(1)';
+        loginBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        loginBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <i class="fas fa-exclamation-circle text-white"></i>
+                <span class="text-white font-semibold">Failed</span>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            loginBtn.style.background = '';
+            loginBtn.innerHTML = '<i class="fas fa-key mr-2 text-white"></i><span class="text-white font-semibold">Unlock & Proceed</span>';
+        }, 2000);
+        
+        Utils.showNotification(error.message, 'error');
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.style.transform = 'scale(1)';
+    }
+},
+showSignupModal: () => {
+    const modal = document.getElementById('karavan-auth-modal');
+    if (!modal) return;
+
+    // PREMIUM SIGNUP MODAL WITH ADVANCED 3D AESTHETICS
+    const signupContentHTML = `
+        <div class="dialog-content-wrapper" style="max-width: 56rem;">
+            <div class="auth-modal auth-modal-v2 premium-glass-container relative overflow-hidden">
+                <!-- PREMIUM BACKGROUND EFFECTS -->
+                <div class="premium-bg-overlay"></div>
+                <div class="premium-grid-pattern"></div>
+                
+                <!-- CLOSE BUTTON WITH 3D HOVER -->
+                <button id="signup-close-btn" class="premium-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <div class="relative z-10 p-8 md:p-12">
+                    <!-- PREMIUM HEADER SECTION -->
+                    <div class="text-center mb-10">
+                        <div class="premium-vault-icon">
+                            <div class="premium-vault-inner">
+                                <div class="premium-icon-glow"></div>
+                                <i class="fas fa-user-plus premium-main-icon"></i>
+                            </div>
+                        </div>
+                        <h3 class="premium-main-title">Guided Onboarding Protocol</h3>
+                        <p class="premium-subtitle">Forge your secure key to the digital silk road</p>
                         
-                        // --- DEFINITIVE SESSION PERSISTENCE ---
-                        // On successful login, we now save the session.
-                        Logic.persistSession(response.user);
-
-                        Utils.showNotification(`Authentication successful. Welcome, ${AppState.currentUser.partnerName}!`, 'success');
-                        await Logic.loadInitialData();
-                        UI.renderView('role_select');
-                    } catch (error) {
-                        Utils.showNotification(error.message, 'error');
-                    } finally {
-                        loginBtn.disabled = false;
-                        loginBtn.innerHTML = '<i class="fas fa-key mr-2"></i>Unlock & Proceed';
-                    }
-                },
-
-                showSignupModal: () => {
-                    const modal = document.getElementById('karavan-auth-modal');
-                    if (!modal) return;
-
-                    // This is the final, aesthetically corrected HTML structure.
-                    modal.innerHTML = `
-                        <div class="dialog-content-wrapper" style="max-width: 52rem;">
-                            <div class="auth-modal auth-modal-v2 glass-premium !p-0 relative">
-                                <button id="signup-close-btn" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6 z-10">&times;</button>
-                                <div class="p-8 md:p-12">
-                                    <div class="text-center mb-8">
-                                        <div class="vault-icon-v2 w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-4">
-                                            <div class="vault-icon-inner"><i class="fas fa-user-plus text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i></div>
-                                        </div>
-                                        <h3 class="text-3xl font-bold text-text-diamond mb-2 font-['Orbitron',_sans-serif]">Guided Onboarding Protocol</h3>
-                                        <p class="text-text-silver">Follow the steps to forge your secure key to the digital silk road.</p>
-                                    </div>
-
-                                    <!-- PINNACLE GUIDED WORKFLOW ACCORDION -->
-                                    <form id="signup-form">
-                                        <div class="space-y-4">
-                                            <!-- ACCORDION STEP 1: IDENTITY -->
-                                            <div id="signup-accordion-step-1" class="signup-accordion-step active">
-                                                <div id="signup-header-1" class="signup-accordion-header">
-                                                    <div class="accordion-step-number">1</div>
-                                                    <div><h4 class="accordion-step-title text-text-platinum">Identity</h4></div>
-                                                    <i class="fas fa-chevron-down accordion-chevron"></i>
-                                                </div>
-                                                <div class="signup-accordion-content"><div class="space-y-6">
-                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Choose your Karavan ID</label><div class="relative"><input type="text" id="signup-karavan-id" class="form-input form-input-v2 pr-10 required-field" required><span id="id-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Your unique, public identifier. 4-20 characters, no spaces.</div></div>
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">First Name</label><input type="text" id="signup-firstname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal first name for compliance.</div></div>
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Last Name</label><input type="text" id="signup-lastname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal last name for compliance.</div></div>
-                                                    </div>
-                                                    <div class="pt-4 flex justify-end"><button type="button" id="signup-step1-next" class="btn-primary py-2 px-6 rounded-lg">Next: Contact</button></div>
-                                                </div></div>
-                                            </div>
-
-                                            <!-- ACCORDION STEP 2: CONTACT & CLASSIFICATION -->
-                                            <div id="signup-accordion-step-2" class="signup-accordion-step">
-                                                <div id="signup-header-2" class="signup-accordion-header">
-                                                    <div class="accordion-step-number">2</div>
-                                                    <div><h4 class="accordion-step-title text-text-platinum">Contact & Classification</h4></div>
-                                                    <i class="fas fa-chevron-down accordion-chevron"></i>
-                                                </div>
-                                                <div class="signup-accordion-content"><div class="space-y-6">
-                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Email Address</label><div class="relative"><input type="email" id="signup-email" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Used for verification and critical notifications. Must be unique.</div></div>
-                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Account Type</label><select id="signup-persona" class="form-select form-input-v2 required-field" required><option value="" disabled selected>Choose your primary role...</option><option value="remit">Individual</option><option value="pay">Institution</option></select><div class="holographic-tooltip">Select the primary purpose of your account.</div></div>
-                                                    <div class="pt-4 flex justify-between items-center"><button type="button" id="signup-step2-back" class="btn-secondary py-2 px-6 rounded-lg">Back</button><button type="button" id="signup-step2-next" class="btn-primary py-2 px-6 rounded-lg">Next: Security</button></div>
-                                                </div></div>
-                                            </div>
-
-                                            <!-- ACCORDION STEP 3: SECURITY & FINALIZATION -->
-                                            <div id="signup-accordion-step-3" class="signup-accordion-step">
-                                                <div id="signup-header-3" class="signup-accordion-header">
-                                                    <div class="accordion-step-number">3</div>
-                                                    <div><h4 class="accordion-step-title text-text-platinum">Security & Finalize</h4></div>
-                                                    <i class="fas fa-chevron-down accordion-chevron"></i>
-                                                </div>
-                                                <div class="signup-accordion-content"><div class="space-y-6">
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Create Password</label><div class="relative"><input type="password" id="signup-password" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Choose a strong, unique password.</div></div>
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Confirm Password</label><div class="relative"><input type="password" id="signup-confirm-password" class="form-input form-input-v2 required-field" required><span id="password-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Re-enter your password to ensure accuracy.</div></div>
-                                                    </div>
-                                                    <div class="relative flex items-center py-4"><div class="flex-grow border-t border-border-color"></div><span class="flex-shrink mx-4 text-text-silver text-xs uppercase">Or</span><div class="flex-grow border-t border-border-color"></div></div>
-                                                    <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/5 border border-white/10 hover:bg-white/20 transition-all duration-300 text-text-platinum"><svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.218,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>Sign Up with Google</button>
-                                                    <div class="flex items-center gap-6 pt-6"><button type="button" id="signup-step3-back" class="btn-secondary py-3 rounded-lg flex-1">Back</button><button type="submit" class="btn-gold py-3 rounded-lg flex-1 text-lg"><i class="fas fa-user-plus mr-2"></i>Create My Account</button></div>
-                                                </div></div>
-                                            </div>
-                                        </div>
-                                    </form>
+                        <!-- PREMIUM PROGRESS INDICATOR -->
+                        <div class="premium-progress-container">
+                            <div class="premium-progress-track">
+                                <div id="step-progress-bar" class="premium-progress-fill"></div>
+                            </div>
+                            <div class="premium-step-indicators">
+                                <div id="step-indicator-1" class="premium-step-dot active">
+                                    <span class="premium-step-number">1</span>
+                                    <div class="premium-step-glow"></div>
+                                </div>
+                                <div id="step-indicator-2" class="premium-step-dot">
+                                    <span class="premium-step-number">2</span>
+                                    <div class="premium-step-glow"></div>
+                                </div>
+                                <div id="step-indicator-3" class="premium-step-dot">
+                                    <span class="premium-step-number">3</span>
+                                    <div class="premium-step-glow"></div>
                                 </div>
                             </div>
                         </div>
-                    `;
-                    modal.innerHTML = signupContentHTML;
-                    modal.showModal();
-                    Logic.bindSignupListeners();
-                },
+                    </div>
+
+                    <!-- PREMIUM GUIDED WORKFLOW ACCORDION -->
+                    <form id="signup-form" class="premium-form-container">
+                        <div class="space-y-6">
+                            <!-- ACCORDION STEP 1: IDENTITY -->
+                            <div id="signup-accordion-step-1" class="premium-accordion-step active">
+                                <div id="signup-header-1" class="premium-accordion-header">
+                                    <div class="premium-step-badge">
+                                        <span class="premium-step-number">1</span>
+                                        <div class="premium-step-pulse"></div>
+                                    </div>
+                                    <div class="premium-step-info">
+                                        <h4 class="premium-step-title">Identity Verification</h4>
+                                        <p class="premium-step-desc">Secure your unique digital identity</p>
+                                    </div>
+                                    <div class="premium-chevron-container">
+                                        <i class="fas fa-chevron-down premium-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="premium-accordion-content">
+                                    <div class="premium-content-inner">
+                                        <!-- Karavan ID Field -->
+                                        <div class="premium-field-group">
+                                            <label class="premium-field-label">
+                                                <i class="fas fa-id-badge mr-2"></i>
+                                                Choose your Karavan ID
+                                            </label>
+                                            <div class="premium-input-container">
+                                                <input type="text" id="signup-karavan-id" class="premium-form-input required-field" 
+                                                       placeholder="Enter unique identifier" 
+                                                       pattern="[a-zA-Z0-9_-]{4,20}"
+                                                       title="4-20 characters: letters, numbers, underscore, hyphen"
+                                                       required>
+                                                <span id="id-check-result" class="premium-validation-indicator"></span>
+                                                <div class="premium-input-glow"></div>
+                                            </div>
+                                            <div id="id-check-message" class="premium-field-hint">
+                                                Your unique, public identifier. 4-20 characters, no spaces.
+                                            </div>
+                                        </div>
+
+                                        <!-- Name Fields -->
+                                        <div class="premium-field-row">
+                                            <div class="premium-field-group flex-1">
+                                                <label class="premium-field-label">
+                                                    <i class="fas fa-user mr-2"></i>
+                                                    First Name
+                                                </label>
+                                                <div class="premium-input-container">
+                                                    <input type="text" id="signup-firstname" class="premium-form-input required-field" 
+                                                           placeholder="Your first name" required>
+                                                    <span class="premium-validation-indicator"></span>
+                                                    <div class="premium-input-glow"></div>
+                                                </div>
+                                                <div class="premium-field-hint">Your legal first name for compliance</div>
+                                            </div>
+                                            <div class="premium-field-group flex-1">
+                                                <label class="premium-field-label">
+                                                    <i class="fas fa-user mr-2"></i>
+                                                    Last Name
+                                                </label>
+                                                <div class="premium-input-container">
+                                                    <input type="text" id="signup-lastname" class="premium-form-input required-field" 
+                                                           placeholder="Your last name" required>
+                                                    <span class="premium-validation-indicator"></span>
+                                                    <div class="premium-input-glow"></div>
+                                                </div>
+                                                <div class="premium-field-hint">Your legal last name for compliance</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Navigation -->
+                                        <div class="premium-nav-section">
+                                            <button type="button" id="signup-step1-next" class="premium-btn-primary premium-btn-forward">
+                                                <span>Next: Contact</span>
+                                                <i class="fas fa-arrow-right ml-2"></i>
+                                                <div class="premium-btn-glow"></div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ACCORDION STEP 2: CONTACT & CLASSIFICATION -->
+                            <div id="signup-accordion-step-2" class="premium-accordion-step">
+                                <div id="signup-header-2" class="premium-accordion-header">
+                                    <div class="premium-step-badge">
+                                        <span class="premium-step-number">2</span>
+                                        <div class="premium-step-pulse"></div>
+                                    </div>
+                                    <div class="premium-step-info">
+                                        <h4 class="premium-step-title">Contact & Classification</h4>
+                                        <p class="premium-step-desc">Configure your communication preferences</p>
+                                    </div>
+                                    <div class="premium-chevron-container">
+                                        <i class="fas fa-chevron-down premium-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="premium-accordion-content">
+                                    <div class="premium-content-inner">
+                                        <!-- Email Field -->
+                                        <div class="premium-field-group">
+                                            <label class="premium-field-label">
+                                                <i class="fas fa-envelope mr-2"></i>
+                                                Email Address
+                                            </label>
+                                            <div class="premium-input-container">
+                                                <input type="email" id="signup-email" class="premium-form-input required-field" 
+                                                       placeholder="your@email.com" required>
+                                                <span class="premium-validation-indicator"></span>
+                                                <div class="premium-input-glow"></div>
+                                            </div>
+                                            <div class="premium-field-hint">Used for verification and critical notifications</div>
+                                        </div>
+
+                                        <!-- Account Type -->
+                                        <div class="premium-field-group">
+                                            <label class="premium-field-label">
+                                                <i class="fas fa-briefcase mr-2"></i>
+                                                Account Type
+                                            </label>
+                                            <div class="premium-select-container">
+                                                <select id="signup-persona" class="premium-form-select required-field" required>
+                                                    <option value="" disabled selected>Choose your primary role...</option>
+                                                    <option value="remit">Individual</option>
+                                                    <option value="pay">Institution</option>
+                                                </select>
+                                                <span class="premium-validation-indicator"></span>
+                                                <div class="premium-select-arrow">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </div>
+                                                <div class="premium-input-glow"></div>
+                                            </div>
+                                            <div class="premium-field-hint">Select the primary purpose of your account</div>
+                                        </div>
+
+                                        <!-- Navigation -->
+                                        <div class="premium-nav-section premium-nav-between">
+                                            <button type="button" id="signup-step2-back" class="premium-btn-secondary premium-btn-back">
+                                                <i class="fas fa-arrow-left mr-2"></i>
+                                                <span>Back</span>
+                                            </button>
+                                            <button type="button" id="signup-step2-next" class="premium-btn-primary premium-btn-forward">
+                                                <span>Next: Security</span>
+                                                <i class="fas fa-arrow-right ml-2"></i>
+                                                <div class="premium-btn-glow"></div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ACCORDION STEP 3: SECURITY & FINALIZATION -->
+                            <div id="signup-accordion-step-3" class="premium-accordion-step">
+                                <div id="signup-header-3" class="premium-accordion-header">
+                                    <div class="premium-step-badge">
+                                        <span class="premium-step-number">3</span>
+                                        <div class="premium-step-pulse"></div>
+                                    </div>
+                                    <div class="premium-step-info">
+                                        <h4 class="premium-step-title">Security & Finalize</h4>
+                                        <p class="premium-step-desc">Secure your account and complete setup</p>
+                                    </div>
+                                    <div class="premium-chevron-container">
+                                        <i class="fas fa-chevron-down premium-chevron"></i>
+                                    </div>
+                                </div>
+                                <div class="premium-accordion-content">
+                                    <div class="premium-content-inner">
+                                        <!-- Password Fields -->
+                                        <div class="premium-field-row">
+                                            <div class="premium-field-group flex-1">
+                                                <label class="premium-field-label">
+                                                    <i class="fas fa-lock mr-2"></i>
+                                                    Create Password
+                                                </label>
+                                                <div class="premium-input-container">
+                                                    <input type="password" id="signup-password" class="premium-form-input required-field" 
+                                                           placeholder="Strong password" 
+                                                           minlength="8" required>
+                                                    <span class="premium-validation-indicator"></span>
+                                                    <div class="premium-input-glow"></div>
+                                                </div>
+                                                <div class="premium-field-hint">Choose a strong, unique password</div>
+                                            </div>
+                                            <div class="premium-field-group flex-1">
+                                                <label class="premium-field-label">
+                                                    <i class="fas fa-lock mr-2"></i>
+                                                    Confirm Password
+                                                </label>
+                                                <div class="premium-input-container">
+                                                    <input type="password" id="signup-confirm-password" class="premium-form-input required-field" 
+                                                           placeholder="Confirm password" required>
+                                                    <span id="password-check-result" class="premium-validation-indicator"></span>
+                                                    <div class="premium-input-glow"></div>
+                                                </div>
+                                                <div class="premium-field-hint">Re-enter your password to ensure accuracy</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Divider -->
+                                        <div class="premium-divider">
+                                            <div class="premium-divider-line"></div>
+                                            <span class="premium-divider-text">Or</span>
+                                            <div class="premium-divider-line"></div>
+                                        </div>
+
+                                        <!-- Google Sign Up -->
+                                        <button type="button" class="premium-google-btn">
+                                            <div class="premium-google-icon">
+                                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                                </svg>
+                                            </div>
+                                            <span>Sign Up with Google</span>
+                                            <div class="premium-btn-glow"></div>
+                                        </button>
+
+                                        <!-- Final Navigation -->
+                                        <div class="premium-nav-section premium-nav-between premium-final-nav">
+                                            <button type="button" id="signup-step3-back" class="premium-btn-secondary premium-btn-back flex-1">
+                                                <i class="fas fa-arrow-left mr-2"></i>
+                                                <span>Back</span>
+                                            </button>
+                                            <button type="submit" class="premium-btn-gold premium-btn-submit flex-1">
+                                                <i class="fas fa-user-plus mr-2"></i>
+                                                <span>Create My Account</span>
+                                                <div class="premium-btn-glow"></div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* PREMIUM CONTAINER STYLES */
+            .premium-glass-container {
+                background: rgba(15, 23, 42, 0.95);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                border-radius: 24px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .premium-bg-overlay {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+                z-index: 0;
+            }
+
+            .premium-grid-pattern {
+                position: absolute;
+                inset: 0;
+                background-image: 
+                    linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
+                background-size: 20px 20px;
+                z-index: 1;
+            }
+
+            .premium-close-btn {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                z-index: 20;
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: rgba(15, 23, 42, 0.8);
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                color: white;
+                font-size: 18px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
+
+            .premium-close-btn:hover {
+                background: rgba(239, 68, 68, 0.8);
+                transform: scale(1.1) rotate(90deg);
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+            }
+
+            /* PREMIUM HEADER STYLES */
+            .premium-vault-icon {
+                width: 120px;
+                height: 120px;
+                margin: 0 auto 32px;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .premium-vault-inner {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+                border: 2px solid rgba(148, 163, 184, 0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                animation: premium-float 6s ease-in-out infinite;
+            }
+
+            .premium-icon-glow {
+                position: absolute;
+                inset: -10px;
+                border-radius: 50%;
+                background: linear-gradient(45deg, #3b82f6, #9333ea, #f59e0b);
+                opacity: 0.5;
+                blur: 10px;
+                animation: premium-glow-rotate 8s linear infinite;
+            }
+
+            .premium-main-icon {
+                font-size: 48px;
+                background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                z-index: 2;
+                position: relative;
+            }
+
+            .premium-main-title {
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: white;
+                margin-bottom: 12px;
+                font-family: 'Orbitron', sans-serif;
+                background: linear-gradient(135deg, #ffffff, #e2e8f0);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            }
+
+            .premium-subtitle {
+                color: rgba(226, 232, 240, 0.8);
+                font-size: 1.1rem;
+                margin-bottom: 48px;
+            }
+
+            /* PREMIUM PROGRESS STYLES */
+            .premium-progress-container {
+                margin-bottom: 48px;
+            }
+
+            .premium-progress-track {
+                height: 4px;
+                background: rgba(148, 163, 184, 0.2);
+                border-radius: 2px;
+                margin-bottom: 24px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .premium-progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #3b82f6, #9333ea);
+                border-radius: 2px;
+                width: 0%;
+                transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+            }
+
+            .premium-progress-fill::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                animation: premium-shimmer 2s infinite;
+            }
+
+            .premium-step-indicators {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .premium-step-dot {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: rgba(15, 23, 42, 0.8);
+                border: 2px solid rgba(148, 163, 184, 0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .premium-step-dot.active {
+                border-color: #3b82f6;
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+                transform: scale(1.1);
+            }
+
+            .premium-step-dot.completed {
+                border-color: #10b981;
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(34, 197, 94, 0.2));
+            }
+
+            .premium-step-number {
+                color: white;
+                font-weight: 700;
+                font-size: 1.2rem;
+                z-index: 2;
+                position: relative;
+            }
+
+            .premium-step-glow {
+                position: absolute;
+                inset: -8px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .premium-step-dot.active .premium-step-glow {
+                opacity: 1;
+                animation: premium-pulse 2s infinite;
+            }
+
+            /* PREMIUM ACCORDION STYLES */
+            .premium-accordion-step {
+                background: rgba(15, 23, 42, 0.6);
+                border: 1px solid rgba(148, 163, 184, 0.15);
+                border-radius: 16px;
+                overflow: hidden;
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .premium-accordion-step:hover {
+                border-color: rgba(59, 130, 246, 0.3);
+                box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+            }
+
+            .premium-accordion-step.active {
+                border-color: #3b82f6;
+                background: rgba(15, 23, 42, 0.8);
+                box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+            }
+
+            .premium-accordion-header {
+                padding: 24px;
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+
+            .premium-accordion-header:hover {
+                background: rgba(59, 130, 246, 0.05);
+            }
+
+            .premium-step-badge {
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: rgba(15, 23, 42, 0.8);
+                border: 2px solid rgba(148, 163, 184, 0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .premium-accordion-step.active .premium-step-badge {
+                border-color: #3b82f6;
+                background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+            }
+
+            .premium-step-badge .premium-step-number {
+                color: white;
+                font-weight: 700;
+                font-size: 1.1rem;
+                z-index: 2;
+            }
+
+            .premium-step-pulse {
+                position: absolute;
+                inset: -4px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent);
+                opacity: 0;
+            }
+
+            .premium-accordion-step.active .premium-step-pulse {
+                opacity: 1;
+                animation: premium-pulse-ring 3s infinite;
+            }
+
+            .premium-step-info {
+                flex: 1;
+            }
+
+            .premium-step-title {
+                color: white;
+                font-size: 1.3rem;
+                font-weight: 700;
+                margin-bottom: 4px;
+                font-family: 'Orbitron', sans-serif;
+            }
+
+            .premium-step-desc {
+                color: rgba(226, 232, 240, 0.7);
+                font-size: 0.95rem;
+            }
+
+            .premium-chevron-container {
+                width: 32px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .premium-chevron {
+                color: rgba(226, 232, 240, 0.6);
+                font-size: 1.2rem;
+                transition: all 0.3s ease;
+            }
+
+            .premium-accordion-step.active .premium-chevron {
+                transform: rotate(180deg);
+                color: #3b82f6;
+            }
+
+            .premium-accordion-content {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .premium-accordion-step.active .premium-accordion-content {
+                max-height: 2000px;
+            }
+
+            .premium-content-inner {
+                padding: 0 24px 32px;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .premium-accordion-step.active .premium-content-inner {
+                opacity: 1;
+                transform: translateY(0);
+                transition-delay: 0.2s;
+            }
+
+            /* PREMIUM FORM STYLES */
+            .premium-form-container {
+                position: relative;
+            }
+
+            .premium-field-group {
+                margin-bottom: 32px;
+            }
+
+            .premium-field-row {
+                display: flex;
+                gap: 24px;
+                margin-bottom: 32px;
+            }
+
+            .premium-field-label {
+                display: flex;
+                align-items: center;
+                color: white;
+                font-size: 0.95rem;
+                font-weight: 600;
+                margin-bottom: 12px;
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            }
+
+            .premium-input-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .premium-form-input, .premium-form-select {
+                width: 100%;
+                padding: 16px 20px;
+                padding-right: 50px;
+                background: rgba(15, 23, 42, 0.8);
+                border: 2px solid rgba(148, 163, 184, 0.2);
+                border-radius: 12px;
+                color: white;
+                font-size: 1rem;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                z-index: 2;
+            }
+
+            .premium-form-input::placeholder {
+                color: rgba(148, 163, 184, 0.5);
+            }
+
+            .premium-form-input:focus, .premium-form-select:focus {
+                outline: none;
+                border-color: #3b82f6;
+                background: rgba(15, 23, 42, 0.9);
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+                transform: translateY(-2px);
+            }
+
+            .premium-form-input.is-valid, .premium-form-select.is-valid {
+                border-color: #10b981;
+                background: rgba(16, 185, 129, 0.05);
+            }
+
+            .premium-input-glow {
+                position: absolute;
+                inset: -2px;
+                background: linear-gradient(45deg, #3b82f6, #9333ea);
+                border-radius: 14px;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: 1;
+            }
+
+            .premium-form-input:focus + .premium-validation-indicator + .premium-input-glow,
+            .premium-form-select:focus + .premium-validation-indicator + .premium-select-arrow + .premium-input-glow {
+                opacity: 0.3;
+                animation: premium-glow-pulse 2s infinite;
+            }
+
+            .premium-validation-indicator {
+                position: absolute;
+                right: 16px;
+                z-index: 3;
+                font-size: 1.2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+            }
+
+            .premium-select-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+
+            .premium-form-select {
+                appearance: none;
+                cursor: pointer;
+            }
+
+            .premium-select-arrow {
+                position: absolute;
+                right: 48px;
+                z-index: 3;
+                color: rgba(148, 163, 184, 0.6);
+                pointer-events: none;
+                transition: transform 0.3s ease;
+            }
+
+            .premium-form-select:focus + .premium-validation-indicator + .premium-select-arrow {
+                transform: rotate(180deg);
+                color: #3b82f6;
+            }
+
+            .premium-field-hint {
+                color: rgba(148, 163, 184, 0.6);
+                font-size: 0.85rem;
+                margin-top: 8px;
+                padding-left: 4px;
+            }
+
+            /* PREMIUM BUTTON STYLES */
+            .premium-nav-section {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                padding-top: 32px;
+                margin-top: 32px;
+                border-top: 1px solid rgba(148, 163, 184, 0.1);
+            }
+
+            .premium-nav-between {
+                justify-content: space-between;
+            }
+
+            .premium-final-nav {
+                gap: 20px;
+                padding-top: 40px;
+            }
+
+            .premium-btn-primary, .premium-btn-secondary, .premium-btn-gold, .premium-google-btn {
+                padding: 14px 28px;
+                border-radius: 12px;
+                font-size: 1rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                cursor: pointer;
+                border: none;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+                text-decoration: none;
+                outline: none;
+            }
+
+            .premium-btn-primary {
+                background: linear-gradient(135deg, #3b82f6, #1e40af);
+                color: white;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+            }
+
+            .premium-btn-primary:hover {
+                background: linear-gradient(135deg, #2563eb, #1d4ed8);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25);
+            }
+
+            .premium-btn-secondary {
+                background: rgba(15, 23, 42, 0.8);
+                color: white;
+                border: 1px solid rgba(148, 163, 184, 0.3);
+            }
+
+            .premium-btn-secondary:hover {
+                background: rgba(30, 41, 59, 0.9);
+                border-color: rgba(148, 163, 184, 0.5);
+                transform: translateY(-2px);
+            }
+
+            .premium-btn-gold {
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                color: white;
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                font-size: 1.1rem;
+                padding: 16px 32px;
+            }
+
+            .premium-btn-gold:hover {
+                background: linear-gradient(135deg, #f97316, #ea580c);
+                transform: translateY(-3px);
+                box-shadow: 0 12px 35px rgba(245, 158, 11, 0.3);
+            }
+
+            .premium-google-btn {
+                background: rgba(255, 255, 255, 0.05);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                width: 100%;
+                padding: 16px 24px;
+                margin-bottom: 32px;
+            }
+
+            .premium-google-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+            }
+
+            .premium-google-icon {
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .premium-btn-glow {
+                position: absolute;
+                inset: -2px;
+                background: linear-gradient(45deg, currentColor, transparent, currentColor);
+                border-radius: 14px;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: -1;
+            }
+
+            .premium-btn-primary:hover .premium-btn-glow {
+                opacity: 0.2;
+                animation: premium-glow-rotate 3s linear infinite;
+            }
+
+            .premium-btn-gold:hover .premium-btn-glow {
+                opacity: 0.3;
+                animation: premium-glow-rotate 3s linear infinite;
+            }
+
+            .premium-google-btn:hover .premium-btn-glow {
+                opacity: 0.1;
+                animation: premium-glow-rotate 4s linear infinite;
+            }
+
+            /* PREMIUM DIVIDER */
+            .premium-divider {
+                display: flex;
+                align-items: center;
+                margin: 32px 0;
+            }
+
+            .premium-divider-line {
+                flex: 1;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.3), transparent);
+            }
+
+            .premium-divider-text {
+                padding: 0 20px;
+                color: rgba(148, 163, 184, 0.6);
+                font-size: 0.85rem;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            /* PREMIUM SPINNER */
+            .premium-spinner {
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-top: 2px solid white;
+                border-radius: 50%;
+                animation: premium-spin 1s linear infinite;
+            }
+
+            /* PREMIUM ANIMATIONS */
+            @keyframes premium-float {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+
+            @keyframes premium-glow-rotate {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            @keyframes premium-shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+
+            @keyframes premium-pulse {
+                0%, 100% { opacity: 0.5; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.1); }
+            }
+
+            @keyframes premium-pulse-ring {
+                0% { opacity: 0; transform: scale(0.8); }
+                50% { opacity: 0.8; transform: scale(1.2); }
+                100% { opacity: 0; transform: scale(1.6); }
+            }
+
+            @keyframes premium-glow-pulse {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 0.6; }
+            }
+
+            @keyframes premium-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+            /* RESPONSIVE DESIGN */
+            @media (max-width: 768px) {
+                .premium-field-row {
+                    flex-direction: column;
+                    gap: 16px;
+                }
                 
-// Inside the Logic object...
+                .premium-nav-between {
+                    flex-direction: column;
+                    gap: 16px;
+                }
+                
+                .premium-final-nav {
+                    flex-direction: column;
+                }
+                
+                .premium-main-title {
+                    font-size: 2rem;
+                }
+                
+                .premium-vault-icon {
+                    width: 100px;
+                    height: 100px;
+                }
+                
+                .premium-main-icon {
+                    font-size: 40px;
+                }
+            }
 
-                /**
-                 * [PINNACLE ACCORDION TOGGLE] Manages the open/close state of accordion steps.
-                 * @param {number} targetStep - The step number (1, 2, or 3) the user clicked on.
-                 */
-                toggleSignupStep: (targetStep) => {
-                    const stepPanel = document.getElementById(`signup-accordion-step-${targetStep}`);
-                    if (!stepPanel) return;
+            /* ACCESSIBILITY ENHANCEMENTS */
+            .premium-form-input:focus-visible,
+            .premium-form-select:focus-visible,
+            .premium-btn-primary:focus-visible,
+            .premium-btn-secondary:focus-visible,
+            .premium-btn-gold:focus-visible {
+                outline: 2px solid #3b82f6;
+                outline-offset: 2px;
+            }
 
-                    // Prevent collapsing an already active and validated step unless another is opened.
-                    const isActive = stepPanel.classList.contains('active');
-                    if (isActive) return;
+            /* HIGH CONTRAST MODE SUPPORT */
+            @media (prefers-contrast: high) {
+                .premium-form-input,
+                .premium-form-select {
+                    border-width: 3px;
+                }
+                
+                .premium-field-label,
+                .premium-step-title,
+                .premium-main-title {
+                    text-shadow: none;
+                    font-weight: 800;
+                }
+            }
 
-                    Logic.changeSignupStep(targetStep);
-                },
+            /* REDUCED MOTION SUPPORT */
+            @media (prefers-reduced-motion: reduce) {
+                * {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+        </style>
+    `;
 
-                /**
-                 * [PINNACLE WORKFLOW ENGINE v2.0] Manages the state and navigation of the guided signup accordion.
-                 * This function is a state machine that validates completed steps before allowing progression and
-                 * provides rich visual feedback via the step indicators and progress bar.
-                 * @param {number} targetStep - The step number (1, 2, or 3) the user is trying to navigate to.
-                 */
-                changeSignupStep: (targetStep) => {
-                    const steps = [1, 2, 3];
-                    const indicators = steps.map(i => document.getElementById(`step-indicator-${i}`));
-                    const stepPanels = steps.map(i => document.getElementById(`signup-accordion-step-${i}`));
-                    const progressBar = document.getElementById('step-progress-bar');
-                    
-                    let currentStep = stepPanels.findIndex(p => p.classList.contains('active')) + 1;
-                    
-                    // Military-Grade Validation Gate: Prevent skipping steps with invalid data.
-                    if (targetStep > currentStep) {
-                        if (currentStep === 1 && (!document.getElementById('signup-karavan-id').classList.contains('is-valid') || !document.getElementById('signup-firstname').classList.contains('is-valid') || !document.getElementById('signup-lastname').classList.contains('is-valid'))) {
-                            return Utils.showNotification('Please complete all valid Identity fields to proceed.', 'warning');
-                        }
-                        if (currentStep === 2 && (!document.getElementById('signup-email').classList.contains('is-valid') || !document.getElementById('signup-persona').classList.contains('is-valid'))) {
-                            return Utils.showNotification('Please complete all Contact & Classification fields to proceed.', 'warning');
-                        }
+    modal.innerHTML = signupContentHTML;
+    modal.showModal();
+
+    // Initialize the modal with enhanced entrance animation
+    requestAnimationFrame(() => {
+        const container = modal.querySelector('.premium-glass-container');
+        if (container) {
+            container.style.opacity = '0';
+            container.style.transform = 'scale(0.9) translateY(20px)';
+            requestAnimationFrame(() => {
+                container.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                container.style.opacity = '1';
+                container.style.transform = 'scale(1) translateY(0)';
+            });
+        }
+    });
+
+    Logic.bindSignupListeners();
+},
+                
+
+
+toggleSignupStep: (targetStep) => {
+    const stepPanel = document.getElementById(`signup-accordion-step-${targetStep}`);
+    if (!stepPanel) return;
+
+    // Enhanced toggle logic with validation gates
+    const isActive = stepPanel.classList.contains('active');
+    if (isActive) return; // Prevent collapsing active step
+
+    Logic.changeSignupStep(targetStep);
+},
+
+changeSignupStep: (targetStep) => {
+    const steps = [1, 2, 3];
+    const indicators = steps.map(i => document.getElementById(`step-indicator-${i}`));
+    const stepPanels = steps.map(i => document.getElementById(`signup-accordion-step-${i}`));
+    const progressBar = document.getElementById('step-progress-bar');
+    
+    let currentStep = stepPanels.findIndex(p => p?.classList.contains('active')) + 1;
+    
+    // MILITARY-GRADE VALIDATION GATES - Prevent progression with invalid data
+    if (targetStep > currentStep) {
+        const step1Fields = ['signup-karavan-id', 'signup-firstname', 'signup-lastname'];
+        const step2Fields = ['signup-email', 'signup-persona'];
+        
+        if (currentStep === 1) {
+            const invalidFields = step1Fields.filter(id => {
+                const field = document.getElementById(id);
+                return !field?.classList.contains('is-valid') || !field?.value.trim();
+            });
+            
+            if (invalidFields.length > 0) {
+                // Enhanced user feedback with field highlighting
+                invalidFields.forEach(id => {
+                    const field = document.getElementById(id);
+                    if (field) {
+                        field.style.animation = 'premium-shake 0.5s ease-in-out';
+                        setTimeout(() => field.style.animation = '', 500);
                     }
-                    
-                    // Update UI state for accordion panels
-                    stepPanels.forEach((panel, index) => {
-                        panel.classList.toggle('active', index + 1 === targetStep);
-                    });
-                    
-                    // Update UI state for step indicators (dots and labels)
-                    if (indicators.every(el => el)) {
-                        indicators.forEach((ind, index) => {
-                            ind.classList.remove('active');
-                            const isCompleted = index < targetStep - 1;
-                            ind.classList.toggle('completed', isCompleted);
-                            const stepPanel = document.getElementById(`signup-accordion-step-${index + 1}`);
-                            if (stepPanel) stepPanel.classList.toggle('completed', isCompleted);
-                        });
-                        indicators[targetStep - 1].classList.add('active');
+                });
+                return Utils.showNotification('Please complete all Identity fields with valid information to proceed.', 'warning');
+            }
+        }
+        
+        if (currentStep === 2) {
+            const invalidFields = step2Fields.filter(id => {
+                const field = document.getElementById(id);
+                return !field?.classList.contains('is-valid') || !field?.value.trim();
+            });
+            
+            if (invalidFields.length > 0) {
+                invalidFields.forEach(id => {
+                    const field = document.getElementById(id);
+                    if (field) {
+                        field.style.animation = 'premium-shake 0.5s ease-in-out';
+                        setTimeout(() => field.style.animation = '', 500);
                     }
+                });
+                return Utils.showNotification('Please complete all Contact & Classification fields to proceed.', 'warning');
+            }
+        }
+    }
+    
+    // PREMIUM UI STATE MANAGEMENT
+    stepPanels.forEach((panel, index) => {
+        if (panel) {
+            const wasActive = panel.classList.contains('active');
+            panel.classList.toggle('active', index + 1 === targetStep);
+            
+            // Enhanced animation for step transitions
+            if (index + 1 === targetStep && !wasActive) {
+                setTimeout(() => {
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 300);
+            }
+        }
+    });
+    
+    // PREMIUM PROGRESS INDICATOR UPDATES
+    if (indicators.every(el => el)) {
+        indicators.forEach((ind, index) => {
+            if (ind) {
+                ind.classList.remove('active');
+                const isCompleted = index < targetStep - 1;
+                ind.classList.toggle('completed', isCompleted);
+                
+                const stepPanel = document.getElementById(`signup-accordion-step-${index + 1}`);
+                if (stepPanel) {
+                    stepPanel.classList.toggle('completed', isCompleted);
+                }
+            }
+        });
+        
+        if (indicators[targetStep - 1]) {
+            indicators[targetStep - 1].classList.add('active');
+        }
+    }
+    
+    // PREMIUM PROGRESS BAR ANIMATION
+    if (progressBar) {
+        const progressWidth = ((targetStep - 1) / (steps.length - 1)) * 100;
+        progressBar.style.width = `${progressWidth}%`;
+    }
+    
+    // Add shake animation keyframe dynamically if not present
+    if (!document.querySelector('#premium-shake-style')) {
+        const style = document.createElement('style');
+        style.id = 'premium-shake-style';
+        style.textContent = `
+            @keyframes premium-shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+},
+bindSignupListeners: () => {
+    const form = document.getElementById('signup-form');
+    if (!form) return;
+
+    // NAVIGATION EVENT BINDINGS - Enhanced with premium feedback
+    const navigationBindings = [
+        { id: 'signup-header-1', action: () => Logic.toggleSignupStep(1) },
+        { id: 'signup-header-2', action: () => Logic.toggleSignupStep(2) },
+        { id: 'signup-header-3', action: () => Logic.toggleSignupStep(3) },
+        { id: 'signup-step1-next', action: () => Logic.changeSignupStep(2) },
+        { id: 'signup-step2-back', action: () => Logic.changeSignupStep(1) },
+        { id: 'signup-step2-next', action: () => Logic.changeSignupStep(3) },
+        { id: 'signup-step3-back', action: () => Logic.changeSignupStep(2) },
+        { id: 'signup-close-btn', action: () => document.getElementById('karavan-auth-modal')?.close() },
+        { id: 'back-to-login-btn', action: () => {
+            document.getElementById('karavan-auth-modal')?.close();
+            UI.renderView('auth');
+        }}
+    ];
+
+    navigationBindings.forEach(({ id, action }) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Add premium click feedback
+                element.style.transform = 'scale(0.95)';
+                setTimeout(() => element.style.transform = '', 150);
+                action();
+            });
+        }
+    });
+
+    // PREMIUM REAL-TIME VALIDATION SYSTEM
+    const inputs = form.querySelectorAll('.required-field');
+    const karavanIdInput = document.getElementById('signup-karavan-id');
+    const pass1 = document.getElementById('signup-password');
+    const pass2 = document.getElementById('signup-confirm-password');
+
+    // Universal field validation with premium visual feedback
+    inputs.forEach(input => {
+        const indicator = input.closest('.premium-input-container')?.querySelector('.premium-validation-indicator') || 
+                         input.parentElement?.querySelector('.premium-validation-indicator');
+        
+        const validateField = () => {
+            const isValid = input.checkValidity() && input.value.trim() !== '';
+            
+            // Enhanced validation logic for different field types
+            let fieldValid = isValid;
+            
+            if (input.type === 'email') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                fieldValid = emailRegex.test(input.value.trim());
+            } else if (input.id === 'signup-karavan-id') {
+                const idRegex = /^[a-zA-Z0-9_-]{4,20}$/;
+                fieldValid = idRegex.test(input.value.trim());
+            } else if (input.type === 'password' && input.id === 'signup-password') {
+                fieldValid = input.value.length >= 8;
+            }
+            
+            // Premium visual state updates
+            input.classList.toggle('is-valid', fieldValid);
+            input.style.borderColor = fieldValid ? '#10b981' : '';
+            
+            if (indicator && input.type !== 'password' && input.id !== 'signup-karavan-id') {
+                indicator.innerHTML = fieldValid ? 
+                    `<i class="fas fa-check-circle" style="color: #10b981;"></i>` : '';
+                
+                // Add success animation
+                if (fieldValid) {
+                    indicator.style.animation = 'premium-success-pop 0.4s ease-out';
+                    setTimeout(() => indicator.style.animation = '', 400);
+                }
+            }
+        };
+        
+        // Enhanced event listeners with debouncing for performance
+        let validationTimeout;
+        input.addEventListener('input', () => {
+            clearTimeout(validationTimeout);
+            validationTimeout = setTimeout(validateField, 300);
+        });
+        
+        input.addEventListener('blur', validateField);
+        validateField(); // Initial validation
+    });
+
+    // PREMIUM PASSWORD VALIDATION SYSTEM
+    const validatePasswords = () => {
+        const indicator = document.getElementById('password-check-result');
+        if (!indicator) return false;
+
+        const pass1Valid = pass1?.checkValidity() && pass1.value.length >= 8;
+        const pass1Indicator = pass1?.closest('.premium-input-container')?.querySelector('.premium-validation-indicator');
+        
+        if (pass1) {
+            pass1.classList.toggle('is-valid', pass1Valid);
+            pass1.style.borderColor = pass1Valid ? '#10b981' : '';
+        }
+        
+        if (pass1Indicator) {
+            pass1Indicator.innerHTML = pass1Valid ? 
+                `<i class="fas fa-check-circle" style="color: #10b981;"></i>` : '';
+        }
+
+        if (pass1?.value && pass2?.value) {
+            const passwordsMatch = pass1.value === pass2.value;
+            
+            if (passwordsMatch && pass1Valid) {
+                indicator.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i>`;
+                pass2.classList.add('is-valid');
+                pass2.style.borderColor = '#10b981';
+                
+                // Success animation
+                indicator.style.animation = 'premium-success-pop 0.4s ease-out';
+                setTimeout(() => indicator.style.animation = '', 400);
+                
+                return true;
+            } else {
+                indicator.innerHTML = `<i class="fas fa-times-circle" style="color: #ef4444;"></i>`;
+                pass2?.classList.remove('is-valid');
+                if (pass2) pass2.style.borderColor = '#ef4444';
+                
+                // Error shake animation
+                if (pass2) {
+                    pass2.style.animation = 'premium-shake 0.5s ease-in-out';
+                    setTimeout(() => pass2.style.animation = '', 500);
+                }
+                
+                return false;
+            }
+        }
+        
+        indicator.innerHTML = '';
+        pass2?.classList.remove('is-valid');
+        if (pass2) pass2.style.borderColor = '';
+        return false;
+    };
+
+    // Enhanced password event listeners
+    pass1?.addEventListener('input', validatePasswords);
+    pass2?.addEventListener('input', validatePasswords);
+    pass1?.addEventListener('blur', validatePasswords);
+    pass2?.addEventListener('blur', validatePasswords);
+
+    // KARAVAN ID AVAILABILITY CHECKING with premium UX
+    if (karavanIdInput) {
+        karavanIdInput.addEventListener('input', Utils.debounce(Logic.checkKaravanIdAvailability, 600));
+    }
+
+    // FORM SUBMISSION with premium handling
+    form.addEventListener('submit', Logic.handleSignup);
+    
+    // Add premium animation styles if not present
+    if (!document.querySelector('#premium-animation-styles')) {
+        const animationStyles = document.createElement('style');
+        animationStyles.id = 'premium-animation-styles';
+        animationStyles.textContent = `
+            @keyframes premium-success-pop {
+                0% { transform: scale(0.8); opacity: 0; }
+                50% { transform: scale(1.2); opacity: 1; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(animationStyles);
+    }
+},
+                
+checkKaravanIdAvailability: async () => {
+    const input = document.getElementById('signup-karavan-id');
+    const resultIcon = document.getElementById('id-check-result');
+    const messageContainer = document.getElementById('id-check-message') || 
+                           input?.closest('.premium-field-group')?.querySelector('.premium-field-hint');
+    const karavanId = input?.value.trim() || '';
+
+    if (!input || !resultIcon) return;
+
+    // PREMIUM LOADING STATE
+    resultIcon.innerHTML = `<div class="premium-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>`;
+    if (messageContainer) {
+        messageContainer.textContent = 'Verifying availability...';
+        messageContainer.style.color = 'rgba(148, 163, 184, 0.8)';
+    }
+    
+    // Enhanced validation logic
+    if (!input.checkValidity() || karavanId.length < 4 || !/^[a-zA-Z0-9_-]{4,20}$/.test(karavanId)) {
+        resultIcon.innerHTML = `<i class="fas fa-times-circle" style="color: #ef4444;"></i>`;
+        if (messageContainer) {
+            messageContainer.textContent = 'ID must be 4-20 characters (letters, numbers, _, -).';
+            messageContainer.style.color = '#ef4444';
+        }
+        input.classList.remove('is-valid');
+        input.style.borderColor = '#ef4444';
+        
+        // Error shake animation
+        input.style.animation = 'premium-shake 0.5s ease-in-out';
+        setTimeout(() => input.style.animation = '', 500);
+        return;
+    }
+    
+    try {
+        const response = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId });
+        
+        if (response.data?.isAvailable) {
+            // SUCCESS STATE
+            resultIcon.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i>`;
+            if (messageContainer) {
+                messageContainer.textContent = 'This ID is available and ready to claim!';
+                messageContainer.style.color = '#10b981';
+            }
+            input.classList.add('is-valid');
+            input.style.borderColor = '#10b981';
+            
+            // Success animation
+            resultIcon.style.animation = 'premium-success-pop 0.4s ease-out';
+            setTimeout(() => resultIcon.style.animation = '', 400);
+            
+        } else {
+            // UNAVAILABLE STATE
+            resultIcon.innerHTML = `<i class="fas fa-times-circle" style="color: #ef4444;"></i>`;
+            if (messageContainer) {
+                messageContainer.textContent = 'This ID is already taken. Please choose another.';
+                messageContainer.style.color = '#ef4444';
+            }
+            input.classList.remove('is-valid');
+            input.style.borderColor = '#ef4444';
+            
+            // Error shake animation
+            input.style.animation = 'premium-shake 0.5s ease-in-out';
+            setTimeout(() => input.style.animation = '', 500);
+        }
+    } catch (error) {
+        // ERROR STATE
+        resultIcon.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>`;
+        if (messageContainer) {
+            messageContainer.textContent = 'Could not verify ID availability. Please try again.';
+            messageContainer.style.color = '#f59e0b';
+        }
+        input.classList.remove('is-valid');
+        input.style.borderColor = '#f59e0b';
+        
+        console.warn('ID availability check failed:', error);
+    }
+},
+
+handleSignup: async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    if (!submitButton) return;
+
+    // COMPREHENSIVE DATA COLLECTION
+    const firstName = document.getElementById('signup-firstname')?.value.trim() || '';
+    const lastName = document.getElementById('signup-lastname')?.value.trim() || '';
+    const password = document.getElementById('signup-password')?.value || '';
+    const confirmPassword = document.getElementById('signup-confirm-password')?.value || '';
+    
+    const signupData = {
+        firstName,
+        lastName,
+        name: `${firstName} ${lastName}`.trim(),
+        email: document.getElementById('signup-email')?.value.trim() || '',
+        password,
+        persona: document.getElementById('signup-persona')?.value || '',
+        karavanId: document.getElementById('signup-karavan-id')?.value.trim() || ''
+    };
+
+    // MILITARY-GRADE VALIDATION
+    const requiredFields = ['firstName', 'lastName', 'email', 'password', 'persona', 'karavanId'];
+    const emptyFields = requiredFields.filter(field => !signupData[field]);
+    
+    if (emptyFields.length > 0) {
+        // Highlight empty fields with premium feedback
+        emptyFields.forEach(fieldName => {
+            const fieldMap = {
+                firstName: 'signup-firstname',
+                lastName: 'signup-lastname',
+                email: 'signup-email',
+                password: 'signup-password',
+                persona: 'signup-persona',
+                karavanId: 'signup-karavan-id'
+            };
+            
+            const element = document.getElementById(fieldMap[fieldName]);
+            if (element) {
+                element.style.borderColor = '#ef4444';
+                element.style.animation = 'premium-shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    element.style.animation = '';
+                    if (!element.classList.contains('is-valid')) {
+                        element.style.borderColor = '';
+                    }
+                }, 500);
+            }
+        });
+        
+        return Utils.showNotification('Please complete all required fields in all steps.', 'error');
+    }
+    
+    if (password !== confirmPassword) {
+        const passField = document.getElementById('signup-confirm-password');
+        if (passField) {
+            passField.style.borderColor = '#ef4444';
+            passField.style.animation = 'premium-shake 0.5s ease-in-out';
+            setTimeout(() => passField.style.animation = '', 500);
+        }
+        Logic.changeSignupStep(3); // Navigate to password step
+        return Utils.showNotification('Passwords do not match. Please verify your input.', 'error');
+    }
+    
+    if (password.length < 8) {
+        Logic.changeSignupStep(3);
+        return Utils.showNotification('Password must be at least 8 characters long.', 'error');
+    }
+    
+    // PREMIUM LOADING STATE
+    submitButton.disabled = true;
+    const originalContent = submitButton.innerHTML;
+    submitButton.style.transform = 'scale(0.98)';
+    submitButton.innerHTML = `
+        <div class="flex items-center justify-center gap-2">
+            <div class="premium-spinner" style="width: 20px; height: 20px;"></div>
+            <span style="color: white; font-weight: 600;">Creating Account...</span>
+        </div>
+    `;
+
+    try {
+        // PRE-FLIGHT ID AVAILABILITY VERIFICATION
+        const idCheckResponse = await Utils.createApiRequest('karavanCheckId', 'POST', { 
+            karavanId: signupData.karavanId 
+        });
+        
+        if (!idCheckResponse.data?.isAvailable) {
+            Logic.changeSignupStep(1); // Navigate back to ID selection
+            throw new Error('This Karavan ID is no longer available. Please choose another.');
+        }
+        
+        // SECURE ACCOUNT CREATION
+        const createResponse = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
+        
+        // SUCCESS ANIMATION SEQUENCE
+        submitButton.style.transform = 'scale(1.02)';
+        submitButton.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        submitButton.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle" style="color: white;"></i>
+                <span style="color: white; font-weight: 600;">Account Created!</span>
+            </div>
+        `;
+        
+        // Enhanced success workflow
+        setTimeout(() => {
+            document.getElementById('karavan-auth-modal')?.close();
+            
+            Utils.showNotification(
+                `🎉 Account created successfully! Your Karavan ID: <strong style="font-family: monospace; color: #10b981;">${createResponse.karavanId}</strong>`, 
+                'success', 
+                12000
+            );
+            
+            // Smooth transition to login
+            UI.renderView('auth');
+            
+            setTimeout(() => {
+                const karavanIdInput = document.getElementById('karavan-id');
+                if (karavanIdInput) {
+                    karavanIdInput.value = createResponse.karavanId;
+                    karavanIdInput.focus();
                     
-                    // Update progress bar width
-                    if (progressBar) {
-                        const progressWidth = ((targetStep - 1) / (steps.length - 1)) * 100;
-                        progressBar.style.width = `${progressWidth}%`;
-                    }
-                },
+                    // Premium focus animation
+                    karavanIdInput.style.transform = 'scale(1.02)';
+                    karavanIdInput.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
+                    setTimeout(() => {
+                        karavanIdInput.style.transform = '';
+                        karavanIdInput.style.boxShadow = '';
+                    }, 1000);
+                }
+            }, 200);
+            
+        }, 1500);
 
-                /**
-                 * [PINNACLE EVENT BINDING ENGINE v3.0] Attaches all real-time validation and interaction
-                 * listeners to the guided signup modal. This is the definitive interactive heart of the onboarding process.
-                 */
-                bindSignupListeners: () => {
-                    const form = document.getElementById('signup-form');
-                    if (!form) return;
-
-                    // --- Event Binding for Navigation (Purges all onclick attributes) ---
-                    document.getElementById('signup-header-1')?.addEventListener('click', () => Logic.toggleSignupStep(1));
-                    document.getElementById('signup-header-2')?.addEventListener('click', () => Logic.toggleSignupStep(2));
-                    document.getElementById('signup-header-3')?.addEventListener('click', () => Logic.toggleSignupStep(3));
-                    document.getElementById('signup-step1-next')?.addEventListener('click', () => Logic.changeSignupStep(2));
-                    document.getElementById('signup-step2-back')?.addEventListener('click', () => Logic.changeSignupStep(1));
-                    document.getElementById('signup-step2-next')?.addEventListener('click', () => Logic.changeSignupStep(3));
-                    document.getElementById('signup-step3-back')?.addEventListener('click', () => Logic.changeSignupStep(2));
-                    document.getElementById('back-to-login-btn')?.addEventListener('click', () => {
-                        document.getElementById('karavan-auth-modal').close();
-                        UI.renderView('auth');
-                    });
-                    document.getElementById('signup-close-btn')?.addEventListener('click', () => document.getElementById('karavan-auth-modal').close());
-
-                    // --- Event Binding for Real-Time Validation ---
-                    const inputs = form.querySelectorAll('.required-field');
-                    const karavanIdInput = document.getElementById('signup-karavan-id');
-                    const pass1 = document.getElementById('signup-password');
-                    const pass2 = document.getElementById('signup-confirm-password');
-
-                    inputs.forEach(input => {
-                        const indicator = input.closest('.field-container')?.querySelector('.validation-indicator') || input.parentElement.querySelector('.validation-indicator');
-                        
-                        const validateField = () => {
-                            const isValid = input.checkValidity() && input.value.trim() !== '';
-                            input.classList.toggle('is-valid', isValid);
-                            if(indicator && input.type !== 'password' && input.id !== 'signup-karavan-id') {
-                                indicator.innerHTML = isValid ? `<i class="fas fa-check-circle text-success-color"></i>` : '';
-                            }
-                        };
-                        
-                        input.addEventListener('input', validateField);
-                        validateField(); // Run once on bind to show initial state
-                    });
-
-                    const validatePasswords = () => {
-                        const indicator = document.getElementById('password-check-result');
-                        if (!indicator) return;
-
-                        const pass1Valid = pass1.checkValidity() && pass1.value.length >= 8; // Example: enforce min length
-                        pass1.classList.toggle('is-valid', pass1Valid);
-                        const pass1Indicator = pass1.closest('.field-container')?.querySelector('.validation-indicator');
-                        if(pass1Indicator) pass1Indicator.innerHTML = pass1Valid ? `<i class="fas fa-check-circle text-success-color"></i>` : '';
-
-                        if (pass1.value && pass2.value) {
-                            if (pass1.value === pass2.value) {
-                                indicator.innerHTML = `<i class="fas fa-check-circle text-success-color"></i>`;
-                                pass2.classList.add('is-valid');
-                                return true;
-                            } else {
-                                indicator.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
-                                pass2.classList.remove('is-valid');
-                                return false;
-                            }
-                        }
-                        indicator.innerHTML = '';
-                        pass2.classList.remove('is-valid');
-                        return false;
-                    };
-
-                    karavanIdInput?.addEventListener('input', Utils.debounce(Logic.checkKaravanIdAvailability, 500));
-                    pass1?.addEventListener('input', validatePasswords);
-                    pass2?.addEventListener('input', validatePasswords);
-                    form?.addEventListener('submit', Logic.handleSignup);
-                },
-
-                checkKaravanIdAvailability: async () => {
-                    const input = document.getElementById('signup-karavan-id');
-                    const resultIcon = document.getElementById('id-check-result');
-                    const message = document.getElementById('id-check-message');
-                    const karavanId = input.value.trim();
-
-                    resultIcon.innerHTML = `<i class="fas fa-spinner fa-spin text-text-muted"></i>`;
-                    message.textContent = 'Checking availability...';
-                    message.className = 'text-xs text-text-muted mt-1 h-4';
-                    
-                    if (!input.checkValidity() || karavanId.length < 4) {
-                        resultIcon.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
-                        message.textContent = 'ID must be 4-20 characters (letters, numbers, _, -).';
-                        message.className = 'text-xs text-error-color mt-1 h-4';
-                        input.classList.remove('is-valid');
-                        return;
-                    }
-                    
-                    try {
-                        const response = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId });
-                        if (response.data.isAvailable) {
-                            resultIcon.innerHTML = `<i class="fas fa-check-circle text-success-color"></i>`;
-                            message.textContent = 'This ID is available.';
-                            message.className = 'text-xs text-success-color mt-1 h-4';
-                            input.classList.add('is-valid');
-                        } else {
-                            resultIcon.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
-                            message.textContent = 'This ID is already taken.';
-                            message.className = 'text-xs text-error-color mt-1 h-4';
-                            input.classList.remove('is-valid');
-                        }
-                    } catch (error) {
-                        resultIcon.innerHTML = `<i class="fas fa-exclamation-triangle text-warning-color"></i>`;
-                        message.textContent = 'Could not verify ID.';
-                        message.className = 'text-xs text-warning-color mt-1 h-4';
-                        input.classList.remove('is-valid');
-                    }
-                },
-
-                handleSignup: async (e) => {
-                    e.preventDefault();
-                    const form = e.target;
-                    const submitButton = form.querySelector('button[type="submit"]');
-
-                    // --- 1. Definitive Data Collection from Guided Workflow ---
-                    // This now correctly gathers all necessary data for the multi-table backend.
-                    const firstName = document.getElementById('signup-firstname').value.trim();
-                    const lastName = document.getElementById('signup-lastname').value.trim();
-                    const password = document.getElementById('signup-password').value;
-                    const confirmPassword = document.getElementById('signup-confirm-password').value;
-                    
-                    const signupData = {
-                        firstName: firstName,
-                        lastName: lastName,
-                        name: `${firstName} ${lastName}`, // Concatenated full name for convenience
-                        email: document.getElementById('signup-email').value.trim(),
-                        password: password,
-                        persona: document.getElementById('signup-persona').value,
-                        karavanId: document.getElementById('signup-karavan-id').value.trim()
-                    };
-
-                    // --- 2. Final, Pinnacle-Grade Validation ---
-                    // This check is now architecturally aligned with the guided workflow.
-                    if (!signupData.firstName || !signupData.lastName || !signupData.email || !signupData.password || !signupData.persona || !signupData.karavanId) {
-                        return Utils.showNotification('Please ensure all required fields in all steps are correctly filled.', 'error');
-                    }
-                    if (password !== confirmPassword) {
-                        return Utils.showNotification('Passwords do not match. Please verify your input in the Security step.', 'error');
-                    }
-                    
-                    // --- 3. Pinnacle-Grade Loading State ---
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Finalizing Registration...';
-
-                    try {
-                        // --- 4. SEVERE UPGRADE: Pre-flight ID Availability Check ---
-                        // This prevents a failed submission if the ID is already taken.
-                        const idCheckResponse = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId: signupData.karavanId });
-                        if (!idCheckResponse.data.isAvailable) {
-                            // Guide the user back to the correct step to fix the issue.
-                            Logic.changeSignupStep(1); 
-                            throw new Error('This Karavan ID is no longer available. Please choose another.');
-                        }
-                        
-                        // --- 5. Secure API Communication (now guaranteed to use a valid ID) ---
-                        const createResponse = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
-                        
-                        // --- 6. Severely Upgraded Success Workflow ---
-                        document.getElementById('karavan-auth-modal').close();
-                        
-                        Utils.showNotification(`Account created successfully! Your Karavan ID is: <strong class="font-mono">${createResponse.karavanId}</strong>`, 'success', 10000);
-                        
-                        // Definitive UX Fix: Render the login view FIRST, then populate the field.
-                        UI.renderView('auth');
-                        
-                        setTimeout(() => {
-                            const karavanIdInput = document.getElementById('karavan-id');
-                            if (karavanIdInput) {
-                                karavanIdInput.value = createResponse.karavanId;
-                                karavanIdInput.focus(); // Guide the user to the next logical step.
-                            }
-                        }, 100);
-
-                    } catch (error) {
-                        // --- 7. Robust Error Handling ---
-                        Utils.showNotification(`Account creation failed: ${error.message}`, 'error');
-                    } finally {
-                        // --- 8. Guaranteed UI Restoration ---
-                        submitButton.disabled = false;
-                        submitButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create My Account';
-                    }
-                },
+    } catch (error) {
+        // PREMIUM ERROR HANDLING
+        submitButton.style.transform = 'scale(1)';
+        submitButton.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        submitButton.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <i class="fas fa-exclamation-circle" style="color: white;"></i>
+                <span style="color: white; font-weight: 600;">Creation Failed</span>
+            </div>
+        `;
+        
+        // Enhanced error feedback
+        const errorMessage = error.message || 'Account creation failed. Please try again.';
+        Utils.showNotification(`❌ ${errorMessage}`, 'error');
+        
+        // Auto-restore button after delay
+        setTimeout(() => {
+            submitButton.style.background = '';
+            submitButton.innerHTML = originalContent;
+            submitButton.disabled = false;
+            submitButton.style.transform = 'scale(1)';
+        }, 3000);
+        
+        console.error('Signup failed:', error);
+        
+    } finally {
+        // Ensure button is always restored (fallback)
+        setTimeout(() => {
+            if (submitButton.disabled) {
+                submitButton.disabled = false;
+                submitButton.style.transform = 'scale(1)';
+                if (submitButton.innerHTML.includes('Creating Account') || submitButton.innerHTML.includes('Creation Failed')) {
+                    submitButton.innerHTML = originalContent;
+                    submitButton.style.background = '';
+                }
+            }
+        }, 5000);
+    }
+},
 
 bindAuthListeners: () => {
-                    const form = document.getElementById('auth-form');
-                    const showSignup = document.getElementById('show-signup');
+    const form = document.getElementById('auth-form');
+    const showSignup = document.getElementById('show-signup');
 
-                    form?.addEventListener('submit', Logic.handleLogin);
-                    // This listener is now correctly attached and will call the upgraded function.
-                    showSignup?.addEventListener('click', Logic.showSignupModal); 
-                },
+    if (form) {
+        form.addEventListener('submit', Logic.handleLogin);
+        
+        // Enhanced login form interactions
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.style.transform = 'translateY(-2px)';
+                input.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.15)';
+            });
+            
+            input.addEventListener('blur', () => {
+                input.style.transform = '';
+                input.style.boxShadow = '';
+            });
+        });
+    }
+
+    if (showSignup) {
+        showSignup.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Premium click feedback
+            showSignup.style.transform = 'scale(0.95)';
+            setTimeout(() => showSignup.style.transform = '', 150);
+            
+            Logic.showSignupModal();
+        });
+    }
+},
             
             downloadProof: () => {
                 Utils.showNotification('Generating Proof of Settlement certificate...', 'info');
