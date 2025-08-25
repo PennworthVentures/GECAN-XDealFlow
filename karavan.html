@@ -1045,10 +1045,11 @@ bindEventListeners: (viewName) => {
                     const modal = document.getElementById('karavan-auth-modal');
                     if (!modal) return;
 
-                    modal.innerHTML = `
+                    // This is the complete, synthesized HTML structure with all aesthetic, functional, and text color upgrades.
+                    const signupContentHTML = `
                         <div class="dialog-content-wrapper" style="max-width: 52rem;">
                             <div class="auth-modal auth-modal-v2 glass-premium !p-0 relative">
-                                <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6 z-10">&times;</button>
+                                <button id="signup-close-btn" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6 z-10">&times;</button>
                                 <div class="p-8 md:p-12">
                                     <div class="text-center mb-8">
                                         <div class="vault-icon-v2 w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-4">
@@ -1059,70 +1060,62 @@ bindEventListeners: (viewName) => {
                                     </div>
 
                                     <!-- PINNACLE GUIDED WORKFLOW ACCORDION -->
-                                    <form id="signup-form" class="space-y-4">
-                                        <!-- ACCORDION STEP 1: IDENTITY -->
-                                        <div id="signup-accordion-step-1" class="signup-accordion-step active">
-                                            <div class="signup-accordion-header" onclick="Logic.changeSignupStep(1)">
-                                                <div class="accordion-step-number">1</div>
-                                                <div><h4 class="accordion-step-title text-text-platinum">Identity</h4></div>
-                                                <i class="fas fa-chevron-down accordion-chevron"></i>
-                                            </div>
-                                            <div class="signup-accordion-content">
-                                                <div class="space-y-6">
-                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Choose your Karavan ID</label><div class="relative"><input type="text" id="signup-karavan-id" class="form-input form-input-v2 pr-10 required-field" required><span id="id-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Your unique, public identifier on the GECAN network. 4-20 characters, no spaces.</div></div>
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">First Name</label><input type="text" id="signup-firstname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal first name for compliance.</div></div>
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Last Name</label><input type="text" id="signup-lastname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal last name for compliance.</div></div>
+                                    <form id="signup-form">
+                                        <div class="space-y-4">
+                                            <!-- ACCORDION STEP 1: IDENTITY -->
+                                            <div id="signup-accordion-step-1" class="signup-accordion-step active">
+                                                <div class="signup-accordion-header" onclick="Logic.toggleSignupStep(1)">
+                                                    <div class="accordion-step-number">1</div>
+                                                    <div><h4 class="accordion-step-title text-text-platinum">Identity</h4></div>
+                                                    <i class="fas fa-chevron-down accordion-chevron"></i>
+                                                </div>
+                                                <div class="signup-accordion-content">
+                                                    <div class="space-y-6">
+                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Choose your Karavan ID</label><div class="relative"><input type="text" id="signup-karavan-id" class="form-input form-input-v2 pr-10 required-field" required><span id="id-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Your unique, public identifier on the GECAN network. 4-20 characters, no spaces.</div></div>
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                                                            <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">First Name</label><input type="text" id="signup-firstname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal first name for compliance.</div></div>
+                                                            <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Last Name</label><input type="text" id="signup-lastname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal last name for compliance.</div></div>
+                                                        </div>
+                                                        <div class="pt-4 flex justify-end"><button type="button" onclick="Logic.changeSignupStep(2)" class="btn-primary py-2 px-6 rounded-lg">Next: Contact</button></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <!-- ACCORDION STEP 2: CONTACT & CLASSIFICATION -->
-                                        <div id="signup-accordion-step-2" class="signup-accordion-step">
-                                            <div class="signup-accordion-header" onclick="Logic.changeSignupStep(2)">
-                                                <div class="accordion-step-number">2</div>
-                                                <div><h4 class="accordion-step-title text-text-platinum">Contact & Classification</h4></div>
-                                                <i class="fas fa-chevron-down accordion-chevron"></i>
-                                            </div>
-                                            <div class="signup-accordion-content">
-                                                <div class="space-y-6">
-                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Email Address</label><div class="relative"><input type="email" id="signup-email" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Your email is used for verification and critical account notifications. It must be unique.</div></div>
-                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Account Type</label><select id="signup-persona" class="form-select form-input-v2 required-field" required><option value="" disabled selected>Choose your primary role...</option><option value="remit">Individual</option><option value="pay">Institution</option></select><div class="holographic-tooltip">Select the primary purpose of your account to tailor your experience.</div></div>
+                                            <!-- ACCORDION STEP 2: CONTACT & CLASSIFICATION -->
+                                            <div id="signup-accordion-step-2" class="signup-accordion-step">
+                                                <div class="signup-accordion-header" onclick="Logic.toggleSignupStep(2)">
+                                                    <div class="accordion-step-number">2</div>
+                                                    <div><h4 class="accordion-step-title text-text-platinum">Contact & Classification</h4></div>
+                                                    <i class="fas fa-chevron-down accordion-chevron"></i>
                                                 </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- ACCORDION STEP 3: SECURITY -->
-                                        <div id="signup-accordion-step-3" class="signup-accordion-step">
-                                            <div class="signup-accordion-header" onclick="Logic.changeSignupStep(3)">
-                                                <div class="accordion-step-number">3</div>
-                                                <div><h4 class="accordion-step-title text-text-platinum">Security</h4></div>
-                                                <i class="fas fa-chevron-down accordion-chevron"></i>
-                                            </div>
-                                            <div class="signup-accordion-content">
-                                                <div class="space-y-6">
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Create Password</label><div class="relative"><input type="password" id="signup-password" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Choose a strong, unique password.</div></div>
-                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Confirm Password</label><div class="relative"><input type="password" id="signup-confirm-password" class="form-input form-input-v2 required-field" required><span id="password-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Re-enter your password to ensure accuracy.</div></div>
+                                                <div class="signup-accordion-content">
+                                                    <div class="space-y-6">
+                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Email Address</label><div class="relative"><input type="email" id="signup-email" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Your email is used for verification and critical account notifications. It must be unique.</div></div>
+                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Account Type</label><select id="signup-persona" class="form-select form-input-v2 required-field" required><option value="" disabled selected>Choose your primary role...</option><option value="remit">Individual</option><option value="pay">Institution</option></select><div class="holographic-tooltip">Select the primary purpose of your account to tailor your experience.</div></div>
+                                                        <div class="pt-4 flex justify-between items-center"><button type="button" onclick="Logic.changeSignupStep(1)" class="btn-secondary py-2 px-6 rounded-lg">Back</button><button type="button" onclick="Logic.changeSignupStep(3)" class="btn-primary py-2 px-6 rounded-lg">Next: Security</button></div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        
-                                        <!-- FINAL ACTIONS -->
-                                        <div class="relative flex items-center py-4"><div class="flex-grow border-t border-border-color"></div><span class="flex-shrink mx-4 text-text-silver text-xs uppercase">Optional</span><div class="flex-grow border-t border-border-color"></div></div>
-                                        <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/5 border border-white/10 hover:bg-white/20 transition-all duration-300 text-text-platinum">
-                                            <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.218,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
-                                            Sign Up with Google
-                                        </button>
-                                        <div class="flex items-center gap-6 pt-6">
-                                            <button type="button" id="back-to-login-btn" class="text-text-silver hover:text-white transition-colors font-semibold">
-                                                Back to Login
-                                            </button>
-                                            <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
-                                                <i class="fas fa-user-plus mr-2"></i>Create My Account
-                                            </button>
+
+                                            <!-- ACCORDION STEP 3: SECURITY & FINALIZATION -->
+                                            <div id="signup-accordion-step-3" class="signup-accordion-step">
+                                                <div class="signup-accordion-header" onclick="Logic.toggleSignupStep(3)">
+                                                    <div class="accordion-step-number">3</div>
+                                                    <div><h4 class="accordion-step-title text-text-platinum">Security & Finalize</h4></div>
+                                                    <i class="fas fa-chevron-down accordion-chevron"></i>
+                                                </div>
+                                                <div class="signup-accordion-content">
+                                                    <div class="space-y-6">
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                                                            <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Create Password</label><div class="relative"><input type="password" id="signup-password" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Choose a strong, unique password.</div></div>
+                                                            <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Confirm Password</label><div class="relative"><input type="password" id="signup-confirm-password" class="form-input form-input-v2 required-field" required><span id="password-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Re-enter your password to ensure accuracy.</div></div>
+                                                        </div>
+                                                        <div class="relative flex items-center py-4"><div class="flex-grow border-t border-border-color"></div><span class="flex-shrink mx-4 text-text-silver text-xs uppercase">Or</span><div class="flex-grow border-t border-border-color"></div></div>
+                                                        <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/5 border border-white/10 hover:bg-white/20 transition-all duration-300 text-text-platinum"><svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.218,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>Sign Up with Google</button>
+                                                        <div class="flex items-center gap-6 pt-6"><button type="button" onclick="Logic.changeSignupStep(2)" class="btn-secondary py-3 rounded-lg flex-1">Back</button><button type="submit" class="btn-gold py-3 rounded-lg flex-1 text-lg"><i class="fas fa-user-plus mr-2"></i>Create My Account</button></div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </form>
                                 </div>
@@ -1293,45 +1286,70 @@ bindEventListeners: (viewName) => {
                     const form = e.target;
                     const submitButton = form.querySelector('button[type="submit"]');
 
+                    // --- 1. Definitive Data Collection from Guided Workflow ---
+                    // This now correctly gathers all necessary data for the multi-table backend.
+                    const firstName = document.getElementById('signup-firstname').value.trim();
+                    const lastName = document.getElementById('signup-lastname').value.trim();
+                    const password = document.getElementById('signup-password').value;
+                    const confirmPassword = document.getElementById('signup-confirm-password').value;
+                    
                     const signupData = {
-                        name: document.getElementById('signup-firstname').value.trim() + ' ' + document.getElementById('signup-lastname').value.trim(),
+                        firstName: firstName,
+                        lastName: lastName,
+                        name: `${firstName} ${lastName}`, // Concatenated full name for convenience
                         email: document.getElementById('signup-email').value.trim(),
-                        password: document.getElementById('signup-password').value,
+                        password: password,
                         persona: document.getElementById('signup-persona').value,
                         karavanId: document.getElementById('signup-karavan-id').value.trim()
                     };
 
-                    // Final validation check before submission
-                    if (Object.values(signupData).some(val => !val) || signupData.password !== document.getElementById('signup-confirm-password').value) {
-                        return Utils.showNotification('Please ensure all required fields are correctly filled and passwords match.', 'error');
+                    // --- 2. Final, Pinnacle-Grade Validation ---
+                    // This check is now architecturally aligned with the guided workflow.
+                    if (!signupData.firstName || !signupData.lastName || !signupData.email || !signupData.password || !signupData.persona || !signupData.karavanId) {
+                        return Utils.showNotification('Please ensure all required fields in all steps are correctly filled.', 'error');
+                    }
+                    if (password !== confirmPassword) {
+                        return Utils.showNotification('Passwords do not match. Please verify your input in the Security step.', 'error');
                     }
                     
+                    // --- 3. Pinnacle-Grade Loading State ---
                     submitButton.disabled = true;
-                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Secure Account...';
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Finalizing Registration...';
 
                     try {
+                        // --- 4. SEVERE UPGRADE: Pre-flight ID Availability Check ---
+                        // This prevents a failed submission if the ID is already taken.
                         const idCheckResponse = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId: signupData.karavanId });
                         if (!idCheckResponse.data.isAvailable) {
+                            // Guide the user back to the correct step to fix the issue.
+                            Logic.changeSignupStep(1); 
                             throw new Error('This Karavan ID is no longer available. Please choose another.');
                         }
                         
+                        // --- 5. Secure API Communication (now guaranteed to use a valid ID) ---
                         const createResponse = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
                         
+                        // --- 6. Severely Upgraded Success Workflow ---
                         document.getElementById('karavan-auth-modal').close();
+                        
                         Utils.showNotification(`Account created successfully! Your Karavan ID is: <strong class="font-mono">${createResponse.karavanId}</strong>`, 'success', 10000);
                         
+                        // Definitive UX Fix: Render the login view FIRST, then populate the field.
                         UI.renderView('auth');
+                        
                         setTimeout(() => {
                             const karavanIdInput = document.getElementById('karavan-id');
                             if (karavanIdInput) {
                                 karavanIdInput.value = createResponse.karavanId;
-                                karavanIdInput.focus();
+                                karavanIdInput.focus(); // Guide the user to the next logical step.
                             }
                         }, 100);
 
                     } catch (error) {
+                        // --- 7. Robust Error Handling ---
                         Utils.showNotification(`Account creation failed: ${error.message}`, 'error');
                     } finally {
+                        // --- 8. Guaranteed UI Restoration ---
                         submitButton.disabled = false;
                         submitButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create My Account';
                     }
