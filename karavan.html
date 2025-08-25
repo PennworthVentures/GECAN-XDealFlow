@@ -44,384 +44,25 @@
     <style>
 
         /* ========================================================================= */
-        /* === PINNACLE LIQUIDITY CONDUIT v1.0 (HoloStream Overhaul) === */
-        /* ========================================================================= */
-        .liquidity-conduit {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px; /* Increased height for a more substantial presence */
-            background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
-            border-top: 1px solid var(--border-premium);
-            z-index: 40;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 0 1rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .conduit-track-wrapper {
-            width: 100%;
-            overflow: hidden;
-            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-        }
-
-        .conduit-track {
-            display: flex;
-            gap: 2rem;
-            will-change: transform;
-            animation: conduit-scroll 90s linear infinite;
-        }
-
-        .conduit-track-wrapper:hover .conduit-track {
-            animation-play-state: paused;
-        }
-
-        @keyframes conduit-scroll {
-            from { transform: translateX(0%); }
-            to { transform: translateX(-50%); }
-        }
-
-        .data-crystal {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem 1.25rem;
-            background: var(--background-glass);
-            border: 1px solid var(--border-color);
-            border-radius: 1rem;
-            cursor: pointer;
-            transform-style: preserve-3d;
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            position: relative;
-        }
-
-        .data-crystal:hover {
-            transform: translateY(-10px) scale(1.1) rotateX(15deg);
-            background: var(--background-glass-premium);
-            border-color: var(--primary-azure);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6), 0 0 25px var(--glow-azure);
-        }
-
-        .crystal-pair {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--text-diamond);
-        }
-
-        .crystal-price-container {
-            font-family: 'JetBrains Mono', monospace;
-            text-align: right;
-        }
-        
-        .crystal-price {
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: color 0.3s ease;
-        }
-
-        .crystal-change {
-            font-size: 0.75rem;
-            transition: color 0.3s ease;
-        }
-        
-        /* Interactive Modal for Deep Dive */
-        #rate-modal .dialog-content-wrapper { max-width: 42rem; }
-
-        /* ========================================================================= */
-        /* === PINNACLE AUTHENTICATION & ONBOARDING GUI ENGINE v3.0 === */
-        /* ========================================================================= */
-
-        /* --- A. THE DIGITAL CARAVAN ROUTE (Holographic Marquee) --- */
-        .marquee-container {
-            width: 100%;
-            overflow: hidden;
-            -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
-            mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
-        }
-        .marquee-track {
-            display: flex;
-            gap: 2rem;
-            will-change: transform;
-            animation: marquee-scroll 60s linear infinite;
-        }
-        .marquee-container:hover .marquee-track {
-            animation-play-state: paused;
-        }
-        @keyframes marquee-scroll {
-            from { transform: translateX(0%); }
-            to { transform: translateX(-50%); }
-        }
-
-        .process-card {
-            flex-shrink: 0;
-            width: 320px;
-            height: 400px;
-            background: linear-gradient(170deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
-            border: 1px solid var(--border-secondary);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            overflow: hidden;
-        }
-        .process-card:hover {
-            transform: translateY(-15px) scale(1.05) rotateX(10deg);
-            border-color: var(--brand-gecan-gold);
-            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 30px rgba(180, 151, 90, 0.4);
-        }
-        .process-card-content {
-            text-align: center;
-            transition: opacity 0.4s ease, filter 0.4s ease;
-        }
-        .process-card:hover .process-card-content {
-            opacity: 0.1;
-            filter: blur(8px);
-        }
-        .process-icon {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            display: inline-block;
-            text-shadow: 0 0 20px currentColor;
-            transition: transform 0.4s ease;
-        }
-        .process-card:hover .process-icon {
-            transform: scale(1.2) translateZ(50px);
-        }
-
-        .holographic-panel {
-            position: absolute;
-            inset: 1.5rem;
-            background: rgba(14, 165, 233, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--primary-azure);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            opacity: 0;
-            transform: scale(0.9) rotateX(-20deg);
-            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1) 0.1s;
-            pointer-events: none;
-        }
-        .process-card:hover .holographic-panel {
-            opacity: 1;
-            transform: scale(1) rotateX(0deg);
-        }
-
-        /* --- B. THE KARAVAN THRESHOLD v2.0 (Login Modal) --- */
-        .auth-modal-v2 {
-            background: radial-gradient(ellipse at center, var(--background-light) 0%, var(--background-primary) 80%);
-            border: 1px solid var(--border-premium);
-            box-shadow: var(--shadow-quantum), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-        .vault-icon-v2 {
-            background: linear-gradient(145deg, #2a2010, #110d06);
-            border: 2px solid var(--brand-gecan-gold);
-            box-shadow: 0 0 30px var(--glow-gold), inset 0 2px 5px rgba(0,0,0,0.5);
-            animation: vault-icon-breathe 4s ease-in-out infinite;
-            transform-style: preserve-3d;
-        }
-        @keyframes vault-icon-breathe {
-            50% { transform: scale(1.05); box-shadow: 0 0 50px var(--glow-gold), inset 0 2px 5px rgba(
-
-        /* --- SUPREME NAVIGATION & USER HUB ENGINE v2.0 --- */
-        .nav-dropdown {
-            position: relative;
-        }
-        /* DEFINITIVE FIX: The dropdown content is now a direct child of the nav-placeholder to escape the header's overflow clipping. */
-        #nav-dropdown-content {
-            display: none;
-            position: absolute;
-            top: 90px; /* Position below the header */
-            right: 24px; /* Align with the right side of the container */
-            min-width: 280px;
-            background: var(--background-glass-premium);
-            border: 1px solid var(--border-premium);
-            border-radius: 1rem;
-            box-shadow: var(--shadow-premium);
-            padding: 0.75rem;
-            z-index: 200; /* Ensure it's above all other content */
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #nav-dropdown-content.active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        .nav-dropdown-link {
-            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;
-            border-radius: 0.75rem; transition: all 0.2s ease;
-            color: var(--text-silver); font-weight: 500;
-        }
-        .nav-dropdown-link:hover {
-            background-color: var(--background-secondary); color: var(--text-diamond);
-            transform: translateX(5px);
-        }
-
-        /* PINNACLE AUTHENTICATED USER HUB */
-        .user-hub {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-        }
-        .user-avatar {
-            width: 48px; height: 48px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            background-image: linear-gradient(var(--background-secondary), var(--background-secondary)), var(--gradient-primary);
-            background-origin: border-box;
-            background-clip: content-box, border-box;
-            display: grid;
-            place-items: center;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-diamond);
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            transform-style: preserve-3d;
-        }
-        .user-hub:hover .user-avatar {
-            transform: scale(1.1) rotateY(15deg);
-        }
-        .user-status-indicator {
-            position: absolute;
-            bottom: 0; right: 0;
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            background-color: var(--success-color);
-            border: 2px solid var(--background-primary);
-            box-shadow: 0 0 10px var(--success-color);
-            animation: status-pulse 2s infinite;
-        }
-        @keyframes status-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
-        .user-hub-dropdown {
-            display: none;
-            position: absolute;
-            top: 120%;
-            right: 0;
-            width: 280px;
-            background: var(--background-glass-premium);
-            border: 1px solid var(--border-premium);
-            border-radius: 1rem;
-            box-shadow: var(--shadow-premium);
-            padding: 0.75rem;
-            z-index: 200;
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .user-hub:hover .user-hub-dropdown {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        .user-hub-header {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 0.5rem;
-        }
-
-        /* --- SUPREME NAVIGATION DROPDOWN ENGINE --- */
-        .nav-dropdown {
-            position: relative;
-        }
-        .nav-dropdown-content {
-            display: none;
-            position: absolute;
-            top: 120%;
-            right: 0;
-            min-width: 280px;
-            background: var(--background-glass-premium);
-            border: 1px solid var(--border-premium);
-            border-radius: 1rem;
-            box-shadow: var(--shadow-premium);
-            padding: 0.75rem;
-            z-index: 100;
-            opacity: 0;
-            transform: translateY(10px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .nav-dropdown:hover .nav-dropdown-content {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-        .nav-dropdown-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-            transition: background-color 0.2s ease, color 0.2s ease;
-            color: var(--text-silver);
-            font-weight: 500;
-        }
-        .nav-dropdown-link:hover {
-            background-color: var(--background-secondary);
-            color: var(--text-diamond);
-        }
-        /* ========================================================================= */
-        /* === PINNACLE CSS ENGINE v5.0 (KARAVAN SUPREME EDITION) === */
-        /* This stylesheet is the definitive standard, ensuring visual supremacy */
-        /* and perfect consistency with the entire GECAN platform. */
+        /* === PINNACLE CSS ENGINE v7.0 (KARAVAN SUPREME DARK EDITION - UNIFIED) === */
         /* ========================================================================= */
 
         /* --- A. CORE THEME & VARIABLES (BENCHMARKED) --- */
         :root {
-            --text-premium-gold: #EAE0C8;
-            --brand-gecan-blue: #1c2e4a; 
-            --brand-gecan-gold: #b4975a; 
-            --primary-azure: #0ea5e9;
-            --primary-sapphire: #3b82f6; 
-            --primary-royal: #6366f1; 
-            --primary-amethyst: #8b5cf6;
-            --primary-diamond: #f8fafc; 
-            --primary-dark: #0369a1;
-            --background-primary: #0a0a0f; 
-            --background-secondary: #1e293b; 
-            --background-light: #0f172a; 
-            --background-accent: #1e293b; 
-            --background-dark: #030712;
-            --background-glass: rgba(15, 23, 42, 0.8); 
-            --background-glass-premium: rgba(15, 23, 42, 0.95);
-            --border-color: rgba(148, 163, 184, 0.2); 
-            --border-secondary: rgba(148, 163, 184, 0.25);
-            --border-premium: rgba(148, 163, 184, 0.4); 
-            --border-accent: #64748b;
-            --text-diamond: #f8fafc; 
-            --text-platinum: #e2e8f0; 
-            --text-silver: #cbd5e1;
-            --text-muted: #94a3b8; 
-            --text-subtle: #64748b; 
-            --text-primary: #f8fafc; 
-            --text-secondary: #a0aec0;
-            --glow-azure: rgba(14, 165, 233, 0.8); 
-            --glow-sapphire: rgba(59, 130, 246, 0.9);
-            --glow-royal: rgba(139, 92, 246, 0.8); 
-            --glow-amethyst: rgba(168, 85, 247, 0.7);
-            --success-color: #22c55e; 
-            --warning-color: #f59e0b; 
-            --error-color: #ef4444; 
-            --critical-color: #dc2626;
+            --text-premium-gold: #EAE0C8; --brand-gecan-blue: #1c2e4a; --brand-gecan-gold: #b4975a; --primary-azure: #0ea5e9;
+            --primary-sapphire: #3b82f6; --primary-royal: #6366f1; --primary-amethyst: #8b5cf6; --primary-diamond: #f8fafc; --primary-dark: #0369a1;
+            --background-primary: #0a0a0f; --background-secondary: #1e293b; --background-light: #0f172a; --background-dark: #030712;
+            --background-glass: rgba(15, 23, 42, 0.8); --background-glass-premium: rgba(15, 23, 42, 0.95);
+            --border-color: rgba(148, 163, 184, 0.2); --border-secondary: rgba(148, 163, 184, 0.25);
+            --border-premium: rgba(148, 163, 184, 0.4); --border-accent: #64748b;
+            --text-diamond: #f8fafc; --text-platinum: #e2e8f0; --text-silver: #cbd5e1;
+            --text-muted: #94a3b8; --text-subtle: #64748b; --text-primary: #f8fafc; --text-secondary: #a0aec0;
+            --glow-azure: rgba(14, 165, 233, 0.8); --glow-sapphire: rgba(59, 130, 246, 0.9); --glow-gold: rgba(180, 151, 90, 0.6);
+            --glow-royal: rgba(139, 92, 246, 0.8); --glow-amethyst: rgba(168, 85, 247, 0.7);
+            --success-color: #22c55e; --warning-color: #f59e0b; --error-color: #ef4444; --critical-color: #dc2626;
             --gradient-primary: linear-gradient(135deg, #0ea5e9, #3b82f6, #8b5cf6);
             --gradient-gold: linear-gradient(135deg, #fde047, #b4975a, #eab308);
-            --shadow-ultra: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
-            --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
+            --shadow-ultra: 0 25px 50px -12px rgba(0, 0, 0, 0.25); --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
             --shadow-quantum: 0 50px 100px -20px rgba(0,0,0,0.5), 0 30px 60px -30px rgba(0,0,0,0.6);
             --transform-ultra: translateY(-16px) rotateX(10deg) rotateY(5deg) scale(1.07);
         }
@@ -432,12 +73,10 @@
         body { font-family: 'Inter', sans-serif; background: var(--background-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
         body.mobile-sidebar-open { overflow: hidden; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        ::-webkit-scrollbar { width: 8px; } 
-        ::-webkit-scrollbar-track { background: var(--background-secondary); } 
-        ::-webkit-scrollbar-thumb { background: var(--gradient-primary); border-radius: 4px; }
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--background-secondary); } ::-webkit-scrollbar-thumb { background: var(--gradient-primary); border-radius: 4px; }
         ::selection { background: var(--gradient-primary); color: var(--text-diamond); }
 
-        /* --- C. DYNAMIC BACKGROUND & PREMIUM HEADER (BENCHMARKED) --- */
+        /* --- C. DYNAMIC BACKGROUND & PREMIUM HEADER --- */
         #particles-js { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
         #interactive-background { position: fixed; inset: 0; z-index: -3; overflow: hidden; perspective: 1500px; background: radial-gradient(ellipse at center, rgba(6, 18, 42, 0.95) 0%, rgba(2, 8, 23, 0.98) 70%, rgba(0, 0, 0, 1) 100%); }
         #background-vortex { position: absolute; width: 300px; height: 300px; background: conic-gradient(from 0deg, transparent, rgba(14, 165, 233, 0.1), rgba(99, 102, 241, 0.2), transparent); border-radius: 50%; z-index: 0; transition: transform 0.1s linear; animation: vortex-spin 10s linear infinite; }
@@ -458,131 +97,375 @@
         @keyframes premium-pulse { 100% { transform: scale(1.05); box-shadow: 0 0 50px var(--glow-sapphire), 0 0 70px var(--glow-royal); } }
         @keyframes slide-in { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         
-        /* BENCHMARKED NAVIGATION & MOBILE MENU */
+        /* --- D. MOBILE, NAVIGATION & USER HUB (UNIFIED) --- */
         #mobile-sidebar.left-0 { transform: translateX(0); }
         .mobile-nav-clone { display: flex !important; flex-direction: column; padding: 1rem; gap: 0.5rem; }
         .mobile-nav-clone .nav-btn { width: 100%; justify-content: flex-start; }
         @media (max-width: 1280px) { #desktop-nav-placeholder { display: none; } #mobile-fab { display: flex; } }
+        
+        .nav-btn { text-decoration: none; }
+        #nav-dropdown-content { display: none; position: absolute; top: 90px; right: 24px; min-width: 280px; background: var(--background-glass-premium); border: 1px solid var(--border-premium); border-radius: 1rem; box-shadow: var(--shadow-premium); padding: 0.75rem; z-index: 200; opacity: 0; transform: translateY(10px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        #nav-dropdown-content.active { display: block; opacity: 1; transform: translateY(0) scale(1); }
+        .nav-dropdown-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.75rem; transition: all 0.2s ease; color: var(--text-silver); font-weight: 500; }
+        .nav-dropdown-link:hover { background-color: var(--background-secondary); color: var(--text-diamond); transform: translateX(5px); }
+        
+        .user-hub { position: relative; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .user-avatar { width: 48px; height: 48px; border-radius: 50%; border: 3px solid transparent; background-image: linear-gradient(var(--background-secondary), var(--background-secondary)), var(--gradient-primary); background-origin: border-box; background-clip: content-box, border-box; display: grid; place-items: center; font-size: 1.25rem; font-weight: 700; color: var(--text-diamond); transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); transform-style: preserve-3d; }
+        .user-hub:hover .user-avatar { transform: scale(1.1) rotateY(15deg); }
+        .user-status-indicator { position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; border-radius: 50%; background-color: var(--success-color); border: 2px solid var(--background-primary); box-shadow: 0 0 10px var(--success-color); animation: status-pulse 2s infinite; }
+        @keyframes status-pulse { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        .user-hub-dropdown { display: none; position: absolute; top: 120%; right: 0; width: 280px; background: var(--background-glass-premium); border: 1px solid var(--border-premium); border-radius: 1rem; box-shadow: var(--shadow-premium); padding: 0.75rem; z-index: 200; opacity: 0; transform: translateY(10px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .user-hub:hover .user-hub-dropdown { display: block; opacity: 1; transform: translateY(0) scale(1); }
+        .user-hub-header { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0.5rem; }
 
-        /* --- D. PINNACLE COMPONENTS (BENCHMARKED) --- */
+        /* --- E. PINNACLE COMPONENTS (FORMS, BUTTONS, MODALS) --- */
         .glass { background: var(--background-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-color); }
         .glass-premium { background: var(--background-glass-premium); backdrop-filter: blur(30px); border: 1px solid var(--border-premium); }
-
+        .btn-primary, .btn-secondary, .btn-gold { text-decoration: none; text-align: center; }
         .btn-primary { background: linear-gradient(135deg, var(--primary-azure), var(--primary-dark)); border: 1px solid var(--primary-azure); color: white; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
         .btn-primary:hover:not(:disabled) { box-shadow: 0 8px 30px rgba(14, 165, 233, 0.4); transform: translateY(-3px); }
         .btn-gold { background: var(--gradient-gold); border: 1px solid var(--brand-gecan-gold); color: var(--background-dark); font-weight: 700; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 8px 25px rgba(180, 151, 90, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
         .btn-gold:hover:not(:disabled) { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 40px rgba(180, 151, 90, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3); filter: brightness(1.1); }
         
-        .form-input, .form-select { background-color: var(--background-dark) !important; border: 1px solid var(--border-secondary) !important; color: var(--text-primary) !important; border-radius: 0.75rem !important; padding: 0.75rem 1rem !important; width: 100% !important; font-size: 1rem !important; transition: all 0.3s ease !important; appearance: none !important; -webkit-text-fill-color: var(--text-primary) !important; box-shadow: inset 0 0 0 50px var(--background-dark) !important; }
-        input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active { -webkit-text-fill-color: var(--text-primary) !important; box-shadow: inset 0 0 0 50px var(--background-dark) !important; caret-color: var(--text-primary) !important; }
+        .form-input, .form-select { background-color: var(--background-dark) !important; border: 1px solid var(--border-secondary) !important; color: var(--text-primary) !important; border-radius: 0.75rem !important; padding: 0.75rem 1rem !important; width: 100% !important; font-size: 1rem !important; transition: all 0.3s ease !important; appearance: none !important; -webkit-text-fill-color: var(--text-primary) !important; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4) !important; }
+        input:-webkit-autofill { -webkit-text-fill-color: var(--text-primary) !important; box-shadow: inset 0 0 0 50px var(--background-dark) !important; }
         .form-input::placeholder { color: var(--text-muted) !important; opacity: 1 !important; }
-        .form-input:focus, .form-select:focus { outline: none !important; border-color: var(--primary-azure) !important; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 0 0 50px var(--background-secondary) !important; background-color: var(--background-secondary) !important; }
+        .form-input:focus, .form-select:focus { outline: none !important; border-color: var(--primary-azure) !important; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), inset 0 2px 4px rgba(0,0,0,0.4) !important; }
         .form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important; background-position: right 0.75rem center !important; background-repeat: no-repeat !important; background-size: 1.5em 1.5em !important; padding-right: 2.5rem !important; }
-
-        /* --- E. KARAVAN-SPECIFIC STYLES (SUPREME UPGRADE) --- */
-        .auth-modal { max-width: 500px; width: 100%; animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
-        .role-card { background: var(--background-glass); border: 1px solid var(--border-color); border-radius: 1.5rem; padding: 2rem; cursor: pointer; transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1); position: relative; overflow: hidden; transform-style: preserve-3d; }
-        .role-card:hover { transform: perspective(1000px) translateY(-10px) rotateX(8deg) scale(1.03); border-color: var(--brand-gecan-gold); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 40px rgba(180, 151, 90, 0.4); }
-        .role-icon { width: 64px; height: 64px; border-radius: 1.25rem; display: grid; place-items: center; font-size: 1.75rem; color: white; margin: 0 auto 1.5rem; transition: all 0.4s ease; }
-        .role-card:hover .role-icon { transform: scale(1.1) translateZ(20px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-
-        .wizard-container { max-width: 1000px; margin: 0 auto; animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .step-card { background: var(--background-glass); border: 1px solid var(--border-color); border-radius: 1.25rem; margin-bottom: 1.5rem; overflow: hidden; transition: all 0.4s ease; }
-        .step-header { padding: 1.5rem 2rem; cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; }
-        .step-header:hover { background: var(--background-secondary); }
-        .step-number { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; background: var(--background-secondary); color: var(--text-diamond); border: 2px solid var(--border-premium); transition: all 0.3s ease; }
-        .step-card.active .step-number { background: var(--gradient-primary); border-color: var(--primary-azure); transform: scale(1.1); box-shadow: 0 0 15px var(--glow-azure); }
-        .step-card.completed .step-number { background: var(--gradient-gold); border-color: var(--brand-gecan-gold); color: var(--background-dark); }
-        .step-content { max-height: 0; overflow: hidden; transition: max-height 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
-        .step-card.active .step-content { max-height: 800px; }
-        .step-inner { padding: 0 2rem 2rem 2rem; }
-
-        /* HOLO STREAM */
-        .holo-stream { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: rgba(0, 0, 0, 0.9); border-top: 1px solid var(--border-premium); overflow: hidden; z-index: 40; backdrop-filter: blur(20px); }
-        .holo-track { display: flex; align-items: center; height: 100%; animation: scroll-left 60s linear infinite; gap: 3rem; position: absolute; }
-        @keyframes scroll-left { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
-        .holo-item { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
-
-        /* MODAL SYSTEM (BENCHMARKED) */
         dialog { padding: 0 !important; border: none !important; background: transparent !important; max-width: 100%; width: 100%; overflow: hidden; }
-        dialog[open] { display: grid !important; place-items: center !important; position: fixed !important; inset: 0 !important; z-index: 200 !important; padding: 2rem; animation: modal-backdrop-fade-in 0.5s ease forwards; }
+        dialog[open] { display: grid !important; place-items: center !important; position: fixed !important; inset: 0 !important; z-index: 200 !important; padding: 1rem; animation: modal-backdrop-fade-in 0.5s ease forwards; }
         dialog::backdrop { background: rgba(5, 5, 9, 0.85) !important; backdrop-filter: blur(16px) saturate(180%) !important; animation: modal-backdrop-fade-in 0.5s ease forwards; }
-        .dialog-content-wrapper { background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%) !important; border: 1px solid var(--border-premium) !important; box-shadow: var(--shadow-quantum) !important; border-radius: 1.5rem !important; width: 100%; max-height: calc(100vh - 4rem); display: flex; flex-direction: column; overflow: hidden; animation: modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .dialog-content-wrapper { background: linear-gradient(170deg, var(--background-light) 0%, var(--background-primary) 100%) !important; border: 1px solid var(--border-premium) !important; box-shadow: var(--shadow-quantum) !important; border-radius: 1.5rem !important; width: 100%; max-height: calc(100vh - 2rem); display: flex; flex-direction: column; overflow: hidden; animation: modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes modal-backdrop-fade-in { from { opacity: 0; } to { opacity: 1; } }
         @keyframes modal-content-scale-in { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        #karavan-auth-modal .dialog-content-wrapper { max-width: 32rem; }
-        #beneficiary-modal .dialog-content-wrapper { max-width: 40rem; }
         
-        /* QUOTE PANEL */
-        .quote-timer { width: 100%; height: 4px; background: rgba(148, 163, 184, 0.2); border-radius: 2px; overflow: hidden; }
-        .quote-progress { height: 100%; background: var(--gradient-gold); transition: width 0.1s linear; border-radius: 2px; }
+        /* --- F. KARAVAN-SPECIFIC GUI ENGINE (UNIFIED) --- */
+        #karavan-auth-modal .dialog-content-wrapper, #rate-modal .dialog-content-wrapper, #beneficiary-modal .dialog-content-wrapper, #notification-modal .dialog-content-wrapper { /* Sizing is now handled by JS for consistency */ }
+        .auth-modal { max-width: 500px; width: 100%; animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        /* Onboarding & Login Modal v2.0 Styles */
+        .marquee-container { width: 100%; overflow: hidden; -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent); mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent); }
+        .marquee-track { display: flex; gap: 2rem; will-change: transform; animation: marquee-scroll 60s linear infinite; }
+        .marquee-container:hover .marquee-track { animation-play-state: paused; }
+        @keyframes marquee-scroll { from { transform: translateX(0%); } to { transform: translateX(-50%); } }
+        .process-card { flex-shrink: 0; width: 320px; height: 400px; background: linear-gradient(170deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9)); border: 1px solid var(--border-secondary); border-radius: 1.5rem; padding: 2rem; position: relative; transform-style: preserve-3d; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); overflow: hidden; }
+        .process-card:hover { transform: translateY(-15px) scale(1.05) rotateX(10deg); border-color: var(--brand-gecan-gold); box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 30px rgba(180, 151, 90, 0.4); }
+        .process-card-content { text-align: center; transition: opacity 0.4s ease, filter 0.4s ease; }
+        .process-card:hover .process-card-content { opacity: 0.1; filter: blur(8px); }
+        .process-icon { font-size: 3rem; margin-bottom: 1.5rem; display: inline-block; text-shadow: 0 0 20px currentColor; transition: transform 0.4s ease; }
+        .process-card:hover .process-icon { transform: scale(1.2) translateZ(50px); }
+        .holographic-panel { position: absolute; inset: 1.5rem; background: rgba(14, 165, 233, 0.1); backdrop-filter: blur(10px); border: 1px solid var(--primary-azure); border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; opacity: 0; transform: scale(0.9) rotateX(-20deg); transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1) 0.1s; pointer-events: none; }
+        .process-card:hover .holographic-panel { opacity: 1; transform: scale(1) rotateX(0deg); }
+        .auth-modal-v2 { background: radial-gradient(ellipse at center, var(--background-light) 0%, var(--background-primary) 80%); border: 1px solid var(--border-premium); box-shadow: var(--shadow-quantum), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+        .vault-icon-v2 { background: linear-gradient(145deg, #2a2010, #110d06); border: 2px solid var(--brand-gecan-gold); box-shadow: 0 0 30px var(--glow-gold), inset 0 2px 5px rgba(0,0,0,0.5); animation: vault-icon-breathe 4s ease-in-out infinite; transform-style: preserve-3d; }
+        @keyframes vault-icon-breathe { 50% { transform: scale(1.05); box-shadow: 0 0 50px var(--glow-gold), inset 0 2px 5px rgba(0,0,0,0.5); } }
+        .vault-icon-v2 i { animation: vault-inner-spin 40s linear infinite; }
+        @keyframes vault-inner-spin { to { transform: rotateY(360deg); } }
+        .form-input-v2 { background: var(--background-dark); border-image: linear-gradient(to right, var(--border-secondary), var(--border-color)) 1; box-shadow: inset 0 3px 8px rgba(0,0,0,0.6); }
+        .form-input-v2:focus { border-image: var(--gradient-gold) 1; box-shadow: 0 0 0 3px rgba(180, 151, 90, 0.2), inset 0 3px 8px rgba(0,0,0,0.6); }
 
-        /* TRANSACTION TRACKER */
-        .tracker-timeline { display: flex; align-items: flex-start; justify-content: space-between; position: relative; }
-        .tracker-timeline::before { content: ''; position: absolute; top: 23px; left: 24px; right: 24px; height: 2px; background: var(--border-color); }
-        .tracker-step { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; flex: 1; position: relative; }
-        .tracker-dot { width: 48px; height: 48px; border-radius: 50%; background: var(--background-secondary); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: all 0.4s ease; }
-        .tracker-step.active .tracker-dot { background: var(--gradient-primary); border-color: var(--primary-azure); color: white; animation: glow-pulse-azure 2s ease-in-out infinite; }
-        .tracker-step.completed .tracker-dot { background: var(--gradient-gold); border-color: var(--brand-gecan-gold); color: var(--background-dark); }
-        @keyframes glow-pulse-azure { 50% { box-shadow: 0 0 25px var(--glow-azure); transform: scale(1.05); } }
+        /* --- F. KARAVAN-SPECIFIC GUI ENGINE (UNIFIED) --- */
+        
+        /* ... existing .auth-modal and onboarding styles ... */
 
+        /* ========================================================================= */
+        /* === PINNACLE LIQUIDITY CONDUIT v2.0 (HoloStream Overhaul) === */
+        /* ========================================================================= */
+        .liquidity-conduit {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
+            border-top: 1px solid var(--border-premium);
+            z-index: 40;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+        }
+        .conduit-track-wrapper {
+            width: 100%;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+        .conduit-track {
+            display: flex;
+            gap: 2rem;
+            will-change: transform;
+            animation: conduit-scroll 90s linear infinite;
+        }
+        .conduit-track-wrapper:hover .conduit-track {
+            animation-play-state: paused;
+        }
+        @keyframes conduit-scroll {
+            from { transform: translateX(0%); }
+            to { transform: translateX(-50%); }
+        }
+        .data-crystal {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--background-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+        }
+        .data-crystal:hover {
+            transform: translateY(-10px) scale(1.1) rotateX(15deg);
+            background: var(--background-glass-premium);
+            border-color: var(--primary-azure);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6), 0 0 25px var(--glow-azure);
+        }
+        .crystal-pair {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-diamond);
+        }
+        .crystal-price-container {
+            font-family: 'JetBrains Mono', monospace;
+            text-align: right;
+        }
+        .crystal-price {
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+        .crystal-change {
+            font-size: 0.75rem;
+            transition: color 0.3s ease;
+        }
+        #rate-modal .dialog-content-wrapper { max-width: 42rem; }
+
+        /* ========================================================================= */
+        /* === PINNACLE TRANSACTION WIZARD GUI ENGINE v2.0 === */
+        /* ========================================================================= */
+        .role-card {
+            background: var(--background-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+        .role-card:hover {
+            transform: perspective(1000px) translateY(-10px) rotateX(8deg) scale(1.03);
+            border-color: var(--brand-gecan-gold);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 40px rgba(180, 151, 90, 0.4);
+        }
+        .role-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 1.25rem;
+            display: grid;
+            place-items: center;
+            font-size: 1.75rem;
+            color: white;
+            margin: 0 auto 1.5rem;
+            transition: all 0.4s ease;
+        }
+        .role-card:hover .role-icon {
+            transform: scale(1.1) translateZ(20px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .wizard-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .step-card {
+            background: var(--background-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+        .step-header {
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+        .step-header:hover {
+            background: var(--background-secondary);
+        }
+        .step-number {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            background: var(--background-secondary);
+            color: var(--text-diamond);
+            border: 2px solid var(--border-premium);
+            transition: all 0.3s ease;
+        }
+        .step-card.active .step-number {
+            background: var(--gradient-primary);
+            border-color: var(--primary-azure);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--glow-azure);
+        }
+        .step-card.completed .step-number {
+            background: var(--gradient-gold);
+            border-color: var(--brand-gecan-gold);
+            color: var(--background-dark);
+        }
+        .step-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .step-card.active .step-content {
+            max-height: 800px; /* Generous height for content */
+        }
+        .step-inner {
+            padding: 0 2rem 2rem 2rem;
+        }
+        .quote-timer {
+            width: 100%;
+            height: 4px;
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .quote-progress {
+            height: 100%;
+            background: var(--gradient-gold);
+            transition: width 0.1s linear;
+            border-radius: 2px;
+        }
+        .tracker-timeline {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+        }
+        .tracker-timeline::before {
+            content: '';
+            position: absolute;
+            top: 23px;
+            left: 24px;
+            right: 24px;
+            height: 2px;
+            background: var(--border-color);
+        }
+        .tracker-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            position: relative;
+            text-align: center;
+        }
+        .tracker-dot {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--background-secondary);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all 0.4s ease;
+            z-index: 1;
+        }
+        .tracker-step.active .tracker-dot {
+            background: var(--gradient-primary);
+            border-color: var(--primary-azure);
+            color: white;
+            animation: glow-pulse-azure 2s ease-in-out infinite;
+        }
+        .tracker-step.completed .tracker-dot {
+            background: var(--gradient-gold);
+            border-color: var(--brand-gecan-gold);
+            color: var(--background-dark);
+        }
+        @keyframes glow-pulse-azure {
+            50% { box-shadow: 0 0 25px var(--glow-azure); transform: scale(1.05); }
+        }
     </style>
 </head>
 
-<body class="min-h-screen relative">
-    <!-- INTERACTIVE BACKGROUND SYSTEM (BENCHMARKED) -->
-    <div id="interactive-background"><div id="background-vortex"></div></div>
-    <div id="particles-js"></div>
+<body class="min-h-screen relative bg-background-primary text-text-primary">
+    <!-- ========================================================================= -->
+    <!-- === PINNACLE BACKGROUND & AMBIENCE ENGINE v3.0 === -->
+    <!-- ========================================================================= -->
+    <div id="interactive-background" aria-hidden="true"><div id="background-vortex"></div></div>
+    <div id="particles-js" aria-hidden="true"></div>
     
-    <!-- MOBILE SIDEBAR & FAB (BENCHMARKED) -->
+    <!-- ========================================================================= -->
+    <!-- === SUPREME RESPONSIVE NAVIGATION SHELL v3.0 === -->
+    <!-- ========================================================================= -->
     <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/60 z-[99] hidden backdrop-blur-sm transition-opacity duration-300 lg:hidden"></div>
-    <div id="mobile-sidebar" class="fixed top-0 -left-full w-4/5 max-w-[320px] h-full bg-[var(--background-primary)] border-r border-[var(--border-premium)] shadow-2xl z-[100] transition-transform duration-300 ease-in-out flex flex-col lg:hidden">
-        <div class="flex-shrink-0 p-4 border-b border-[var(--border-premium)] flex justify-between items-center">
-            <div><h2 class="text-xl font-bold text-white">GECAN™ Menu</h2><p class="text-xs text-gray-400 font-mono">Platform Navigation</p></div>
-            <button id="mobile-sidebar-close-btn" class="text-2xl text-gray-500 hover:text-white">&times;</button>
-        </div>
-        <div id="mobile-sidebar-content" class="flex-grow overflow-y-auto"></div>
-    </div>
-    <button id="mobile-fab" aria-label="Open Navigation Menu" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-[var(--primary-azure)] to-[var(--primary-amethyst)] rounded-full shadow-2xl z-40 hidden justify-center items-center text-white text-2xl transition-all duration-300 active:scale-90 lg:hidden">
+    <aside id="mobile-sidebar" class="fixed top-0 -left-full w-4/5 max-w-[320px] h-full bg-background-primary border-r border-border-premium shadow-2xl z-[100] transition-transform duration-300 ease-in-out flex flex-col lg:hidden">
+        <header class="flex-shrink-0 p-4 border-b border-border-premium flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold text-white">GECAN™ Menu</h2>
+                <p class="text-xs text-gray-400 font-mono">Platform Navigation</p>
+            </div>
+            <button id="mobile-sidebar-close-btn" class="text-2xl text-gray-500 hover:text-white" aria-label="Close Navigation Menu">&times;</button>
+        </header>
+        <nav id="mobile-sidebar-content" class="flex-grow overflow-y-auto"></nav>
+    </aside>
+    <button id="mobile-fab" aria-label="Open Navigation Menu" class="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-primary-azure to-primary-amethyst rounded-full shadow-2xl z-40 hidden justify-center items-center text-white text-2xl transition-all duration-300 active:scale-90 lg:hidden">
         <i class="fas fa-bars"></i>
     </button>
     
-    <!-- PREMIUM HEADER (BENCHMARKED & UPGRADED) -->
+    <!-- ========================================================================= -->
+    <!-- === PRESTIGIOUS MAIN HEADER v3.0 === -->
+    <!-- ========================================================================= -->
     <header class="premium-header p-4 lg:px-6">
         <div class="container mx-auto flex items-center justify-between gap-6">
             <div class="flex items-center gap-6 flex-shrink-0">
-                <!-- DEFINITIVE FIX: The entire logo container is now a link to index.html -->
-                <a href="./index.html" id="logo-link" class="gecan-logo-container flex items-center gap-4 group">
+                <a href="./index.html" id="logo-link" class="gecan-logo-container flex items-center gap-4 group" aria-label="Return to GECAN XDealFlow Home">
                     <div class="gecan-logo-flipper">
                         <div class="logo-face logo-front">GECAN™</div>
                         <div class="logo-face logo-back">
-                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSIjYjQ5NzVhIiBkPSJNNTAsMi41QTI0LjIsMjQuMiwwLDAsMCwyNS44LDI2LjdsMTIuMSw3YTEyLjEsMTIuMSwwLDAsMSwxMi4xLTEyLjFabTAsODVhMjQuMiwyNC4yLDAsMCwwLDI0LjItMjQuMkw2Mi4xLDY2LjNhMTIuMSwxMi4xLDAsMCwxLTEyLjEsMTIuMVptLTM1LjQtMjBhMjQuMywyNC4yLDAsMCwwLDIxLjYsMjEuNkwyNC4xLDYyLjFBNTEuMyw1MS4zLDAsMCwxLDE0LjYsNzBabTE4LjMtNDEuN0wyMC44LDMyLjVhMjQuMiwyNC4yLDAsMCwwLDAsMzVsMTIuMS03YTEyLjEsMTIuMSwwLDAsMSwwLTE3LjlaTTc5LjIsMzIuNUw2Ny4xLDM5LjdhMTIuMSwxMi4xLDAsMCwxLDAsMTcuOWwxMi4xLDdhMjQuMiwyNC4yLDAsMCwwLDAtMzVaTTUwLDQ5LjZhOC40LDguNCwwLDEsMCw4LjQsOC40QTguNCw4LjQsMCwwLDAsNTAsNDkuNloiLz48L3N2Zz4=" alt="GECAN Logo">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBmaWxsPSIjYjQ5NzVhIiBkPSJNNTAsMi41QTI0LjIsMjQuMiwwLDAsMCwyNS44LDI2LjdsMTIuMSw3YTEyLjEsMTIuMSwwLDAsMSwxMi4xLTEyLjFabTAsODVhMjQuMiwyNC4yLDAsMCwwLDI0LjItMjQuMkw2Mi4xLDY2LjNhMTIuMSwxMi4xLDAsMCwxLTEyLjEsMTIuMVptLTM1LjQtMjBhMjQuMywyNC4yLDAsMCwwLDIxLjYsMjEuNkwyNC4xLDYyLjFBNTEuMyw1MS4zLDAsMCwxLDE0LjYsNzBabTE4LjMtNDEuN0wyMC44LDMyLjVhMjQuMiwyNC4yLDAsMCwwLDAsMzVsMTIuMS03YTEyLjEsMTIuMSwwLDAsMSwwLTE3LjlaTTc5LjIsMzIuNUw2Ny4xLDM5LjdhMTIuMSwxMi4xLDAsMCwxLDAsMTcuOWwxMi4xLDdhMjQuMiwyNC4yLDAsMCwwLDAtMzVaTTUwLDQ5LjZhOC4NCw4LjQsMCwxLDEsMCw4LjQsOC44NCwwLDAsMSwwLTE2LjhaIi8+PC9zdmc+" alt="GECAN Logo">
                         </div>
                     </div>
                 </a>
-                <div class="logo-separator"></div>
+                <div class="logo-separator" aria-hidden="true"></div>
                 <div>
                     <h1 class="text-xl md:text-2xl font-bold text-white">Karavan</h1>
                     <p class="text-sm text-text-muted font-mono">Global Settlement Layer</p>
                 </div>
             </div>
-            <!-- This placeholder will be populated by the upgraded JavaScript function -->
-            <div id="desktop-nav-placeholder" class="flex-grow">
-                <!-- Navigation will be dynamically injected -->
-            </div>
+            <nav id="desktop-nav-placeholder" class="flex-grow" aria-label="Main Platform Navigation"></nav>
         </div>
     </header>
 
-    <!-- DEFINITIVE FIX: This container lives outside the header, preventing overflow clipping -->
-    <div id="nav-dropdown-content"></div>
+    <!-- This container now lives here, semantically part of the page structure but positioned via CSS -->
+    <div id="nav-dropdown-content" class="z-[200]"></div>
 
-    <!-- MAIN CONTENT AREA -->
-    <main id="main-content" class="container mx-auto p-4 pb-20">
-
-    <!-- MAIN CONTENT AREA -->
-    <main id="main-content" class="container mx-auto p-4 pb-20">
-        <!-- Initial Loader -->
+    <!-- ========================================================================= -->
+    <!-- === MAIN APPLICATION VIEWPORT === -->
+    <!-- ========================================================================= -->
+    <main id="main-content" class="container mx-auto p-4 pb-32">
+        <!-- Initial Loader State -->
         <div id="initial-loader" class="text-center py-20">
             <div class="relative inline-block mb-6">
                 <div class="w-16 h-16 border-4 border-primary-azure border-t-transparent rounded-full animate-spin"></div>
@@ -591,22 +474,27 @@
             <h2 class="text-2xl font-bold text-white mb-2">Initializing Karavan Settlement Layer</h2>
             <p class="text-text-secondary">Establishing secure connection to GECAN™ network...</p>
         </div>
+        <!-- Dynamic content will be rendered here by the UI engine -->
     </main>
 
-    <!-- PINNACLE LIQUIDITY CONDUIT (HoloStream Overhaul) -->
-    <div class="liquidity-conduit">
+    <!-- ========================================================================= -->
+    <!-- === PINNACLE LIQUIDITY CONDUIT (Footer Ticker) === -->
+    <!-- ========================================================================= -->
+    <footer class="liquidity-conduit">
         <div class="conduit-track-wrapper">
             <div id="conduit-track" class="conduit-track">
-                <!-- Live market data crystals will be injected here by JavaScript -->
+                <!-- Live market data crystals will be injected here -->
             </div>
         </div>
-    </div>
+    </footer>
 
-    <!-- MODAL DIALOGS -->
-    <dialog id="rate-modal"></dialog> <!-- Add this new dialog for the deep-dive -->
-    <dialog id="karavan-auth-modal"></dialog>
-    <dialog id="beneficiary-modal"></dialog>
-    <dialog id="notification-modal"></dialog>
+    <!-- ========================================================================= -->
+    <!-- === GLOBAL MODAL DIALOG CONTAINERS === -->
+    <!-- ========================================================================= -->
+    <dialog id="rate-modal" aria-labelledby="rate-modal-title"></dialog>
+    <dialog id="karavan-auth-modal" aria-labelledby="auth-modal-title"></dialog>
+    <dialog id="beneficiary-modal" aria-labelledby="beneficiary-modal-title"></dialog>
+    <dialog id="notification-modal" aria-labelledby="notification-modal-title"></dialog>
 
     <!-- SUPREME JAVASCRIPT ENGINE - KARAVAN PINNACLE EDITION -->
     <script>
