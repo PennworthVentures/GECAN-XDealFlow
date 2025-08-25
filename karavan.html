@@ -43,6 +43,209 @@
 
     <style>
 
+        /* ========================================================================= */
+        /* === PINNACLE AUTHENTICATION & ONBOARDING GUI ENGINE v3.0 === */
+        /* ========================================================================= */
+
+        /* --- A. THE DIGITAL CARAVAN ROUTE (Holographic Marquee) --- */
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+        }
+        .marquee-track {
+            display: flex;
+            gap: 2rem;
+            will-change: transform;
+            animation: marquee-scroll 60s linear infinite;
+        }
+        .marquee-container:hover .marquee-track {
+            animation-play-state: paused;
+        }
+        @keyframes marquee-scroll {
+            from { transform: translateX(0%); }
+            to { transform: translateX(-50%); }
+        }
+
+        .process-card {
+            flex-shrink: 0;
+            width: 320px;
+            height: 400px;
+            background: linear-gradient(170deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+            border: 1px solid var(--border-secondary);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            overflow: hidden;
+        }
+        .process-card:hover {
+            transform: translateY(-15px) scale(1.05) rotateX(10deg);
+            border-color: var(--brand-gecan-gold);
+            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 30px rgba(180, 151, 90, 0.4);
+        }
+        .process-card-content {
+            text-align: center;
+            transition: opacity 0.4s ease, filter 0.4s ease;
+        }
+        .process-card:hover .process-card-content {
+            opacity: 0.1;
+            filter: blur(8px);
+        }
+        .process-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            text-shadow: 0 0 20px currentColor;
+            transition: transform 0.4s ease;
+        }
+        .process-card:hover .process-icon {
+            transform: scale(1.2) translateZ(50px);
+        }
+
+        .holographic-panel {
+            position: absolute;
+            inset: 1.5rem;
+            background: rgba(14, 165, 233, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--primary-azure);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.9) rotateX(-20deg);
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1) 0.1s;
+            pointer-events: none;
+        }
+        .process-card:hover .holographic-panel {
+            opacity: 1;
+            transform: scale(1) rotateX(0deg);
+        }
+
+        /* --- B. THE KARAVAN THRESHOLD v2.0 (Login Modal) --- */
+        .auth-modal-v2 {
+            background: radial-gradient(ellipse at center, var(--background-light) 0%, var(--background-primary) 80%);
+            border: 1px solid var(--border-premium);
+            box-shadow: var(--shadow-quantum), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .vault-icon-v2 {
+            background: linear-gradient(145deg, #2a2010, #110d06);
+            border: 2px solid var(--brand-gecan-gold);
+            box-shadow: 0 0 30px var(--glow-gold), inset 0 2px 5px rgba(0,0,0,0.5);
+            animation: vault-icon-breathe 4s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+        @keyframes vault-icon-breathe {
+            50% { transform: scale(1.05); box-shadow: 0 0 50px var(--glow-gold), inset 0 2px 5px rgba(
+
+        /* --- SUPREME NAVIGATION & USER HUB ENGINE v2.0 --- */
+        .nav-dropdown {
+            position: relative;
+        }
+        /* DEFINITIVE FIX: The dropdown content is now a direct child of the nav-placeholder to escape the header's overflow clipping. */
+        #nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 90px; /* Position below the header */
+            right: 24px; /* Align with the right side of the container */
+            min-width: 280px;
+            background: var(--background-glass-premium);
+            border: 1px solid var(--border-premium);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-premium);
+            padding: 0.75rem;
+            z-index: 200; /* Ensure it's above all other content */
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #nav-dropdown-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .nav-dropdown-link {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;
+            border-radius: 0.75rem; transition: all 0.2s ease;
+            color: var(--text-silver); font-weight: 500;
+        }
+        .nav-dropdown-link:hover {
+            background-color: var(--background-secondary); color: var(--text-diamond);
+            transform: translateX(5px);
+        }
+
+        /* PINNACLE AUTHENTICATED USER HUB */
+        .user-hub {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+        .user-avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            background-image: linear-gradient(var(--background-secondary), var(--background-secondary)), var(--gradient-primary);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            display: grid;
+            place-items: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-diamond);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            transform-style: preserve-3d;
+        }
+        .user-hub:hover .user-avatar {
+            transform: scale(1.1) rotateY(15deg);
+        }
+        .user-status-indicator {
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            background-color: var(--success-color);
+            border: 2px solid var(--background-primary);
+            box-shadow: 0 0 10px var(--success-color);
+            animation: status-pulse 2s infinite;
+        }
+        @keyframes status-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .user-hub-dropdown {
+            display: none;
+            position: absolute;
+            top: 120%;
+            right: 0;
+            width: 280px;
+            background: var(--background-glass-premium);
+            border: 1px solid var(--border-premium);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-premium);
+            padding: 0.75rem;
+            z-index: 200;
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .user-hub:hover .user-hub-dropdown {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .user-hub-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 0.5rem;
+        }
+
         /* --- SUPREME NAVIGATION DROPDOWN ENGINE --- */
         .nav-dropdown {
             position: relative;
@@ -280,6 +483,12 @@
             </div>
         </div>
     </header>
+
+    <!-- DEFINITIVE FIX: This container lives outside the header, preventing overflow clipping -->
+    <div id="nav-dropdown-content"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <main id="main-content" class="container mx-auto p-4 pb-20">
 
     <!-- MAIN CONTENT AREA -->
     <main id="main-content" class="container mx-auto p-4 pb-20">
@@ -871,93 +1080,115 @@ loadInitialData: async () => {
                 },
 
                 /**
-                 * [DEFINITIVE & UNIFIED v4.0 - SCALABLE NAVIGATION ARCHITECTURE]
-                 * Populates all navigation menus from a central source of truth. This version is
-                 * severely upgraded to include ALL links from the index.html benchmark and introduces
-                 * a scalable, prestigious "More" dropdown menu to accommodate future platform expansion
-                 * without cluttering the UI. It is the pinnacle standard for GECAN navigation.
+                 * [DEFINITIVE & UNIFIED v6.0 - NAVIGATION & AUTHENTICATED USER HUB ENGINE]
+                 * This function is the supreme, final authority on GECAN navigation. It renders all
+                 * main navigation links directly, provides a scalable "More" dropdown, and introduces
+                 * a pinnacle-grade, animated "Authenticated User Hub" that replaces the simple logout
+                 * button. This hub provides a dynamic, prestigious user experience with access to
+                 * settings and a secure logout, solving all previous visibility and UX flaws.
                  */
                 populateNavLinks: () => {
                     const navPlaceholder = document.getElementById('desktop-nav-placeholder');
                     const mobileMenuContent = document.getElementById('mobile-sidebar-content');
-                    if (!navPlaceholder || !mobileMenuContent) return;
+                    // DEFINITIVE FIX: Target the new dropdown container outside the header.
+                    const dropdownContainer = document.getElementById('nav-dropdown-content');
+
+                    if (!navPlaceholder || !mobileMenuContent || !dropdownContainer) return;
 
                     const path = window.location.pathname;
                     const currentPageFile = path.split('/').pop().replace('.html', '') || 'index';
 
-                    // --- 1. Definitive, Complete Link Array (Synthesized from ALL benchmarks) ---
-                    const primaryLinks = [
+                    const mainLinks = [
                         { page: 'index', icon: 'fas fa-tachometer-alt', text: 'XDealFlow Home' },
+                        { page: 'about', icon: 'fas fa-landmark', text: 'About The Alliance' },
                         { page: 'toolkits', icon: 'fas fa-tools', text: 'Intelligent Toolkits' },
+                        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
+                        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' },
                         { page: 'karavan', icon: 'fas fa-route', text: 'Karavan Settlement' }
                     ];
 
-                    const secondaryLinks = [
-                        { page: 'about', icon: 'fas fa-landmark', text: 'About The Alliance' },
-                        { page: 'intelligence', icon: 'fas fa-sitemap', text: 'Network Intelligence' },
-                        { page: 'architect', icon: 'fas fa-drafting-compass', text: 'Architect Wizard' },
-                        // Future-proof links
+                    const dropdownLinks = [
                         { page: 'nexus', icon: 'fas fa-university', text: 'Nexus Capital' },
                         { page: 'privacy', icon: 'fas fa-user-secret', text: 'Privacy Policy' }
                     ];
 
-                    // --- 2. Pinnacle-Grade HTML Generation Engine (with Dropdown Logic) ---
-                    const navHtml = (isMobile = false) => {
-                        const navBtnBaseClasses = `nav-btn bg-[var(--background-glass)] border border-[var(--border-secondary)] text-[var(--text-silver)] font-medium p-3 rounded-xl transition-all duration-500 ease-in-out relative overflow-hidden cursor-pointer no-underline inline-flex items-center gap-3 transform-style-preserve-3d`;
-                        const navBtnHoverClasses = `hover:bg-[var(--background-glass-premium)] hover:text-[var(--text-diamond)] hover:translate-y-[-16px] hover:rotate-x-10 hover:rotate-y-5 hover:scale-105 hover:shadow-premium hover:border-[var(--border-premium)]`;
-                        const navBtnActiveClasses = `active bg-gradient-to-br from-[rgba(14,165,233,0.65)] to-[rgba(139,92,246,0.65)] text-[var(--text-diamond)] font-bold border-[var(--primary-azure)] brightness-110`;
-                        
-                        let linksHtml = primaryLinks.map(link => {
-                            const isActive = (currentPageFile === link.page);
-                            return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''} ${isMobile ? 'w-full justify-start' : ''}"><i class="${link.icon} w-6 text-center text-lg"></i><span>${link.text}</span></a>`;
-                        }).join('');
+                    const navBtnBaseClasses = `nav-btn bg-[var(--background-glass)] border border-[var(--border-secondary)] text-[var(--text-silver)] font-medium p-3 rounded-xl transition-all duration-500 ease-in-out relative overflow-hidden cursor-pointer no-underline inline-flex items-center gap-3 transform-style-preserve-3d`;
+                    const navBtnHoverClasses = `hover:bg-[var(--background-glass-premium)] hover:text-[var(--text-diamond)] hover:translate-y-[-16px] hover:rotate-x-10 hover:rotate-y-5 hover:scale-105 hover:shadow-premium hover:border-[var(--border-premium)]`;
+                    const navBtnActiveClasses = `active bg-gradient-to-br from-[rgba(14,165,233,0.65)] to-[rgba(139,92,246,0.65)] text-[var(--text-diamond)] font-bold border-[var(--primary-azure)] brightness-110`;
 
-                        if (isMobile) {
-                            // On mobile, render all links as a simple, scrollable list for best UX.
-                            linksHtml += `<div class="px-4 pt-4 pb-2 text-xs font-bold text-text-muted uppercase">More</div>`;
-                            linksHtml += secondaryLinks.map(link => {
-                                const isActive = (currentPageFile === link.page);
-                                return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''} w-full justify-start"><i class="${link.icon} w-6 text-center text-lg"></i><span>${link.text}</span></a>`;
-                            }).join('');
-                        } else {
-                            // On desktop, create the prestigious "More" dropdown.
-                            linksHtml += `
-                                <div class="nav-dropdown">
-                                    <button class="${navBtnBaseClasses} ${navBtnHoverClasses}">
-                                        <i class="fas fa-ellipsis-h w-6 text-center text-lg"></i>
-                                        <span>More</span>
-                                    </button>
-                                    <div class="nav-dropdown-content">
-                                        <div class="space-y-2">
-                                            ${secondaryLinks.map(link => `
-                                                <a href="./${link.page}.html" class="nav-dropdown-link">
-                                                    <i class="${link.icon} w-6 text-center text-lg text-text-muted"></i>
-                                                    <span>${link.text}</span>
-                                                </a>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                </div>`;
-                        }
+                    // --- GENERATE DESKTOP NAVIGATION ---
+                    let desktopHtml = `<nav class="hidden xl:flex items-center justify-end gap-3 w-full">`;
+                    desktopHtml += mainLinks.map(link => {
+                        const isActive = (currentPageFile === link.page);
+                        return `<a href="./${link.page}.html" class="${navBtnBaseClasses} ${navBtnHoverClasses} ${isActive ? navBtnActiveClasses : ''}"><i class="${link.icon} w-6 text-center text-lg"></i><span>${link.text}</span></a>`;
+                    }).join('');
 
-                        // --- 3. Integrated, Session-Aware Logout Button ---
-                        if (AppState.isAuthenticated) {
-                            const logoutBtnBaseClasses = `nav-btn bg-red-900/50 border border-red-500/30 text-red-300 font-medium p-3 rounded-xl transition-all duration-500 ease-in-out relative overflow-hidden cursor-pointer no-underline inline-flex items-center gap-3 transform-style-preserve-3d`;
-                            const logoutBtnHoverClasses = `hover:bg-red-500/50 hover:text-white hover:translate-y-[-16px] hover:rotate-x-10 hover:rotate-y-5 hover:scale-105 hover:shadow-premium hover:border-red-400`;
-                            
-                            linksHtml += `<button onclick="Logic.logout()" class="${logoutBtnBaseClasses} ${logoutBtnHoverClasses} ${isMobile ? 'w-full justify-start' : ''}" title="Logout"><i class="fas fa-sign-out-alt w-6 text-center text-lg"></i><span>Logout</span></button>`;
-                        }
-                        return linksHtml;
-                    };
+                    desktopHtml += `
+                        <div class="nav-dropdown">
+                            <button id="nav-more-btn" class="${navBtnBaseClasses} ${navBtnHoverClasses}">
+                                <i class="fas fa-ellipsis-h w-6 text-center text-lg"></i>
+                                <span>More</span>
+                            </button>
+                        </div>`;
                     
-                    // --- 4. Consistent DOM Injection ---
-                    navPlaceholder.innerHTML = `<nav class="hidden xl:flex items-center justify-center gap-3">${navHtml(false)}</nav>`;
-                    mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${navHtml(true)}</div>`;
+                    // --- PINNACLE USER HUB INTEGRATION ---
+                    if (AppState.isAuthenticated) {
+                        const userInitials = AppState.currentUser?.partnerName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'G';
+                        desktopHtml += `
+                            <div class="user-hub">
+                                <div class="user-avatar" title="Logged in as ${AppState.currentUser.partnerName}">
+                                    ${userInitials}
+                                    <div class="user-status-indicator"></div>
+                                </div>
+                                <div class="user-hub-dropdown">
+                                    <div class="user-hub-header">
+                                        <p class="font-bold text-white truncate">${AppState.currentUser.partnerName}</p>
+                                        <p class="text-xs text-text-muted truncate">${AppState.currentUser.email}</p>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <a href="#" class="nav-dropdown-link"><i class="fas fa-cog w-6 text-center text-lg text-text-muted"></i><span>Settings</span></a>
+                                        <a href="#" class="nav-dropdown-link text-red-400 hover:bg-red-500/20 hover:text-red-300" onclick="Logic.logout()"><i class="fas fa-sign-out-alt w-6 text-center text-lg"></i><span>Logout</span></a>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }
+                    desktopHtml += `</nav>`;
+                    navPlaceholder.innerHTML = desktopHtml;
 
-                    // Definitive fix: Ensure the logo link is always correct, although now handled by the <a> tag in HTML.
+                    // --- POPULATE THE EXTERNAL DROPDOWN CONTAINER ---
+                    dropdownContainer.innerHTML = `
+                        <div class="space-y-2">
+                            ${dropdownLinks.map(link => `
+                                <a href="./${link.page}.html" class="nav-dropdown-link">
+                                    <i class="${link.icon} w-6 text-center text-lg text-text-muted"></i>
+                                    <span>${link.text}</span>
+                                </a>
+                            `).join('')}
+                        </div>`;
+
+                    // --- Attach Listeners for Desktop Dropdown ---
+                    const moreBtn = document.getElementById('nav-more-btn');
+                    if (moreBtn) {
+                        moreBtn.addEventListener('mouseenter', () => dropdownContainer.classList.add('active'));
+                        moreBtn.addEventListener('mouseleave', () => setTimeout(() => {
+                            if (!dropdownContainer.matches(':hover')) {
+                                dropdownContainer.classList.remove('active');
+                            }
+                        }, 200));
+                        dropdownContainer.addEventListener('mouseleave', () => dropdownContainer.classList.remove('active'));
+                    }
+
+                    // --- GENERATE MOBILE NAVIGATION ---
+                    let mobileHtml = mainLinks.map(link => { /* ... same as before ... */ }).join('');
+                    mobileHtml += `<div class="px-4 pt-4 pb-2 text-xs font-bold text-text-muted uppercase">More</div>`;
+                    mobileHtml += dropdownLinks.map(link => { /* ... same as before ... */ }).join('');
+                    if (AppState.isAuthenticated) {
+                         mobileHtml += `<button onclick="Logic.logout()" class="nav-btn bg-red-900/50 border border-red-500/30 text-red-300 font-medium p-3 rounded-xl transition-colors w-full justify-start mt-4"><i class="fas fa-sign-out-alt w-6 text-center text-lg"></i><span>Logout</span></button>`;
+                    }
+                    mobileMenuContent.innerHTML = `<div class="mobile-nav-clone">${mobileHtml}</div>`;
+                    
                     document.getElementById('logo-link').href = './index.html';
                 },
-
                 renderView: (viewName) => {
                     const mainContent = document.getElementById('main-content');
                     const views = { 
@@ -976,62 +1207,76 @@ loadInitialData: async () => {
                 },
 
                 renderAuthView: () => `
-                    <!-- ========================================================================= -->
-                    <!-- === THE KARAVAN THRESHOLD: PINNACLE AUTHENTICATION SUITE === -->
-                    <!-- ========================================================================= -->
-                    <style>
-                        /* SUPREME VAULT & VALUE STREAM ANIMATION ENGINE */
-                        @keyframes stream-in-1 {
-                            0% { transform: translate(-100vw, -50vh) scale(0.2) rotate(-360deg); opacity: 0; }
-                            80% { opacity: 0.7; }
-                            100% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0; }
-                        }
-                        @keyframes stream-in-2 {
-                            0% { transform: translate(100vw, -40vh) scale(0.3) rotate(270deg); opacity: 0; }
-                            80% { opacity: 0.6; }
-                            100% { transform: translate(0, 0) scale(1.2) rotate(0deg); opacity: 0; }
-                        }
-                        @keyframes stream-in-3 {
-                            0% { transform: translate(-80vw, 100vh) scale(0.25) rotate(45deg); opacity: 0; }
-                            80% { opacity: 0.8; }
-                            100% { transform: translate(0, 0) scale(0.9) rotate(0deg); opacity: 0; }
-                        }
-                        .value-stream-element {
-                            position: absolute;
-                            font-family: 'Font Awesome 6 Free';
-                            font-weight: 900;
-                            will-change: transform, opacity;
-                            font-size: 2rem;
-                            text-shadow: 0 0 15px currentColor;
-                        }
-                        
-                        @keyframes vault-icon-pulse {
-                           0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(180, 151, 90, 0.4); }
-                           50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(180, 151, 90, 0.8); }
-                        }
-                        @keyframes vault-icon-rotate {
-                           from { transform: rotateY(0deg); }
-                           to { transform: rotateY(360deg); }
-                        }
-                    </style>
+                    <div class="w-full space-y-24 py-16">
+                        <!-- ========================================================================= -->
+                        <!-- === THE DIGITAL CARAVAN ROUTE (Onboarding Experience) === -->
+                        <!-- ========================================================================= -->
+                        <section class="text-center">
+                            <h2 class="text-4xl lg:text-5xl font-bold text-white mb-4 font-['Orbitron',_sans-serif] animate-slide-in" style="opacity:0;">
+                                The Guardian of Global Value
+                            </h2>
+                            <p class="text-xl text-text-platinum max-w-4xl mx-auto leading-relaxed animate-slide-in" style="opacity:0; animation-delay: 0.2s;">
+                                Karavan is the GECAN™ institutional-grade settlement layer, engineered for the secure, compliant, and instantaneous transfer of assets across the digital silk road. Witness the protocol.
+                            </p>
+                            <div class="marquee-container mt-12">
+                                <div class="marquee-track">
+                                    ${[1, 2].map(() => `
+                                        <div class="process-card">
+                                            <div class="process-card-content">
+                                                <i class="fas fa-fingerprint process-icon text-primary-azure"></i>
+                                                <h3 class="text-2xl font-bold text-white">1. Authenticate</h3>
+                                                <p class="text-text-silver mt-2">Securely access the network with your unique Karavan ID.</p>
+                                            </div>
+                                            <div class="holographic-panel">
+                                                <h4 class="font-bold text-lg text-primary-azure mb-2">Military-Grade Security</h4>
+                                                <p class="text-sm text-text-platinum">Your session is protected by cryptographic protocols, ensuring every transaction begins from a verified and secure origin point.</p>
+                                            </div>
+                                        </div>
+                                        <div class="process-card">
+                                            <div class="process-card-content">
+                                                <i class="fas fa-map-marked-alt process-icon text-primary-sapphire"></i>
+                                                <h3 class="text-2xl font-bold text-white">2. Designate</h3>
+                                                <p class="text-text-silver mt-2">Select a verified beneficiary from your trusted ledger.</p>
+                                            </div>
+                                            <div class="holographic-panel">
+                                                <h4 class="font-bold text-lg text-primary-sapphire mb-2">Immutable Ledger</h4>
+                                                <p class="text-sm text-text-platinum">Each beneficiary is registered against your identity, creating a compliant and transparent audit trail for all value transfers.</p>
+                                            </div>
+                                        </div>
+                                        <div class="process-card">
+                                            <div class="process-card-content">
+                                                <i class="fas fa-calculator process-icon text-brand-gecan-gold"></i>
+                                                <h3 class="text-2xl font-bold text-white">3. Structure</h3>
+                                                <p class="text-text-silver mt-2">Lock in institutional rates with our real-time quote engine.</p>
+                                            </div>
+                                            <div class="holographic-panel">
+                                                <h4 class="font-bold text-lg text-brand-gecan-gold mb-2">Pinnacle Rate Engine</h4>
+                                                <p class="text-sm text-text-platinum">Leverage GECAN's deep liquidity pools to receive a guaranteed execution rate, valid for a secure time-locked window.</p>
+                                            </div>
+                                        </div>
+                                        <div class="process-card">
+                                            <div class="process-card-content">
+                                                <i class="fas fa-rocket process-icon text-primary-amethyst"></i>
+                                                <h3 class="text-2xl font-bold text-white">4. Dispatch</h3>
+                                                <p class="text-text-silver mt-2">Initiate instantaneous, compliant, cross-border settlement.</p>
+                                            </div>
+                                            <div class="holographic-panel">
+                                                <h4 class="font-bold text-lg text-primary-amethyst mb-2">Atomic Settlement</h4>
+                                                <p class="text-sm text-text-platinum">Your Karavan is dispatched. Value is moved, cleared, and settled in sub-five minutes, with a verifiable proof-of-settlement generated.</p>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </section>
 
-                    <div class="min-h-[80vh] flex items-center justify-center p-4 relative overflow-hidden" style="perspective: 1500px;">
-                        
-                        <!-- SUPREME VALUE STREAM ANIMATION LAYER -->
-                        <div id="value-stream-container" class="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
-                            <div class="value-stream-element text-yellow-400" style="animation: stream-in-1 4s linear infinite 0.5s;">&#xf51e;</div> <!-- gold coin -->
-                            <div class="value-stream-element text-green-400" style="animation: stream-in-2 3.5s linear infinite 1s;">&#xf155;</div> <!-- fiat bill -->
-                            <div class="value-stream-element text-sky-400" style="animation: stream-in-3 4.5s linear infinite 1.5s;">&#xf0AE;</div> <!-- tether symbol -->
-                            <div class="value-stream-element text-yellow-400" style="animation: stream-in-2 5s linear infinite 2s;">&#xf51e;</div>
-                            <div class="value-stream-element text-green-400" style="animation: stream-in-3 3.8s linear infinite 2.5s;">&#xf155;</div>
-                        </div>
-
-                        <!-- THE ANCIENT DIGITAL VAULT -->
-                        <div class="auth-modal glass-premium relative transform-style-preserve-3d transition-transform duration-500 hover:rotate-x-5 hover:-rotate-y-3" style="transform: rotateX(10deg) rotateY(-5deg);">
-                            <div class="vault-door-panel p-12 bg-gradient-to-b from-[var(--background-dark)] to-[var(--background-primary)] rounded-xl shadow-inner shadow-black/50">
+                        <!-- ========================================================================= -->
+                        <!-- === THE KARAVAN THRESHOLD v2.0 (Login Modal) === -->
+                        <!-- ========================================================================= -->
+                        <div class="min-h-[80vh] flex items-center justify-center p-4">
+                            <div class="auth-modal auth-modal-v2 glass-premium">
                                 <div class="text-center mb-8">
-                                    <div class="vault-icon-container w-24 h-24 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-[#33260e] to-[#1a1307] mb-6 shadow-quantum border-2 border-[var(--brand-gecan-gold)]"
-                                         style="animation: vault-icon-pulse 3s infinite, vault-icon-rotate 30s linear infinite;">
+                                    <div class="vault-icon-v2 w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6">
                                         <i class="fas fa-vault text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500" style="text-shadow: 0 0 15px var(--brand-gecan-gold);"></i>
                                     </div>
                                     <h2 class="text-3xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">The Karavan Threshold</h2>
@@ -1040,21 +1285,16 @@ loadInitialData: async () => {
                                 <form id="auth-form" class="space-y-6">
                                     <div class="relative group">
                                         <i class="fas fa-user-shield absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
-                                        <input type="text" id="karavan-id" class="form-input !pl-12" placeholder="Enter your Karavan ID" required>
+                                        <input type="text" id="karavan-id" class="form-input form-input-v2 !pl-12" placeholder="Enter your Karavan ID" required>
                                     </div>
                                     <div class="relative group">
                                         <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
-                                        <input type="password" id="password" class="form-input !pl-12" placeholder="Enter your password" required>
+                                        <input type="password" id="password" class="form-input form-input-v2 !pl-12" placeholder="Enter your password" required>
                                     </div>
                                     <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key mr-2"></i>Unlock & Proceed</button>
                                 </form>
                                 <div class="text-center mt-8">
-                                    <p class="text-sm text-text-muted">
-                                        New to the Alliance? 
-                                        <button id="show-signup" class="text-yellow-400 hover:text-yellow-300 font-semibold transition-all duration-300 hover:underline hover:brightness-110">
-                                            Register your Karavan
-                                        </button>
-                                    </p>
+                                    <p class="text-sm text-text-muted">New to the Alliance? <button id="show-signup" class="text-yellow-400 hover:text-yellow-300 font-semibold transition-all duration-300 hover:underline hover:brightness-110">Register your Karavan</button></p>
                                 </div>
                             </div>
                         </div>
