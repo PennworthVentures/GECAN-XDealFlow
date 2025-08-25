@@ -334,8 +334,7 @@
             max-width: 520px;
             background: radial-gradient(ellipse at top, var(--background-light) 0%, var(--background-dark) 90%);
             border: 1px solid var(--border-premium);
-            box-shadow: var(--shadow-quantum), 
-                        inset 0 2px 0px rgba(255, 255, 255, 0.05);
+            box-shadow: var(--shadow-quantum), inset 0 2px 0px rgba(255, 255, 255, 0.05);
             border-radius: 2rem;
             position: relative;
             transform-style: preserve-3d;
@@ -349,52 +348,101 @@
             width: 110px; height: 110px;
             background: linear-gradient(145deg, #382c12, #1a1307);
             border: 3px solid var(--brand-gecan-gold);
-            box-shadow: 0 0 40px var(--glow-gold), 
-                        inset 0 3px 6px rgba(0,0,0,0.6),
-                        0 0 0 5px rgba(0,0,0,0.3);
+            box-shadow: 0 0 40px var(--glow-gold), inset 0 3px 6px rgba(0,0,0,0.6), 0 0 0 5px rgba(0,0,0,0.3);
             animation: vault-icon-breathe 4s ease-in-out infinite;
-            /* DEFINITIVE FIX: This property is critical for 3D child animations */
-            transform-style: preserve-3d; 
+            transform-style: preserve-3d;
         }
-        @keyframes vault-icon-breathe {
-            50% { 
-                transform: scale(1.08); 
-                box-shadow: 0 0 60px var(--glow-gold), 
-                            inset 0 3px 6px rgba(0,0,0,0.6),
-                            0 0 0 5px rgba(0,0,0,0.3); 
-            }
+        @keyframes vault-icon-breathe { 50% { transform: scale(1.08); box-shadow: 0 0 60px var(--glow-gold), inset 0 3px 6px rgba(0,0,0,0.6), 0 0 0 5px rgba(0,0,0,0.3); } }
+        .vault-icon-v2 .vault-icon-inner { width: 85%; height: 85%; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle, #2c210e, #1a1307); transform: translateZ(10px); animation: vault-inner-spin 40s linear infinite; }
+        .vault-icon-v2 i { font-size: 3rem; text-shadow: 0 0 20px var(--brand-gecan-gold); }
+        @keyframes vault-inner-spin { from { transform: translateZ(10px) rotateY(0deg); } to { transform: translateZ(10px) rotateY(360deg); } }
+        .form-input-v2 { background: var(--background-dark); border: 1px solid var(--border-secondary); box-shadow: inset 0 3px 8px rgba(0,0,0,0.4); }
+        .form-input-v2:focus { border-color: var(--primary-azure); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3), inset 0 3px 8px rgba(0,0,0,0.4); }
+
+        /* --- D3. PINNACLE GUIDED REGISTRATION ENGINE v2.0 --- */
+        .signup-accordion-step {
+            border: 1px solid var(--border-secondary);
+            border-radius: 1.25rem;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            overflow: hidden;
         }
-        .vault-icon-v2 .vault-icon-inner {
-            width: 85%; height: 85%;
+        .signup-accordion-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            background: var(--background-glass);
+            transition: background-color 0.3s ease;
+        }
+        .signup-accordion-header:hover { background: var(--background-secondary); }
+        .signup-accordion-step.active .signup-accordion-header { background-color: var(--background-secondary); }
+
+        .accordion-step-number {
+            width: 2.5rem; height: 2.5rem;
             border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: radial-gradient(circle, #2c210e, #1a1307);
-            /* DEFINITIVE FIX: Apply 3D transform directly to the inner element */
-            transform: translateZ(10px); 
-            animation: vault-inner-spin 40s linear infinite;
-        }
-        .vault-icon-v2 i {
-            font-size: 3rem;
-            text-shadow: 0 0 20px var(--brand-gecan-gold);
-        }
-        @keyframes vault-inner-spin { 
-            /* DEFINITIVE FIX: The animation now correctly targets the 3D transform property */
-            from { transform: translateZ(10px) rotateY(0deg); }
-            to { transform: translateZ(10px) rotateY(360deg); } 
-        }
-
-        .form-input-v2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-diamond);
             background: var(--background-dark);
-            border-image: linear-gradient(to right, var(--border-secondary), var(--border-color)) 1;
-            box-shadow: inset 0 3px 8px rgba(0,0,0,0.6);
+            border: 2px solid var(--border-premium);
+            transition: all 0.4s ease;
         }
-        .form-input-v2:focus {
-            border-image: var(--gradient-gold) 1;
-            box-shadow: 0 0 0 3px rgba(180, 151, 90, 0.2), inset 0 3px 8px rgba(0,0,0,0.6);
+        .signup-accordion-step.active .accordion-step-number {
+            background: var(--gradient-primary);
+            border-color: var(--primary-azure);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--glow-azure);
         }
+        .signup-accordion-step.completed .accordion-step-number {
+            background: var(--gradient-gold);
+            border-color: var(--brand-gecan-gold);
+            color: var(--background-dark);
+        }
+        .accordion-step-title { font-size: 1.25rem; font-weight: 700; color: var(--text-platinum); }
+        .accordion-chevron { margin-left: auto; font-size: 1.25rem; color: var(--text-muted); transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); }
+        .signup-accordion-step.active .accordion-chevron { transform: rotate(180deg); }
 
-        /* --- F. KARAVAN-SPECIFIC GUI ENGINE (UNIFIED) --- */
+        .signup-accordion-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .signup-accordion-step.active .signup-accordion-content { grid-template-rows: 1fr; }
+        .signup-accordion-content > div { overflow: hidden; padding: 0 1.5rem 1.5rem 1.5rem; }
+
+        /* Real-time Validation & Tooltips */
+        .field-container { position: relative; }
+        .validation-indicator { position: absolute; right: 1rem; top: calc(50% + 12px); transform: translateY(-50%); opacity: 0; transition: opacity 0.3s; }
+        .holographic-tooltip {
+            position: absolute; bottom: 105%; left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            padding: 1rem;
+            background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.2), transparent 80%);
+            border: 1px solid var(--primary-azure); border-radius: 0.75rem;
+            color: var(--text-platinum); font-size: 0.8rem; line-height: 1.5;
+            z-index: 10;
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+        }
+        .field-container:hover .holographic-tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(-10px); }
+
+        .form-input-v2.required-field {
+            border-image: linear-gradient(to right, var(--error-color), var(--border-color)) 1;
+            animation: pulse-red-border 2s infinite;
+        }
+        @keyframes pulse-red-border { 50% { border-image: linear-gradient(to right, var(--border-color), var(--error-color)) 1; } }
+        
+        .form-input-v2.is-valid {
+            border-image: linear-gradient(to right, var(--success-color), var(--border-color)) 1;
+            animation: none;
+        }
+        .form-input-v2.is-valid + .validation-indicator { opacity: 1; }
         
         /* ... existing .auth-modal and onboarding styles ... */
 
@@ -997,48 +1045,83 @@ bindEventListeners: (viewName) => {
                     const modal = document.getElementById('karavan-auth-modal');
                     if (!modal) return;
 
-                    const signupContentHTML = `
-                        <div class="dialog-content-wrapper" style="max-width: 48rem;">
+                    modal.innerHTML = `
+                        <div class="dialog-content-wrapper" style="max-width: 52rem;">
                             <div class="auth-modal auth-modal-v2 glass-premium !p-0 relative">
-                                <button id="signup-close-btn" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6 z-10">&times;</button>
+                                <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6 z-10">&times;</button>
                                 <div class="p-8 md:p-12">
                                     <div class="text-center mb-8">
                                         <div class="vault-icon-v2 w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-4">
                                             <div class="vault-icon-inner"><i class="fas fa-user-plus text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i></div>
                                         </div>
-                                        <h3 class="text-3xl font-bold text-text-diamond mb-2 font-['Orbitron',_sans-serif]">Register your Karavan</h3>
-                                        <p class="text-text-silver">Forge your key to the digital silk road.</p>
+                                        <h3 class="text-3xl font-bold text-text-diamond mb-2 font-['Orbitron',_sans-serif]">Guided Onboarding Protocol</h3>
+                                        <p class="text-text-silver">Follow the steps to forge your secure key to the digital silk road.</p>
                                     </div>
 
-                                    <form id="signup-form" class="space-y-6">
-                                        <div>
-                                            <label class="block text-sm font-semibold text-text-platinum mb-2">Choose your Karavan ID</label>
-                                            <div class="relative"><input type="text" id="signup-karavan-id" class="form-input form-input-v2 pr-10" placeholder="e.g., SilkRoadTrader" required pattern="^[a-zA-Z0-9_-]{4,20}$" title="4-20 chars"><span id="id-check-spinner" class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="fas fa-spinner fa-spin text-text-muted"></i></span><span id="id-check-result" class="absolute right-3 top-1/2 -translate-y-1/2 text-lg"></span></div>
-                                            <p id="id-check-message" class="text-xs mt-1 h-4"></p>
+                                    <!-- PINNACLE GUIDED WORKFLOW ACCORDION -->
+                                    <form id="signup-form" class="space-y-4">
+                                        <!-- ACCORDION STEP 1: IDENTITY -->
+                                        <div id="signup-accordion-step-1" class="signup-accordion-step active">
+                                            <div class="signup-accordion-header" onclick="Logic.changeSignupStep(1)">
+                                                <div class="accordion-step-number">1</div>
+                                                <div><h4 class="accordion-step-title text-text-platinum">Identity</h4></div>
+                                                <i class="fas fa-chevron-down accordion-chevron"></i>
+                                            </div>
+                                            <div class="signup-accordion-content">
+                                                <div class="space-y-6">
+                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Choose your Karavan ID</label><div class="relative"><input type="text" id="signup-karavan-id" class="form-input form-input-v2 pr-10 required-field" required><span id="id-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Your unique, public identifier on the GECAN network. 4-20 characters, no spaces.</div></div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">First Name</label><input type="text" id="signup-firstname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal first name for compliance.</div></div>
+                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Last Name</label><input type="text" id="signup-lastname" class="form-input form-input-v2 required-field" required><div class="holographic-tooltip">Your legal last name for compliance.</div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                                            <div><label class="block text-sm font-semibold text-text-platinum mb-2">Full Name</label><div class="relative group"><i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--primary-azure)]"></i><input type="text" id="signup-name" class="form-input form-input-v2 !pl-12" required></div></div>
-                                            <div><label class="block text-sm font-semibold text-text-platinum mb-2">Email Address</label><div class="relative group"><i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--primary-azure)]"></i><input type="email" id="signup-email" class="form-input form-input-v2 !pl-12" required></div></div>
-                                            <div><label class="block text-sm font-semibold text-text-platinum mb-2">Password</label><div class="relative group"><i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--primary-azure)]"></i><input type="password" id="signup-password" class="form-input form-input-v2 !pl-12" required></div></div>
-                                            <div><label class="block text-sm font-semibold text-text-platinum mb-2">Confirm Password</label><div class="relative group"><i class="fas fa-check-double absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-[var(--primary-azure)]"></i><input type="password" id="signup-confirm-password" class="form-input form-input-v2 !pl-12" required></div></div>
+
+                                        <!-- ACCORDION STEP 2: CONTACT & CLASSIFICATION -->
+                                        <div id="signup-accordion-step-2" class="signup-accordion-step">
+                                            <div class="signup-accordion-header" onclick="Logic.changeSignupStep(2)">
+                                                <div class="accordion-step-number">2</div>
+                                                <div><h4 class="accordion-step-title text-text-platinum">Contact & Classification</h4></div>
+                                                <i class="fas fa-chevron-down accordion-chevron"></i>
+                                            </div>
+                                            <div class="signup-accordion-content">
+                                                <div class="space-y-6">
+                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Email Address</label><div class="relative"><input type="email" id="signup-email" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Your email is used for verification and critical account notifications. It must be unique.</div></div>
+                                                    <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Account Type</label><select id="signup-persona" class="form-select form-input-v2 required-field" required><option value="" disabled selected>Choose your primary role...</option><option value="remit">Individual</option><option value="pay">Institution</option></select><div class="holographic-tooltip">Select the primary purpose of your account to tailor your experience.</div></div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div id="password-match-error" class="text-sm text-center text-error-color hidden pt-1">Passwords do not match.</div>
-                                        <div><label class="block text-sm font-semibold text-text-platinum mb-2">Account Type</label><select id="signup-persona" class="form-select form-input-v2" required><option value="" disabled selected>Choose account type...</option><option value="remit">Individual</option><option value="pay">Institution</option></select></div>
-                                        <div class="relative flex items-center py-4"><div class="flex-grow border-t border-border-color"></div><span class="flex-shrink mx-4 text-text-muted text-xs uppercase">Or</span><div class="flex-grow border-t border-border-color"></div></div>
+
+                                        <!-- ACCORDION STEP 3: SECURITY -->
+                                        <div id="signup-accordion-step-3" class="signup-accordion-step">
+                                            <div class="signup-accordion-header" onclick="Logic.changeSignupStep(3)">
+                                                <div class="accordion-step-number">3</div>
+                                                <div><h4 class="accordion-step-title text-text-platinum">Security</h4></div>
+                                                <i class="fas fa-chevron-down accordion-chevron"></i>
+                                            </div>
+                                            <div class="signup-accordion-content">
+                                                <div class="space-y-6">
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Create Password</label><div class="relative"><input type="password" id="signup-password" class="form-input form-input-v2 required-field" required><span class="validation-indicator"></span></div><div class="holographic-tooltip">Choose a strong, unique password.</div></div>
+                                                        <div class="field-container"><label class="block text-sm font-semibold text-text-platinum mb-2">Confirm Password</label><div class="relative"><input type="password" id="signup-confirm-password" class="form-input form-input-v2 required-field" required><span id="password-check-result" class="validation-indicator"></span></div><div class="holographic-tooltip">Re-enter your password to ensure accuracy.</div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         
-                                        <!-- DEFINITIVE SVG SYNTAX FIX -->
+                                        <!-- FINAL ACTIONS -->
+                                        <div class="relative flex items-center py-4"><div class="flex-grow border-t border-border-color"></div><span class="flex-shrink mx-4 text-text-silver text-xs uppercase">Optional</span><div class="flex-grow border-t border-border-color"></div></div>
                                         <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/5 border border-white/10 hover:bg-white/20 transition-all duration-300 text-text-platinum">
                                             <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.218,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
                                             Sign Up with Google
                                         </button>
-
                                         <div class="flex items-center gap-6 pt-6">
-                                            <!-- DEFINITIVE ONCLICK FIX -->
-                                            <button type="button" id="back-to-login-btn" class="text-text-muted hover:text-white transition-colors font-semibold">
+                                            <button type="button" id="back-to-login-btn" class="text-text-silver hover:text-white transition-colors font-semibold">
                                                 Back to Login
                                             </button>
                                             <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
-                                                <i class="fas fa-user-plus mr-2"></i>Create Account
+                                                <i class="fas fa-user-plus mr-2"></i>Create My Account
                                             </button>
                                         </div>
                                     </form>
@@ -1046,51 +1129,59 @@ bindEventListeners: (viewName) => {
                             </div>
                         </div>
                     `;
-                    
                     modal.innerHTML = signupContentHTML;
                     modal.showModal();
-                    
                     Logic.bindSignupListeners();
                 },
                 
+            // Inside the Logic object...
+
+                /**
+                 * [PINNACLE WORKFLOW ENGINE] Manages the state and navigation of the guided signup accordion.
+                 * This function is a state machine that validates completed steps before allowing progression.
+                 * @param {number} targetStep - The step number (1, 2, or 3) the user is trying to navigate to.
+                 */
                 changeSignupStep: (targetStep) => {
                     const steps = [1, 2, 3];
                     const indicators = steps.map(i => document.getElementById(`step-indicator-${i}`));
-                    const stepPanels = steps.map(i => document.getElementById(`signup-step-${i}`));
+                    const stepPanels = steps.map(i => document.getElementById(`signup-accordion-step-${i}`));
                     const progressBar = document.getElementById('step-progress-bar');
                     
                     let currentStep = 1;
                     stepPanels.forEach((panel, index) => {
-                        if(panel.classList.contains('active')) {
-                            currentStep = index + 1;
-                        }
+                        if(panel.classList.contains('active')) currentStep = index + 1;
                     });
 
-                    // Basic validation before proceeding
+                    // Military-Grade Validation Gate: Prevent skipping steps with invalid data.
                     if (targetStep > currentStep) {
                         if (currentStep === 1) {
-                            const id = document.getElementById('signup-karavan-id').value;
-                            const name = document.getElementById('signup-name').value;
-                            const email = document.getElementById('signup-email').value;
-                            if (!id || !name || !email) {
-                                return Utils.showNotification('Please complete all Identity fields to proceed.', 'warning');
+                            const idInput = document.getElementById('signup-karavan-id');
+                            const firstNameInput = document.getElementById('signup-firstname');
+                            const lastNameInput = document.getElementById('signup-lastname');
+                            if (!idInput.classList.contains('is-valid') || !firstNameInput.classList.contains('is-valid') || !lastNameInput.classList.contains('is-valid')) {
+                                return Utils.showNotification('Please complete all valid Identity fields to proceed.', 'warning');
                             }
                         }
                         if (currentStep === 2) {
-                            const pass1 = document.getElementById('signup-password').value;
-                            const pass2 = document.getElementById('signup-confirm-password').value;
-                            if (!pass1 || (pass1 !== pass2)) {
-                                return Utils.showNotification('Please ensure your passwords match to proceed.', 'warning');
+                            const emailInput = document.getElementById('signup-email');
+                            const personaInput = document.getElementById('signup-persona');
+                             if (!emailInput.classList.contains('is-valid') || !personaInput.classList.contains('is-valid')) {
+                                return Utils.showNotification('Please complete all Contact & Classification fields to proceed.', 'warning');
                             }
                         }
                     }
-
+                    
+                    // Update UI state
                     stepPanels.forEach(panel => panel.classList.remove('active'));
-                    document.getElementById(`signup-step-${targetStep}`).classList.add('active');
+                    document.getElementById(`signup-accordion-step-${targetStep}`).classList.add('active');
                     
                     indicators.forEach((ind, index) => {
                         ind.classList.remove('active');
-                        ind.classList.toggle('completed', index < targetStep -1);
+                        // Mark previous steps as completed
+                        const isCompleted = index < targetStep - 1;
+                        ind.classList.toggle('completed', isCompleted);
+                        const stepPanel = document.getElementById(`signup-accordion-step-${index + 1}`);
+                        if (stepPanel) stepPanel.classList.toggle('completed', isCompleted);
                     });
                     indicators[targetStep - 1].classList.add('active');
                     
@@ -1098,28 +1189,57 @@ bindEventListeners: (viewName) => {
                     if(progressBar) progressBar.style.width = `${progressWidth}%`;
                 },
 
+                /**
+                 * [PINNACLE EVENT BINDING ENGINE] Attaches all real-time validation and interaction
+                 * listeners to the guided signup modal. This is the interactive heart of the onboarding process.
+                 */
                 bindSignupListeners: () => {
                     const form = document.getElementById('signup-form');
+                    if (!form) return;
+
+                    const inputs = form.querySelectorAll('.required-field');
                     const karavanIdInput = document.getElementById('signup-karavan-id');
                     const pass1 = document.getElementById('signup-password');
                     const pass2 = document.getElementById('signup-confirm-password');
-                    const passResultIcon = document.getElementById('password-check-result');
-                    
-                    // DEFINITIVE FIX: Bind listeners for the new buttons
-                    const backToLoginBtn = document.getElementById('back-to-login-btn');
-                    const closeBtn = document.getElementById('signup-close-btn');
 
+                    // Real-time validation for all required fields with visual feedback
+                    inputs.forEach(input => {
+                        const indicator = input.closest('.field-container')?.querySelector('.validation-indicator') || input.parentElement.querySelector('.validation-indicator');
+                        
+                        const validateField = () => {
+                            const isValid = input.checkValidity() && input.value.trim() !== '';
+                            input.classList.toggle('is-valid', isValid);
+                            if(indicator && input.type !== 'password') {
+                                indicator.innerHTML = isValid ? `<i class="fas fa-check-circle text-success-color"></i>` : '';
+                            }
+                        };
+                        
+                        input.addEventListener('input', validateField);
+                        validateField(); // Run once on bind to show initial state
+                    });
+
+                    // Specific real-time password confirmation validation
                     const validatePasswords = () => {
+                        const indicator = document.getElementById('password-check-result');
+                        if (!indicator) return;
+
+                        const pass1Valid = pass1.checkValidity() && pass1.value.length > 0;
+                        pass1.classList.toggle('is-valid', pass1Valid);
+                        pass1.parentElement.querySelector('.validation-indicator').innerHTML = pass1Valid ? `<i class="fas fa-check-circle text-success-color"></i>` : '';
+
                         if (pass1.value && pass2.value) {
                             if (pass1.value === pass2.value) {
-                                passResultIcon.innerHTML = `<i class="fas fa-check-circle text-success-color"></i>`;
+                                indicator.innerHTML = `<i class="fas fa-check-circle text-success-color"></i>`;
+                                pass2.classList.add('is-valid');
                                 return true;
                             } else {
-                                passResultIcon.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
+                                indicator.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
+                                pass2.classList.remove('is-valid');
                                 return false;
                             }
                         }
-                        passResultIcon.innerHTML = '';
+                        indicator.innerHTML = '';
+                        pass2.classList.remove('is-valid');
                         return false;
                     };
 
@@ -1127,109 +1247,95 @@ bindEventListeners: (viewName) => {
                     pass1?.addEventListener('input', validatePasswords);
                     pass2?.addEventListener('input', validatePasswords);
                     form?.addEventListener('submit', Logic.handleSignup);
-                    
-                    // DEFINITIVE FIX: These listeners ensure the buttons work without inline onclick attributes.
-                    backToLoginBtn?.addEventListener('click', () => UI.renderView('auth'));
-                    closeBtn?.addEventListener('click', () => document.getElementById('karavan-auth-modal').close());
                 },
 
-                // Add this new function
                 checkKaravanIdAvailability: async () => {
                     const input = document.getElementById('signup-karavan-id');
-                    const spinner = document.getElementById('id-check-spinner');
                     const resultIcon = document.getElementById('id-check-result');
                     const message = document.getElementById('id-check-message');
                     const karavanId = input.value.trim();
 
-                    resultIcon.innerHTML = '';
-                    message.textContent = '';
-                    if (karavanId.length < 4) {
-                        message.textContent = 'Must be at least 4 characters.';
-                        message.className = 'text-xs text-warning-color mt-1 h-4';
+                    resultIcon.innerHTML = `<i class="fas fa-spinner fa-spin text-text-muted"></i>`;
+                    message.textContent = 'Checking availability...';
+                    message.className = 'text-xs text-text-muted mt-1 h-4';
+                    
+                    if (!input.checkValidity() || karavanId.length < 4) {
+                        resultIcon.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
+                        message.textContent = 'ID must be 4-20 characters (letters, numbers, _, -).';
+                        message.className = 'text-xs text-error-color mt-1 h-4';
+                        input.classList.remove('is-valid');
                         return;
                     }
-
-                    spinner.classList.remove('hidden');
+                    
                     try {
                         const response = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId });
                         if (response.data.isAvailable) {
                             resultIcon.innerHTML = `<i class="fas fa-check-circle text-success-color"></i>`;
                             message.textContent = 'This ID is available.';
                             message.className = 'text-xs text-success-color mt-1 h-4';
+                            input.classList.add('is-valid');
                         } else {
                             resultIcon.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
                             message.textContent = 'This ID is already taken.';
                             message.className = 'text-xs text-error-color mt-1 h-4';
+                            input.classList.remove('is-valid');
                         }
                     } catch (error) {
+                        resultIcon.innerHTML = `<i class="fas fa-exclamation-triangle text-warning-color"></i>`;
                         message.textContent = 'Could not verify ID.';
-                        message.className = 'text-xs text-error-color mt-1 h-4';
-                    } finally {
-                        spinner.classList.add('hidden');
+                        message.className = 'text-xs text-warning-color mt-1 h-4';
+                        input.classList.remove('is-valid');
                     }
                 },
 
-            handleSignup: async (e) => {
-                e.preventDefault();
-                const form = e.target;
-                const submitButton = form.querySelector('button[type="submit"]');
+                handleSignup: async (e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const submitButton = form.querySelector('button[type="submit"]');
 
-                // --- 1. Definitive Data Collection & Validation ---
-                const password = document.getElementById('signup-password').value;
-                const confirmPassword = document.getElementById('signup-confirm-password').value;
-                
                     const signupData = {
-                        name: document.getElementById('signup-name').value.trim(),
+                        name: document.getElementById('signup-firstname').value.trim() + ' ' + document.getElementById('signup-lastname').value.trim(),
                         email: document.getElementById('signup-email').value.trim(),
                         password: document.getElementById('signup-password').value,
                         persona: document.getElementById('signup-persona').value,
-                        // SEVERE UPGRADE: Add the user-chosen Karavan ID to the payload
                         karavanId: document.getElementById('signup-karavan-id').value.trim()
                     };
 
-                // SEVERE UPGRADE: Validate all fields, including the critical password match.
-                if (!signupData.name || !signupData.email || !signupData.password || !signupData.persona) {
-                    return Utils.showNotification('Please fill in all required fields.', 'error');
-                }
-                if (password !== confirmPassword) {
-                    // This should ideally be caught by the real-time validator, but serves as a final check.
-                    return Utils.showNotification('Passwords do not match. Please verify your input.', 'error');
-                }
-                
-                // --- 2. Pinnacle-Grade Loading State ---
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Secure Account...';
+                    // Final validation check before submission
+                    if (Object.values(signupData).some(val => !val) || signupData.password !== document.getElementById('signup-confirm-password').value) {
+                        return Utils.showNotification('Please ensure all required fields are correctly filled and passwords match.', 'error');
+                    }
+                    
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Secure Account...';
 
-                try {
-                    // --- 3. Secure API Communication ---
-                    const response = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
-                    
-                    // --- 4. Severely Upgraded Success Workflow ---
-                    document.getElementById('karavan-auth-modal').close();
-                    
-                    Utils.showNotification(`Account created successfully! Your Karavan ID is: <strong class="font-mono">${response.karavanId}</strong>`, 'success', 10000); // Increased duration to allow copying
-                    
-                    // Definitive UX Fix: Render the login view FIRST, then populate the field.
-                    UI.renderView('auth');
-                    
-                    // Use a timeout to ensure the DOM has updated before trying to access the element.
-                    setTimeout(() => {
-                        const karavanIdInput = document.getElementById('karavan-id');
-                        if (karavanIdInput) {
-                            karavanIdInput.value = response.karavanId;
-                            karavanIdInput.focus(); // Guide the user to the next logical step.
+                    try {
+                        const idCheckResponse = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId: signupData.karavanId });
+                        if (!idCheckResponse.data.isAvailable) {
+                            throw new Error('This Karavan ID is no longer available. Please choose another.');
                         }
-                    }, 100);
+                        
+                        const createResponse = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
+                        
+                        document.getElementById('karavan-auth-modal').close();
+                        Utils.showNotification(`Account created successfully! Your Karavan ID is: <strong class="font-mono">${createResponse.karavanId}</strong>`, 'success', 10000);
+                        
+                        UI.renderView('auth');
+                        setTimeout(() => {
+                            const karavanIdInput = document.getElementById('karavan-id');
+                            if (karavanIdInput) {
+                                karavanIdInput.value = createResponse.karavanId;
+                                karavanIdInput.focus();
+                            }
+                        }, 100);
 
-                } catch (error) {
-                    // --- 5. Robust Error Handling ---
-                    Utils.showNotification(`Account creation failed: ${error.message}`, 'error');
-                } finally {
-                    // --- 6. Guaranteed UI Restoration ---
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create Account';
-                }
-            },
+                    } catch (error) {
+                        Utils.showNotification(`Account creation failed: ${error.message}`, 'error');
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create My Account';
+                    }
+                },
 
 bindAuthListeners: () => {
                     const form = document.getElementById('auth-form');
