@@ -637,7 +637,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbzVxT9BskkFcOTMBB1sN9omLHuy0GlQOnRc9HUlgcaX4hFjbdf-PU83TwMP3uKb6987/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbygsUj0lxTXJtk2-8rPulA__IgzrYYiIYTvb9rSTE7YkjFB-1QX5sXhpWGcAXXuvD9k/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -896,91 +896,257 @@ bindEventListeners: (viewName) => {
                     }
                 },
 
-                showSignupModal: () => {
-                    // 1. Target the correct, existing <dialog> element.
+showSignupModal: () => {
                     const modal = document.getElementById('karavan-auth-modal');
                     if (!modal) {
                         return Utils.showNotification('UI Integrity Error: Authentication modal not found.', 'error');
                     }
 
-                    // 2. Render the pinnacle-grade signup form, ensuring it's wrapped in the standard .dialog-content-wrapper.
+                    // This is the complete, synthesized HTML structure.
                     const signupContentHTML = `
-                        <div class="dialog-content-wrapper">
-                            <div class="p-8">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div class="text-center w-full">
-                                        <h3 class="text-2xl font-bold text-white mb-2">Join GECAN™ Karavan</h3>
-                                        <p class="text-text-silver">Create your account to access the Global Settlement Layer</p>
+                        <div class="dialog-content-wrapper" style="max-width: 42rem;">
+                            <div class="auth-modal auth-modal-v2 glass-premium !p-0">
+                                <div class="p-8">
+                                    <div class="flex justify-between items-start mb-6">
+                                        <div class="text-center w-full">
+                                            <div class="vault-icon-v2 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4">
+                                                <div class="vault-icon-inner">
+                                                    <i class="fas fa-user-plus text-3xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i>
+                                                </div>
+                                            </div>
+                                            <h3 class="text-3xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">Register your Karavan</h3>
+                                            <p class="text-text-muted">Forge your key to the digital silk road.</p>
+                                        </div>
+                                        <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors absolute top-6 right-6">&times;</button>
                                     </div>
-                                    <button onclick="document.getElementById('karavan-auth-modal').close()" class="text-2xl text-text-muted hover:text-white transition-colors -mt-4 -mr-4">&times;</button>
+
+                                    <form id="signup-form" class="space-y-4">
+                                        <!-- Karavan ID Field with Real-time Validation -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-silver mb-2">Choose your Karavan ID</label>
+                                            <div class="relative">
+                                                <input type="text" id="signup-karavan-id" class="form-input form-input-v2 pr-10" placeholder="e.g., SilkRoadTrader" required pattern="^[a-zA-Z0-9_-]{4,20}$" title="4-20 chars, letters, numbers, -, _">
+                                                <span id="id-check-spinner" class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="fas fa-spinner fa-spin text-text-muted"></i></span>
+                                                <span id="id-check-result" class="absolute right-3 top-1/2 -translate-y-1/2 text-lg"></span>
+                                            </div>
+                                            <p id="id-check-message" class="text-xs mt-1 h-4"></p>
+                                        </div>
+
+                                        <!-- Full Name & Email -->
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-silver mb-2">Full Name</label>
+                                                <div class="relative group">
+                                                    <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                    <input type="text" id="signup-name" class="form-input form-input-v2 !pl-12" required>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-silver mb-2">Email Address</label>
+                                                <div class="relative group">
+                                                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                    <input type="email" id="signup-email" class="form-input form-input-v2 !pl-12" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Password & Confirmation -->
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-silver mb-2">Password</label>
+                                                <div class="relative group">
+                                                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                    <input type="password" id="signup-password" class="form-input form-input-v2 !pl-12" required>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-silver mb-2">Confirm Password</label>
+                                                <div class="relative group">
+                                                     <i class="fas fa-check-double absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                                    <input type="password" id="signup-confirm-password" class="form-input form-input-v2 !pl-12" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="password-match-error" class="text-sm text-center text-error-color hidden pt-1">Passwords do not match.</div>
+
+                                        <!-- Account Type -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-silver mb-2">Account Type</label>
+                                            <select id="signup-persona" class="form-select form-input-v2" required>
+                                                <option value="" disabled selected>Choose account type...</option>
+                                                <option value="remit">Individual (Personal Remittances)</option>
+                                                <option value="pay">Institution (B2B Payments)</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- "Or" Separator -->
+                                        <div class="relative flex items-center py-4">
+                                            <div class="flex-grow border-t border-border-color"></div>
+                                            <span class="flex-shrink mx-4 text-text-muted text-xs uppercase">Or</span>
+                                            <div class="flex-grow border-t border-border-color"></div>
+                                        </div>
+
+                                        <!-- Google Sign-Up Button -->
+                                        <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300">
+                                            <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.218,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                                            Sign Up with Google
+                                        </button>
+
+                                        <!-- Action Buttons -->
+                                        <div class="flex gap-3 pt-4">
+                                            <button type="button" onclick="UI.renderView('auth')" class="btn-secondary py-3 rounded-lg flex-1">
+                                                Back to Login
+                                            </button>
+                                            <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
+                                                <i class="fas fa-user-plus mr-2"></i>Create Account
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
-
-                                <form id="signup-form" class="space-y-4">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-text-silver mb-2">Full Name</label>
-                                            <input type="text" id="signup-name" class="form-input" required>
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-text-silver mb-2">Email Address</label>
-                                            <input type="email" id="signup-email" class="form-input" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium text-text-silver mb-2">Password</label>
-                                        <input type="password" id="signup-password" class="form-input" required>
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-medium text-text-silver mb-2">Account Type</label>
-                                        <select id="signup-persona" class="form-select" required>
-                                            <option value="">Choose account type...</option>
-                                            <option value="remit">Individual (Personal Remittances)</option>
-                                            <option value="pay">Institution (B2B Payments)</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="flex gap-3 pt-4">
-                                        <button type="button" onclick="document.getElementById('karavan-auth-modal').close()" class="btn-secondary py-3 rounded-lg flex-1">
-                                            Cancel
-                                        </button>
-                                        <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
-                                            <i class="fas fa-user-plus mr-2"></i>Create Account
-                                        </button>
-                                    </div>
-                                </form>
                             </div>
                         </div>
                     `;
                     
-                    // 3. Inject the HTML and use the standard .showModal() method.
                     modal.innerHTML = signupContentHTML;
                     modal.showModal();
+                    Logic.bindSignupListeners();
                     
-                    // 4. Attach the event listener for the newly created form.
-                    document.getElementById('signup-form')?.addEventListener('submit', Logic.handleSignup);
+                    const form = document.getElementById('signup-form');
+                    const pass1 = document.getElementById('signup-password');
+                    const pass2 = document.getElementById('signup-confirm-password');
+                    const errorDiv = document.getElementById('password-match-error');
+
+                    // Real-time password confirmation validation
+                    const validatePasswords = () => {
+                        if (pass1.value && pass2.value && pass1.value !== pass2.value) {
+                            errorDiv.classList.remove('hidden');
+                            pass2.style.borderColor = 'var(--error-color)';
+                            return false;
+                        } else {
+                            errorDiv.classList.add('hidden');
+                            pass2.style.borderColor = '';
+                            return true;
+                        }
+                    };
+
+                    pass1.addEventListener('input', validatePasswords);
+                    pass2.addEventListener('input', validatePasswords);
+                    
+                    form?.addEventListener('submit', (e) => {
+                        if (!validatePasswords()) {
+                            e.preventDefault(); // Prevent submission if passwords don't match
+                            return;
+                        }
+                        Logic.handleSignup(e);
+                    });
+                },
+
+                // Add this new function
+                bindSignupListeners: () => {
+                    const form = document.getElementById('signup-form');
+                    const karavanIdInput = document.getElementById('signup-karavan-id');
+                    // ... password validation listeners from previous version ...
+                    
+                    // Real-time Karavan ID availability check
+                    karavanIdInput?.addEventListener('input', Utils.debounce(Logic.checkKaravanIdAvailability, 500));
+                    form?.addEventListener('submit', Logic.handleSignup);
+                },
+
+                // Add this new function
+                checkKaravanIdAvailability: async () => {
+                    const input = document.getElementById('signup-karavan-id');
+                    const spinner = document.getElementById('id-check-spinner');
+                    const resultIcon = document.getElementById('id-check-result');
+                    const message = document.getElementById('id-check-message');
+                    const karavanId = input.value.trim();
+
+                    resultIcon.innerHTML = '';
+                    message.textContent = '';
+                    if (karavanId.length < 4) {
+                        message.textContent = 'Must be at least 4 characters.';
+                        message.className = 'text-xs text-warning-color mt-1 h-4';
+                        return;
+                    }
+
+                    spinner.classList.remove('hidden');
+                    try {
+                        const response = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId });
+                        if (response.data.isAvailable) {
+                            resultIcon.innerHTML = `<i class="fas fa-check-circle text-success-color"></i>`;
+                            message.textContent = 'This ID is available.';
+                            message.className = 'text-xs text-success-color mt-1 h-4';
+                        } else {
+                            resultIcon.innerHTML = `<i class="fas fa-times-circle text-error-color"></i>`;
+                            message.textContent = 'This ID is already taken.';
+                            message.className = 'text-xs text-error-color mt-1 h-4';
+                        }
+                    } catch (error) {
+                        message.textContent = 'Could not verify ID.';
+                        message.className = 'text-xs text-error-color mt-1 h-4';
+                    } finally {
+                        spinner.classList.add('hidden');
+                    }
                 },
 
             handleSignup: async (e) => {
                 e.preventDefault();
-                const signupData = {
-                    name: document.getElementById('signup-name').value,
-                    email: document.getElementById('signup-email').value,
-                    password: document.getElementById('signup-password').value,
-                    persona: document.getElementById('signup-persona').value
-                };
+                const form = e.target;
+                const submitButton = form.querySelector('button[type="submit"]');
+
+                // --- 1. Definitive Data Collection & Validation ---
+                const password = document.getElementById('signup-password').value;
+                const confirmPassword = document.getElementById('signup-confirm-password').value;
+                
+                    const signupData = {
+                        name: document.getElementById('signup-name').value.trim(),
+                        email: document.getElementById('signup-email').value.trim(),
+                        password: document.getElementById('signup-password').value,
+                        persona: document.getElementById('signup-persona').value,
+                        // SEVERE UPGRADE: Add the user-chosen Karavan ID to the payload
+                        karavanId: document.getElementById('signup-karavan-id').value.trim()
+                    };
+
+                // SEVERE UPGRADE: Validate all fields, including the critical password match.
                 if (!signupData.name || !signupData.email || !signupData.password || !signupData.persona) {
-                    return Utils.showNotification('Please fill in all fields', 'error');
+                    return Utils.showNotification('Please fill in all required fields.', 'error');
                 }
+                if (password !== confirmPassword) {
+                    // This should ideally be caught by the real-time validator, but serves as a final check.
+                    return Utils.showNotification('Passwords do not match. Please verify your input.', 'error');
+                }
+                
+                // --- 2. Pinnacle-Grade Loading State ---
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Secure Account...';
 
                 try {
+                    // --- 3. Secure API Communication ---
                     const response = await Utils.createApiRequest('karavanCreateAccount', 'POST', signupData);
+                    
+                    // --- 4. Severely Upgraded Success Workflow ---
                     document.getElementById('karavan-auth-modal').close();
-                    Utils.showNotification(`Account created successfully! Your Karavan ID is: ${response.karavanId}`, 'success', 8000);
-                    document.getElementById('karavan-id').value = response.karavanId;
+                    
+                    Utils.showNotification(`Account created successfully! Your Karavan ID is: <strong class="font-mono">${response.karavanId}</strong>`, 'success', 10000); // Increased duration to allow copying
+                    
+                    // Definitive UX Fix: Render the login view FIRST, then populate the field.
+                    UI.renderView('auth');
+                    
+                    // Use a timeout to ensure the DOM has updated before trying to access the element.
+                    setTimeout(() => {
+                        const karavanIdInput = document.getElementById('karavan-id');
+                        if (karavanIdInput) {
+                            karavanIdInput.value = response.karavanId;
+                            karavanIdInput.focus(); // Guide the user to the next logical step.
+                        }
+                    }, 100);
+
                 } catch (error) {
+                    // --- 5. Robust Error Handling ---
                     Utils.showNotification(`Account creation failed: ${error.message}`, 'error');
+                } finally {
+                    // --- 6. Guaranteed UI Restoration ---
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Create Account';
                 }
             },
 
@@ -1388,7 +1554,7 @@ loadInitialData: async () => {
                 renderAuthView: () => `
                     <div class="w-full">
                         <!-- ========================================================================= -->
-                        <!-- === THE DIGITAL CARAVAN ROUTE v2.0 (Onboarding Experience) === -->
+                        <!-- === THE DIGITAL CARAVAN ROUTE v3.0 (Onboarding Experience) === -->
                         <!-- ========================================================================= -->
                         <section class="text-center py-12 md:py-20">
                             <h2 class="text-4xl lg:text-5xl font-bold text-white mb-4 font-['Orbitron',_sans-serif] animate-slide-in" style="opacity:0;">
@@ -1398,7 +1564,6 @@ loadInitialData: async () => {
                                 Karavan is the GECAN™ institutional-grade settlement layer, engineered for the secure, compliant, and instantaneous transfer of assets across the digital silk road. Witness the protocol.
                             </p>
                             <div class="marquee-container mt-12">
-                                <!-- Marquee track content remains the same, no changes needed here -->
                                 <div class="marquee-track">
                                     ${[1, 2].map(() => `
                                         <div class="process-card">
@@ -1423,7 +1588,7 @@ loadInitialData: async () => {
                         </section>
 
                         <!-- ========================================================================= -->
-                        <!-- === THE KARAVAN THRESHOLD v3.0 (Login Modal - Re-architected) === -->
+                        <!-- === THE KARAVAN THRESHOLD v4.0 (Login Modal - Fully Synthesized) === -->
                         <!-- ========================================================================= -->
                         <div class="min-h-[90vh] flex items-center justify-center p-4 relative" style="perspective: 1500px;">
                             <div id="value-stream-container" class="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
@@ -1431,30 +1596,32 @@ loadInitialData: async () => {
                                 <div class="value-stream-element text-green-400" style="animation: stream-in-2 3.5s linear infinite 1s;">&#xf155;</div>
                                 <div class="value-stream-element text-sky-400" style="animation: stream-in-3 4.5s linear infinite 1.5s;">&#xf0AE;</div>
                             </div>
-                            <!-- DEFINITIVE CENTERING FIX: The modal is now a direct child of the flex container -->
                             <div class="auth-modal auth-modal-v2 glass-premium" style="transform: rotateX(10deg) rotateY(-5deg);">
-                                <div class="text-center p-4 md:p-8">
-                                    <div class="vault-icon-v2 w-28 h-28 mx-auto rounded-full flex items-center justify-center mb-6">
-                                        <div class="vault-icon-inner">
-                                            <i class="fas fa-key text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i>
+                                <div class="p-4 md:p-8">
+                                    <div class="text-center mb-8">
+                                        <div class="vault-icon-v2 w-28 h-28 mx-auto rounded-full flex items-center justify-center mb-6">
+                                            <div class="vault-icon-inner"><i class="fas fa-key text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i></div>
                                         </div>
+                                        <h2 class="text-4xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">The Karavan Threshold</h2>
+                                        <p class="text-text-muted">Present your credentials to unlock the digital silk road.</p>
                                     </div>
-                                    <h2 class="text-4xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">The Karavan Threshold</h2>
-                                    <p class="text-text-muted">Present your credentials to unlock the digital silk road.</p>
-                                </div>
-                                <form id="auth-form" class="space-y-6 px-4 md:px-8 pb-8">
-                                    <div class="relative group">
-                                        <i class="fas fa-user-shield absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
-                                        <input type="text" id="karavan-id" class="form-input form-input-v2 !pl-12" placeholder="Enter your Karavan ID" required>
-                                    </div>
-                                    <div class="relative group">
-                                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
-                                        <input type="password" id="password" class="form-input form-input-v2 !pl-12" placeholder="Enter your password" required>
-                                    </div>
-                                    <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key-skeleton mr-2"></i>Unlock & Proceed</button>
-                                </form>
-                                <div class="text-center pb-8">
-                                    <p class="text-sm text-text-muted">New to the Alliance? <button id="show-signup" class="text-yellow-400 hover:text-yellow-300 font-semibold transition-all duration-300 hover:underline hover:brightness-110">Register your Karavan</button></p>
+                                    <form id="auth-form" class="space-y-6">
+                                        <div class="relative group"><i class="fas fa-user-shield absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i><input type="text" id="karavan-id" class="form-input form-input-v2 !pl-12" placeholder="Enter your Karavan ID" required></div>
+                                        <div class="relative group"><i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i><input type="password" id="password" class="form-input form-input-v2 !pl-12" placeholder="Enter your password" required></div>
+                                        <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key-skeleton mr-2"></i>Unlock & Proceed</button>
+                                    </form>
+                                    
+                                    <!-- "Or" Separator - RESTORED -->
+                                    <div class="relative flex items-center py-6"><div class="flex-grow border-t border-border-color"></div><span class="flex-shrink mx-4 text-text-muted text-xs uppercase">Or</span><div class="flex-grow border-t border-border-color"></div></div>
+                                    
+                                    <!-- Google Sign-In Button - RESTORED -->
+                                    <button type="button" class="w-full py-3 rounded-lg text-lg flex items-center justify-center gap-3 bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300">
+                                        <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.574l6.19,5.238C39.904,36.218,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                                        Sign in with Google
+                                    </button>
+                                    
+                                    <!-- Signup Link - RESTORED -->
+                                    <div class="text-center pt-6"><p class="text-sm text-text-muted">New to the Alliance? <button id="show-signup" class="text-yellow-400 hover:text-yellow-300 font-semibold transition-all duration-300 hover:underline hover:brightness-110">Register your Karavan</button></p></div>
                                 </div>
                             </div>
                         </div>
