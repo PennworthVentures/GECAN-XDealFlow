@@ -2383,79 +2383,98 @@ bindSignupListeners: () => {
     }
 },
                 
-checkKaravanIdAvailability: async () => {
+// Add this new property to your Logic object, near the top.
+// This will manage the AbortController for our ID availability check.
+_idCheckController: null,
+
+/**
+ * [PINNACLE HELPER] A centralized, state-driven UI updater for the Karavan ID field.
+ * This eliminates code duplication and makes UI state management clean and predictable.
+ * @param {string} state - The target state: 'loading', 'valid', 'invalid', or 'error'.
+ * @param {string} message - The text to display to the user.
+ */
+_updateIdFieldState: (state, message) => {
     const input = document.getElementById('signup-karavan-id');
     const resultIcon = document.getElementById('id-check-result');
     const messageContainer = document.getElementById('id-check-message') || 
                            input?.closest('.premium-field-group')?.querySelector('.premium-field-hint');
-    const karavanId = input?.value.trim() || '';
 
-    if (!input || !resultIcon) return;
+    if (!input || !resultIcon || !messageContainer) return;
 
-    // PREMIUM LOADING STATE
-    resultIcon.innerHTML = `<div class="premium-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>`;
-    if (messageContainer) {
-        messageContainer.textContent = 'Verifying availability...';
-        messageContainer.style.color = 'rgba(148, 163, 184, 0.8)';
-    }
+    const states = {
+        loading: { icon: '<div class="premium-spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>', color: 'rgba(148, 163, 184, 0.8)', isValid: false, borderColor: '' },
+        valid: { icon: '<i class="fas fa-check-circle" style="color: #10b981;"></i>', color: '#10b981', isValid: true, borderColor: '#10b981' },
+        invalid: { icon: '<i class="fas fa-times-circle" style="color: #ef4444;"></i>', color: '#ef4444', isValid: false, borderColor: '#ef4444' },
+        error: { icon: '<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>', color: '#f59e0b', isValid: false, borderColor: '#f59e0b' }
+    };
+
+    const config = states[state] || states.error;
+
+    resultIcon.innerHTML = config.icon;
+    messageContainer.textContent = message;
+    messageContainer.style.color = config.color;
     
-    // Enhanced validation logic
-    if (!input.checkValidity() || karavanId.length < 4 || !/^[a-zA-Z0-9_-]{4,20}$/.test(karavanId)) {
-        resultIcon.innerHTML = `<i class="fas fa-times-circle" style="color: #ef4444;"></i>`;
-        if (messageContainer) {
-            messageContainer.textContent = 'ID must be 4-20 characters (letters, numbers, _, -).';
-            messageContainer.style.color = '#ef4444';
-        }
-        input.classList.remove('is-valid');
-        input.style.borderColor = '#ef4444';
-        
-        // Error shake animation
+    input.classList.toggle('is-valid', config.isValid);
+    input.style.borderColor = config.borderColor;
+
+    // Trigger animations only for definitive state changes, not loading.
+    if (state === 'valid') {
+        resultIcon.style.animation = 'premium-success-pop 0.4s ease-out';
+        setTimeout(() => resultIcon.style.animation = '', 400);
+    } else if (state === 'invalid') {
         input.style.animation = 'premium-shake 0.5s ease-in-out';
         setTimeout(() => input.style.animation = '', 500);
+    }
+},
+
+/**
+ * [PINNACLE ID VERIFICATION ENGINE v2.0 - SEVERELY REFINED]
+ * A high-performance, race-condition-proof Karavan ID availability checker.
+ * Utilizes an AbortController to cancel stale requests and a state-driven UI
+ * helper for clean, maintainable, and DRY code.
+ */
+checkKaravanIdAvailability: async () => {
+    // 1. ABORT PREVIOUS REQUEST TO PREVENT RACE CONDITIONS
+    // If a check is already in progress, cancel it.
+    if (Logic._idCheckController) {
+        Logic._idCheckController.abort();
+    }
+    Logic._idCheckController = new AbortController();
+    const signal = Logic._idCheckController.signal;
+
+    const input = document.getElementById('signup-karavan-id');
+    const karavanId = input?.value.trim() || '';
+
+    // 2. IMMEDIATE CLIENT-SIDE VALIDATION
+    // Fail fast if the input format is clearly invalid.
+    const idRegex = /^[a-zA-Z0-9_-]{4,20}$/;
+    if (!idRegex.test(karavanId)) {
+        Logic._updateIdFieldState('invalid', 'ID must be 4-20 characters (letters, numbers, _, -).');
         return;
     }
     
+    // 3. SET LOADING STATE & INITIATE SECURE API CALL
+    Logic._updateIdFieldState('loading', 'Verifying availability...');
+    
     try {
-        const response = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId });
+        const response = await Utils.createApiRequest('karavanCheckId', 'POST', { karavanId }, signal);
+
+        // If the request was aborted by a newer one, the response will have an 'aborted' flag.
+        // In this case, we simply do nothing and let the newer request take over.
+        if (response?.aborted) {
+            return; 
+        }
         
+        // 4. PROCESS AUTHORITATIVE BACKEND RESPONSE
         if (response.data?.isAvailable) {
-            // SUCCESS STATE
-            resultIcon.innerHTML = `<i class="fas fa-check-circle" style="color: #10b981;"></i>`;
-            if (messageContainer) {
-                messageContainer.textContent = 'This ID is available and ready to claim!';
-                messageContainer.style.color = '#10b981';
-            }
-            input.classList.add('is-valid');
-            input.style.borderColor = '#10b981';
-            
-            // Success animation
-            resultIcon.style.animation = 'premium-success-pop 0.4s ease-out';
-            setTimeout(() => resultIcon.style.animation = '', 400);
-            
+            Logic._updateIdFieldState('valid', 'This ID is available and ready to claim!');
         } else {
-            // UNAVAILABLE STATE
-            resultIcon.innerHTML = `<i class="fas fa-times-circle" style="color: #ef4444;"></i>`;
-            if (messageContainer) {
-                messageContainer.textContent = 'This ID is already taken. Please choose another.';
-                messageContainer.style.color = '#ef4444';
-            }
-            input.classList.remove('is-valid');
-            input.style.borderColor = '#ef4444';
-            
-            // Error shake animation
-            input.style.animation = 'premium-shake 0.5s ease-in-out';
-            setTimeout(() => input.style.animation = '', 500);
+            Logic._updateIdFieldState('invalid', 'This ID is already taken. Please choose another.');
         }
+
     } catch (error) {
-        // ERROR STATE
-        resultIcon.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>`;
-        if (messageContainer) {
-            messageContainer.textContent = 'Could not verify ID availability. Please try again.';
-            messageContainer.style.color = '#f59e0b';
-        }
-        input.classList.remove('is-valid');
-        input.style.borderColor = '#f59e0b';
-        
+        // The AbortError is handled inside createApiRequest, so this only catches real network/server errors.
+        Logic._updateIdFieldState('error', 'Could not verify ID. Check connection and try again.');
         console.warn('ID availability check failed:', error);
     }
 },
