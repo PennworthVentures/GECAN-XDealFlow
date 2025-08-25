@@ -44,6 +44,96 @@
     <style>
 
         /* ========================================================================= */
+        /* === PINNACLE LIQUIDITY CONDUIT v1.0 (HoloStream Overhaul) === */
+        /* ========================================================================= */
+        .liquidity-conduit {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px; /* Increased height for a more substantial presence */
+            background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85));
+            border-top: 1px solid var(--border-premium);
+            z-index: 40;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .conduit-track-wrapper {
+            width: 100%;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+
+        .conduit-track {
+            display: flex;
+            gap: 2rem;
+            will-change: transform;
+            animation: conduit-scroll 90s linear infinite;
+        }
+
+        .conduit-track-wrapper:hover .conduit-track {
+            animation-play-state: paused;
+        }
+
+        @keyframes conduit-scroll {
+            from { transform: translateX(0%); }
+            to { transform: translateX(-50%); }
+        }
+
+        .data-crystal {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--background-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+        }
+
+        .data-crystal:hover {
+            transform: translateY(-10px) scale(1.1) rotateX(15deg);
+            background: var(--background-glass-premium);
+            border-color: var(--primary-azure);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6), 0 0 25px var(--glow-azure);
+        }
+
+        .crystal-pair {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-diamond);
+        }
+
+        .crystal-price-container {
+            font-family: 'JetBrains Mono', monospace;
+            text-align: right;
+        }
+        
+        .crystal-price {
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .crystal-change {
+            font-size: 0.75rem;
+            transition: color 0.3s ease;
+        }
+        
+        /* Interactive Modal for Deep Dive */
+        #rate-modal .dialog-content-wrapper { max-width: 42rem; }
+
+        /* ========================================================================= */
         /* === PINNACLE AUTHENTICATION & ONBOARDING GUI ENGINE v3.0 === */
         /* ========================================================================= */
 
@@ -503,14 +593,17 @@
         </div>
     </main>
 
-    <!-- HOLO STREAM MARKET TICKER -->
-    <div class="holo-stream">
-        <div id="holo-track" class="holo-track">
-            <!-- Market data will be populated here -->
+    <!-- PINNACLE LIQUIDITY CONDUIT (HoloStream Overhaul) -->
+    <div class="liquidity-conduit">
+        <div class="conduit-track-wrapper">
+            <div id="conduit-track" class="conduit-track">
+                <!-- Live market data crystals will be injected here by JavaScript -->
+            </div>
         </div>
     </div>
 
     <!-- MODAL DIALOGS -->
+    <dialog id="rate-modal"></dialog> <!-- Add this new dialog for the deep-dive -->
     <dialog id="karavan-auth-modal"></dialog>
     <dialog id="beneficiary-modal"></dialog>
     <dialog id="notification-modal"></dialog>
@@ -626,6 +719,18 @@
 
             // --- SECTION 3: CORE LOGIC ENGINE ---
             const Logic = {
+
+                /**
+                 * [NEW & PINNACLE-GRADE] Opens the interactive deep-dive modal for a currency pair.
+                 * @param {object} rateData - The full data object for the selected currency rate.
+                 */
+                showRateDetails: (rateData) => {
+                    const modal = document.getElementById('rate-modal');
+                    if (!modal) return;
+
+                    modal.innerHTML = UI.renderRateDetailModal(rateData);
+                    modal.showModal();
+                },
 
                 /**
                  * [NEW & CRITICAL] Securely saves the authenticated user's data to sessionStorage.
@@ -1189,6 +1294,60 @@ loadInitialData: async () => {
                     
                     document.getElementById('logo-link').href = './index.html';
                 },
+
+                /**
+                 * [NEW & PINNACLE-GRADE] Renders the Holographic Intelligence Briefing modal for a selected currency pair.
+                 * @param {object} rate - The full data object for the selected currency rate.
+                 */
+                renderRateDetailModal: (rate) => {
+                    const change = (Math.random() - 0.5) * 0.02;
+                    const isUp = change >= 0;
+                    const colorClass = isUp ? 'text-green-400' : 'text-red-400';
+                    const icon = isUp ? 'fa-caret-up' : 'fa-caret-down';
+
+                    return `
+                        <div class="dialog-content-wrapper">
+                            <div class="p-8 relative">
+                                <button onclick="document.getElementById('rate-modal').close()" class="absolute top-4 right-6 text-2xl text-text-muted hover:text-white transition-colors">&times;</button>
+                                
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-primary-azure to-primary-royal shadow-premium">
+                                        <i class="fas fa-chart-line text-3xl text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-3xl font-bold text-white font-['Orbitron',_sans-serif]">${rate.baseAsset} / ${rate.quoteAsset}</h2>
+                                        <p class="text-text-muted">Holographic Intelligence Briefing</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="glass p-6 rounded-2xl border-l-4 border-primary-azure">
+                                        <p class="text-sm text-text-muted mb-2">Live Institutional Rate</p>
+                                        <p class="text-4xl font-bold font-mono ${colorClass}">${parseFloat(rate.price).toFixed(5)}</p>
+                                        <p class="text-lg font-semibold ${colorClass} mt-1"><i class="fas ${icon} mr-1"></i>${(change * 100).toFixed(3)}% (24h)</p>
+                                    </div>
+                                    <div class="glass p-6 rounded-2xl">
+                                        <p class="text-sm text-text-muted mb-2">Asset Classification</p>
+                                        <p class="text-xl font-semibold text-white">${rate.type}</p>
+                                        <p class="text-sm text-text-muted mt-1">Source: ${rate.path || 'GECAN Matrix'}</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 glass p-6 rounded-2xl">
+                                    <h3 class="font-semibold text-text-platinum mb-4">Historical Performance (Placeholder)</h3>
+                                    <div class="h-48 bg-background-dark/50 rounded-lg flex items-center justify-center">
+                                        <p class="text-text-muted">Advanced Charting API Integration Pending</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <button onclick="document.getElementById('rate-modal').close()" class="btn-primary py-3 px-8 rounded-lg">Close Briefing</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                
                 renderView: (viewName) => {
                     const mainContent = document.getElementById('main-content');
                     const views = { 
@@ -1458,16 +1617,46 @@ renderRoleSelectView: () => `
                     }
                 },
                 
+                /**
+                 * [SEVERELY UPGRADED] Renders the Pinnacle Liquidity Conduit, transforming the static
+                 * HoloStream into an interactive, 3D array of data crystals.
+                 */
                 startHoloStream: () => {
-                    const track = document.getElementById('holo-track');
-                    if (!track || !AppState.marketData.rates.length) return;
-                    const items = AppState.marketData.rates.filter(r => r.status !== 'API ERR').map(rate => {
-                        const isUp = Math.random() > 0.5;
-                        const colorClass = isUp ? 'text-green-400' : 'text-red-400';
-                        const icon = isUp ? 'fa-arrow-up' : 'fa-arrow-down';
-                        return `<div class="holo-item"><span class="text-white font-bold">${rate.baseAsset}/${rate.quoteAsset}</span><span class="ml-2 ${colorClass}">${parseFloat(rate.price).toFixed(4)}</span><i class="fas ${icon} text-xs ml-1 ${colorClass}"></i></div>`;
-                    }).join('');
-                    const content = items.repeat(5); // Repeat for seamless looping
+                    const track = document.getElementById('conduit-track');
+                    if (!track || !AppState.marketData.rates || AppState.marketData.rates.length === 0) {
+                        if(track) track.innerHTML = `<p class="text-text-muted font-mono">Connecting to GECAN market data stream...</p>`;
+                        return;
+                    }
+
+                    const items = AppState.marketData.rates
+                        .filter(rate => rate.status === 'OK' || rate.status === 'MANUAL')
+                        .map(rate => {
+                            // Simulate a small daily change for visual effect
+                            const change = (Math.random() - 0.5) * 0.02;
+                            const isUp = change >= 0;
+                            const colorClass = isUp ? 'text-green-400' : 'text-red-400';
+                            const icon = isUp ? 'fa-caret-up' : 'fa-caret-down';
+                            
+                            // JSON-stringify the rate data to embed it directly in the element for the onclick handler
+                            const rateData = JSON.stringify(rate);
+
+                            return `
+                                <div class="data-crystal" onclick='Logic.showRateDetails(${rateData})' title="Click for deep-dive analysis">
+                                    <div class="crystal-pair">
+                                        <span>${rate.baseAsset}</span>
+                                        <i class="fas fa-exchange-alt text-sm text-text-muted mx-1"></i>
+                                        <span>${rate.quoteAsset}</span>
+                                    </div>
+                                    <div class="crystal-price-container">
+                                        <p class="crystal-price ${colorClass}">${parseFloat(rate.price).toFixed(4)}</p>
+                                        <p class="crystal-change ${colorClass}"><i class="fas ${icon} mr-1"></i>${(change * 100).toFixed(2)}%</p>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                    // Duplicate content for a seamless, infinite loop
+                    const content = items.repeat(5); 
                     track.innerHTML = content + content;
                 }
             };
