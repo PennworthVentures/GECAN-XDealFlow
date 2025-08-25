@@ -235,13 +235,67 @@
         @keyframes stream-in-3 { 0% { transform: translate(-80vw, 100vh) scale(0.25) rotate(45deg); opacity: 0; } 80% { opacity: 0.8; } 100% { transform: translate(0, 0) scale(0.9) rotate(0deg); opacity: 0; } }
         .value-stream-element { position: absolute; font-family: 'Font Awesome 6 Free'; font-weight: 900; will-change: transform, opacity; font-size: 2rem; text-shadow: 0 0 15px currentColor; }
         
-        .auth-modal-v2 { background: radial-gradient(ellipse at center, var(--background-light) 0%, var(--background-primary) 80%); border: 1px solid var(--border-premium); box-shadow: var(--shadow-quantum), inset 0 1px 0 rgba(255, 255, 255, 0.05); border-radius: 1.5rem; }
-        .vault-icon-v2 { background: linear-gradient(145deg, #2a2010, #110d06); border: 2px solid var(--brand-gecan-gold); box-shadow: 0 0 30px var(--glow-gold), inset 0 2px 5px rgba(0,0,0,0.5); animation: vault-icon-breathe 4s ease-in-out infinite; transform-style: preserve-3d; }
-        @keyframes vault-icon-breathe { 50% { transform: scale(1.05); box-shadow: 0 0 50px var(--glow-gold), inset 0 2px 5px rgba(0,0,0,0.5); } }
-        .vault-icon-v2 i { animation: vault-inner-spin 40s linear infinite; }
-        @keyframes vault-inner-spin { to { transform: rotateY(360deg); } }
-        .form-input-v2 { background: var(--background-dark); border-image: linear-gradient(to right, var(--border-secondary), var(--border-color)) 1; box-shadow: inset 0 3px 8px rgba(0,0,0,0.6); }
-        .form-input-v2:focus { border-image: var(--gradient-gold) 1; box-shadow: 0 0 0 3px rgba(180, 151, 90, 0.2), inset 0 3px 8px rgba(0,0,0,0.6); }
+        /* --- D2. THE KARAVAN THRESHOLD v3.0 (Login Modal - Severely Upgraded) --- */
+        .auth-modal-v2 {
+            width: 100%;
+            max-width: 520px; /* Increased size for a more commanding presence */
+            background: radial-gradient(ellipse at top, var(--background-light) 0%, var(--background-dark) 90%);
+            border: 1px solid var(--border-premium);
+            box-shadow: var(--shadow-quantum), 
+                        inset 0 2px 0px rgba(255, 255, 255, 0.05);
+            border-radius: 2rem; /* Softer, more premium curvature */
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .auth-modal-v2:hover {
+            transform: translateY(-10px) rotateX(8deg) !important; /* Force a more dramatic hover effect */
+        }
+        .vault-icon-v2 {
+            width: 110px; height: 110px; /* Significantly larger icon */
+            background: linear-gradient(145deg, #382c12, #1a1307);
+            border: 3px solid var(--brand-gecan-gold);
+            box-shadow: 0 0 40px var(--glow-gold), 
+                        inset 0 3px 6px rgba(0,0,0,0.6),
+                        0 0 0 5px rgba(0,0,0,0.3);
+            animation: vault-icon-breathe 4s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
+        @keyframes vault-icon-breathe {
+            50% { 
+                transform: scale(1.08); 
+                box-shadow: 0 0 60px var(--glow-gold), 
+                            inset 0 3px 6px rgba(0,0,0,0.6),
+                            0 0 0 5px rgba(0,0,0,0.3); 
+            }
+        }
+        .vault-icon-v2 .vault-icon-inner {
+            /* New inner layer for more depth */
+            width: 85%; height: 85%;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(circle, #2c210e, #1a1307);
+            transform: translateZ(10px);
+        }
+        .vault-icon-v2 i {
+            font-size: 3rem; /* Larger symbol */
+            text-shadow: 0 0 20px var(--brand-gecan-gold);
+            animation: vault-inner-spin 40s linear infinite;
+        }
+        @keyframes vault-inner-spin { 
+            to { transform: rotateY(360deg) translateZ(10px); } 
+        }
+
+        .form-input-v2 {
+            background: var(--background-dark);
+            border-image: linear-gradient(to right, var(--border-secondary), var(--border-color)) 1;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.6);
+        }
+        .form-input-v2:focus {
+            border-image: var(--gradient-gold) 1;
+            box-shadow: 0 0 0 3px rgba(180, 151, 90, 0.2), inset 0 3px 8px rgba(0,0,0,0.6);
+        }
 
         /* --- F. KARAVAN-SPECIFIC GUI ENGINE (UNIFIED) --- */
         
@@ -1332,11 +1386,11 @@ loadInitialData: async () => {
                 },
 
                 renderAuthView: () => `
-                    <div class="w-full space-y-16 py-12 md:py-24">
+                    <div class="w-full">
                         <!-- ========================================================================= -->
-                        <!-- === THE DIGITAL CARAVAN ROUTE (Onboarding Experience) === -->
+                        <!-- === THE DIGITAL CARAVAN ROUTE v2.0 (Onboarding Experience) === -->
                         <!-- ========================================================================= -->
-                        <section class="text-center">
+                        <section class="text-center py-12 md:py-20">
                             <h2 class="text-4xl lg:text-5xl font-bold text-white mb-4 font-['Orbitron',_sans-serif] animate-slide-in" style="opacity:0;">
                                 The Guardian of Global Value
                             </h2>
@@ -1344,51 +1398,24 @@ loadInitialData: async () => {
                                 Karavan is the GECAN™ institutional-grade settlement layer, engineered for the secure, compliant, and instantaneous transfer of assets across the digital silk road. Witness the protocol.
                             </p>
                             <div class="marquee-container mt-12">
+                                <!-- Marquee track content remains the same, no changes needed here -->
                                 <div class="marquee-track">
                                     ${[1, 2].map(() => `
                                         <div class="process-card">
-                                            <div class="process-card-content">
-                                                <i class="fas fa-fingerprint process-icon text-primary-azure"></i>
-                                                <h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">1. Authenticate</h3>
-                                                <p class="text-text-silver mt-2">Securely access the network with your unique Karavan ID.</p>
-                                            </div>
-                                            <div class="holographic-panel">
-                                                <h4 class="font-bold text-lg text-primary-azure mb-2">Military-Grade Security</h4>
-                                                <p class="text-sm text-text-platinum">Your session is protected by cryptographic protocols, ensuring every transaction begins from a verified and secure origin point.</p>
-                                            </div>
+                                            <div class="process-card-content"><i class="fas fa-fingerprint process-icon text-primary-azure"></i><h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">1. Authenticate</h3><p class="text-text-silver mt-2">Securely access the network with your unique Karavan ID.</p></div>
+                                            <div class="holographic-panel"><h4 class="font-bold text-lg text-primary-azure mb-2">Military-Grade Security</h4><p class="text-sm text-text-platinum">Your session is protected by cryptographic protocols, ensuring every transaction begins from a verified and secure origin point.</p></div>
                                         </div>
                                         <div class="process-card">
-                                            <div class="process-card-content">
-                                                <i class="fas fa-map-marked-alt process-icon text-primary-sapphire"></i>
-                                                <h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">2. Designate</h3>
-                                                <p class="text-text-silver mt-2">Select a verified beneficiary from your trusted ledger.</p>
-                                            </div>
-                                            <div class="holographic-panel">
-                                                <h4 class="font-bold text-lg text-primary-sapphire mb-2">Immutable Ledger</h4>
-                                                <p class="text-sm text-text-platinum">Each beneficiary is registered against your identity, creating a compliant and transparent audit trail for all value transfers.</p>
-                                            </div>
+                                            <div class="process-card-content"><i class="fas fa-map-marked-alt process-icon text-primary-sapphire"></i><h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">2. Designate</h3><p class="text-text-silver mt-2">Select a verified beneficiary from your trusted ledger.</p></div>
+                                            <div class="holographic-panel"><h4 class="font-bold text-lg text-primary-sapphire mb-2">Immutable Ledger</h4><p class="text-sm text-text-platinum">Each beneficiary is registered against your identity, creating a compliant and transparent audit trail for all value transfers.</p></div>
                                         </div>
                                         <div class="process-card">
-                                            <div class="process-card-content">
-                                                <i class="fas fa-calculator process-icon text-brand-gecan-gold"></i>
-                                                <h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">3. Structure</h3>
-                                                <p class="text-text-silver mt-2">Lock in institutional rates with our real-time quote engine.</p>
-                                            </div>
-                                            <div class="holographic-panel">
-                                                <h4 class="font-bold text-lg text-brand-gecan-gold mb-2">Pinnacle Rate Engine</h4>
-                                                <p class="text-sm text-text-platinum">Leverage GECAN's deep liquidity pools to receive a guaranteed execution rate, valid for a secure time-locked window.</p>
-                                            </div>
+                                            <div class="process-card-content"><i class="fas fa-calculator process-icon text-brand-gecan-gold"></i><h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">3. Structure</h3><p class="text-text-silver mt-2">Lock in institutional rates with our real-time quote engine.</p></div>
+                                            <div class="holographic-panel"><h4 class="font-bold text-lg text-brand-gecan-gold mb-2">Pinnacle Rate Engine</h4><p class="text-sm text-text-platinum">Leverage GECAN's deep liquidity pools to receive a guaranteed execution rate, valid for a secure time-locked window.</p></div>
                                         </div>
                                         <div class="process-card">
-                                            <div class="process-card-content">
-                                                <i class="fas fa-rocket process-icon text-primary-amethyst"></i>
-                                                <h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">4. Dispatch</h3>
-                                                <p class="text-text-silver mt-2">Initiate instantaneous, compliant, cross-border settlement.</p>
-                                            </div>
-                                            <div class="holographic-panel">
-                                                <h4 class="font-bold text-lg text-primary-amethyst mb-2">Atomic Settlement</h4>
-                                                <p class="text-sm text-text-platinum">Your Karavan is dispatched. Value is moved, cleared, and settled in sub-five minutes, with a verifiable proof-of-settlement generated.</p>
-                                            </div>
+                                            <div class="process-card-content"><i class="fas fa-rocket process-icon text-primary-amethyst"></i><h3 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">4. Dispatch</h3><p class="text-text-silver mt-2">Initiate instantaneous, compliant, cross-border settlement.</p></div>
+                                            <div class="holographic-panel"><h4 class="font-bold text-lg text-primary-amethyst mb-2">Atomic Settlement</h4><p class="text-sm text-text-platinum">Your Karavan is dispatched. Value is moved, cleared, and settled in sub-five minutes, with a verifiable proof-of-settlement generated.</p></div>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -1396,34 +1423,37 @@ loadInitialData: async () => {
                         </section>
 
                         <!-- ========================================================================= -->
-                        <!-- === THE KARAVAN THRESHOLD v3.0 (Login Modal) === -->
+                        <!-- === THE KARAVAN THRESHOLD v3.0 (Login Modal - Re-architected) === -->
                         <!-- ========================================================================= -->
-                        <div class="min-h-[80vh] flex items-center justify-center p-4 relative" style="perspective: 1500px;">
+                        <div class="min-h-[90vh] flex items-center justify-center p-4 relative" style="perspective: 1500px;">
                             <div id="value-stream-container" class="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
                                 <div class="value-stream-element text-yellow-400" style="animation: stream-in-1 4s linear infinite 0.5s;">&#xf51e;</div>
                                 <div class="value-stream-element text-green-400" style="animation: stream-in-2 3.5s linear infinite 1s;">&#xf155;</div>
                                 <div class="value-stream-element text-sky-400" style="animation: stream-in-3 4.5s linear infinite 1.5s;">&#xf0AE;</div>
                             </div>
-                            <div class="auth-modal auth-modal-v2 glass-premium relative transform-style-preserve-3d transition-transform duration-500 hover:rotate-x-5 hover:-rotate-y-3" style="transform: rotateX(10deg) rotateY(-5deg);">
-                                <div class="text-center mb-8">
-                                    <div class="vault-icon-v2 w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-6">
-                                        <i class="fas fa-vault text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500" style="text-shadow: 0 0 15px var(--brand-gecan-gold);"></i>
+                            <!-- DEFINITIVE CENTERING FIX: The modal is now a direct child of the flex container -->
+                            <div class="auth-modal auth-modal-v2 glass-premium" style="transform: rotateX(10deg) rotateY(-5deg);">
+                                <div class="text-center p-4 md:p-8">
+                                    <div class="vault-icon-v2 w-28 h-28 mx-auto rounded-full flex items-center justify-center mb-6">
+                                        <div class="vault-icon-inner">
+                                            <i class="fas fa-key text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-amber-500"></i>
+                                        </div>
                                     </div>
-                                    <h2 class="text-3xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">The Karavan Threshold</h2>
+                                    <h2 class="text-4xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">The Karavan Threshold</h2>
                                     <p class="text-text-muted">Present your credentials to unlock the digital silk road.</p>
                                 </div>
-                                <form id="auth-form" class="space-y-6">
+                                <form id="auth-form" class="space-y-6 px-4 md:px-8 pb-8">
                                     <div class="relative group">
                                         <i class="fas fa-user-shield absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
                                         <input type="text" id="karavan-id" class="form-input form-input-v2 !pl-12" placeholder="Enter your Karavan ID" required>
                                     </div>
                                     <div class="relative group">
-                                        <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
+                                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors duration-300 group-focus-within:text-[var(--brand-gecan-gold)]"></i>
                                         <input type="password" id="password" class="form-input form-input-v2 !pl-12" placeholder="Enter your password" required>
                                     </div>
-                                    <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key mr-2"></i>Unlock & Proceed</button>
+                                    <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg"><i class="fas fa-key-skeleton mr-2"></i>Unlock & Proceed</button>
                                 </form>
-                                <div class="text-center mt-8">
+                                <div class="text-center pb-8">
                                     <p class="text-sm text-text-muted">New to the Alliance? <button id="show-signup" class="text-yellow-400 hover:text-yellow-300 font-semibold transition-all duration-300 hover:underline hover:brightness-110">Register your Karavan</button></p>
                                 </div>
                             </div>
