@@ -833,8 +833,15 @@
                         
                         return result.data || result;
                     } catch (error) {
-                        console.error(`[API Error] ${action}:`, error);
-                        throw error;
+        // PINNACLE UPGRADE: Gracefully handle aborted requests
+        if (error.name === 'AbortError') {
+            console.log(`[API Aborted] ${action}`);
+            // Do not re-throw the error, as this is an intentional cancellation.
+            // Return a special value or null so the caller knows it was aborted.
+            return { aborted: true }; 
+        }
+        console.error(`[API Error] ${action}:`, error);
+        throw error;
                     }
                 },
 
