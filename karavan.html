@@ -1687,54 +1687,7 @@ bindProfileModalListeners: () => {
     document.getElementById('profile-update-form')?.addEventListener('submit', Logic.handleProfileUpdate);
 },
 
-handleProfileUpdate: async (e) => {
-    e.preventDefault();
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (!submitBtn) return;
 
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<div class="premium-spinner"></div> Saving...`;
-    
-    // Build the payload defensively, only including values from elements that exist.
-    const profileData = {};
-    const fieldIds = [
-        'profile-contact', 'profile-country', 'profile-address1', 'profile-address2',
-        'profile-city', 'profile-state', 'profile-postal',
-        'profile-passport', 'profile-passport-expiry'
-    ];
-    
-    fieldIds.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            const key = id.replace('profile-', '').replace(/([A-Z])/g, '_$1').toLowerCase();
-            profileData[key] = element.value;
-        }
-    });
-
-    try {
-        await Utils.createApiRequest('karavanUpdateProfile', 'POST', {
-            karavanId: AppState.currentUser.karavanId,
-            profileData: profileData
-        });
-
-        // Optimistically update the local user state for a faster UI response.
-        Object.assign(AppState.currentUser, profileData);
-        Logic.persistSession(AppState.currentUser);
-
-        Utils.showNotification('Profile updated successfully!', 'success');
-        document.getElementById('profile-modal')?.close();
-
-    // [DEFINITIVE SYNTAX FIX] The extraneous underscore has been removed from this line.
-    } catch (error) {
-        Utils.showNotification(error.message, 'error');
-        // Log the detailed error for debugging.
-        console.error("Profile update failed:", error);
-    } finally {
-        // This block now correctly executes to re-enable the button regardless of success or failure.
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = `<i class="fas fa-save mr-2"></i>Save Changes`;
-    }
-},
 
 /**
  * [PINNACLE KYC HANDLER] Binds all listeners for the multi-step KYC modal.
