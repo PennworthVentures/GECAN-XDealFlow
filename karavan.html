@@ -1189,7 +1189,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbyXsezsi_2jOz2yUEJN743JmzoCrSuVVkvv43PiB0XyLY8HigJrDlH0Gmm8ekLmpq5Z/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbz2yOWHMEAnQJkk--s8noX57uXmPQ65tZjYTTXsxaUVs4T9PlioFSkROF7UaYn9SgQ-/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -1283,6 +1283,13 @@ createApiRequest: async (action, method = 'POST', params = {}, signal = null) =>
         throw error;
     }
 },
+// Add this new function to the `Utils` object inside your frontend <script> tag.
+
+getUserDisplayName: (user) => {
+    if (!user) return 'Guest';
+    // This provides a fallback chain, ensuring a name is always found.
+    return user.partnerName || user.fullName || user.karavanId || 'Valued Partner';
+},                
                 showNotification: (message, type = 'info') => {
                     const modal = document.getElementById('notification-modal');
                     if (!modal) return;
@@ -1908,7 +1915,7 @@ init: async () => {
             // [PINNACLE FIX] A valid session was found. User is already authenticated.
             
             // 1. Provide immediate user feedback.
-            Utils.showNotification(`Welcome back, ${AppState.currentUser.partnerName}! Session restored.`, 'success');
+            Utils.showNotification(`Welcome back, ${Utils.getUserDisplayName(AppState.currentUser)}! Session restored.`, 'success');
             
             // 2. Hydrate the entire application state with the master data endpoint.
             await Logic.loadInitialData(); // The loader is handled within this function.
@@ -2007,7 +2014,7 @@ handleLogin: async (e) => {
             </div>
         `;
 
-        Utils.showNotification(`Authentication successful. Welcome, ${AppState.currentUser.partnerName}!`, 'success');
+        Utils.showNotification(`Authentication successful. Welcome, ${Utils.getUserDisplayName(AppState.currentUser)}!`, 'success');
         await Logic.loadInitialData();
         
         setTimeout(() => {
@@ -5387,8 +5394,10 @@ renderInitialAnalysisState: () => {
                 }
             };
 
-            // Initialize
-            Logic.init();
+    window.Logic = Logic;
+
+    // Initialize the application now that it is globally accessible.
+    Logic.init();
 
         })();
     </script>
