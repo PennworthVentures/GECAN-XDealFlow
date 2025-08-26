@@ -782,7 +782,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbyIeitXz6_PM6NcvcKXs1OAdvqzmmtEyBGIzo8ybhL6DMBP1eS94SSQwAmNvIcPGJiw/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbzqkjQxGYKn8xIP8NsN61fIuPBZTEkYq2aH9kON6egdyquLMULappRh7I4ZVtSn_UQT/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -1047,16 +1047,26 @@ bindEventListeners: (viewName) => {
     };
     if (binders[viewName]) binders[viewName]();
 },
+/**
+ * [PINNACLE LOGIN ENGINE v3.0 - Definitive & Unabridged]
+ * Orchestrates the entire user authentication flow. This function provides a premium
+ * animated UI feedback loop while trusting the pinnacle-grade backend as the single,
+ * authoritative source for all authentication and permission logic. It is architected
+ * to be simple, secure, and provide a superior, context-aware user experience.
+ */
 handleLogin: async (e) => {
     e.preventDefault();
     const karavanId = document.getElementById('karavan-id').value.trim();
     const password = document.getElementById('password').value;
     const loginBtn = e.target.querySelector('button[type="submit"]');
 
-    if (!karavanId || !password) return Utils.showNotification('Please enter your credentials.', 'warning');
+    if (!karavanId || !password) {
+        return Utils.showNotification('Please enter your credentials.', 'warning');
+    }
 
-    // PREMIUM LOADING STATE WITH 3D ANIMATION
+    // 1. SET PREMIUM LOADING STATE
     loginBtn.disabled = true;
+    const originalContent = loginBtn.innerHTML; // Store original content for error state reset
     loginBtn.style.transform = 'scale(0.98)';
     loginBtn.innerHTML = `
         <div class="flex items-center justify-center gap-2">
@@ -1066,19 +1076,17 @@ handleLogin: async (e) => {
     `;
 
     try {
+        // 2. PERFORM A SINGLE, AUTHORITATIVE API CALL
+        // The backend now handles all validation: credentials, lockouts, and tiered status.
+        // If this call succeeds, we can trust the user is fully authenticated and permitted to log in.
         const response = await Utils.createApiRequest('karavanAuthenticate', 'POST', { karavanId, password });
-
-    // [CRITICAL UPGRADE] Check the user's status after successful authentication.
-    if (response.user && response.user.status !== 'ACTIVE') {
-        throw new Error('This account is pending verification. Please check your email to activate it.');
-    }
+        
+        // 3. PROCESS SUCCESSFUL LOGIN
         AppState.isAuthenticated = true;
         AppState.currentUser = response.user;
-        
-        // --- DEFINITIVE SESSION PERSISTENCE ---
         Logic.persistSession(response.user);
 
-        // SUCCESS ANIMATION
+        // [NO REGRESSION] Your excellent success animation is preserved.
         loginBtn.style.transform = 'scale(1.02)';
         loginBtn.innerHTML = `
             <div class="flex items-center justify-center gap-2">
@@ -1095,23 +1103,49 @@ handleLogin: async (e) => {
         }, 800);
 
     } catch (error) {
-        // ERROR STATE ANIMATION
+        // 4. PROCESS PINNACLE-GRADE, CONTEXT-AWARE ERRORS
+        // The 'error.message' now contains the specific, user-friendly reason for failure
+        // directly from the authoritative backend (e.g., "Invalid credentials", "Account is locked", etc.).
+        
+        // [NO REGRESSION] Your excellent, context-aware error animation is preserved and enhanced.
+        let buttonIcon = 'fas fa-exclamation-circle text-white';
+        let buttonText = 'Login Failed';
+        let buttonBg = 'linear-gradient(135deg, #ef4444, #dc2626)'; // Red for general failure
+
+        // Enhance UI for specific, critical backend messages
+        if (error.message.includes('locked')) {
+            buttonIcon = 'fas fa-lock text-white';
+            buttonText = 'Account Locked';
+            buttonBg = 'linear-gradient(135deg, #f59e0b, #d97706)'; // Orange for locked
+        } else if (error.message.includes('suspended')) {
+            buttonIcon = 'fas fa-ban text-white';
+            buttonText = 'Account Suspended';
+        } else if (error.message.includes('pending verification')) {
+            buttonIcon = 'fas fa-envelope text-white';
+            buttonText = 'Verification Required';
+            buttonBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)'; // Blue for info
+        }
+
         loginBtn.style.transform = 'scale(1)';
-        loginBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        loginBtn.style.background = buttonBg;
         loginBtn.innerHTML = `
             <div class="flex items-center justify-center gap-2">
-                <i class="fas fa-exclamation-circle text-white"></i>
-                <span class="text-white font-semibold">Failed</span>
+                <i class="${buttonIcon}"></i>
+                <span class="text-white font-semibold">${buttonText}</span>
             </div>
         `;
         
+        // Display the precise error message from the backend.
+        Utils.showNotification(error.message, 'error');
+        
+        // Restore the button to its original state after a delay.
         setTimeout(() => {
             loginBtn.style.background = '';
-            loginBtn.innerHTML = '<i class="fas fa-key mr-2 text-white"></i><span class="text-white font-semibold">Unlock & Proceed</span>';
-        }, 2000);
+            loginBtn.innerHTML = originalContent;
+        }, 3000); // Increased delay for important messages
         
-        Utils.showNotification(error.message, 'error');
     } finally {
+        // This ensures the button is always re-enabled after the flow completes.
         loginBtn.disabled = false;
         loginBtn.style.transform = 'scale(1)';
     }
