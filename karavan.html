@@ -42,7 +42,13 @@
     </script>
 
     <style>
-
+.beneficiary-step {
+    display: none;
+    animation: pinnacle-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.beneficiary-step.active {
+    display: block;
+}
 /* --- E. PINNACLE COMPONENTS (SUPREME UPGRADE v2.0) --- */
 .btn-secondary {
     background: var(--background-secondary);
@@ -1191,7 +1197,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbyofdldyo9JXx2PscW6nq7MirFgQlfGPKWstaMKT13GSiCuXfqy_Fd91YkooSRL4xsQ/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbwOSTQz_05avJ8D9ILBqNm85OfJRcMtnNnep1psnohaiZf2G02UJ2mqoBYmVI5O9n1c/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -1409,8 +1415,6 @@ handleProfileUpdate: async (e) => {
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Saving...`;
     
-    // Build the payload defensively, only including values from elements that exist.
-    // This prevents any potential "Cannot read properties of null" errors.
     const profileData = {};
     const fieldIds = [
         'profile-contact', 'profile-country', 'profile-address1', 'profile-address2',
@@ -1421,38 +1425,45 @@ handleProfileUpdate: async (e) => {
     fieldIds.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
-            // Convert camelCase id to a key that can be easily mapped on the backend if needed.
-            const key = id.replace('profile-', ''); // e.g., 'contact', 'passportExpiry'
+            const key = id.replace('profile-', '');
             profileData[key] = element.value;
         }
     });
 
     try {
+        // Step 1: Send the update request to the backend.
         await Utils.createApiRequest('karavanUpdateProfile', 'POST', {
             karavanId: AppState.currentUser.karavanId,
             profileData: profileData
         });
 
-        // Optimistically update the local user state for a faster UI response.
-        Object.assign(AppState.currentUser, profileData);
+        // --- [PINNACLE STATE SYNCHRONIZATION UPGRADE] ---
+        // Step 2: After a successful save, immediately re-fetch the authoritative user object.
+        const updatedUserResponse = await Utils.createApiRequest('karavanGetUserProfile', 'POST', {
+            karavanId: AppState.currentUser.karavanId
+        });
+
+        // Step 3: Update the local state and session with the definitive data from the database.
+        AppState.currentUser = updatedUserResponse.user;
         Logic.persistSession(AppState.currentUser);
 
         Utils.showNotification('Profile updated successfully!', 'success');
         document.getElementById('profile-modal')?.close();
+        
+        // Optional but recommended: A soft refresh of the dashboard shell to update the user hub display.
+        UI.renderView('dashboard_shell');
 
-    // [DEFINITIVE SYNTAX FIX] The extraneous underscore has been permanently removed.
-    // The catch block is now grammatically correct.
+
     } catch (error) {
         Utils.showNotification(error.message, 'error');
-        // Log the detailed error for debugging purposes.
         console.error("Profile update failed:", error);
     } finally {
-        // This block now correctly and reliably executes to re-enable the button
-        // regardless of the success or failure of the 'try' block.
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<i class="fas fa-save mr-2"></i>Save Changes`;
     }
-},                
+},
+
+                
 /**
  * [PINNACLE STATS ENGINE v1.0] A definitive helper function that processes live
  * application state data to generate dynamic statistics for the Mission Control dashboard.
@@ -1955,7 +1966,6 @@ handleAddBeneficiarySubmit: async (e) => {
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Adding...`;
 
-    // [PINNACLE UPGRADE] Gathers data from the new, dynamic, crypto-aware form structure.
     const beneficiaryData = {
         name: document.getElementById('beneficiary-name')?.value,
         country: document.getElementById('beneficiary-country')?.value,
@@ -1978,14 +1988,13 @@ handleAddBeneficiarySubmit: async (e) => {
         Utils.showNotification('Beneficiary added successfully!', 'success');
         document.getElementById('beneficiary-modal')?.close();
         
-        // This performs a targeted, seamless update of the dropdown menu.
         UI.refreshBeneficiaryDropdown();
 
     } catch (error) {
         Utils.showNotification(error.message, 'error');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Add Beneficiary';
+        submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Finalize & Add Beneficiary';
     }
 },
 
@@ -5467,7 +5476,7 @@ renderInitialAnalysisState: () => {
                     <div class="max-w-6xl mx-auto"><div class="text-center mb-12"><h2 class="text-3xl font-bold text-white mb-2">Liquidity Partner Dashboard</h2><p class="text-lg text-text-silver">Manage your liquidity pools and monitor network performance</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Available Liquidity</h3><i class="fas fa-wallet text-primary-azure text-xl"></i></div><div class="text-2xl font-bold text-success-color mb-2">$2.5M USD</div><div class="text-sm text-text-muted">Across all currencies</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">24H Volume</h3><i class="fas fa-chart-line text-brand-gecan-gold text-xl"></i></div><div class="text-2xl font-bold text-primary-azure mb-2">$487K</div><div class="text-sm text-success-color">+12.5% vs yesterday</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Fees Earned</h3><i class="fas fa-coins text-warning-color text-xl"></i></div><div class="text-2xl font-bold text-warning-color mb-2">$1,247</div><div class="text-sm text-text-muted">This month</div></div></div><div class="glass-premium p-6 rounded-xl"><h3 class="text-xl font-bold text-white mb-4">Recent Settlement Requests</h3><div class="space-y-3">${[1,2,3,4,5].map(i => `<div class="flex items-center justify-between p-4 bg-background-dark rounded-lg"><div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-success-color"></div><div><div class="font-medium text-white">SGD ${(Math.random() * 10000).toFixed(0)} → PHP</div><div class="text-sm text-text-muted">${i * 5} minutes ago</div></div></div><div class="text-success-color font-medium">Completed</div></div>`).join('')}</div></div></div>`,
                 
 renderAddBeneficiaryModal: () => `
-    <div class="dialog-content-wrapper" style="max-width: 52rem;">
+    <div class="dialog-content-wrapper" style="max-width: 56rem;">
         <div class="auth-modal auth-modal-v2 premium-glass-container relative overflow-hidden">
             <div class="premium-bg-overlay"></div>
             <div class="premium-grid-pattern"></div>
@@ -5488,18 +5497,30 @@ renderAddBeneficiaryModal: () => `
                     <p class="premium-subtitle">Securely add a trusted recipient to your ledger.</p>
                 </div>
 
-                <!-- PREMIUM FORM -->
+                <!-- GUIDED WORKFLOW FORM -->
                 <form id="beneficiary-add-form">
-                    <div class="space-y-6">
-                        <!-- CORE DETAILS -->
-                        <div class="premium-field-row">
-                            <div class="premium-field-group flex-1">
-                                <label for="beneficiary-name" class="premium-field-label"><i class="fas fa-user mr-2"></i>Beneficiary Full Name</label>
-                                <div class="premium-input-container">
-                                    <input type="text" id="beneficiary-name" class="premium-form-input" placeholder="e.g., Maria Dela Cruz" required>
-                                </div>
+                    
+                    <!-- STEP 1: IDENTITY -->
+                    <div id="beneficiary-step-1" class="beneficiary-step active">
+                        <h4 class="premium-step-title mb-6 text-center">Step 1: Beneficiary Identity</h4>
+                        <div class="premium-field-group">
+                            <label for="beneficiary-name" class="premium-field-label"><i class="fas fa-user mr-2"></i>Beneficiary Full Name</label>
+                            <div class="premium-input-container">
+                                <input type="text" id="beneficiary-name" class="premium-form-input" placeholder="e.g., Maria Dela Cruz" required>
                             </div>
-                            <div class="premium-field-group flex-1">
+                        </div>
+                        <div class="premium-nav-section">
+                            <button type="button" onclick="Logic.changeBeneficiaryStep(2)" class="premium-btn-primary premium-btn-forward">
+                                <span>Next: Location & Payout</span><i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: LOCATION & PAYOUT METHOD -->
+                    <div id="beneficiary-step-2" class="beneficiary-step">
+                        <h4 class="premium-step-title mb-6 text-center">Step 2: Location & Payout Method</h4>
+                        <div class="premium-field-row">
+                             <div class="premium-field-group flex-1">
                                 <label for="beneficiary-country" class="premium-field-label"><i class="fas fa-globe-asia mr-2"></i>Country</label>
                                 <div class="premium-select-container">
                                     <select id="beneficiary-country" class="premium-form-select" required>
@@ -5513,34 +5534,34 @@ renderAddBeneficiaryModal: () => `
                                     <div class="premium-select-arrow"><i class="fas fa-chevron-down"></i></div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- PAYOUT METHOD & CONDITIONAL DETAILS -->
-                        <div class="premium-field-group">
-                            <label for="payout-method" class="premium-field-label"><i class="fas fa-money-check-alt mr-2"></i>Payout Method</label>
-                            <div class="premium-select-container">
-                                <!-- [PINNACLE UPGRADE] New USDT options added. -->
-                                <select id="payout-method" class="premium-form-select" onchange="UI.toggleBeneficiaryDetails(this.value)" required>
-                                    <option value="" disabled selected>Select method...</option>
-                                    <option value="bank">Bank Transfer</option>
-                                    <option value="mobile">Mobile Money / e-Wallet</option>
-                                    <option value="crypto_trc20">USDT (TRC-20 Tron)</option>
-                                    <option value="crypto_erc20">USDT (ERC-20 Ethereum)</option>
-                                    <option value="cash">Cash Pickup</option>
-                                </select>
-                                <div class="premium-select-arrow"><i class="fas fa-chevron-down"></i></div>
+                            <div class="premium-field-group flex-1">
+                                <label for="payout-method" class="premium-field-label"><i class="fas fa-money-check-alt mr-2"></i>Payout Method</label>
+                                <div class="premium-select-container">
+                                    <select id="payout-method" class="premium-form-select" required>
+                                        <option value="" disabled selected>Select method...</option>
+                                        <option value="bank">Bank Transfer</option>
+                                        <option value="mobile">Mobile Money / e-Wallet</option>
+                                        <option value="crypto_trc20">USDT (TRC-20 Tron)</option>
+                                        <option value="crypto_erc20">USDT (ERC-20 Ethereum)</option>
+                                        <option value="cash">Cash Pickup</option>
+                                    </select>
+                                    <div class="premium-select-arrow"><i class="fas fa-chevron-down"></i></div>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- DYNAMIC DETAILS CONTAINER -->
-                        <div id="beneficiary-details-container" class="premium-field-group" style="display: none; animation: pinnacle-fade-in 0.5s;">
-                            <!-- This will be populated by UI.toggleBeneficiaryDetails -->
+                        <div class="premium-nav-section premium-nav-between">
+                            <button type="button" onclick="Logic.changeBeneficiaryStep(1)" class="premium-btn-secondary premium-btn-back"><i class="fas fa-arrow-left mr-2"></i><span>Back</span></button>
+                            <button type="button" onclick="Logic.changeBeneficiaryStep(3)" class="premium-btn-primary premium-btn-forward"><span>Next: Payout Details</span><i class="fas fa-arrow-right ml-2"></i></button>
                         </div>
-
-                        <!-- OPTIONAL CONTACT DETAILS -->
-                         <div class="premium-field-row">
+                    </div>
+                    
+                    <!-- STEP 3: PAYOUT DETAILS & OPTIONAL INFO -->
+                    <div id="beneficiary-step-3" class="beneficiary-step">
+                        <h4 class="premium-step-title mb-6 text-center">Step 3: Payout & Contact Details</h4>
+                        <div id="beneficiary-details-container" class="premium-field-group"></div>
+                        <div class="premium-field-row">
                             <div class="premium-field-group flex-1">
-                                <label for="beneficiary-email" class="premium-field-label"><i class="fas fa-envelope mr-2"></i>Beneficiary Email (Optional)</label>
+                                <label for="beneficiary-email" class="premium-field-label"><i class="fas fa-envelope mr-2"></i>Email (Optional)</label>
                                 <div class="premium-input-container">
                                     <input type="email" id="beneficiary-email" class="premium-form-input" placeholder="recipient@email.com">
                                 </div>
@@ -5553,13 +5574,11 @@ renderAddBeneficiaryModal: () => `
                                 </div>
                             </div>
                         </div>
-
-                        <!-- ACTION BUTTONS -->
-                        <div class="premium-nav-section pt-6 mt-6">
-                             <button type="button" onclick="document.getElementById('beneficiary-modal').close()" class="premium-btn-secondary">Cancel</button>
-                             <button type="submit" class="premium-btn-primary">
-                                <i class="fas fa-user-plus mr-2"></i>Add Beneficiary
-                             </button>
+                        <div class="premium-nav-section premium-nav-between">
+                            <button type="button" onclick="Logic.changeBeneficiaryStep(2)" class="premium-btn-secondary premium-btn-back"><i class="fas fa-arrow-left mr-2"></i><span>Back</span></button>
+                            <button type="submit" class="premium-btn-gold">
+                                <i class="fas fa-user-plus mr-2"></i>Finalize & Add Beneficiary
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -5602,6 +5621,30 @@ toggleBeneficiaryDetails: (method) => {
 
     container.innerHTML = html;
     container.style.display = (method === 'bank' || method === 'mobile' || method.startsWith('crypto_')) ? 'block' : 'none';
+},
+
+changeBeneficiaryStep: (targetStep) => {
+    // Military-grade validation gates
+    if (targetStep > 1 && !document.getElementById('beneficiary-name')?.value.trim()) {
+        return Utils.showNotification("Beneficiary Full Name is required to proceed.", 'warning');
+    }
+    if (targetStep > 2) {
+        if (!document.getElementById('beneficiary-country')?.value) {
+            return Utils.showNotification("Country is required to proceed.", 'warning');
+        }
+        if (!document.getElementById('payout-method')?.value) {
+            return Utils.showNotification("Payout Method is required to proceed.", 'warning');
+        }
+    }
+    
+    // On step 3, dynamically render the required details field
+    if (targetStep === 3) {
+        const payoutMethod = document.getElementById('payout-method').value;
+        UI.toggleBeneficiaryDetails(payoutMethod);
+    }
+    
+    document.querySelectorAll('.beneficiary-step').forEach(step => step.classList.remove('active'));
+    document.getElementById(`beneficiary-step-${targetStep}`)?.classList.add('active');
 },
                 
                 toggleBankDetails: (e) => {
