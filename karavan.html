@@ -43,6 +43,212 @@
 
     <style>
 
+/* --- E. PINNACLE COMPONENTS (SUPREME UPGRADE v2.0) --- */
+.btn-secondary {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-premium);
+    color: var(--text-silver);
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    transform-style: preserve-3d;
+    position: relative;
+    overflow: hidden;
+}
+.btn-secondary::before { /* Holographic Sheen Layer */
+    content: '';
+    position: absolute;
+    top: 0; left: -80%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: skewX(-25deg);
+    transition: left 0.6s ease;
+}
+.btn-secondary:hover:not(:disabled) {
+    background: var(--background-light);
+    border-color: var(--primary-azure);
+    color: var(--text-diamond);
+    transform: translateY(-5px) scale(1.05) perspective(1000px) rotateX(5deg);
+    box-shadow: 0 15px 30px -10px rgba(0,0,0,0.6), 0 0 20px var(--glow-azure);
+}
+.btn-secondary:hover:not(:disabled)::before {
+    left: 130%;
+}
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(80%);
+}
+
+.premium-spinner {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: conic-gradient(from 180deg at 50% 50%, transparent 0%, var(--primary-azure) 100%);
+    -webkit-mask-image: radial-gradient(farthest-side, transparent calc(100% - 3px), #fff 0);
+    mask-image: radial-gradient(farthest-side, transparent calc(100% - 3px), #fff 0);
+    animation: premium-spin 0.8s linear infinite;
+    box-shadow: 0 0 10px var(--glow-azure);
+}
+@keyframes premium-spin {
+    to { transform: rotate(360deg); }
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    display: grid;
+    place-items: center;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    cursor: pointer;
+    z-index: 10;
+    transform-style: preserve-3d;
+}
+.modal-close-btn i {
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.modal-close-btn:hover {
+    background: var(--error-color);
+    color: white;
+    transform: rotate(180deg) scale(1.1) translateZ(20px);
+    border-color: transparent;
+    box-shadow: 0 0 25px var(--error-color);
+}
+.modal-close-btn:hover i {
+    transform: rotate(-180deg);
+}
+.modal-close-btn:active {
+    transform: rotate(180deg) scale(1.0) translateZ(10px);
+    transition-duration: 0.1s;
+}
+
+/* --- G. PINNACLE DASHBOARD GUI (SUPREME UPGRADE v2.0) --- */
+#dashboard-sidebar-nav .nav-link {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#dashboard-sidebar-nav .nav-link::before { /* Background glow layer */
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.2), transparent 80%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+}
+#dashboard-sidebar-nav .nav-link:hover {
+    transform: translateX(8px) perspective(500px) rotateY(-5deg);
+    background-color: rgba(30, 41, 59, 0.7);
+}
+#dashboard-sidebar-nav .nav-link:hover::before {
+    opacity: 1;
+}
+
+#dashboard-sidebar-nav .nav-link.active,
+#dashboard-sidebar-nav .nav-link[data-view-id="dashboard"].active {
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.15) 0%, transparent 100%);
+    color: white;
+    font-weight: 600;
+    box-shadow: inset 4px 0 0 var(--primary-azure);
+    transform: translateX(8px) perspective(500px) rotateY(-5deg);
+}
+#dashboard-sidebar-nav .nav-link.active::before {
+    opacity: 1;
+    background: radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.4), transparent 80%);
+}
+
+#dashboard-sidebar-nav .nav-link:hover .fa-chevron-right,
+#dashboard-sidebar-nav .nav-link.active .fa-chevron-right {
+    opacity: 1;
+    transform: translateX(0);
+}
+#dashboard-sidebar-nav .fa-chevron-right {
+    opacity: 0;
+    transform: translateX(-5px);
+    transition: all 0.3s ease;
+}
+
+#dashboard-sidebar-nav .nav-link.active .w-8 { /* Icon container */
+    background: var(--primary-azure);
+    color: white;
+    box-shadow: 0 0 15px var(--glow-azure);
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* --- H. TRANSACTION GUI ENGINE (SUPREME UPGRADE v2.0) --- */
+.form-display-premium {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: #1e293b; /* slate-800 */
+    border: 1px solid #334155; /* slate-700 */
+    border-radius: 0.75rem;
+    color: #f8fafc; /* slate-50 */
+    font-size: 1rem;
+    min-height: calc(1.5rem + 1.75rem + 2px); /* Match input height */
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+}
+.form-display-premium::after { /* Animated scanline */
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--glow-azure), transparent);
+    animation: scanline 4s linear infinite;
+    opacity: 0.7;
+}
+@keyframes scanline {
+    0% { transform: translateY(-10px); }
+    100% { transform: translateY(calc(100% + 10px)); }
+}
+
+.delivery-method-btn {
+    position: relative;
+    transform-style: preserve-3d;
+}
+.delivery-method-btn:hover {
+    transform: translateY(-5px) scale(1.03) perspective(800px) rotateX(8deg);
+    border-color: var(--primary-azure);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+.delivery-method-btn.active {
+    border-color: var(--brand-gecan-gold);
+    background: linear-gradient(135deg, rgba(180, 151, 90, 0.1), rgba(234, 179, 8, 0.05));
+    transform: translateY(-5px) scale(1.05) perspective(800px) rotateX(8deg);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 25px var(--glow-gold);
+}
+.delivery-method-btn.active i {
+    transform: scale(1.1);
+    text-shadow: 0 0 15px currentColor;
+}
+
+/* --- I. UTILITY CLASSES (SUPREME UPGRADE v2.0) --- */
+.text-gold-400 {
+    color: transparent; /* Fallback for older browsers */
+    background: linear-gradient(135deg, #fBBF24, #D97706, #FBBF24);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+    animation: gold-shine 4s linear infinite;
+}
+@keyframes gold-shine {
+    to { background-position: 200% center; }
+}   
+        
 /* ========================================================================= */
 /* === PINNACLE DASHBOARD & UI ENGINE v4.0 (DEFINITIVE & UNABRIDGED) === */
 /* ========================================================================= */
@@ -1146,6 +1352,135 @@ createApiRequest: async (action, method = 'POST', params = {}, signal = null) =>
 // Add these new functions to your Logic object in karavan.html
 
 /**
+ * [PINNACLE DASHBOARD CONTROLLER] Selects the delivery method, providing visual feedback.
+ * @param {string} method The selected method ('bank' or 'cash').
+ */
+selectDeliveryMethod: (method) => {
+    AppState.transaction = AppState.transaction || {};
+    AppState.transaction.deliveryMethod = method;
+    document.querySelectorAll('.delivery-method-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.method === method);
+    });
+    // You could add logic here to update the analysis panel based on the method
+    Utils.showNotification(`Delivery method set to: ${method.charAt(0).toUpperCase() + method.slice(1)}`, 'info');
+},
+
+/**
+ * [PINNACLE QUOTE ENGINE v2.0] Retrieves a real-time quote based on the dashboard parameters.
+ * This function is the heart of the transaction panel, providing live data and enabling the next step.
+ * It also triggers the dynamic analysis panel update.
+ */
+getQuote: async () => {
+    const sendAmount = parseFloat(document.getElementById('send-amount')?.value);
+    const sendCurrency = document.getElementById('send-currency')?.value;
+    const receiveCurrency = document.getElementById('receive-currency')?.value;
+    const beneficiaryId = document.getElementById('beneficiary-select')?.value;
+    const quoteBtn = document.getElementById('get-quote-btn');
+
+    if (!sendAmount || sendAmount <= 0 || !sendCurrency || !receiveCurrency || !beneficiaryId) {
+        return Utils.showNotification('Please complete all fields: Amount, Currencies, and Recipient.', 'warning');
+    }
+    
+    quoteBtn.disabled = true;
+    quoteBtn.innerHTML = `<div class="premium-spinner"></div> Analyzing Routes...`;
+
+    try {
+        const quote = await Utils.createApiRequest('karavanGetQuote', 'POST', {
+            sendAmount,
+            sendCurrency,
+            receiveCurrency,
+            beneficiaryId,
+            type: AppState.currentUser.persona === 'remit' ? 'remit' : 'pay'
+        });
+        
+        // Update AppState with the full quote object
+        AppState.transaction = { ...AppState.transaction, ...quote, status: 'quoted' }; // [UPGRADE] Set status
+        
+        document.getElementById('receive-amount').textContent = parseFloat(quote.receiveAmount).toFixed(2);
+        Logic.updateAnalysisPanel(quote);
+
+        // [CRITICAL UPGRADE] Transition the UI to the next logical step
+        UI.renderReviewStep(quote); // Render the new review panel
+        
+        quoteBtn.classList.remove('btn-primary');
+        quoteBtn.classList.add('btn-secondary');
+        quoteBtn.innerHTML = `<i class="fas fa-undo mr-2"></i> New Quote`;
+        quoteBtn.onclick = Logic.resetTransactionParameters; // Change button action
+
+    } catch (error) {
+        Utils.showNotification(`Quote failed: ${error.message}`, 'error');
+        quoteBtn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> Error`;
+        setTimeout(() => {
+            quoteBtn.innerHTML = `<i class="fas fa-search-dollar mr-2"></i> Get Quote`;
+            quoteBtn.disabled = false;
+        }, 3000);
+    } finally {
+        // [UPGRADE] Ensure button is always usable after the flow
+        quoteBtn.disabled = false;
+    }
+},
+
+dispatchFromDashboard: async () => {
+    const dispatchBtn = document.getElementById('dispatch-btn');
+    if (!AppState.transaction || AppState.transaction.status !== 'quoted') {
+        return Utils.showNotification('Invalid transaction state. Please get a new quote.', 'error');
+    }
+
+    dispatchBtn.disabled = true;
+    dispatchBtn.innerHTML = `<div class="premium-spinner"></div> Dispatching...`;
+
+    try {
+        const response = await Utils.createApiRequest('karavanDispatch', 'POST', { transaction: AppState.transaction, user: AppState.currentUser });
+        
+        // Update transaction state with final details
+        AppState.transaction.id = response.transactionId;
+        AppState.transaction.status = 'initiated'; // Or whatever the API returns
+        AppState.transaction.timestamp = new Date().toISOString();
+        
+        Utils.showNotification('Karavan Dispatched! Tracking initiated.', 'success');
+        
+        // Transition to the tracker view
+        Logic.handleSidebarClick('transfers'); // Or a dedicated tracker view
+
+    } catch (error) {
+        Utils.showNotification(`Dispatch failed: ${error.message}`, 'error');
+        dispatchBtn.disabled = false;
+        dispatchBtn.innerHTML = `<i class="fas fa-rocket mr-2"></i>Dispatch Karavan`;
+    }
+},
+
+/**
+ * [PINNACLE ANALYSIS RENDERER] Dynamically updates the "Analysis & Projections" panel.
+ * This function brings the dashboard to life, showing real-time data from the quote engine.
+ * @param {object} quoteData The quote data received from the API.
+ */
+updateAnalysisPanel: (quoteData) => {
+    const analysisPanel = document.getElementById('market-analysis-panel');
+    if (!analysisPanel) return;
+
+    // Update rate displays
+    document.getElementById('current-rate').textContent = parseFloat(quoteData.marketRate).toFixed(5);
+    document.getElementById('our-rate').textContent = parseFloat(quoteData.exchangeRate).toFixed(5);
+    document.getElementById('total-cost').textContent = Utils.formatCurrency(quoteData.totalCost, quoteData.sendCurrency);
+
+    // Update intelligent analysis indicators (using mock data for visual effect)
+    document.getElementById('volatility-bar').style.width = '35%';
+    document.getElementById('volatility-percent').textContent = 'Mid (3.5%)';
+    document.getElementById('liquidity-bar').style.width = '90%';
+    document.getElementById('liquidity-level').textContent = 'Very High';
+
+    // Update optimal route display
+    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === document.getElementById('beneficiary-select')?.value);
+    document.getElementById('origin-details').textContent = `${quoteData.sendCurrency} Network`;
+    document.getElementById('route-details').textContent = `GECAN™ Nexus -> ${quoteData.optimalPath}`;
+    document.getElementById('destination-details').textContent = `${beneficiary?.name} (${quoteData.receiveCurrency})`;
+},
+
+// --- Placeholders for Future Expansion ---
+showAdvancedOptions: () => Utils.showNotification('Advanced options panel coming soon.', 'info'),
+showQuickActionsMenu: () => Utils.showNotification('Quick actions menu coming soon.', 'info'),
+
+/**
  * [PINNACLE DASHBOARD CONTROLLER] Handles sidebar navigation clicks.
  * Updates the UI state and re-renders the main content area of the dashboard
  * without reloading the entire page or sidebar.
@@ -1431,8 +1766,8 @@ handleAddBeneficiarySubmit: async (e) => {
         (AppState.marketData.beneficiaries = AppState.marketData.beneficiaries || []).push(response.data);
         Utils.showNotification('Beneficiary added successfully!', 'success');
         document.getElementById('beneficiary-modal')?.close();
-        // Re-render the dashboard to update the beneficiary dropdown
-        Logic.handleSidebarClick('dashboard');
+    // [CRITICAL UPGRADE] Call the targeted refresh instead of a full re-render
+    UI.refreshBeneficiaryDropdown();
     } catch (error) {
         Utils.showNotification(error.message, 'error');
     } finally {
@@ -3287,6 +3622,8 @@ loadInitialData: async () => {
                     Utils.showNotification('Destination confirmed', 'success');
                 },
 
+                
+
                 updateQuote: Utils.debounce(async () => {
                     const sendAmount = parseFloat(document.getElementById('send-amount')?.value);
                     const sendCurrency = document.getElementById('send-currency')?.value;
@@ -3635,67 +3972,126 @@ loadInitialData: async () => {
  */
 renderDashboardShell: () => {
     const user = AppState.currentUser;
+    const isLiquidityProvider = ['lp', 'money_changer', 'usdt_provider'].includes(user.persona);
+    
     const sidebarLinks = [
-        { id: 'dashboard', icon: 'fa-tachometer-alt', text: 'Dashboard' },
-        { id: 'global_accounts', icon: 'fa-globe', text: 'Global Accounts' },
-        { id: 'conversions', icon: 'fa-exchange-alt', text: 'Conversions' },
-        { id: 'transfers', icon: 'fa-paper-plane', text: 'Transfers' },
-        { id: 'cards', icon: 'fa-credit-card', text: 'Cards' },
-        { id: 'reports', icon: 'fa-chart-bar', text: 'Reports' },
-        { id: 'settings', icon: 'fa-cog', text: 'Account' },
+        { id: 'dashboard', icon: 'fa-tachometer-alt', text: 'Dashboard', role: 'all' },
+        { id: 'global_accounts', icon: 'fa-globe-americas', text: 'Global Accounts', role: 'all' },
+        { id: 'conversions', icon: 'fa-exchange-alt', text: 'Conversions', role: 'all' },
+        { id: 'transfers', icon: 'fa-paper-plane', text: 'Transfers', role: 'all' },
+        { id: 'liquidity_pools', icon: 'fa-water', text: 'Liquidity Pools', role: 'lp' },
+        { id: 'network_analytics', icon: 'fa-network-wired', text: 'Network Analytics', role: 'lp' },
+        { id: 'partner_hub', icon: 'fa-handshake', text: 'Partner Hub', role: 'lp' },
+        { id: 'cards', icon: 'fa-credit-card', text: 'Cards', role: 'standard' },
+        { id: 'reports', icon: 'fa-chart-line', text: 'Reports', role: 'all' },
+        { id: 'settings', icon: 'fa-user-cog', text: 'Profile & Settings', role: 'all' },
     ];
 
-    // Tier mapping for display
+    const filteredLinks = sidebarLinks.filter(link => {
+        if (link.role === 'all') return true;
+        if (link.role === 'lp') return isLiquidityProvider;
+        if (link.role === 'standard') return !isLiquidityProvider;
+        return false;
+    });
+
     const tierMap = {
-        'TIER_1_EMAIL_VERIFIED': { label: 'Tier 1 Verified', color: 'text-sky-400' },
-        'TIER_2_KYC_SUBMITTED': { label: 'Tier 2 Pending', color: 'text-yellow-400' },
-        'TIER_3_KYC_APPROVED': { label: 'Tier 3 Approved', color: 'text-green-400' },
+        'TIER_1_EMAIL_VERIFIED': { label: 'Tier 1 Verified', color: 'text-sky-400', icon: 'fa-user-check' },
+        'TIER_2_KYC_SUBMITTED': { label: 'Tier 2 Pending', color: 'text-yellow-400', icon: 'fa-clock' },
+        'TIER_3_KYC_APPROVED': { label: 'Tier 3 Approved', color: 'text-green-400', icon: 'fa-shield-alt' },
+        'TIER_4_INSTITUTIONAL': { label: 'Institutional', color: 'text-purple-400', icon: 'fa-building' },
+        'TIER_5_LIQUIDITY_PARTNER': { label: 'LP Verified', color: 'text-gold-400', icon: 'fa-crown' },
     };
-    const userTier = tierMap[user.status] || { label: user.status, color: 'text-slate-400' };
+    const userTier = tierMap[user.kycStatus] || { label: user.kycStatus || 'Unverified', color: 'text-slate-400', icon: 'fa-user' };
 
     return `
-    <div class="flex h-screen bg-slate-900/50 text-slate-100">
+    <div class="flex h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 overflow-hidden">
         <!-- Pinnacle Sidebar Navigation -->
-        <aside id="dashboard-sidebar" class="w-64 bg-slate-900/70 backdrop-blur-xl border-r border-slate-700/50 flex flex-col flex-shrink-0">
-            <!-- Header -->
-            <div class="h-20 flex items-center px-6 border-b border-slate-700/50">
-                <h1 class="text-2xl font-bold font-['Orbitron',_sans-serif] text-white">GECAN™</h1>
+        <aside id="dashboard-sidebar" class="w-72 bg-slate-900/90 backdrop-blur-xl border-r border-slate-700/50 flex flex-col flex-shrink-0 shadow-2xl">
+            <!-- Header with Logo -->
+            <div class="h-20 flex items-center justify-center px-6 border-b border-slate-700/50 bg-gradient-to-r from-sky-900/30 to-indigo-900/30">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-rocket text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold font-['Orbitron',_sans-serif] text-white">KARAVAN™</h1>
+                        <p class="text-xs text-sky-400 font-semibold">PINNACLE PROTOCOL</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Profile Hub -->
+            <div class="p-4 border-b border-slate-700/50 bg-slate-800/50">
+                <div class="flex items-center gap-4 group cursor-pointer" onclick="Logic.toggleProfileMenu()">
+                    <div class="relative">
+                        <div id="user-avatar" class="w-14 h-14 rounded-full bg-gradient-to-br from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center font-bold text-xl shadow-lg transform transition-all duration-300 group-hover:scale-105">
+                            ${user.firstName?.charAt(0) || 'U'}${user.lastName?.charAt(0) || 'S'}
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                            <i class="fas fa-check text-xs text-white"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="font-semibold text-white truncate text-sm">${user.fullName || `${user.firstName} ${user.lastName}`}</p>
+                        <div class="flex items-center gap-2">
+                            <i class="fas ${userTier.icon} ${userTier.color} text-xs"></i>
+                            <p class="text-xs ${userTier.color} font-medium">${userTier.label}</p>
+                        </div>
+                        <p class="text-xs text-slate-400 truncate">${user.karavanId}</p>
+                    </div>
+                    <i class="fas fa-chevron-down text-slate-400 text-sm transition-transform duration-200 group-hover:rotate-180"></i>
+                </div>
+                
+                <!-- Profile Dropdown Menu -->
+                <div id="profile-dropdown" class="hidden mt-3 space-y-2 border-t border-slate-700/50 pt-3">
+                    <button onclick="Logic.showProfileModal()" class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white rounded-lg transition-all">
+                        <i class="fas fa-user-edit w-4"></i>
+                        <span>Edit Profile</span>
+                    </button>
+                    <button onclick="Logic.showKycModal()" class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700/50 hover:text-white rounded-lg transition-all">
+                        <i class="fas fa-level-up-alt w-4"></i>
+                        <span>Upgrade Tier</span>
+                    </button>
+                    <button onclick="Logic.logout()" class="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-all">
+                        <i class="fas fa-sign-out-alt w-4"></i>
+                        <span>Sign Out</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Navigation Links -->
-            <nav id="dashboard-sidebar-nav" class="flex-grow p-4 space-y-2">
-                ${sidebarLinks.map(link => `
-                    <a href="#" onclick="Logic.handleSidebarClick('${link.id}')" data-view-id="${link.id}" class="flex items-center gap-4 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200">
-                        <i class="fas ${link.icon} w-6 text-center text-lg"></i>
+            <nav id="dashboard-sidebar-nav" class="flex-grow p-4 space-y-1 overflow-y-auto">
+                ${filteredLinks.map(link => `
+                    <a href="#" onclick="Logic.handleSidebarClick('${link.id}')" data-view-id="${link.id}" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 transform hover:translate-x-1">
+                        <div class="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center transition-all duration-200">
+                            <i class="fas ${link.icon} text-sm"></i>
+                        </div>
                         <span class="font-medium">${link.text}</span>
+                        <i class="fas fa-chevron-right text-xs ml-auto opacity-0 transition-opacity duration-200"></i>
                     </a>
                 `).join('')}
             </nav>
 
-            <!-- User Profile Hub -->
-            <div class="p-4 border-t border-slate-700/50">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-xl">
-                        ${user.firstName.charAt(0)}${user.lastName.charAt(0)}
-                    </div>
-                    <div>
-                        <p class="font-semibold text-white truncate">${user.fullName}</p>
-                        <p class="text-xs ${userTier.color}">${userTier.label}</p>
-                    </div>
-                    <button onclick="Logic.logout()" title="Logout" class="ml-auto text-slate-400 hover:text-red-500 transition-colors">
-                        <i class="fas fa-sign-out-alt text-xl"></i>
-                    </button>
+            <!-- Footer -->
+            <div class="p-4 border-t border-slate-700/50 bg-slate-800/30">
+                <div class="text-center text-xs text-slate-500">
+                    <p class="font-['Orbitron',_sans-serif]">KARAVAN PROTOCOL v4.0</p>
+                    <p>Secure Cross-Border Settlement</p>
                 </div>
             </div>
         </aside>
 
         <!-- Main Dynamic Content Area -->
-        <main id="dashboard-main-content" class="flex-grow p-8 overflow-y-auto">
+        <main id="dashboard-main-content" class="flex-grow overflow-y-auto bg-gradient-to-br from-slate-800/30 to-slate-900/50">
             ${UI.renderDashboardContent('dashboard')}
         </main>
     </div>
-    <!-- Container for the KYC Modal -->
-    <dialog id="kyc-upgrade-modal"></dialog>
+    
+    <!-- Modal Containers -->
+    <dialog id="profile-modal" class="modal-backdrop"></dialog>
+    <dialog id="kyc-upgrade-modal" class="modal-backdrop"></dialog>
+    <dialog id="account-modal" class="modal-backdrop"></dialog>
+    <dialog id="beneficiary-modal" class="modal-backdrop"></dialog>
     `;
 },
 
@@ -3707,22 +4103,32 @@ renderDashboardShell: () => {
  */
 renderDashboardContent: (viewId) => {
     const user = AppState.currentUser;
-    // This is the core of the role-based view logic
-    if (viewId === 'dashboard') {
-        if (user.persona === 'remit' || user.persona === 'pay') {
-            return UI.renderStandardClientDashboard();
-        } else { // Assumes 'lp' or other high-level roles
-            return UI.renderLpClientDashboard();
-        }
-    }
+    const isLiquidityProvider = ['lp', 'money_changer', 'usdt_provider'].includes(user.persona);
     
-    // Placeholder for other views
-    return `
-        <div class="text-center py-20">
-            <h2 class="text-4xl font-bold text-white">${viewId.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</h2>
-            <p class="text-slate-400 mt-4">This feature is under active development.</p>
-        </div>
-    `;
+    switch (viewId) {
+        case 'dashboard':
+            return isLiquidityProvider ? UI.renderLiquidityProviderDashboard() : UI.renderStandardClientDashboard();
+        case 'global_accounts':
+            return UI.renderGlobalAccountsView();
+        case 'conversions':
+            return UI.renderConversionsView();
+        case 'transfers':
+            return UI.renderTransfersView();
+        case 'liquidity_pools':
+            return isLiquidityProvider ? UI.renderLiquidityPoolsView() : UI.renderAccessDenied();
+        case 'network_analytics':
+            return isLiquidityProvider ? UI.renderNetworkAnalyticsView() : UI.renderAccessDenied();
+        case 'partner_hub':
+            return isLiquidityProvider ? UI.renderPartnerHubView() : UI.renderAccessDenied();
+        case 'cards':
+            return !isLiquidityProvider ? UI.renderCardsView() : UI.renderAccessDenied();
+        case 'reports':
+            return UI.renderReportsView();
+        case 'settings':
+            return UI.renderSettingsView();
+        default:
+            return UI.renderPlaceholderView(viewId);
+    }
 },
 
 /**
@@ -3731,50 +4137,344 @@ renderDashboardContent: (viewId) => {
  * This view integrates the high-end Transaction GUI from toolkits.html.
  */
 renderStandardClientDashboard: () => {
-    // This is a simplified integration of the toolkits.html GUI
-    // In a full implementation, you would break these down into more components.
+    const user = AppState.currentUser;
+    const showKycPrompt = ['TIER_1_EMAIL_VERIFIED', 'TIER_2_KYC_SUBMITTED'].includes(user.kycStatus);
+    
+    // [UPGRADE] Read from existing transaction state or use defaults
+    const tx = AppState.transaction || {};
+    const sendAmount = tx.sendAmount || '';
+    const sendCurrency = tx.sendCurrency || 'CAD';
+    const receiveCurrency = tx.receiveCurrency || 'PHP';
+    const beneficiaryId = tx.beneficiaryId || '';
+    
     return `
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-4xl font-bold text-white mb-2">Karavan Dashboard</h1>
-        <p class="text-lg text-slate-400 mb-8">Initiate a new cross-border settlement.</p>
-        
-        <!-- Tier 1 KYC Prompt -->
-        ${AppState.currentUser.status === 'TIER_1_EMAIL_VERIFIED' ? `
-        <div class="mb-8 p-6 bg-gradient-to-r from-sky-500/20 to-indigo-500/20 border border-sky-500/50 rounded-lg flex items-center justify-between">
-            <div>
-                <h3 class="text-xl font-bold text-white">Unlock Higher Limits</h3>
-                <p class="text-slate-300">Complete your profile verification to access the full potential of the Karavan network.</p>
+    <div class="p-8 max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h1 class="text-4xl font-bold text-white font-['Orbitron',_sans-serif] mb-2">Mission Control</h1>
+                    <p class="text-lg text-slate-400">Initiate secure cross-border settlements with pinnacle precision.</p>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="Logic.resetTransactionParameters()" class="btn-secondary px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
+                        <i class="fas fa-undo mr-2"></i>Reset Parameters
+                    </button>
+                    <button onclick="Logic.showQuickActionsMenu()" class="btn-primary px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
+                        <i class="fas fa-bolt mr-2"></i>Quick Actions
+                    </button>
+                </div>
             </div>
-            <button onclick="Logic.showKycModal()" class="btn-primary py-3 px-6 rounded-lg font-bold">Verify Now</button>
+        </div>
+
+        <!-- KYC Tier Upgrade Prompt -->
+        ${showKycPrompt ? `
+        <div class="mb-8 p-6 bg-gradient-to-r from-sky-500/20 via-indigo-500/20 to-purple-500/20 border border-sky-500/50 rounded-xl backdrop-blur-sm">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-level-up-alt text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-1">Unlock Enhanced Capabilities</h3>
+                        <p class="text-slate-300">Complete tier verification to access higher limits, priority routing, and institutional features.</p>
+                        <div class="flex items-center gap-2 mt-2">
+                            <i class="fas fa-shield-alt text-green-400"></i>
+                            <span class="text-sm text-green-400 font-medium">Bank-grade security protocol active</span>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="Logic.showKycModal()" class="btn-gold px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-all shadow-lg">
+                    <i class="fas fa-rocket mr-2"></i>Upgrade Now
+                </button>
+            </div>
         </div>
         ` : ''}
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+<!-- Main Transaction Interface -->
+        <div class="grid grid-cols-1 xl:grid-cols-5 gap-8">
             <!-- Transaction Parameters Panel -->
-            <div class="lg:col-span-2 bg-slate-800/50 border border-slate-700/50 rounded-xl p-6 h-fit">
-                <h2 class="text-2xl font-bold text-white mb-6">Transaction Parameters</h2>
-                <!-- Parameter form fields would go here -->
-                <div class="space-y-4">
-                    <div><label class="text-slate-300">You Send</label><input type="text" class="form-input mt-1" placeholder="1,000.00"></div>
-                    <div><label class="text-slate-300">Recipient Gets</label><input type="text" class="form-input mt-1" placeholder="~ 42,500.00"></div>
-                    <!-- More fields... -->
-                </div>
-                <div class="mt-6 flex gap-4">
-                    <button class="btn-primary flex-grow py-3 rounded-lg font-bold">Get Quote</button>
-                    <button class="btn-secondary py-3 px-5 rounded-lg"><i class="fas fa-sync-alt"></i></button>
+            <div class="xl:col-span-2">
+                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+                    <!-- ... Panel Header ... -->
+                    <div class="space-y-6">
+                        <!-- Send Amount -->
+                        <div>
+                            <label class="block text-slate-300 font-semibold">You Send</label>
+                            <div class="flex gap-3">
+                                <input type="number" id="send-amount" class="form-input-premium w-full" placeholder="1,000.00" value="${sendAmount}">
+                                <select id="send-currency" class="form-select-premium w-32">
+                                    <!-- [UPGRADE] Dynamically select the correct option -->
+                                    ${['CAD', 'USD', 'SGD', 'EUR', 'GBP'].map(c => `<option value="${c}" ${c === sendCurrency ? 'selected' : ''}>${c}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Recipient Gets -->
+                        <div>
+                             <label class="block text-slate-300 font-semibold">Recipient Gets</label>
+                             <div class="flex gap-3">
+                                 <div class="form-display-premium flex-grow">
+                                     <span id="receive-amount" class="text-xl font-bold text-green-400">~ ${parseFloat(tx.receiveAmount || 0).toFixed(2)}</span>
+                                 </div>
+                                 <select id="receive-currency" class="form-select-premium w-32">
+                                     <!-- [UPGRADE] Dynamically select the correct option -->
+                                     ${['PHP', 'IDR', 'MYR', 'THB', 'VND'].map(c => `<option value="${c}" ${c === receiveCurrency ? 'selected' : ''}>${c}</option>`).join('')}
+                                 </select>
+                             </div>
+                        </div>
+                        <!-- Beneficiary -->
+                        <div>
+                            <label class="block text-slate-300 font-semibold">Recipient</label>
+                            <select id="beneficiary-select" class="form-select-premium w-full">
+                                <option value="">Select recipient...</option>
+                                ${AppState.marketData?.beneficiaries?.map(ben => `
+                                    <option value="${ben.id}" ${ben.id === beneficiaryId ? 'selected' : ''}>${ben.name} (${ben.country})</option>
+                                `).join('') || ''}
+                            </select>
+                        </div>
+
+                        <!-- Delivery Method -->
+                        <div class="space-y-3">
+                            <label class="block text-slate-300 font-semibold">Delivery Method</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" onclick="Logic.selectDeliveryMethod('bank')" data-method="bank" class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center transition-all hover:border-sky-500 hover:bg-sky-500/10">
+                                    <i class="fas fa-university text-2xl text-sky-400 mb-2"></i>
+                                    <p class="text-sm font-medium">Bank Transfer</p>
+                                </button>
+                                <button type="button" onclick="Logic.selectDeliveryMethod('cash')" data-method="cash" class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center transition-all hover:border-sky-500 hover:bg-sky-500/10">
+                                    <i class="fas fa-money-bill-wave text-2xl text-green-400 mb-2"></i>
+                                    <p class="text-sm font-medium">Cash Pickup</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-4 pt-4">
+                            <button id="get-quote-btn" onclick="Logic.getQuote()" class="btn-primary flex-grow py-4 rounded-lg font-bold text-lg transition-all hover:scale-105">
+                                <i class="fas fa-search-dollar mr-2"></i>Get Quote
+                            </button>
+                            <button onclick="Logic.showAdvancedOptions()" class="btn-secondary py-4 px-6 rounded-lg hover:scale-105 transition-all">
+                                <i class="fas fa-cogs"></i>
+                            </button>
+                        </div>
+                        <div id="transaction-review-container"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- Analysis & Projections Panel -->
-            <div class="lg:col-span-3 bg-slate-800/50 border border-slate-700/50 rounded-xl p-6">
-                <h2 class="text-2xl font-bold text-white mb-6">Analysis & Projections</h2>
-                <div class="h-64 bg-slate-700/50 rounded-lg flex items-center justify-center">
-                    <p class="text-slate-400">Pinnacle Transaction Analysis Graph</p>
+            <div class="xl:col-span-3">
+                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl h-full">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">Pinnacle Analysis & Projections</h2>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-sm text-green-400 font-medium">Live Analysis</span>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Market Data Display -->
+                    <div id="market-analysis-panel" class="space-y-6">
+                        <!-- Exchange Rate Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-slate-400 text-sm">Current Rate</span>
+                                    <i class="fas fa-chart-line text-sky-400"></i>
+                                </div>
+                                <div id="current-rate" class="text-xl font-bold text-white">1.00000</div>
+                                <div class="text-xs text-slate-500 mt-1">Last updated: Live</div>
+                            </div>
+                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-slate-400 text-sm">Our Rate</span>
+                                    <i class="fas fa-shield-alt text-green-400"></i>
+                                </div>
+                                <div id="our-rate" class="text-xl font-bold text-green-400">0.00000</div>
+                                <div class="text-xs text-green-500 mt-1">Premium rate locked</div>
+                            </div>
+                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-slate-400 text-sm">Total Cost</span>
+                                    <i class="fas fa-calculator text-yellow-400"></i>
+                                </div>
+                                <div id="total-cost" class="text-xl font-bold text-yellow-400">0.00</div>
+                                <div class="text-xs text-slate-500 mt-1">Including all fees</div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Analysis Section -->
+                        <div class="bg-gradient-to-r from-slate-700/30 to-slate-800/30 rounded-lg p-6 border border-slate-600/30">
+                            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <i class="fas fa-brain text-purple-400"></i>
+                                Intelligent Market Analysis
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Market Trend Analysis -->
+                                <div>
+                                    <h4 class="text-sm font-medium text-slate-300 mb-3">Market Trend Indicators</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-slate-400">24h Volatility</span>
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-16 bg-slate-600 rounded-full h-2">
+                                                    <div id="volatility-bar" class="bg-gradient-to-r from-green-500 to-yellow-500 h-2 rounded-full" style="width: 25%"></div>
+                                                </div>
+                                                <span id="volatility-percent" class="text-xs text-green-400">Low (2.1%)</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-slate-400">Liquidity Depth</span>
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-16 bg-slate-600 rounded-full h-2">
+                                                    <div id="liquidity-bar" class="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full" style="width: 85%"></div>
+                                                </div>
+                                                <span id="liquidity-level" class="text-xs text-cyan-400">High</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-slate-400">Network Congestion</span>
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-16 bg-slate-600 rounded-full h-2">
+                                                    <div id="congestion-bar" class="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full" style="width: 15%"></div>
+                                                </div>
+                                                <span id="congestion-level" class="text-xs text-green-400">Minimal</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Route Optimization -->
+                                <div>
+                                    <h4 class="text-sm font-medium text-slate-300 mb-3">Optimal Settlement Route</h4>
+                                    <div id="route-display" class="space-y-2">
+                                        <div class="flex items-center gap-3 text-sm">
+                                            <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center">
+                                                <i class="fas fa-map-marker-alt text-sky-400 text-xs"></i>
+                                            </div>
+                                            <span class="text-slate-300">Origin: <span id="origin-details" class="text-white font-medium">Detecting...</span></span>
+                                        </div>
+                                        <div class="flex items-center gap-3 text-sm">
+                                            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                                <i class="fas fa-route text-purple-400 text-xs"></i>
+                                            </div>
+                                            <span class="text-slate-300">Via: <span id="route-details" class="text-white font-medium">Optimal path calculating...</span></span>
+                                        </div>
+                                        <div class="flex items-center gap-3 text-sm">
+                                            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                                                <i class="fas fa-flag-checkered text-green-400 text-xs"></i>
+                                            </div>
+                                            <span class="text-slate-300">Destination: <span id="destination-details" class="text-white font-medium">Awaiting selection</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Timeline Projection -->
+                        <div class="bg-gradient-to-r from-slate-700/20 to-slate-800/20 rounded-lg p-4 border border-slate-600/20">
+                            <h4 class="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+                                <i class="fas fa-clock text-blue-400"></i>
+                                Projected Settlement Timeline
+                            </h4>
+                            <div class="flex items-center justify-between text-sm">
+                                <div class="text-center">
+                                    <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center mb-1 mx-auto">
+                                        <i class="fas fa-play text-white text-xs"></i>
+                                    </div>
+                                    <div class="text-slate-400">Initiation</div>
+                                    <div class="text-white font-medium">Instant</div>
+                                </div>
+                                <div class="flex-grow h-px bg-gradient-to-r from-sky-500 to-purple-500 mx-2"></div>
+                                <div class="text-center">
+                                    <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mb-1 mx-auto">
+                                        <i class="fas fa-exchange-alt text-white text-xs"></i>
+                                    </div>
+                                    <div class="text-slate-400">Processing</div>
+                                    <div class="text-white font-medium">~2-5min</div>
+                                </div>
+                                <div class="flex-grow h-px bg-gradient-to-r from-purple-500 to-green-500 mx-2"></div>
+                                <div class="text-center">
+                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mb-1 mx-auto">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </div>
+                                    <div class="text-slate-400">Settlement</div>
+                                    <div class="text-white font-medium">~10-30min</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Dashboard -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-gradient-to-br from-sky-500/10 to-sky-600/5 border border-sky-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-sky-500/20 flex items-center justify-center">
+                        <i class="fas fa-paper-plane text-sky-400 text-xl"></i>
+                    </div>
+                    <span class="text-sky-400 text-sm font-medium">This Month</span>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">$12,450</div>
+                <div class="text-sm text-slate-400">Total Sent</div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-green-400 text-xl"></i>
+                    </div>
+                    <span class="text-green-400 text-sm font-medium">Avg Rate</span>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">47.82</div>
+                <div class="text-sm text-slate-400">CAD to PHP</div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                        <i class="fas fa-users text-purple-400 text-xl"></i>
+                    </div>
+                    <span class="text-purple-400 text-sm font-medium">Active</span>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">${AppState.marketData?.beneficiaries?.length || 0}</div>
+                <div class="text-sm text-slate-400">Recipients</div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-400 text-xl"></i>
+                    </div>
+                    <span class="text-yellow-400 text-sm font-medium">Average</span>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">4.2min</div>
+                <div class="text-sm text-slate-400">Settlement Time</div>
             </div>
         </div>
     </div>
     `;
+},
+
+/**
+ * [PINNACLE UI ENGINE] Refreshes only the beneficiary dropdown list with the latest data.
+ * This avoids a full view re-render, providing a seamless UX.
+ */
+refreshBeneficiaryDropdown: () => {
+    const select = document.getElementById('beneficiary-select');
+    if (!select) return;
+
+    const currentSelection = select.value;
+    select.innerHTML = `
+        <option value="">Select recipient...</option>
+        ${AppState.marketData?.beneficiaries?.map(ben => `
+            <option value="${ben.id}">${ben.name} (${ben.country})</option>
+        `).join('') || ''}
+    `;
+    select.value = currentSelection; // Attempt to re-select the previous value
 },
 
 /**
@@ -3782,26 +4482,278 @@ renderStandardClientDashboard: () => {
  * Renders the specialized dashboard for high-level liquidity partners.
  */
 renderLiquidityProviderDashboard: () => {
+    const user = AppState.currentUser;
     return `
-    <div class="max-w-7xl mx-auto">
-        <h1 class="text-4xl font-bold text-white mb-2">Liquidity Partner Dashboard</h1>
-        <p class="text-lg text-slate-400 mb-8">Network performance and pool management.</p>
-        <!-- Stat cards, tables, and graphs for LPs would go here -->
-        <div class="h-96 bg-slate-800/50 border border-slate-700/50 rounded-xl flex items-center justify-center">
-            <p class="text-slate-400">Advanced Network Analytics Interface</p>
+    <div class="p-8 max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-600 font-['Orbitron',_sans-serif] mb-2">
+                        Liquidity Command Center
+                    </h1>
+                    <p class="text-lg text-slate-400">Advanced network management and analytics for verified liquidity partners.</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/50 rounded-lg px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-crown text-yellow-400"></i>
+                            <span class="text-yellow-400 font-semibold">LP Status: VERIFIED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                        <i class="fas fa-water text-blue-400 text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-blue-400 font-medium">ACTIVE POOLS</div>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-white mb-1">8</div>
+                <div class="text-sm text-slate-400">Across 5 corridors</div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-green-400 text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-green-400 font-medium">24H VOLUME</div>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-white mb-1">$2.4M</div>
+                <div class="text-sm text-green-400">+12.5% vs yesterday</div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                        <i class="fas fa-coins text-purple-400 text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-purple-400 font-medium">TOTAL LIQUIDITY</div>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-white mb-1">$18.7M</div>
+                <div class="text-sm text-slate-400">Available capacity</div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                        <i class="fas fa-percentage text-yellow-400 text-xl"></i>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-yellow-400 font-medium">AVG YIELD</div>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-white mb-1">4.8%</div>
+                <div class="text-sm text-yellow-400">Annual APY</div>
+            </div>
+        </div>
+
+        <!-- Main LP Interface -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <!-- Liquidity Pool Management -->
+            <div class="xl:col-span-2">
+                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">Active Liquidity Pools</h2>
+                        <button onclick="Logic.showAddPoolModal()" class="btn-primary px-4 py-2 rounded-lg text-sm">
+                            <i class="fas fa-plus mr-2"></i>Add Pool
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/30 rounded-lg p-4 border border-slate-600/30">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRkY2NTAwIiByeD0iNCIvPjx0ZXh0IHg9IjEyIiB5PSIxNiIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIj5DQUQKPC90ZXh0Pjwvc3ZnPg==" alt="CAD" class="w-6 h-6 rounded">
+                                        <span class="text-white font-semibold">CAD</span>
+                                    </div>
+                                    <i class="fas fa-arrows-alt-h text-slate-400"></i>
+                                    <div class="flex items-center gap-2">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRkZENzAwIiByeD0iNCIvPjx0ZXh0IHg9IjEyIiB5PSIxNiIgZmlsbD0iYmxhY2siIGZvbnQtc2l6ZT0iMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtd2VpZ2h0PSJib2xkIj5QSFAKPC90ZXh0Pjwvc3ZnPg==" alt="PHP" class="w-6 h-6 rounded">
+                                        <span class="text-white font-semibold">PHP</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="text-right">
+                                        <div class="text-sm text-green-400 font-semibold">+2.4%</div>
+                                        <div class="text-xs text-slate-400">24h yield</div>
+                                    </div>
+                                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                    <div class="text-slate-400">Available</div>
+                                    <div class="text-white font-semibold">$485,200</div>
+                                </div>
+                                <div>
+                                    <div class="text-slate-400">Utilized</div>
+                                    <div class="text-white font-semibold">78.5%</div>
+                                </div>
+                                <div>
+                                    <div class="text-slate-400">Rate</div>
+                                    <div class="text-white font-semibold">47.8250</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional pools would be rendered here -->
+                        <div class="bg-slate-700/20 rounded-lg p-4 border border-slate-600/20">
+                            <div class="text-center text-slate-400">
+                                <i class="fas fa-plus-circle text-2xl mb-2"></i>
+                                <p>Add more liquidity pools to expand your network coverage</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Network Analytics -->
+            <div>
+                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                    <h3 class="text-xl font-bold text-white mb-4 font-['Orbitron',_sans-serif]">Network Performance</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/30 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-slate-400">Transaction Success Rate</span>
+                                <span class="text-sm text-green-400 font-semibold">99.7%</span>
+                            </div>
+                            <div class="w-full bg-slate-600 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full" style="width: 99.7%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-700/30 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-slate-400">Average Settlement Time</span>
+                                <span class="text-sm text-blue-400 font-semibold">3.2min</span>
+                            </div>
+                            <div class="w-full bg-slate-600 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-blue-500 to-blue-400 h-2 rounded-full" style="width: 65%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-700/30 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-slate-400">Network Utilization</span>
+                                <span class="text-sm text-purple-400 font-semibold">72.4%</span>
+                            </div>
+                            <div class="w-full bg-slate-600 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-purple-500 to-purple-400 h-2 rounded-full" style="width: 72.4%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-slate-600/50">
+                        <h4 class="text-sm font-semibold text-white mb-3">Recent Activity</h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400">Large transaction routed</span>
+                                <span class="text-green-400">+$2,400</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400">Pool rebalanced (CAD/PHP)</span>
+                                <span class="text-blue-400">Optimized</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400">Yield distribution</span>
+                                <span class="text-yellow-400">+$180</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     `;
 },
 
 /**
- * [PINNACLE PROFILE MODAL RENDERER v4.0]
- * Renders an advanced, guided modal for editing user profile information, enforcing
- * read-only constraints on immutable data and providing a premium user experience.
+ * [PINNACLE VIEW RENDERER] Renders the Global Accounts management view.
+ * This serves as a template for other currently empty views like Transfers, Reports, etc.
+ */
+renderGlobalAccountsView: () => {
+    // In a real app, this data would come from AppState, fetched from an API
+    const accounts = [
+        { id: 'acc_1', currency: 'USD', balance: 12503.75, type: 'Local US Account', details: 'Community Federal Savings Bank • ...Ending 4512' },
+        { id: 'acc_2', currency: 'CAD', balance: 4201.20, type: 'Local CA Account', details: 'Royal Bank of Canada • ...Ending 8891' },
+        { id: 'acc_3', currency: 'USDT', balance: 25100.00, type: 'Digital Asset Wallet', details: '0x...a4b2' },
+        { id: 'acc_4', currency: 'PHP', balance: 540321.50, type: 'Local PH Account', details: 'Banco de Oro • ...Ending 1033' },
+    ];
+
+    return `
+    <div class="p-8 max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-white font-['Orbitron',_sans-serif] mb-2">Global Accounts</h1>
+                <p class="text-lg text-slate-400">Manage your multi-currency balances and funding sources.</p>
+            </div>
+            <button onclick="Logic.showAccountModal()" class="btn-primary px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
+                <i class="fas fa-plus mr-2"></i>Add Account
+            </button>
+        </div>
+
+        <!-- Account Cards Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            ${accounts.map(acc => `
+            <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 shadow-2xl transform-style-preserve-3d transition-all duration-300 hover:border-sky-500/50 hover:-translate-y-2 hover:shadow-sky-500/10">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center font-bold text-sky-400">
+                            ${acc.currency}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-white">${acc.type}</h3>
+                            <p class="text-xs text-slate-400 font-mono">${acc.details}</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-ellipsis-v text-slate-500 cursor-pointer"></i>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-700/50">
+                    <p class="text-sm text-slate-400 mb-1">Available Balance</p>
+                    <p class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-sky-300">
+                        ${Utils.formatCurrency(acc.balance, acc.currency, acc.currency === 'USDT' ? 2 : 2)}
+                    </p>
+                </div>
+            </div>
+            `).join('')}
+        </div>
+    </div>
+    `;
+},           
+                
+/**
+ * [PINNACLE PROFILE MODAL RENDERER v4.1 - DATA-AWARE]
+ * Upgraded to pre-populate form fields with the current user's data from AppState
+ * for a seamless editing experience.
  */
 renderProfileModal: () => {
     const user = AppState.currentUser;
-    // This function now renders the full, unabridged HTML.
+    // NOTE: In a real app, address/country would also come from the user object.
+    // We'll use placeholders for demonstration.
+    const userContact = user.contactNumber || '';
+    const userAddress1 = user.addressLine1 || '';
+    const userCity = user.city || '';
+    const userPostal = user.postalCode || '';
+    const userState = user.stateProvince || '';
+
+    // The HTML is the same, but now uses variables to pre-fill `value` attributes
     return `
     <div class="p-6 max-w-4xl mx-auto">
         <div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
@@ -3821,45 +4773,40 @@ renderProfileModal: () => {
                 </button>
             </div>
             
-            <form id="profile-update-form" onsubmit="Logic.handleProfileUpdate(event)">
+            <form id="profile-update-form">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- PERSONAL & CONTACT INFORMATION -->
                     <div class="space-y-6">
                         <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3">
-                            <i class="fas fa-user-circle text-sky-400"></i>
-                            Personal & Contact
+                            <i class="fas fa-user-circle text-sky-400"></i> Personal & Contact
                         </h3>
-                        <!-- READ-ONLY FIELDS -->
                         <div class="grid grid-cols-2 gap-4">
                             <div><label class="input-label-premium">First Name</label><input type="text" value="${user.firstName || ''}" readonly class="form-input-readonly"></div>
                             <div><label class="input-label-premium">Last Name</label><input type="text" value="${user.lastName || ''}" readonly class="form-input-readonly"></div>
                         </div>
                         <div><label class="input-label-premium">Email Address</label><input type="email" value="${user.email || ''}" readonly class="form-input-readonly"></div>
                         <div><label class="input-label-premium">Karavan ID</label><input type="text" value="${user.karavanId || ''}" readonly class="form-input-readonly"></div>
-                        <!-- EDITABLE FIELDS -->
-                        <div><label for="profile-contact" class="input-label-premium">Contact Number</label><input type="tel" id="profile-contact" placeholder="Enter contact number" class="form-input-premium"></div>
+                        <div><label for="profile-contact" class="input-label-premium">Contact Number</label><input type="tel" id="profile-contact" value="${userContact}" placeholder="Enter contact number" class="form-input-premium"></div>
                     </div>
 
                     <!-- ADDRESS INFORMATION -->
                     <div class="space-y-6">
                         <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3">
-                            <i class="fas fa-map-marked-alt text-emerald-400"></i>
-                            Address
+                            <i class="fas fa-map-marked-alt text-emerald-400"></i> Address
                         </h3>
-                        <div><label for="profile-country" class="input-label-premium">Country</label><select id="profile-country" class="form-select-premium"><!-- options --></select></div>
-                        <div><label for="profile-address1" class="input-label-premium">Address Line 1</label><input type="text" id="profile-address1" placeholder="Street address" class="form-input-premium"></div>
+                        <div><label for="profile-address1" class="input-label-premium">Address Line 1</label><input type="text" id="profile-address1" value="${userAddress1}" placeholder="Street address" class="form-input-premium"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label for="profile-city" class="input-label-premium">City</label><input type="text" id="profile-city" placeholder="City" class="form-input-premium"></div>
-                            <div><label for="profile-postal" class="input-label-premium">Postal Code</label><input type="text" id="profile-postal" placeholder="Postal code" class="form-input-premium"></div>
+                            <div><label for="profile-city" class="input-label-premium">City</label><input type="text" id="profile-city" value="${userCity}" placeholder="City" class="form-input-premium"></div>
+                            <div><label for="profile-postal" class="input-label-premium">Postal Code</label><input type="text" id="profile-postal" value="${userPostal}" placeholder="Postal code" class="form-input-premium"></div>
                         </div>
-                        <div><label for="profile-state" class="input-label-premium">State/Province</label><input type="text" id="profile-state" placeholder="State or Province" class="form-input-premium"></div>
+                        <div><label for="profile-state" class="input-label-premium">State/Province</label><input type="text" id="profile-state" value="${userState}" placeholder="State or Province" class="form-input-premium"></div>
                     </div>
                 </div>
 
                 <!-- ACTION BUTTONS -->
                 <div class="flex justify-end gap-4 mt-10 pt-6 border-t border-slate-700">
-                    <button type="button" onclick="document.getElementById('profile-modal').close()" class="px-6 py-3 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white rounded-lg transition-all font-medium">Cancel</button>
-                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                    <button type="button" onclick="document.getElementById('profile-modal').close()" class="btn-secondary px-6 py-3 rounded-lg font-medium">Cancel</button>
+                    <button type="submit" class="btn-primary px-8 py-3 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg">
                         <i class="fas fa-save mr-2"></i>Save Changes
                     </button>
                 </div>
@@ -3869,6 +4816,30 @@ renderProfileModal: () => {
     `;
 },
 
+renderReviewStep: (quoteData) => {
+    const reviewContainer = document.getElementById('transaction-review-container');
+    if (!reviewContainer) return;
+    
+    reviewContainer.innerHTML = `
+        <div class="mt-8 pt-6 border-t border-slate-700/50 animate-step-fade-in">
+            <h3 class="text-xl font-bold text-white font-['Orbitron',_sans-serif] mb-4">Final Confirmation</h3>
+            <div class="bg-slate-700/30 rounded-lg p-4 border border-slate-600/30 space-y-2 text-sm mb-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Total to Debit:</span>
+                    <span class="font-mono text-white text-base font-bold">${Utils.formatCurrency(quoteData.totalCost, quoteData.sendCurrency)}</span>
+                </div>
+                 <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Recipient Receives:</span>
+                    <span class="font-mono text-green-400 text-base font-bold">${Utils.formatCurrency(quoteData.receiveAmount, quoteData.receiveCurrency)}</span>
+                </div>
+            </div>
+            <button id="dispatch-btn" onclick="Logic.dispatchFromDashboard()" class="btn-gold w-full py-4 text-lg font-bold">
+                <i class="fas fa-rocket mr-2"></i>Dispatch Karavan
+            </button>
+        </div>
+    `;
+},
+                
 /**
  * [PINNACLE KYC MODAL RENDERER - v2.0]
  * Renders an incredibly advanced, multi-step guided modal for KYC tier upgrades.
