@@ -2757,7 +2757,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbwM6nYlHL5oO-xLerrOuOuVHADDjh0mtDvJAOkfPGLIm0UwceveUx5oQItB9J3Zvfu-/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbyg7RllDnDRPlrZT3mfNvjdTueQljgycG3EO-uOBK5CMbRiSCrsbFpFqGDTqWMgcs3A/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -3566,6 +3566,14 @@ handleAddBeneficiarySubmit: async (e) => {
             owner: AppState.currentUser.karavanId,
             beneficiaryData: beneficiaryData
         });
+
+         // --- DEFINITIVE GUARD CLAUSE ---
+    // This validates the response before modifying the application state.
+    if (!response || typeof response.data !== 'object' || !response.data.id) {
+        // Log the actual response for debugging.
+        console.error("Invalid response from server:", response);
+        throw new Error("API returned an invalid or incomplete beneficiary object.");
+    }
 
         (AppState.marketData.beneficiaries = AppState.marketData.beneficiaries || []).push(response.data);
         
