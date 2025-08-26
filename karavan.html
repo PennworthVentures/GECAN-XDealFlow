@@ -1898,28 +1898,41 @@ resetAllParameters: () => {
                 },
                 
 init: async () => {
-                    try {
-                        await UI.init();
-                        Logic.initMobileUI();
+    try {
+        await UI.init();
+        Logic.initMobileUI();
 
-                        // --- DEFINITIVE SESSION CHECK ---
-                        // This is the critical new step in the initialization process.
-                        if (Logic.checkSession()) {
-                            // A valid session was found. User is already logged in.
-                            Utils.showNotification(`Welcome back, ${AppState.currentUser.partnerName}! Session restored.`, 'success');
-                            // Load their data and go directly to the role selection screen.
-                            await Logic.loadInitialData();
-                            UI.renderView('role_select');
-                        } else {
-                            // No valid session. Show the login screen as normal.
-                            UI.renderView('auth');
-                        }
+        // --- DEFINITIVE SESSION & ROUTING LOGIC ---
+        // This is the single source of truth for the application's initial state.
+        if (Logic.checkSession()) {
+            // [PINNACLE FIX] A valid session was found. User is already authenticated.
+            
+            // 1. Provide immediate user feedback.
+            Utils.showNotification(`Welcome back, ${AppState.currentUser.partnerName}! Session restored.`, 'success');
+            
+            // 2. Hydrate the entire application state with the master data endpoint.
+            await Logic.loadInitialData(); // The loader is handled within this function.
+            
+            // 3. Render the DEFINITIVE authenticated user view: the dashboard shell.
+            // This replaces the obsolete call to 'role_select'.
+            UI.renderView('dashboard_shell');
 
-                    } catch (error) {
-                        console.error('Application initialization failed:', error);
-                        document.getElementById('initial-loader').innerHTML = `<p class="text-center text-error-color">Critical Initialization Failure. Please refresh.</p>`;
-                    }
-                },
+        } else {
+            // No valid session. Show the login screen as normal.
+            UI.renderView('auth');
+        }
+
+    } catch (error) {
+        console.error('CRITICAL INITIALIZATION FAILURE:', error);
+        document.getElementById('initial-loader').innerHTML = `
+            <div class="text-center text-red-400">
+                <i class="fas fa-satellite-dish fa-3x mb-4"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">System Failure</h2>
+                <p class="text-red-400">A critical error occurred during application initialization. Please refresh the page.</p>
+            </div>
+        `;
+    }
+},
                 
                 initMobileUI: () => {
                     const fab = document.getElementById('mobile-fab'), sidebar = document.getElementById('mobile-sidebar'), overlay = document.getElementById('mobile-sidebar-overlay'), closeBtn = document.getElementById('mobile-sidebar-close-btn');
@@ -1934,12 +1947,6 @@ bindEventListeners: (viewName) => {
                             document.getElementById('auth-form')?.addEventListener('submit', Logic.handleLogin);
                             document.getElementById('show-signup-btn')?.addEventListener('click', Logic.showSignupModal);
                         },
-        role_select: () => {
-            // DEFINITIVE FIX: Event listeners are now correctly and robustly bound here.
-            document.getElementById('role-remit')?.addEventListener('click', () => Logic.selectRole('remit'));
-            document.getElementById('role-pay')?.addEventListener('click', () => Logic.selectRole('pay'));
-            document.getElementById('role-lp')?.addEventListener('click', () => UI.renderView('lp_dashboard'));
-        },
         tx_wizard: () => {
             document.getElementById('confirm-destination')?.addEventListener('click', Logic.confirmDestination);
             document.getElementById('confirm-amount')?.addEventListener('click', Logic.confirmAmount);
@@ -5209,38 +5216,7 @@ renderInitialAnalysisState: () => {
                         </div>
                     </div>`,
                 
-renderRoleSelectView: () => `
-                    <div class="max-w-6xl mx-auto text-center">
-                        <div class="mb-12" style="animation: slide-in 0.8s ease-out forwards;">
-                            <h2 class="text-4xl lg:text-5xl font-bold text-white mb-4">
-                                Welcome, <span class="bg-gradient-to-r from-yellow-300 via-brand-gecan-gold to-yellow-500 bg-clip-text text-transparent">${AppState.currentUser?.partnerName}</span>
-                            </h2>
-                            <p class="text-xl text-text-platinum max-w-4xl mx-auto leading-relaxed">
-                                From the ancient Silk Road to the digital frontier, a Karavan has always signified the secure transport of value across borders. Choose your mission:
-                            </p>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            <!-- DEFINITIVE FIX: Removed onclick, will be handled by robust event binder -->
-                            <div id="role-remit" class="role-card" style="animation: slide-in 1.0s ease-out forwards; opacity: 0;">
-                                <div class="role-icon bg-gradient-to-br from-primary-azure to-primary-sapphire"><i class="fas fa-paper-plane text-white"></i></div>
-                                <h3 class="text-2xl font-bold text-white mb-3">GECAN™ Remit</h3>
-                                <p class="text-text-silver mb-4">Send money to family and friends with lightning speed and minimal fees.</p>
-                            </div>
-                            <!-- DEFINITIVE FIX: Removed onclick, will be handled by robust event binder -->
-                            <div id="role-pay" class="role-card" style="animation: slide-in 1.2s ease-out forwards; opacity: 0;">
-                                <div class="role-icon bg-gradient-to-br from-brand-gecan-gold to-warning-color"><i class="fas fa-building text-background-dark"></i></div>
-                                <h3 class="text-2xl font-bold text-white mb-3">GECAN™ Pay</h3>
-                                <p class="text-text-silver mb-4">Execute B2B payments and trade settlements with institutional precision.</p>
-                            </div>
-                            ${AppState.currentUser?.persona === 'lp' ? `
-                            <!-- DEFINITIVE FIX: Removed onclick, will be handled by robust event binder -->
-                            <div id="role-lp" class="role-card" style="animation: slide-in 1.4s ease-out forwards; opacity: 0;">
-                                <div class="role-icon bg-gradient-to-br from-primary-royal to-primary-amethyst"><i class="fas fa-network-wired text-white"></i></div>
-                                <h3 class="text-2xl font-bold text-white mb-3">LP Dashboard</h3>
-                                <p class="text-text-silver mb-4">Manage liquidity pools and monitor network performance.</p>
-                            </div>` : ''}
-                        </div>
-                    </div>`,
+
 
                 renderTransactionWizard: () => {
                     const { transaction } = AppState;
