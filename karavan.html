@@ -1928,7 +1928,7 @@
     <!-- ========================================================================= -->
     <!-- === MAIN APPLICATION VIEWPORT === -->
     <!-- ========================================================================= -->
-    <main id="main-content" class="container mx-auto p-4 pb-32">
+    <main id="main-content" class="container mx-auto p-4 pb-40">
         <!-- Initial Loader State -->
         <div id="initial-loader" class="text-center py-20">
             <div class="relative inline-block mb-6">
@@ -2442,6 +2442,52 @@ toggleProfileMenu: () => {
     // ========================================================================
     // === MODAL ORCHESTRATION ENGINE ===
     // ========================================================================
+
+changeBeneficiaryStep: (targetStep) => {
+    // --- 1. Military-Grade Validation Gates ---
+    if (targetStep > 1 && !document.getElementById('beneficiary-name')?.value.trim()) {
+        return Utils.showNotification("Beneficiary Full Name is required to proceed.", 'warning');
+    }
+    if (targetStep > 2) {
+        if (!document.getElementById('beneficiary-country')?.value) return Utils.showNotification("Country is required to proceed.", 'warning');
+        if (!document.getElementById('payout-method')?.value) return Utils.showNotification("Payout Method is required to proceed.", 'warning');
+    }
+    
+    // --- 2. Dynamic UI Rendering on Step Transition ---
+    if (targetStep === 3) {
+        const payoutMethod = document.getElementById('payout-method').value;
+        UI.toggleBeneficiaryDetails(payoutMethod);
+    }
+    
+    // --- 3. Accordion & Progress Bar State Management ---
+    const steps = [1, 2, 3];
+    steps.forEach(step => {
+        const stepPanel = document.getElementById(`beneficiary-accordion-step-${step}`);
+        const indicator = document.getElementById(`beneficiary-indicator-${step}`);
+        const stepNumberBadge = stepPanel.querySelector('.premium-step-badge');
+        
+        // Mark previous steps as complete
+        if (step < targetStep) {
+            stepPanel.classList.add('completed');
+            stepPanel.classList.remove('active');
+            indicator.classList.add('completed');
+            indicator.classList.remove('active');
+            stepNumberBadge.innerHTML = `<i class="fas fa-check"></i>`;
+        } else {
+             stepNumberBadge.innerHTML = `<span class="premium-step-number">${step}</span>`;
+        }
+
+        // Toggle the target step's active state
+        stepPanel.classList.toggle('active', step === targetStep);
+        indicator.classList.toggle('active', step === targetStep);
+    });
+
+    const progressBar = document.getElementById('beneficiary-progress-bar');
+    if (progressBar) {
+        progressBar.style.width = `${((targetStep - 1) / (steps.length - 1)) * 100}%`;
+    }
+},
+    
 renderAndShowModal: (modalId, contentHtml, bindListenersFunc = null) => {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -4929,7 +4975,7 @@ renderDashboardShell: () => {
         </aside>
 
         <!-- Main Dynamic Content Area -->
-        <main id="dashboard-main-content" class="flex-grow overflow-y-auto bg-gradient-to-br from-slate-800/30 to-slate-900/50 animate-step-fade-in">
+        <main id="dashboard-main-content" class="flex-grow overflow-y-auto bg-gradient-to-br from-slate-800/30 to-slate-900/50 animate-step-fade-in pb-28">
             ${UI.renderDashboardContent('dashboard')}
         </main>
     </div>
@@ -6513,50 +6559,7 @@ toggleBeneficiaryDetails: (method) => {
     container.style.display = (method === 'bank' || method === 'mobile' || method.startsWith('crypto_')) ? 'block' : 'none';
 },
 
-changeBeneficiaryStep: (targetStep) => {
-    // --- 1. Military-Grade Validation Gates ---
-    if (targetStep > 1 && !document.getElementById('beneficiary-name')?.value.trim()) {
-        return Utils.showNotification("Beneficiary Full Name is required to proceed.", 'warning');
-    }
-    if (targetStep > 2) {
-        if (!document.getElementById('beneficiary-country')?.value) return Utils.showNotification("Country is required to proceed.", 'warning');
-        if (!document.getElementById('payout-method')?.value) return Utils.showNotification("Payout Method is required to proceed.", 'warning');
-    }
-    
-    // --- 2. Dynamic UI Rendering on Step Transition ---
-    if (targetStep === 3) {
-        const payoutMethod = document.getElementById('payout-method').value;
-        UI.toggleBeneficiaryDetails(payoutMethod);
-    }
-    
-    // --- 3. Accordion & Progress Bar State Management ---
-    const steps = [1, 2, 3];
-    steps.forEach(step => {
-        const stepPanel = document.getElementById(`beneficiary-accordion-step-${step}`);
-        const indicator = document.getElementById(`beneficiary-indicator-${step}`);
-        const stepNumberBadge = stepPanel.querySelector('.premium-step-badge');
-        
-        // Mark previous steps as complete
-        if (step < targetStep) {
-            stepPanel.classList.add('completed');
-            stepPanel.classList.remove('active');
-            indicator.classList.add('completed');
-            indicator.classList.remove('active');
-            stepNumberBadge.innerHTML = `<i class="fas fa-check"></i>`;
-        } else {
-             stepNumberBadge.innerHTML = `<span class="premium-step-number">${step}</span>`;
-        }
 
-        // Toggle the target step's active state
-        stepPanel.classList.toggle('active', step === targetStep);
-        indicator.classList.toggle('active', step === targetStep);
-    });
-
-    const progressBar = document.getElementById('beneficiary-progress-bar');
-    if (progressBar) {
-        progressBar.style.width = `${((targetStep - 1) / (steps.length - 1)) * 100}%`;
-    }
-},
                 
                 toggleBankDetails: (e) => {
                     const container = document.getElementById('bank-details-container');
