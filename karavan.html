@@ -4167,6 +4167,7 @@ changeSignupStep: (targetStep) => {
         document.head.appendChild(style);
     }
 },
+                        
 bindSignupListeners: () => {
     const form = document.getElementById('signup-form');
     if (!form) return;
@@ -4335,13 +4336,6 @@ bindSignupListeners: () => {
     }
 },
 
-
-/**
- * [PINNACLE HELPER] A centralized, state-driven UI updater for the Karavan ID field.
- * This eliminates code duplication and makes UI state management clean and predictable.
- * @param {string} state - The target state: 'loading', 'valid', 'invalid', or 'error'.
- * @param {string} message - The text to display to the user.
- */
 _updateIdFieldState: (state, message) => {
     const input = document.getElementById('signup-karavan-id');
     const resultIcon = document.getElementById('id-check-result');
@@ -4376,12 +4370,6 @@ _updateIdFieldState: (state, message) => {
     }
 },
 
-/**
- * [PINNACLE ID VERIFICATION ENGINE v2.1 - Definitive & Corrected]
- * A high-performance, race-condition-proof Karavan ID availability checker.
- * This version contains the definitive fix for the response parsing logic, ensuring
- * accurate integration with the backend and eliminating false "ID taken" errors.
- */
 checkKaravanIdAvailability: async () => {
     // 1. ABORT PREVIOUS REQUEST TO PREVENT RACE CONDITIONS
     if (Logic._idCheckController) {
@@ -4424,13 +4412,7 @@ checkKaravanIdAvailability: async () => {
         console.warn('ID availability check failed:', error);
     }
 },
-/**
- * [PINNACLE SIGNUP ENGINE v3.0 - Definitive & Unabridged]
- * Orchestrates the user creation workflow by combining a superior client-side UX with a
- * streamlined, single-source-of-truth transaction model. It provides immediate, per-field
- * validation feedback while trusting the backend as the final arbiter, with intelligent
- * error handling to guide the user to any server-side validation failures.
- */
+
 handleSignup: async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -4597,7 +4579,7 @@ bindAuthListeners: () => {
             Logic.showSignupModal();
         });
     }
-},
+}
             
 
             // --- SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ---
