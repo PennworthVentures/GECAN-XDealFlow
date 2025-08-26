@@ -43,6 +43,16 @@
 
     <style>
 
+        /* ========================================================================= */
+        /* === PINNACLE MODAL SCROLL FIX (DEFINITIVE) === */
+        /* ========================================================================= */
+        .modal-scroll-content {
+            overflow-y: auto;
+            /* Calculate max height to account for modal padding and header */
+            max-height: calc(100vh - 20rem); /* 20rem is a safe, generous value */
+            padding-right: 1rem; /* Add padding to prevent scrollbar from overlapping content */
+        }
+
         .content-hidden {
             opacity: 0;
             transition: opacity 0.8s ease-in-out;
@@ -3830,7 +3840,7 @@ showSignupModal: () => {
                     <i class="fas fa-times"></i>
                 </button>
                 
-                <div class="relative z-10 p-8 md:p-12">
+                <div class="relative z-10 p-8 md:p-12 flex flex-col h-full">
                     <!-- PREMIUM HEADER SECTION -->
                     <div class="text-center mb-10">
                         <div class="premium-vault-icon">
@@ -3863,6 +3873,8 @@ showSignupModal: () => {
                             </div>
                         </div>
                     </div>
+
+                    <div class="modal-scroll-content flex-grow">
 
                     <!-- PREMIUM GUIDED WORKFLOW ACCORDION -->
                     <form id="signup-form" class="premium-form-container">
@@ -4101,6 +4113,7 @@ showSignupModal: () => {
                             </div>
                         </div>
                     </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -5954,7 +5967,7 @@ renderAccountModal: () => `
             
             <button onclick="document.getElementById('account-modal').close()" class="premium-close-btn"><i class="fas fa-times"></i></button>
             
-            <div class="relative z-10 p-8 md:p-12">
+            <div class="relative z-10 p-8 md:p-12 flex flex-col h-full">
                 <!-- PREMIUM HEADER SECTION -->
                 <div class="text-center mb-10">
                     <div class="premium-vault-icon" style="animation: none; transform: translateY(-10px);">
@@ -6054,6 +6067,7 @@ renderAccountModal: () => `
                         </div>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
@@ -6297,7 +6311,7 @@ renderAddBeneficiaryModal: () => `
                 <i class="fas fa-times"></i>
             </button>
             
-            <div class="relative z-10 p-8 md:p-12">
+            <div class="relative z-10 p-8 md:p-12 flex flex-col h-full">
                 <!-- PREMIUM HEADER SECTION -->
                 <div class="text-center mb-10">
                     <div class="premium-vault-icon">
@@ -6330,6 +6344,8 @@ renderAddBeneficiaryModal: () => `
                         </div>
                     </div>
                 </div>
+
+                <div class="modal-scroll-content flex-grow">
 
                 <!-- PREMIUM GUIDED WORKFLOW ACCORDION -->
                 <form id="beneficiary-add-form" class="premium-form-container">
@@ -6576,6 +6592,7 @@ renderAddBeneficiaryModal: () => `
                         </div>
                     </div>
                 </form>
+                </div>
             </div>
         </div>
     </div>
