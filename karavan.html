@@ -1189,7 +1189,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbxH-9jyp9TYc4ZKWExn3CEpy6yR_MhUbwfWni1gqK9kWCXv0GfqEEVF4_BJU9spLNXu/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbyXsezsi_2jOz2yUEJN743JmzoCrSuVVkvv43PiB0XyLY8HigJrDlH0Gmm8ekLmpq5Z/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -3641,19 +3641,77 @@ bindAuthListeners: () => {
             },
                 
 loadInitialData: async () => {
-                    try {
-                        const [rates, beneficiaries] = await Promise.all([
-                            // DEFINITIVE FIX: Explicitly specify 'GET' method.
-                            Utils.createApiRequest('getMarketMatrixData', 'GET'),
-                            Utils.createApiRequest('karavanGetBeneficiaries', 'POST', { karavanId: AppState.currentUser.karavanId })
-                        ]);
-                        AppState.marketData.rates = rates.filter(r => r.status === 'OK' || r.status === 'MANUAL');
-                        AppState.marketData.beneficiaries = beneficiaries;
-                        UI.startHoloStream();
-                    } catch (error) {
-                        Utils.showNotification('Failed to load critical market data. Some features may be limited.', 'warning');
-                    }
-                },
+    const loader = document.getElementById('initial-loader');
+    const loaderText = loader?.querySelector('p');
+
+    try {
+        // --- Phase 1: Signal Intent & Execute API Transaction ---
+        if (loaderText) {
+            loaderText.textContent = 'Hydrating secure dashboard state...';
+        }
+        
+        // A single, unified API call to the master data hydration endpoint.
+        const dashboardDataPayload = await Utils.createApiRequest('karavanGetDashboardData', 'POST', {
+            karavanId: AppState.currentUser.karavanId
+        });
+
+        // --- Phase 2: Military-Grade Data Validation & State Population ---
+        if (!dashboardDataPayload) {
+            throw new Error("Received an empty or invalid response from the data hydration service.");
+        }
+
+        // Destructure the complete data payload with robust, resilient fallbacks.
+        // This prevents the application from crashing if the backend API returns a partial object.
+        const {
+            beneficiaries = [],
+            accounts = [],
+            transactions = [],
+            marketRates = []
+        } = dashboardDataPayload;
+
+        // Populate all necessary parts of the application state with the validated data.
+        AppState.marketData.rates = marketRates.filter(r => r.status === 'OK' || r.status === 'MANUAL');
+        AppState.marketData.beneficiaries = beneficiaries;
+        AppState.accounts = accounts;
+        AppState.allTransactions = transactions; // For the Transfers History view
+
+        // --- Phase 3: Initialize Dependent UI Components ---
+        // Initialize the live market data ticker with the fetched data.
+        UI.startHoloStream();
+
+    } catch (error) {
+        // --- Pinnacle-Grade Error Handling ---
+        // Provide a specific, helpful error message to the user.
+        Utils.showNotification('Critical Error: Failed to load dashboard data. Core services may be unavailable.', 'error');
+        
+        // Update the loader to reflect the failure state, providing clear feedback.
+        if (loader) {
+            loader.innerHTML = `
+                <div class="text-center text-red-400">
+                    <i class="fas fa-times-circle fa-3x mb-4"></i>
+                    <h2 class="text-2xl font-bold text-white mb-2">Connection Failure</h2>
+                    <p class="text-red-400">Could not establish a secure connection to the GECAN network.</p>
+                </div>
+            `;
+        }
+        
+        // Log the detailed error for debugging.
+        console.error("Definitive Dashboard Hydration Failed:", error);
+
+    } finally {
+        // --- Guaranteed UI Cleanup ---
+        // This block ensures that, regardless of success or failure, the main loader
+        // is hidden after a brief delay, allowing the dashboard (even in an empty
+        // or error state) to be displayed.
+        setTimeout(() => {
+            if (loader) {
+                loader.style.transition = 'opacity 0.5s ease-out';
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }
+        }, 200);
+    }
+},
 
                 selectRole: async (roleType) => {
                     Utils.showNotification('Initializing secure transaction environment...', 'info');
