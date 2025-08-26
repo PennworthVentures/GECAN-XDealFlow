@@ -1191,7 +1191,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbzsARBLjOWdCXLLT6aMrcwHoTm6eoLSiQMQiYbQczVpTTg4zgRvRJ_wA7DcVRCzWvN4/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbyofdldyo9JXx2PscW6nq7MirFgQlfGPKWstaMKT13GSiCuXfqy_Fd91YkooSRL4xsQ/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -1690,30 +1690,43 @@ bindProfileModalListeners: () => {
 handleProfileUpdate: async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (!submitBtn) return;
+
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Saving...`;
     
-    const profileData = {
-        contactNumber: document.getElementById('profile-contact').value,
-        country: document.getElementById('profile-country').value,
-        addressLine1: document.getElementById('profile-address1').value,
-        addressLine2: document.getElementById('profile-address2').value,
-        city: document.getElementById('profile-city').value,
-        stateProvince: document.getElementById('profile-state').value,
-        postalCode: document.getElementById('profile-postal').value,
-        passportNumber: document.getElementById('profile-passport').value,
-        passportExpiry: document.getElementById('profile-passport-expiry').value,
-    };
+    // [PINNACLE UPGRADE] Build the payload defensively, only including values from elements that exist.
+    const profileData = {};
+    const fieldIds = [
+        'profile-contact', 'profile-country', 'profile-address1', 'profile-address2',
+        'profile-city', 'profile-state', 'profile-postal',
+        'profile-passport', 'profile-passport-expiry'
+    ];
     
+    // This loop prevents any "Cannot read properties of null" errors.
+    fieldIds.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            // Convert camelCase id to snake_case key for backend consistency
+            const key = id.replace('profile-', '').replace(/([A-Z])/g, '_$1').toLowerCase();
+            profileData[key] = element.value;
+        }
+    });
+
     try {
         await Utils.createApiRequest('karavanUpdateProfile', 'POST', {
             karavanId: AppState.currentUser.karavanId,
             profileData: profileData
         });
+
+        // Optimistically update the local user state for a faster UI response.
+        Object.assign(AppState.currentUser, profileData);
+        Logic.persistSession(AppState.currentUser);
+
         Utils.showNotification('Profile updated successfully!', 'success');
         document.getElementById('profile-modal')?.close();
-        // Potentially refresh user data from backend here for full sync
-    } catch (error) {
+
+    } catch (error)_ {
         Utils.showNotification(error.message, 'error');
     } finally {
         submitBtn.disabled = false;
@@ -1902,11 +1915,16 @@ handleAddBeneficiarySubmit: async (e) => {
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Adding...`;
 
+    // [PINNACLE UPGRADE] Gathers data from the new, dynamic, crypto-aware form structure.
     const beneficiaryData = {
-        name: document.getElementById('beneficiary-name').value,
-        country: document.getElementById('beneficiary-country').value,
-        payoutMethod: document.getElementById('payout-method').value,
-        bankDetails: document.getElementById('bank-details')?.value
+        name: document.getElementById('beneficiary-name')?.value,
+        country: document.getElementById('beneficiary-country')?.value,
+        payoutMethod: document.getElementById('payout-method')?.value,
+        bankDetails: document.getElementById('bank-details')?.value,
+        mobileNumber: document.getElementById('mobile-number')?.value,
+        cryptoAddress: document.getElementById('crypto-address')?.value,
+        email: document.getElementById('beneficiary-email')?.value,
+        address: document.getElementById('beneficiary-address')?.value,
     };
     
     try {
@@ -1914,12 +1932,13 @@ handleAddBeneficiarySubmit: async (e) => {
             owner: AppState.currentUser.karavanId,
             beneficiaryData: beneficiaryData
         });
+
         (AppState.marketData.beneficiaries = AppState.marketData.beneficiaries || []).push(response.data);
         
         Utils.showNotification('Beneficiary added successfully!', 'success');
         document.getElementById('beneficiary-modal')?.close();
         
-        // [CRITICAL INTEGRATION STEP] Call the targeted refresh for a seamless experience.
+        // This performs a targeted, seamless update of the dropdown menu.
         UI.refreshBeneficiaryDropdown();
 
     } catch (error) {
@@ -5035,15 +5054,19 @@ renderGlobalAccountsView: () => {
  */
 renderProfileModal: () => {
     const user = AppState.currentUser;
-    // NOTE: In a real app, address/country would also come from the user object.
-    // We'll use placeholders for demonstration.
-    const userContact = user.contactNumber || '';
-    const userAddress1 = user.addressLine1 || '';
-    const userCity = user.city || '';
-    const userPostal = user.postalCode || '';
-    const userState = user.stateProvince || '';
+    if (!user) return ''; // Prevent rendering if user data is not available
 
-    // The HTML is the same, but now uses variables to pre-fill `value` attributes
+    // [PINNACLE UPGRADE] Pre-populate data with robust fallbacks to prevent 'null' or 'undefined' in form fields.
+    const userContact = user.contactNumber || '';
+    const userCountry = user.country || '';
+    const userAddress1 = user.addressLine1 || '';
+    const userAddress2 = user.addressLine2 || '';
+    const userCity = user.city || '';
+    const userState = user.stateProvince || '';
+    const userPostal = user.postalCode || '';
+    const userPassport = user.passportNumber || '';
+    const userPassportExpiry = user.passportExpiry || '';
+
     return `
     <div class="p-6 max-w-4xl mx-auto">
         <div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
@@ -5054,7 +5077,7 @@ renderProfileModal: () => {
                         <i class="fas fa-user-edit text-white text-2xl"></i>
                     </div>
                     <div>
-                        <h2 class="text-3xl font-bold text-white font-['Orbitron',_sans-serif]">Edit Your Profile</h2>
+                        <h2 class="text-3xl font-bold text-white font-['Orbitron',_sans_serif]">Edit Your Profile</h2>
                         <p class="text-slate-400">Keep your information up-to-date for a seamless experience.</p>
                     </div>
                 </div>
@@ -5063,11 +5086,11 @@ renderProfileModal: () => {
                 </button>
             </div>
             
-            <form id="profile-update-form">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <form id="profile-update-form" onsubmit="Logic.handleProfileUpdate(event)">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
                     <!-- PERSONAL & CONTACT INFORMATION -->
                     <div class="space-y-6">
-                        <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3">
+                        <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3 mb-6">
                             <i class="fas fa-user-circle text-sky-400"></i> Personal & Contact
                         </h3>
                         <div class="grid grid-cols-2 gap-4">
@@ -5079,10 +5102,10 @@ renderProfileModal: () => {
                         <div><label for="profile-contact" class="input-label-premium">Contact Number</label><input type="tel" id="profile-contact" value="${userContact}" placeholder="Enter contact number" class="form-input-premium"></div>
                     </div>
 
-                    <!-- ADDRESS INFORMATION -->
+                    <!-- ADDRESS & IDENTIFICATION -->
                     <div class="space-y-6">
-                        <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3">
-                            <i class="fas fa-map-marked-alt text-emerald-400"></i> Address
+                        <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3 mb-6">
+                            <i class="fas fa-map-marked-alt text-emerald-400"></i> Address & Identification
                         </h3>
                         <div><label for="profile-address1" class="input-label-premium">Address Line 1</label><input type="text" id="profile-address1" value="${userAddress1}" placeholder="Street address" class="form-input-premium"></div>
                         <div class="grid grid-cols-2 gap-4">
@@ -5090,6 +5113,12 @@ renderProfileModal: () => {
                             <div><label for="profile-postal" class="input-label-premium">Postal Code</label><input type="text" id="profile-postal" value="${userPostal}" placeholder="Postal code" class="form-input-premium"></div>
                         </div>
                         <div><label for="profile-state" class="input-label-premium">State/Province</label><input type="text" id="profile-state" value="${userState}" placeholder="State or Province" class="form-input-premium"></div>
+                        
+                        <!-- [DEFINITIVE FIX] Missing passport fields are now rendered and synchronized with the controller. -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label for="profile-passport" class="input-label-premium">Passport Number</label><input type="text" id="profile-passport" value="${userPassport}" placeholder="Passport No." class="form-input-premium"></div>
+                            <div><label for="profile-passport-expiry" class="input-label-premium">Passport Expiry</label><input type="date" id="profile-passport-expiry" value="${userPassportExpiry}" class="form-input-premium" style="color-scheme: dark;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -5398,56 +5427,142 @@ renderInitialAnalysisState: () => {
                     <div class="max-w-6xl mx-auto"><div class="text-center mb-12"><h2 class="text-3xl font-bold text-white mb-2">Liquidity Partner Dashboard</h2><p class="text-lg text-text-silver">Manage your liquidity pools and monitor network performance</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Available Liquidity</h3><i class="fas fa-wallet text-primary-azure text-xl"></i></div><div class="text-2xl font-bold text-success-color mb-2">$2.5M USD</div><div class="text-sm text-text-muted">Across all currencies</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">24H Volume</h3><i class="fas fa-chart-line text-brand-gecan-gold text-xl"></i></div><div class="text-2xl font-bold text-primary-azure mb-2">$487K</div><div class="text-sm text-success-color">+12.5% vs yesterday</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Fees Earned</h3><i class="fas fa-coins text-warning-color text-xl"></i></div><div class="text-2xl font-bold text-warning-color mb-2">$1,247</div><div class="text-sm text-text-muted">This month</div></div></div><div class="glass-premium p-6 rounded-xl"><h3 class="text-xl font-bold text-white mb-4">Recent Settlement Requests</h3><div class="space-y-3">${[1,2,3,4,5].map(i => `<div class="flex items-center justify-between p-4 bg-background-dark rounded-lg"><div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-success-color"></div><div><div class="font-medium text-white">SGD ${(Math.random() * 10000).toFixed(0)} → PHP</div><div class="text-sm text-text-muted">${i * 5} minutes ago</div></div></div><div class="text-success-color font-medium">Completed</div></div>`).join('')}</div></div></div>`,
                 
 renderAddBeneficiaryModal: () => `
-    <div class="dialog-content-wrapper">
-        <div class="p-8">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-2xl font-bold text-white mb-1">Add New Beneficiary</h3>
-                    <p class="text-text-silver">Securely add a trusted recipient to your list.</p>
+    <div class="dialog-content-wrapper" style="max-width: 52rem;">
+        <div class="auth-modal auth-modal-v2 premium-glass-container relative overflow-hidden">
+            <div class="premium-bg-overlay"></div>
+            <div class="premium-grid-pattern"></div>
+            
+            <button onclick="document.getElementById('beneficiary-modal').close()" class="premium-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="relative z-10 p-8 md:p-12">
+                <!-- PREMIUM HEADER SECTION -->
+                <div class="text-center mb-10">
+                    <div class="premium-vault-icon" style="animation: none; transform: translateY(-10px);">
+                        <div class="premium-vault-inner">
+                            <i class="fas fa-user-plus premium-main-icon" style="font-size: 40px;"></i>
+                        </div>
+                    </div>
+                    <h3 class="premium-main-title">Add New Beneficiary</h3>
+                    <p class="premium-subtitle">Securely add a trusted recipient to your ledger.</p>
                 </div>
-                <button onclick="document.getElementById('beneficiary-modal').close()" class="modal-close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
+
+                <!-- PREMIUM FORM -->
+                <form id="beneficiary-add-form">
+                    <div class="space-y-6">
+                        <!-- CORE DETAILS -->
+                        <div class="premium-field-row">
+                            <div class="premium-field-group flex-1">
+                                <label for="beneficiary-name" class="premium-field-label"><i class="fas fa-user mr-2"></i>Beneficiary Full Name</label>
+                                <div class="premium-input-container">
+                                    <input type="text" id="beneficiary-name" class="premium-form-input" placeholder="e.g., Maria Dela Cruz" required>
+                                </div>
+                            </div>
+                            <div class="premium-field-group flex-1">
+                                <label for="beneficiary-country" class="premium-field-label"><i class="fas fa-globe-asia mr-2"></i>Country</label>
+                                <div class="premium-select-container">
+                                    <select id="beneficiary-country" class="premium-form-select" required>
+                                        <option value="" disabled selected>Select country...</option>
+                                        <option value="Philippines">Philippines</option>
+                                        <option value="Singapore">Singapore</option>
+                                        <option value="Malaysia">Malaysia</option>
+                                        <option value="Thailand">Thailand</option>
+                                        <option value="Vietnam">Vietnam</option>
+                                    </select>
+                                    <div class="premium-select-arrow"><i class="fas fa-chevron-down"></i></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PAYOUT METHOD & CONDITIONAL DETAILS -->
+                        <div class="premium-field-group">
+                            <label for="payout-method" class="premium-field-label"><i class="fas fa-money-check-alt mr-2"></i>Payout Method</label>
+                            <div class="premium-select-container">
+                                <!-- [PINNACLE UPGRADE] New USDT options added. -->
+                                <select id="payout-method" class="premium-form-select" onchange="UI.toggleBeneficiaryDetails(this.value)" required>
+                                    <option value="" disabled selected>Select method...</option>
+                                    <option value="bank">Bank Transfer</option>
+                                    <option value="mobile">Mobile Money / e-Wallet</option>
+                                    <option value="crypto_trc20">USDT (TRC-20 Tron)</option>
+                                    <option value="crypto_erc20">USDT (ERC-20 Ethereum)</option>
+                                    <option value="cash">Cash Pickup</option>
+                                </select>
+                                <div class="premium-select-arrow"><i class="fas fa-chevron-down"></i></div>
+                            </div>
+                        </div>
+
+                        <!-- DYNAMIC DETAILS CONTAINER -->
+                        <div id="beneficiary-details-container" class="premium-field-group" style="display: none; animation: pinnacle-fade-in 0.5s;">
+                            <!-- This will be populated by UI.toggleBeneficiaryDetails -->
+                        </div>
+
+                        <!-- OPTIONAL CONTACT DETAILS -->
+                         <div class="premium-field-row">
+                            <div class="premium-field-group flex-1">
+                                <label for="beneficiary-email" class="premium-field-label"><i class="fas fa-envelope mr-2"></i>Beneficiary Email (Optional)</label>
+                                <div class="premium-input-container">
+                                    <input type="email" id="beneficiary-email" class="premium-form-input" placeholder="recipient@email.com">
+                                </div>
+                                <div class="premium-field-hint">For sending transaction receipts.</div>
+                            </div>
+                            <div class="premium-field-group flex-1">
+                                <label for="beneficiary-address" class="premium-field-label"><i class="fas fa-map-marker-alt mr-2"></i>Address (Optional)</label>
+                                <div class="premium-input-container">
+                                    <input type="text" id="beneficiary-address" class="premium-form-input" placeholder="Street, City">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ACTION BUTTONS -->
+                        <div class="premium-nav-section pt-6 mt-6">
+                             <button type="button" onclick="document.getElementById('beneficiary-modal').close()" class="premium-btn-secondary">Cancel</button>
+                             <button type="submit" class="premium-btn-primary">
+                                <i class="fas fa-user-plus mr-2"></i>Add Beneficiary
+                             </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <form id="beneficiary-add-form" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="input-label-premium">Beneficiary Full Name</label>
-                        <input type="text" id="beneficiary-name" class="form-input-premium" required>
-                    </div>
-                    <div>
-                        <label class="input-label-premium">Country</label>
-                        <select id="beneficiary-country" class="form-select-premium" required>
-                            <option value="">Select country...</option>
-                            <option value="Philippines">Philippines</option>
-                            <option value="Singapore">Singapore</option>
-                            <option value="Malaysia">Malaysia</option>
-                            <option value="Thailand">Thailand</option>
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="input-label-premium">Payout Method</label>
-                    <select id="payout-method" class="form-select-premium" onchange="this.value === 'bank' ? document.getElementById('bank-details-container').style.display='block' : document.getElementById('bank-details-container').style.display='none'" required>
-                        <option value="">Select method...</option>
-                        <option value="bank">Bank Transfer</option>
-                        <option value="ewallet">Digital Wallet</option>
-                        <option value="cash">Cash Pickup</option>
-                    </select>
-                </div>
-                <div id="bank-details-container" style="display:none;">
-                    <label class="input-label-premium">Bank Details</label>
-                    <textarea id="bank-details" class="form-input-premium" rows="3" placeholder="Bank Name, Account Number, Branch..."></textarea>
-                </div>
-                <div class="flex gap-4 pt-4">
-                    <button type="button" onclick="document.getElementById('beneficiary-modal').close()" class="btn-secondary py-3 rounded-lg flex-1">Cancel</button>
-                    <button type="submit" class="btn-primary py-3 rounded-lg flex-1">
-                        <i class="fas fa-user-plus mr-2"></i>Add Beneficiary
-                    </button>
-                </div>
-            </form>
         </div>
-    </div>`,
+    </div>
+`,
+
+toggleBeneficiaryDetails: (method) => {
+    const container = document.getElementById('beneficiary-details-container');
+    if (!container) return;
+
+    let html = '';
+    // [PINNACLE UPGRADE] This function is now fully crypto-aware.
+    if (method === 'bank') {
+        html = `
+            <label for="bank-details" class="premium-field-label"><i class="fas fa-university mr-2"></i>Bank Details</label>
+            <div class="premium-input-container">
+                <textarea id="bank-details" class="premium-form-input" style="height: auto;" rows="3" placeholder="e.g., Bank Name, Account Number, SWIFT/BIC" required></textarea>
+            </div>
+            <div class="premium-field-hint">Enter all required bank information for the destination country.</div>`;
+    } else if (method === 'mobile') {
+        html = `
+            <label for="mobile-number" class="premium-field-label"><i class="fas fa-mobile-alt mr-2"></i>Mobile Money / e-Wallet Number</label>
+            <div class="premium-input-container">
+                <input type="tel" id="mobile-number" class="premium-form-input" placeholder="e.g., +639171234567" required>
+            </div>
+            <div class="premium-field-hint">Ensure the number is correct and active.</div>`;
+    } else if (method.startsWith('crypto_')) {
+        const network = method === 'crypto_trc20' ? 'TRC-20 (Tron)' : 'ERC-20 (Ethereum)';
+        const pattern = method === 'crypto_trc20' ? '^T[a-zA-Z0-9]{33}$' : '^0x[a-fA-F0-9]{40}$';
+        const placeholder = method === 'crypto_trc20' ? 'T...' : '0x...';
+        html = `
+            <label for="crypto-address" class="premium-field-label"><i class="fab fa-ethereum mr-2"></i>USDT Wallet Address (${network})</label>
+            <div class="premium-input-container">
+                <input type="text" id="crypto-address" class="premium-form-input font-mono" placeholder="${placeholder}" pattern="${pattern}" required>
+            </div>
+            <div class="premium-field-hint">Double-check the address. Crypto transactions are irreversible.</div>`;
+    }
+
+    container.innerHTML = html;
+    container.style.display = (method === 'bank' || method === 'mobile' || method.startsWith('crypto_')) ? 'block' : 'none';
+},
                 
                 toggleBankDetails: (e) => {
                     const container = document.getElementById('bank-details-container');
