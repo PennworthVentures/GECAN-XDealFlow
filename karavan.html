@@ -2757,7 +2757,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbyg7RllDnDRPlrZT3mfNvjdTueQljgycG3EO-uOBK5CMbRiSCrsbFpFqGDTqWMgcs3A/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycby87A2HNN7dp0LmtIMDIB7ykRp6Riv8mq60lVU3Xi1uiLSes5qOVBbiYc_lpVBtn0sF/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -3717,17 +3717,29 @@ dispatchFromDashboard: async () => {
     dispatchBtn.innerHTML = `<div class="premium-spinner"></div> Dispatching...`;
 
     try {
-        const response = await Utils.createApiRequest('karavanDispatch', 'POST', { transaction: AppState.transaction, user: AppState.currentUser });
+        // --- 1. Dispatch the transaction ---
+        const dispatchResponse = await Utils.createApiRequest('karavanDispatch', 'POST', { transaction: AppState.transaction, user: AppState.currentUser });
+
+        if (!dispatchResponse || !dispatchResponse.success || !dispatchResponse.transactionId) {
+            throw new Error("Dispatch failed to return a valid transaction ID.");
+        }
         
-        // Update transaction state with final details
-        AppState.transaction.id = response.transactionId;
-        AppState.transaction.status = 'initiated'; // Or whatever the API returns
-        AppState.transaction.timestamp = new Date().toISOString();
+        Utils.showNotification('Karavan Dispatched! Finalizing ledger...', 'info');
+
+        // --- 2. [PINNACLE UPGRADE] Immediately re-fetch all transactions to get the complete record ---
+        // This ensures the data displayed is the authoritative version from the database.
+        const updatedTransactions = await Utils.createApiRequest('karavanGetTransactions', 'POST', { karavanId: AppState.currentUser.karavanId });
         
-        Utils.showNotification('Karavan Dispatched! Tracking initiated.', 'success');
+        // 3. Update the application state with the fresh, complete data
+        AppState.allTransactions = updatedTransactions.data;
         
-        // Transition to the tracker view
-        Logic.handleSidebarClick('transfers'); // Or a dedicated tracker view
+        // 4. Clear the temporary transaction object
+        AppState.transaction = null;
+
+        Utils.showNotification('Transaction recorded successfully! Viewing history.', 'success');
+        
+        // 5. Transition to the tracker view, which will now have the complete data
+        Logic.handleSidebarClick('transfers');
 
     } catch (error) {
         Utils.showNotification(`Dispatch failed: ${error.message}`, 'error');
