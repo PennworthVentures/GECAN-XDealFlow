@@ -3151,51 +3151,6 @@ toggleProfileMenu: () => {
     // === MODAL ORCHESTRATION ENGINE ===
     // ========================================================================
 
-changeBeneficiaryStep: (targetStep) => {
-    // --- 1. Military-Grade Validation Gates ---
-    if (targetStep > 1 && !document.getElementById('beneficiary-name')?.value.trim()) {
-        return Utils.showNotification("Beneficiary Full Name is required to proceed.", 'warning');
-    }
-    if (targetStep > 2) {
-        if (!document.getElementById('beneficiary-country')?.value) return Utils.showNotification("Country is required to proceed.", 'warning');
-        if (!document.getElementById('payout-method')?.value) return Utils.showNotification("Payout Method is required to proceed.", 'warning');
-    }
-    
-    // --- 2. Dynamic UI Rendering on Step Transition ---
-    if (targetStep === 3) {
-        const payoutMethod = document.getElementById('payout-method').value;
-        UI.toggleBeneficiaryDetails(payoutMethod);
-    }
-    
-    // --- 3. Accordion & Progress Bar State Management ---
-    const steps = [1, 2, 3];
-    steps.forEach(step => {
-        const stepPanel = document.getElementById(`beneficiary-accordion-step-${step}`);
-        const indicator = document.getElementById(`beneficiary-indicator-${step}`);
-        const stepNumberBadge = stepPanel.querySelector('.premium-step-badge');
-        
-        // Mark previous steps as complete
-        if (step < targetStep) {
-            stepPanel.classList.add('completed');
-            stepPanel.classList.remove('active');
-            indicator.classList.add('completed');
-            indicator.classList.remove('active');
-            stepNumberBadge.innerHTML = `<i class="fas fa-check"></i>`;
-        } else {
-             stepNumberBadge.innerHTML = `<span class="premium-step-number">${step}</span>`;
-        }
-
-        // Toggle the target step's active state
-        stepPanel.classList.toggle('active', step === targetStep);
-        indicator.classList.toggle('active', step === targetStep);
-    });
-
-    const progressBar = document.getElementById('beneficiary-progress-bar');
-    if (progressBar) {
-        progressBar.style.width = `${((targetStep - 1) / (steps.length - 1)) * 100}%`;
-    }
-},
-    
 renderAndShowModal: (modalId, contentHtml, bindListenersFunc = null) => {
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -3467,6 +3422,52 @@ bindBeneficiaryModalListeners: () => {
         el.querySelector('.premium-accordion-header').addEventListener('click', () => Logic.changeBeneficiaryStep(index + 1));
     });
 },
+
+changeBeneficiaryStep: (targetStep) => {
+    // --- 1. Military-Grade Validation Gates ---
+    if (targetStep > 1 && !document.getElementById('beneficiary-name')?.value.trim()) {
+        return Utils.showNotification("Beneficiary Full Name is required to proceed.", 'warning');
+    }
+    if (targetStep > 2) {
+        if (!document.getElementById('beneficiary-country')?.value) return Utils.showNotification("Country is required to proceed.", 'warning');
+        if (!document.getElementById('payout-method')?.value) return Utils.showNotification("Payout Method is required to proceed.", 'warning');
+    }
+    
+    // --- 2. Dynamic UI Rendering on Step Transition ---
+    if (targetStep === 3) {
+        const payoutMethod = document.getElementById('payout-method').value;
+        UI.toggleBeneficiaryDetails(payoutMethod);
+    }
+    
+    // --- 3. Accordion & Progress Bar State Management ---
+    const steps = [1, 2, 3];
+    steps.forEach(step => {
+        const stepPanel = document.getElementById(`beneficiary-accordion-step-${step}`);
+        const indicator = document.getElementById(`beneficiary-indicator-${step}`);
+        const stepNumberBadge = stepPanel.querySelector('.premium-step-badge');
+        
+        // Mark previous steps as complete
+        if (step < targetStep) {
+            stepPanel.classList.add('completed');
+            stepPanel.classList.remove('active');
+            indicator.classList.add('completed');
+            indicator.classList.remove('active');
+            stepNumberBadge.innerHTML = `<i class="fas fa-check"></i>`;
+        } else {
+             stepNumberBadge.innerHTML = `<span class="premium-step-number">${step}</span>`;
+        }
+
+        // Toggle the target step's active state
+        stepPanel.classList.toggle('active', step === targetStep);
+        indicator.classList.toggle('active', step === targetStep);
+    });
+
+    const progressBar = document.getElementById('beneficiary-progress-bar');
+    if (progressBar) {
+        progressBar.style.width = `${((targetStep - 1) / (steps.length - 1)) * 100}%`;
+    }
+},
+    
 
 handleAddBeneficiarySubmit: async (e) => {
     e.preventDefault();
