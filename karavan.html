@@ -2725,11 +2725,21 @@ handleAccountSubmit: async (e) => {
 
 bindBeneficiaryModalListeners: () => {
     document.getElementById('beneficiary-add-form')?.addEventListener('submit', Logic.handleAddBeneficiarySubmit);
+    // Bind accordion headers to allow opening/closing steps (optional, for UX)
+    document.querySelectorAll('#beneficiary-accordion-step-1, #beneficiary-accordion-step-2, #beneficiary-accordion-step-3').forEach((el, index) => {
+        el.querySelector('.premium-accordion-header').addEventListener('click', () => Logic.changeBeneficiaryStep(index + 1));
+    });
 },
 
 handleAddBeneficiarySubmit: async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    // Final validation check
+    if (!document.getElementById('beneficiary-verify-identity')?.checked) {
+        return Utils.showNotification("You must verify the accuracy of the beneficiary's information.", 'warning');
+    }
+
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Adding...`;
 
@@ -2741,6 +2751,7 @@ handleAddBeneficiarySubmit: async (e) => {
         mobileNumber: document.getElementById('mobile-number')?.value,
         cryptoAddress: document.getElementById('crypto-address')?.value,
         email: document.getElementById('beneficiary-email')?.value,
+        phone: document.getElementById('beneficiary-phone')?.value,
         address: document.getElementById('beneficiary-address')?.value,
     };
     
@@ -2752,7 +2763,7 @@ handleAddBeneficiarySubmit: async (e) => {
 
         (AppState.marketData.beneficiaries = AppState.marketData.beneficiaries || []).push(response.data);
         
-        Utils.showNotification('Beneficiary added successfully!', 'success');
+        Utils.showNotification('Trusted Beneficiary added successfully!', 'success');
         document.getElementById('beneficiary-modal')?.close();
         
         UI.refreshBeneficiaryDropdown();
@@ -2761,7 +2772,7 @@ handleAddBeneficiarySubmit: async (e) => {
         Utils.showNotification(error.message, 'error');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Finalize & Add Beneficiary';
+        submitBtn.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Add Trusted Beneficiary';
     }
 },
 
@@ -6575,40 +6586,47 @@ toggleBeneficiaryDetails: (method) => {
 },
 
 changeBeneficiaryStep: (targetStep) => {
-    // --- Military-Grade Validation Gates ---
-    // Validate Step 1 before allowing progression to Step 2
-    if (targetStep > 1) {
-        const nameInput = document.getElementById('beneficiary-name');
-        if (!nameInput?.value.trim()) {
-            return Utils.showNotification("Beneficiary Full Name is a required field to proceed.", 'warning');
-        }
+    // --- 1. Military-Grade Validation Gates ---
+    if (targetStep > 1 && !document.getElementById('beneficiary-name')?.value.trim()) {
+        return Utils.showNotification("Beneficiary Full Name is required to proceed.", 'warning');
     }
-    // Validate Step 2 before allowing progression to Step 3
     if (targetStep > 2) {
-        const countryInput = document.getElementById('beneficiary-country');
-        const payoutMethodInput = document.getElementById('payout-method');
-        if (!countryInput?.value) {
-            return Utils.showNotification("Country is a required field to proceed.", 'warning');
-        }
-        if (!payoutMethodInput?.value) {
-            return Utils.showNotification("Payout Method is a required field to proceed.", 'warning');
-        }
+        if (!document.getElementById('beneficiary-country')?.value) return Utils.showNotification("Country is required to proceed.", 'warning');
+        if (!document.getElementById('payout-method')?.value) return Utils.showNotification("Payout Method is required to proceed.", 'warning');
     }
     
-    // --- Dynamic UI Rendering on Step Transition ---
-    // When the user is about to view Step 3, we must dynamically render the correct
-    // details input field (Bank, Mobile, or Crypto) based on their choice from Step 2.
+    // --- 2. Dynamic UI Rendering on Step Transition ---
     if (targetStep === 3) {
         const payoutMethod = document.getElementById('payout-method').value;
         UI.toggleBeneficiaryDetails(payoutMethod);
     }
     
-    // --- State Transition Logic ---
-    // Hide all steps, then activate the target step.
-    document.querySelectorAll('.beneficiary-step').forEach(step => step.classList.remove('active'));
-    const targetStepElement = document.getElementById(`beneficiary-step-${targetStep}`);
-    if (targetStepElement) {
-        targetStepElement.classList.add('active');
+    // --- 3. Accordion & Progress Bar State Management ---
+    const steps = [1, 2, 3];
+    steps.forEach(step => {
+        const stepPanel = document.getElementById(`beneficiary-accordion-step-${step}`);
+        const indicator = document.getElementById(`beneficiary-indicator-${step}`);
+        const stepNumberBadge = stepPanel.querySelector('.premium-step-badge');
+        
+        // Mark previous steps as complete
+        if (step < targetStep) {
+            stepPanel.classList.add('completed');
+            stepPanel.classList.remove('active');
+            indicator.classList.add('completed');
+            indicator.classList.remove('active');
+            stepNumberBadge.innerHTML = `<i class="fas fa-check"></i>`;
+        } else {
+             stepNumberBadge.innerHTML = `<span class="premium-step-number">${step}</span>`;
+        }
+
+        // Toggle the target step's active state
+        stepPanel.classList.toggle('active', step === targetStep);
+        indicator.classList.toggle('active', step === targetStep);
+    });
+
+    const progressBar = document.getElementById('beneficiary-progress-bar');
+    if (progressBar) {
+        progressBar.style.width = `${((targetStep - 1) / (steps.length - 1)) * 100}%`;
     }
 },
                 
