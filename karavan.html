@@ -2142,8 +2142,43 @@ getUserDisplayName: (user) => {
 
 // Add these new functions to your Logic object in karavan.html
 
-// REPLACE your entire existing `handleProfileUpdate` function in your frontend `Logic` object
-// with this single, definitive, unabridged, and pinnacle-grade version.
+changeAccountStep: (targetStep) => {
+    // Military-grade validation gates
+    if (targetStep > 1) {
+        if (!document.getElementById('account-type')?.value) return Utils.showNotification("Account Type is required.", 'warning');
+        if (!document.getElementById('account-nickname')?.value) return Utils.showNotification("Account Nickname is required.", 'warning');
+        if (!document.getElementById('account-currency')?.value) return Utils.showNotification("Currency is required.", 'warning');
+    }
+    if (targetStep > 2) {
+        const accountType = document.getElementById('account-type').value;
+        if (accountType === 'bank' && (!document.getElementById('account-holder-name')?.value || !document.getElementById('account-number')?.value || !document.getElementById('account-bank-name')?.value)) {
+            return Utils.showNotification("Please complete all required bank details.", 'warning');
+        }
+        if (accountType.startsWith('crypto_') && !document.getElementById('account-wallet-address')?.value) {
+            return Utils.showNotification("Wallet Address is required.", 'warning');
+        }
+    }
+    
+    // Dynamically render details for Step 2
+    if (targetStep === 2) {
+        const accountType = document.getElementById('account-type').value;
+        UI.toggleAccountDetails(accountType);
+    }
+    
+    // Accordion State Management
+    [1, 2, 3].forEach(step => {
+        const stepPanel = document.getElementById(`account-accordion-step-${step}`);
+        const badge = stepPanel.querySelector('.premium-step-badge');
+        if (step < targetStep) {
+            stepPanel.classList.add('completed');
+            stepPanel.classList.remove('active');
+            badge.innerHTML = `<i class="fas fa-check"></i>`;
+        } else {
+            badge.innerHTML = `<span class="premium-step-number">${step}</span>`;
+        }
+        stepPanel.classList.toggle('active', step === targetStep);
+    });
+},
 
 /**
  * ====================================================================================
@@ -2696,14 +2731,25 @@ bindAccountModalListeners: () => {
 handleAccountSubmit: async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (!document.getElementById('account-verify-details')?.checked) {
+        return Utils.showNotification("You must confirm the accuracy of the account details.", 'warning');
+    }
+
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Adding Account...`;
 
     const accountData = {
-        accountType: document.getElementById('account-type').value,
-        nickname: document.getElementById('account-nickname').value,
-        currency: document.getElementById('account-currency').value,
-        details: { /* Logic to collect specific details based on type would go here */ }
+        accountType: document.getElementById('account-type')?.value,
+        nickname: document.getElementById('account-nickname')?.value,
+        currency: document.getElementById('account-currency')?.value,
+        isPrimary: document.getElementById('account-is-primary')?.checked,
+        // Bank details
+        accountHolderName: document.getElementById('account-holder-name')?.value,
+        accountNumber: document.getElementById('account-number')?.value,
+        bankName: document.getElementById('account-bank-name')?.value,
+        routingNumber: document.getElementById('account-routing-number')?.value,
+        // Crypto details
+        walletAddress: document.getElementById('account-wallet-address')?.value
     };
 
     try {
@@ -2711,15 +2757,17 @@ handleAccountSubmit: async (e) => {
             karavanId: AppState.currentUser.karavanId,
             accountData: accountData
         });
+
         (AppState.accounts = AppState.accounts || []).push(response.data);
-        Utils.showNotification('Account added successfully!', 'success');
+        Utils.showNotification('Funding account added successfully!', 'success');
         document.getElementById('account-modal')?.close();
         Logic.handleSidebarClick('global_accounts');
+
     } catch (error) {
         Utils.showNotification(error.message, 'error');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Add Account';
+        submitBtn.innerHTML = '<i class="fas fa-plus-circle mr-2"></i><span>Add Funding Account</span>';
     }
 },
 
@@ -6060,14 +6108,160 @@ renderKycUpgradeModal: () => {
  * [PINNACLE ACCOUNT MODAL RENDERER v4.0]
  * Renders a guided modal for adding new user funding accounts.
  */
-renderAccountModal: () => {
-    return `
-    <div class="p-6 max-w-2xl mx-auto">
-        <div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
-            <!-- ... Full HTML for adding a new bank account, crypto wallet, etc. ... -->
+renderAccountModal: () => `
+    <div class="dialog-content-wrapper" style="max-width: 56rem;">
+        <div class="auth-modal auth-modal-v2 premium-glass-container relative overflow-hidden">
+            <div class="premium-bg-overlay"></div>
+            <div class="premium-grid-pattern"></div>
+            
+            <button onclick="document.getElementById('account-modal').close()" class="premium-close-btn"><i class="fas fa-times"></i></button>
+            
+            <div class="relative z-10 p-8 md:p-12">
+                <!-- PREMIUM HEADER SECTION -->
+                <div class="text-center mb-10">
+                    <div class="premium-vault-icon" style="animation: none; transform: translateY(-10px);">
+                        <div class="premium-vault-inner"><i class="fas fa-landmark premium-main-icon" style="font-size: 40px;"></i></div>
+                    </div>
+                    <h3 class="premium-main-title">Add Funding Account</h3>
+                    <p class="premium-subtitle">Securely link a source to fund your Karavan transfers.</p>
+                </div>
+
+                <!-- GUIDED ACCORDION WORKFLOW FORM -->
+                <form id="account-add-form" class="premium-form-container">
+                    <div class="space-y-6">
+                        <!-- ACCORDION STEP 1: CLASSIFICATION -->
+                        <div id="account-accordion-step-1" class="premium-accordion-step active">
+                            <div id="account-header-1" class="premium-accordion-header">
+                                <div class="premium-step-badge"><span class="premium-step-number">1</span></div>
+                                <div class="premium-step-info"><h4 class="premium-step-title">Account Classification</h4><p class="premium-step-desc">Define the account type and purpose</p></div>
+                                <div class="premium-chevron-container"><i class="fas fa-chevron-down premium-chevron"></i></div>
+                            </div>
+                            <div class="premium-accordion-content"><div class="premium-content-inner">
+                                <div class="premium-field-group">
+                                    <label class="premium-field-label"><i class="fas fa-sitemap mr-2"></i>Account Type</label>
+                                    <div class="premium-select-container">
+                                        <select id="account-type" class="premium-form-select" required>
+                                            <option value="" disabled selected>Select account type...</option>
+                                            <option value="bank">🏦 Bank Account (Fiat)</option>
+                                            <option value="crypto_usdt_trc20">₮ USDT (TRC-20 Tron)</option>
+                                            <option value="crypto_usdt_erc20">₮ USDT (ERC-20 Ethereum)</option>
+                                        </select>
+                                        <div class="premium-select-arrow"><i class="fas fa-chevron-down"></i></div>
+                                    </div>
+                                </div>
+                                <div class="premium-field-row">
+                                    <div class="premium-field-group flex-1">
+                                        <label class="premium-field-label"><i class="fas fa-tag mr-2"></i>Account Nickname</label>
+                                        <input type="text" id="account-nickname" class="premium-form-input" placeholder="e.g., Primary Savings" required>
+                                    </div>
+                                    <div class="premium-field-group flex-1">
+                                        <label class="premium-field-label"><i class="fas fa-dollar-sign mr-2"></i>Currency</label>
+                                        <div class="premium-select-container">
+                                            <select id="account-currency" class="premium-form-select" required>
+                                                <option value="" disabled selected>Select currency...</option>
+                                                <option value="USD">USD</option><option value="CAD">CAD</option><option value="SGD">SGD</option>
+                                                <option value="USDT">USDT</option>
+                                            </select>
+                                            <div class="premium-select-arrow"><i class="fas fa-chevron-down"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="premium-nav-section"><button type="button" onclick="Logic.changeAccountStep(2)" class="premium-btn-primary premium-btn-forward"><span>Next: Details</span><i class="fas fa-arrow-right ml-2"></i></button></div>
+                            </div></div>
+                        </div>
+
+                        <!-- ACCORDION STEP 2: DETAILS -->
+                        <div id="account-accordion-step-2" class="premium-accordion-step">
+                            <div id="account-header-2" class="premium-accordion-header">
+                                <div class="premium-step-badge"><span class="premium-step-number">2</span></div>
+                                <div class="premium-step-info"><h4 class="premium-step-title">Account Details</h4><p class="premium-step-desc">Provide specific information for this account type</p></div>
+                                <div class="premium-chevron-container"><i class="fas fa-chevron-down premium-chevron"></i></div>
+                            </div>
+                            <div class="premium-accordion-content"><div class="premium-content-inner">
+                                <div id="account-details-container" class="space-y-6"></div>
+                                <div class="premium-nav-section premium-nav-between">
+                                    <button type="button" onclick="Logic.changeAccountStep(1)" class="premium-btn-secondary premium-btn-back"><i class="fas fa-arrow-left mr-2"></i><span>Back</span></button>
+                                    <button type="button" onclick="Logic.changeAccountStep(3)" class="premium-btn-primary premium-btn-forward"><span>Next: Finalize</span><i class="fas fa-arrow-right ml-2"></i></button>
+                                </div>
+                            </div></div>
+                        </div>
+                        
+                        <!-- ACCORDION STEP 3: FINALIZATION -->
+                        <div id="account-accordion-step-3" class="premium-accordion-step">
+                            <div id="account-header-3" class="premium-accordion-header">
+                                <div class="premium-step-badge"><span class="premium-step-number">3</span></div>
+                                <div class="premium-step-info"><h4 class="premium-step-title">Configuration & Finalize</h4><p class="premium-step-desc">Set preferences and confirm details</p></div>
+                                <div class="premium-chevron-container"><i class="fas fa-chevron-down premium-chevron"></i></div>
+                            </div>
+                            <div class="premium-accordion-content"><div class="premium-content-inner">
+                                <div class="premium-security-section">
+                                    <div class="premium-security-content">
+                                        <label class="premium-checkbox-container">
+                                            <input type="checkbox" id="account-is-primary">
+                                            <span class="premium-checkbox-checkmark"></span>
+                                            <span class="premium-checkbox-label">Set as primary funding source for this currency</span>
+                                        </label>
+                                        <label class="premium-checkbox-container">
+                                            <input type="checkbox" id="account-verify-details" required>
+                                            <span class="premium-checkbox-checkmark"></span>
+                                            <span class="premium-checkbox-label">I confirm that all account details provided are accurate</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="premium-nav-section premium-nav-between premium-final-nav">
+                                    <button type="button" onclick="Logic.changeAccountStep(2)" class="premium-btn-secondary premium-btn-back flex-1"><i class="fas fa-arrow-left mr-2"></i><span>Back</span></button>
+                                    <button type="submit" class="premium-btn-gold premium-btn-submit flex-1"><i class="fas fa-plus-circle mr-2"></i><span>Add Funding Account</span></button>
+                                </div>
+                            </div></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>`;
+    </div>
+`,
 },
+
+toggleAccountDetails: (accountType) => {
+    const container = document.getElementById('account-details-container');
+    if (!container) return;
+
+    let html = '';
+    if (accountType === 'bank') {
+        html = `
+            <div class="premium-field-group">
+                <label class="premium-field-label"><i class="fas fa-user-tie mr-2"></i>Account Holder Name</label>
+                <input type="text" id="account-holder-name" class="premium-form-input" placeholder="e.g., John M. Doe" required>
+            </div>
+            <div class="premium-field-row">
+                <div class="premium-field-group flex-1">
+                    <label class="premium-field-label"><i class="fas fa-hashtag mr-2"></i>Account Number</label>
+                    <input type="text" id="account-number" class="premium-form-input" placeholder="Your account number" required>
+                </div>
+                <div class="premium-field-group flex-1">
+                    <label class="premium-field-label"><i class="fas fa-code-branch mr-2"></i>Routing Number (Optional)</label>
+                    <input type="text" id="account-routing-number" class="premium-form-input" placeholder="e.g., ABA, SWIFT/BIC">
+                </div>
+            </div>
+            <div class="premium-field-group">
+                <label class="premium-field-label"><i class="fas fa-university mr-2"></i>Bank Name</label>
+                <input type="text" id="account-bank-name" class="premium-form-input" placeholder="e.g., JPMorgan Chase Bank" required>
+            </div>`;
+    } else if (accountType.startsWith('crypto_')) {
+        const network = accountType === 'crypto_usdt_trc20' ? 'TRC-20 (Tron)' : 'ERC-20 (Ethereum)';
+        const pattern = accountType === 'crypto_usdt_trc20' ? '^T[a-zA-Z0-9]{33}$' : '^0x[a-fA-F0-9]{40}$';
+        const placeholder = accountType === 'crypto_usdt_trc20' ? 'T...' : '0x...';
+        html = `
+            <div class="premium-field-group">
+                <label class="premium-field-label"><i class="fab fa-ethereum mr-2"></i>USDT Wallet Address (${network})</label>
+                <div class="premium-input-container">
+                    <input type="text" id="account-wallet-address" class="premium-form-input font-mono" placeholder="${placeholder}" pattern="${pattern}" required>
+                </div>
+                <div class="premium-field-hint">Double-check the address. Crypto transactions are irreversible.</div>
+            </div>`;
+    }
+    container.innerHTML = html;
+},             
 
 /**
  * [PINNACLE INITIAL ANALYSIS STATE RENDERER]
