@@ -1350,7 +1350,19 @@ createApiRequest: async (action, method = 'POST', params = {}, signal = null) =>
                 },
 
 // Add these new functions to your Logic object in karavan.html
+// REPLACE the empty Logic.resetTransactionParameters function with this fully implemented version.
 
+resetTransactionParameters: () => {
+    // 1. Clear the transaction object in the application state
+    AppState.transaction = {};
+
+    // 2. Re-render the dashboard view. The state-aware renderer will now
+    //    use the empty transaction object, effectively resetting all fields.
+    Logic.handleSidebarClick('dashboard');
+
+    // 3. Provide user feedback
+    Utils.showNotification('Transaction parameters have been cleared.', 'info');
+},                
 /**
  * [PINNACLE DASHBOARD CONTROLLER] Selects the delivery method, providing visual feedback.
  * @param {string} method The selected method ('bank' or 'cash').
@@ -1419,6 +1431,42 @@ getQuote: async () => {
         quoteBtn.disabled = false;
     }
 },
+
+// Add this NEW function to the `Logic` object.
+
+/**
+ * [PINNACLE STATE MANAGER] Invalidates the current quote and resets the UI.
+ * This is triggered whenever a critical transaction parameter is changed after a quote
+ * has been successfully retrieved, preventing the use of stale data.
+ */
+invalidateQuote: () => {
+    // Only run if there's an active quote to invalidate
+    if (AppState.transaction && AppState.transaction.status === 'quoted') {
+        console.log('[STATE] Quote invalidated due to parameter change.');
+        AppState.transaction.status = 'draft'; // Reset status
+
+        // 1. Reset the main action button
+        const quoteBtn = document.getElementById('get-quote-btn');
+        if (quoteBtn) {
+            quoteBtn.classList.add('btn-primary');
+            quoteBtn.classList.remove('btn-secondary');
+            quoteBtn.innerHTML = `<i class="fas fa-search-dollar mr-2"></i> Get Quote`;
+            quoteBtn.onclick = Logic.getQuote; // Restore original action
+        }
+
+        // 2. Hide the review & dispatch panel
+        const reviewContainer = document.getElementById('transaction-review-container');
+        if (reviewContainer) {
+            reviewContainer.innerHTML = '';
+        }
+        
+        // 3. Reset the analysis panel to its initial state
+        document.getElementById('current-rate').textContent = '1.00000';
+        document.getElementById('our-rate').textContent = '0.00000';
+        document.getElementById('total-cost').textContent = '0.00';
+        document.getElementById('destination-details').textContent = 'Awaiting selection';
+    }
+},     
 
 dispatchFromDashboard: async () => {
     const dispatchBtn = document.getElementById('dispatch-btn');
@@ -4130,7 +4178,77 @@ renderDashboardContent: (viewId) => {
             return UI.renderPlaceholderView(viewId);
     }
 },
+// REPLACE the placeholder UI.renderTransfersView with this definitive version.
 
+/**
+ * [PINNACLE VIEW RENDERER] Renders the complete, data-driven Transfers History view.
+ */
+renderTransfersView: () => {
+    // In a real app, AppState.transactions would be a persistent list fetched from the API.
+    // For now, we'll simulate it, ensuring the most recent transaction is at the top.
+    const allTransactions = (AppState.allTransactions || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    if (AppState.transaction && AppState.transaction.id && !allTransactions.find(t => t.id === AppState.transaction.id)) {
+        allTransactions.unshift(AppState.transaction);
+    }
+    AppState.allTransactions = allTransactions;
+
+    const statusMap = {
+        initiated: { label: 'Initiated', icon: 'fa-play-circle', color: 'text-sky-400' },
+        completed: { label: 'Completed', icon: 'fa-check-circle', color: 'text-green-400' },
+        failed: { label: 'Failed', icon: 'fa-times-circle', color: 'text-red-400' },
+    };
+
+    return `
+    <div class="p-8 max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold text-white font-['Orbitron',_sans-serif] mb-8">Transaction History</h1>
+        <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="p-4 text-sm font-semibold text-slate-400 uppercase">Transaction</th>
+                                <th class="p-4 text-sm font-semibold text-slate-400 uppercase">Date</th>
+                                <th class="p-4 text-sm font-semibold text-slate-400 uppercase">Amount</th>
+                                <th class="p-4 text-sm font-semibold text-slate-400 uppercase text-center">Status</th>
+                                <th class="p-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allTransactions.length > 0 ? allTransactions.map((tx, index) => {
+                                const status = statusMap[tx.status] || { label: tx.status, icon: 'fa-question-circle', color: 'text-yellow-400' };
+                                const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === tx.beneficiaryId);
+                                return `
+                                <tr class="border-b border-slate-800 hover:bg-slate-700/50 transition-colors duration-200 ${index === 0 ? 'animate-step-fade-in' : ''}">
+                                    <td class="p-4">
+                                        <div class="font-medium text-white">To: ${beneficiary?.name || 'N/A'}</div>
+                                        <div class="text-xs text-slate-400 font-mono">${tx.id}</div>
+                                    </td>
+                                    <td class="p-4 text-sm text-slate-300">${new Date(tx.timestamp).toLocaleString()}</td>
+                                    <td class="p-4">
+                                        <div class="font-mono text-white">${Utils.formatCurrency(tx.sendAmount, tx.sendCurrency)}</div>
+                                        <div class="font-mono text-xs text-green-400">→ ${Utils.formatCurrency(tx.receiveAmount, tx.receiveCurrency)}</div>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-slate-900 ${status.color}">
+                                            <i class="fas ${status.icon}"></i> ${status.label}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-right">
+                                        <button class="text-slate-400 hover:text-white text-lg"><i class="fas fa-search"></i></button>
+                                    </td>
+                                </tr>
+                                `}).join('') : `
+                                <tr><td colspan="5" class="p-8 text-center text-slate-500">No transactions yet.</td></tr>
+                            `}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+},                
 /**
  * [PINNACLE STANDARD CLIENT DASHBOARD RENDERER]
  * Renders the primary dashboard view for standard remittance and payment clients.
@@ -4198,39 +4316,37 @@ renderStandardClientDashboard: () => {
                 <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
                     <!-- ... Panel Header ... -->
                     <div class="space-y-6">
-                        <!-- Send Amount -->
-                        <div>
-                            <label class="block text-slate-300 font-semibold">You Send</label>
-                            <div class="flex gap-3">
-                                <input type="number" id="send-amount" class="form-input-premium w-full" placeholder="1,000.00" value="${sendAmount}">
-                                <select id="send-currency" class="form-select-premium w-32">
-                                    <!-- [UPGRADE] Dynamically select the correct option -->
-                                    ${['CAD', 'USD', 'SGD', 'EUR', 'GBP'].map(c => `<option value="${c}" ${c === sendCurrency ? 'selected' : ''}>${c}</option>`).join('')}
-                                </select>
-                            </div>
-                        </div>
-                        <!-- Recipient Gets -->
-                        <div>
-                             <label class="block text-slate-300 font-semibold">Recipient Gets</label>
-                             <div class="flex gap-3">
-                                 <div class="form-display-premium flex-grow">
-                                     <span id="receive-amount" class="text-xl font-bold text-green-400">~ ${parseFloat(tx.receiveAmount || 0).toFixed(2)}</span>
-                                 </div>
-                                 <select id="receive-currency" class="form-select-premium w-32">
-                                     <!-- [UPGRADE] Dynamically select the correct option -->
-                                     ${['PHP', 'IDR', 'MYR', 'THB', 'VND'].map(c => `<option value="${c}" ${c === receiveCurrency ? 'selected' : ''}>${c}</option>`).join('')}
-                                 </select>
-                             </div>
-                        </div>
-                        <!-- Beneficiary -->
-                        <div>
-                            <label class="block text-slate-300 font-semibold">Recipient</label>
-                            <select id="beneficiary-select" class="form-select-premium w-full">
-                                <option value="">Select recipient...</option>
-                                ${AppState.marketData?.beneficiaries?.map(ben => `
-                                    <option value="${ben.id}" ${ben.id === beneficiaryId ? 'selected' : ''}>${ben.name} (${ben.country})</option>
-                                `).join('') || ''}
-                            </select>
+    <!-- Send Amount -->
+    <div>
+        <label class="block text-slate-300 font-semibold">You Send</label>
+        <div class="flex gap-3">
+            <input type="number" id="send-amount" class="form-input-premium w-full" placeholder="1,000.00" value="${sendAmount}" oninput="Logic.invalidateQuote()">
+            <select id="send-currency" class="form-select-premium w-32" onchange="Logic.invalidateQuote()">
+                ${['CAD', 'USD', 'SGD', 'EUR', 'GBP'].map(c => `<option value="${c}" ${c === sendCurrency ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+        </div>
+    </div>
+    <!-- Recipient Gets -->
+    <div>
+         <label class="block text-slate-300 font-semibold">Recipient Gets</label>
+         <div class="flex gap-3">
+             <div class="form-display-premium flex-grow">
+                 <span id="receive-amount" class="text-xl font-bold text-green-400">~ ${parseFloat(tx.receiveAmount || 0).toFixed(2)}</span>
+             </div>
+             <select id="receive-currency" class="form-select-premium w-32" onchange="Logic.invalidateQuote()">
+                 ${['PHP', 'IDR', 'MYR', 'THB', 'VND'].map(c => `<option value="${c}" ${c === receiveCurrency ? 'selected' : ''}>${c}</option>`).join('')}
+             </select>
+         </div>
+    </div>
+    <!-- Beneficiary -->
+    <div>
+        <label class="block text-slate-300 font-semibold">Recipient</label>
+        <select id="beneficiary-select" class="form-select-premium w-full" onchange="Logic.invalidateQuote()">
+            <option value="">Select recipient...</option>
+            ${AppState.marketData?.beneficiaries?.map(ben => `
+                <option value="${ben.id}" ${ben.id === beneficiaryId ? 'selected' : ''}>${ben.name} (${ben.country})</option>
+            `).join('') || ''}
+        </select>
                         </div>
 
                         <!-- Delivery Method -->
