@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GECAN™ Karavan | Account Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0a0a0f; color: #EAE0C8; font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="verification-card" class="w-full max-w-lg bg-[#0f172a] border border-[#334155] rounded-lg shadow-2xl p-8 text-center transition-opacity duration-500 opacity-0">
+        <!-- Dynamic Content Will Be Injected Here -->
+    </div>
+
+    <script>
+        (async function () {
+            const API_URL = "https://script.google.com/macros/s/AKfycbyIeitXz6_PM6NcvcKXs1OAdvqzmmtEyBGIzo8ybhL6DMBP1eS94SSQwAmNvIcPGJiw/exec"; // IMPORTANT: Paste your /exec URL here
+            const LOGIN_PAGE_URL = "https://gecan.co/karavan.html"; // Your application's login page
+
+            const card = document.getElementById('verification-card');
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            // --- UI Rendering Function ---
+            function renderState(state, title, message) {
+                const isSuccess = state === 'success';
+                const headerColor = isSuccess ? 'text-green-500' : 'text-red-500';
+                const buttonHtml = isSuccess ? `<a href="${LOGIN_PAGE_URL}" class="mt-8 inline-block bg-gradient-to-r from-yellow-300 to-amber-500 text-black font-bold py-3 px-8 rounded-lg text-lg shadow-lg hover:shadow-xl transition-shadow">Proceed to Login</a>` : '';
+
+                card.innerHTML = `
+                    <h1 class="font-['Orbitron',_sans-serif] text-3xl font-bold ${headerColor}">${title}</h1>
+                    <p class="text-slate-300 text-lg mt-4">${message}</p>
+                    ${buttonHtml}
+                `;
+                card.style.opacity = 1;
+            }
+
+            // --- Main Verification Logic ---
+            if (!token) {
+                renderState('error', 'Verification Failed', 'No verification token was provided. The link may be incomplete or corrupted.');
+                return;
+            }
+
+            // Initial "Verifying..." state
+            renderState('loading', 'Verifying Account...', 'Please wait while we securely activate your key to the GECAN™ Alliance.');
+
+            try {
+                // The URL for our new, pure API endpoint
+                const verificationApiUrl = `${API_URL}?action=verifyToken&token=${token}`;
+                
+                const response = await fetch(verificationApiUrl);
+                const result = await response.json();
+
+                if (result.success) {
+                    renderState('success', 'Verification Successful!', 'Your GECAN™ Karavan account is now active. You may now proceed to log in.');
+                } else {
+                    // Use the specific, helpful error message from the backend
+                    renderState('error', 'Verification Failed', result.error || 'This verification link is invalid or has already been used.');
+                }
+
+            } catch (error) {
+                console.error('Verification API call failed:', error);
+                renderState('error', 'Verification Error', 'A network error occurred. Please check your connection and try the link again.');
+            }
+        })();
+    </script>
+</body>
+</html>
