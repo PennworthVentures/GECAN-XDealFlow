@@ -1695,7 +1695,7 @@ handleProfileUpdate: async (e) => {
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Saving...`;
     
-    // [PINNACLE UPGRADE] Build the payload defensively, only including values from elements that exist.
+    // Build the payload defensively, only including values from elements that exist.
     const profileData = {};
     const fieldIds = [
         'profile-contact', 'profile-country', 'profile-address1', 'profile-address2',
@@ -1703,11 +1703,9 @@ handleProfileUpdate: async (e) => {
         'profile-passport', 'profile-passport-expiry'
     ];
     
-    // This loop prevents any "Cannot read properties of null" errors.
     fieldIds.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
-            // Convert camelCase id to snake_case key for backend consistency
             const key = id.replace('profile-', '').replace(/([A-Z])/g, '_$1').toLowerCase();
             profileData[key] = element.value;
         }
@@ -1726,9 +1724,13 @@ handleProfileUpdate: async (e) => {
         Utils.showNotification('Profile updated successfully!', 'success');
         document.getElementById('profile-modal')?.close();
 
-    } catch (error)_ {
+    // [DEFINITIVE SYNTAX FIX] The extraneous underscore has been removed from this line.
+    } catch (error) {
         Utils.showNotification(error.message, 'error');
+        // Log the detailed error for debugging.
+        console.error("Profile update failed:", error);
     } finally {
+        // This block now correctly executes to re-enable the button regardless of success or failure.
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<i class="fas fa-save mr-2"></i>Save Changes`;
     }
