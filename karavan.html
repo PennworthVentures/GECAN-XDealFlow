@@ -43,6 +43,51 @@
 
     <style>
 
+        .content-hidden {
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .content-visible {
+            opacity: 1;
+        }
+        /* ========================================================================= */
+        /* === PINNACLE INSTANT DYNAMIC BACKGROUND (DEFINITIVE FIX) === */
+        /* ========================================================================= */
+        #interactive-background {
+            /* This ensures the pseudo-elements are contained */
+            position: fixed;
+            inset: 0;
+            z-index: -3;
+        }
+
+        /* Create a pseudo-element for the starfield */
+        #interactive-background::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(1px 1px at 25% 15%, #FFF, transparent),
+                radial-gradient(1px 1px at 50% 35%, #FFF, transparent),
+                radial-gradient(1px 1px at 75% 25%, #FFF, transparent),
+                radial-gradient(1px 1px at 15% 85%, #FFF, transparent),
+                radial-gradient(1px 1px at 90% 65%, #FFF, transparent),
+                radial-gradient(2px 2px at 45% 55%, #FFF, transparent),
+                radial-gradient(2px 2px at 80% 90%, #FFF, transparent);
+            
+            /* Animate the opacity for a subtle twinkling effect */
+            animation: pinnacle-twinkle 15s linear infinite;
+        }
+
+        @keyframes pinnacle-twinkle {
+            0% { opacity: 0; }
+            10% { opacity: 0.7; }
+            20% { opacity: 0; }
+            30% { opacity: 0.5; }
+            50% { opacity: 1; }
+            70% { opacity: 0.2; }
+            80% { opacity: 0.6; }
+            100% { opacity: 0; }
+        }
             /* PREMIUM CONTAINER STYLES */
             .premium-glass-container {
                 background: rgba(15, 23, 42, 0.95);
@@ -2609,7 +2654,7 @@
     <!-- ========================================================================= -->
     <!-- === PRESTIGIOUS MAIN HEADER v3.0 === -->
     <!-- ========================================================================= -->
-    <header class="premium-header p-4 lg:px-6">
+    <header class="premium-header p-4 lg:px-6 content-hidden">
         <div class="container mx-auto flex items-center justify-between gap-6">
             <div class="flex items-center gap-6 flex-shrink-0">
                 <a href="./index.html" id="logo-link" class="gecan-logo-container flex items-center gap-4 group" aria-label="Return to GECAN XDealFlow Home">
@@ -2636,7 +2681,7 @@
     <!-- ========================================================================= -->
     <!-- === MAIN APPLICATION VIEWPORT === -->
     <!-- ========================================================================= -->
-    <main id="main-content" class="container mx-auto p-4 pb-40">
+    <main id="main-content" class="container mx-auto p-4 pb-40 content-hidden">
         <!-- Initial Loader State -->
         <div id="initial-loader" class="text-center py-20">
             <div class="relative inline-block mb-6">
@@ -2652,7 +2697,7 @@
     <!-- ========================================================================= -->
     <!-- === PINNACLE STATIC LEGAL FOOTER (DEFINITIVE PLACEMENT) === -->
     <!-- ========================================================================= -->
-    <footer class="bg-background-dark border-t border-border-color">
+    <footer class="bg-background-dark border-t border-border-color content-hidden">
         <div class="container mx-auto p-6 md:p-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
                 <div>
@@ -2675,7 +2720,7 @@
     <!-- ========================================================================= -->
     <!-- === PINNACLE LIQUIDITY CONDUIT (FIXED TICKER BAR) === -->
     <!-- ========================================================================= -->
-    <div class="liquidity-conduit"> <!-- Changed from <footer> to <div> for semantic purity -->
+    <div class="liquidity-conduit content-hidden">
         <div class="conduit-track-wrapper">
             <div id="conduit-track" class="conduit-track">
                 <!-- Live market data crystals will be injected here -->
@@ -2877,6 +2922,19 @@ init: async () => {
             // No valid session. Show the login screen as normal.
             UI.renderView('auth');
         }
+
+        // --- DEFINITIVE HANDOFF LOGIC ---
+        // This code runs AFTER particles are loaded and the initial view is rendered.
+        requestAnimationFrame(() => {
+            const contentElements = document.querySelectorAll('.content-hidden');
+            contentElements.forEach(el => {
+                // We use a small delay to ensure the browser has painted the initial elements
+                setTimeout(() => {
+                    el.classList.add('content-visible');
+                    el.classList.remove('content-hidden');
+                }, 100); 
+            });
+        });
 
     } catch (error) {
         console.error('CRITICAL INITIALIZATION FAILURE:', error);
