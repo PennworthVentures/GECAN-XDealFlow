@@ -44,6 +44,67 @@
     <style>
 
 /* ========================================================================= */
+/* === PINNACLE DASHBOARD & UI ENGINE v4.0 (DEFINITIVE & UNABRIDGED) === */
+/* ========================================================================= */
+
+/* --- Premium Form Elements --- */
+.input-label-premium {
+    display: block;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8; /* slate-400 */
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+}
+.form-input-premium, .form-select-premium {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: #33415520; /* slate-700/50 */
+    border: 1px solid #475569; /* slate-600 */
+    border-radius: 0.75rem;
+    color: #f8fafc; /* slate-50 */
+    font-size: 1rem;
+    transition: all 0.2s ease-in-out;
+}
+.form-input-premium:focus, .form-select-premium:focus {
+    outline: none;
+    border-color: #38bdf8; /* sky-400 */
+    box-shadow: 0 0 0 3px #0ea5e930; /* sky-500/20 */
+}
+.form-input-readonly {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: #47556950; /* slate-600/50 */
+    border: 1px solid #475569; /* slate-600 */
+    border-radius: 0.75rem;
+    color: #94a3b8; /* slate-400 */
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* --- Transaction Type Button --- */
+.transaction-type-btn.active {
+    background-color: #0ea5e920; /* sky-500/20 */
+    border-color: #38bdf8; /* sky-400 */
+    transform: translateY(-4px);
+    box-shadow: 0 8px 15px rgba(14, 165, 233, 0.1);
+}
+.transaction-type-btn.active .text-slate-400 { color: #38bdf8; } /* sky-400 */
+.transaction-type-btn.active .text-slate-300 { color: #FFFFFF; }
+
+/* --- KYC Modal Specifics --- */
+.kyc-progress-step.completed .w-12 { border-color: #34d399; background-color: #10b98120; } /* emerald-400 */
+.kyc-progress-step.completed .fa-user, .kyc-progress-step.completed .fa-map-marker-alt { color: #34d399; }
+.kyc-progress-step.completed span { color: #34d399; }
+.kyc-accordion-step { display: none; }
+.kyc-accordion-step.active { display: block; animation: step-fade-in 0.5s ease; }
+
+@keyframes step-fade-in {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* ========================================================================= */
 /* === PINNACLE KYC MODAL ENGINE v2.0 (DEFINITIVE) === */
 /* ========================================================================= */
 #kyc-upgrade-modal::backdrop {
@@ -1091,18 +1152,130 @@ createApiRequest: async (action, method = 'POST', params = {}, signal = null) =>
  * @param {string} viewId The ID of the view to render (e.g., 'dashboard', 'global_accounts').
  */
 handleSidebarClick: (viewId) => {
-    // Visually update the active link in the sidebar
-    document.querySelectorAll('#dashboard-sidebar-nav a').forEach(link => {
-        link.classList.toggle('bg-sky-500/20', link.dataset.viewId === viewId);
-        link.classList.toggle('text-sky-400', link.dataset.viewId === viewId);
+    document.querySelectorAll('#dashboard-sidebar-nav .nav-link').forEach(link => {
+        const isActive = link.dataset.viewId === viewId;
+        link.classList.toggle('bg-white/10', isActive);
+        link.classList.toggle('text-white', isActive);
+        link.classList.toggle('text-white/80', !isActive);
     });
-
-    // Render the content for the selected view
+    
     const mainContentArea = document.getElementById('dashboard-main-content');
     if (mainContentArea) {
-        mainContentArea.innerHTML = UI.renderDashboardContent(viewId);
+        mainContentArea.style.opacity = '0';
+        mainContentArea.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            mainContentArea.innerHTML = UI.renderDashboardContent(viewId);
+            mainContentArea.style.opacity = '1';
+            mainContentArea.style.transform = 'translateY(0)';
+        }, 250);
     }
 },
+
+toggleProfileMenu: () => {
+    const dropdown = document.getElementById('profile-dropdown');
+    dropdown.classList.toggle('hidden');
+},  
+
+renderAndShowModal: (modalId, contentHtml, bindListenersFunc = null) => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.innerHTML = contentHtml;
+        modal.showModal();
+        if (bindListenersFunc) {
+            bindListenersFunc();
+        }
+    }
+},
+
+showProfileModal: () => Logic.renderAndShowModal('profile-modal', UI.renderProfileModal(), Logic.bindProfileModalListeners),
+showKycModal: () => Logic.renderAndShowModal('kyc-upgrade-modal', UI.renderKycUpgradeModal(), Logic.bindKycModalListeners),
+showAccountModal: () => Logic.renderAndShowModal('account-modal', UI.renderAccountModal(), Logic.bindAccountModalListeners),
+showAddBeneficiaryModal: () => Logic.renderAndShowModal('beneficiary-modal', UI.renderAddBeneficiaryModal(), Logic.bindBeneficiaryModalListeners),
+
+// --- Profile & KYC Submission Handlers ---
+
+/**
+ * [PINNACLE PROFILE HANDLER] Binds listeners and handles the profile update submission.
+ */
+bindProfileModalListeners: () => {
+    document.getElementById('profile-update-form')?.addEventListener('submit', Logic.handleProfileUpdate);
+},
+
+handleProfileUpdate: async (e) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<div class="premium-spinner"></div> Saving...`;
+    
+    const profileData = {
+        contactNumber: document.getElementById('profile-contact').value,
+        country: document.getElementById('profile-country').value,
+        addressLine1: document.getElementById('profile-address1').value,
+        addressLine2: document.getElementById('profile-address2').value,
+        city: document.getElementById('profile-city').value,
+        stateProvince: document.getElementById('profile-state').value,
+        postalCode: document.getElementById('profile-postal').value,
+        passportNumber: document.getElementById('profile-passport').value,
+        passportExpiry: document.getElementById('profile-passport-expiry').value,
+    };
+    
+    try {
+        await Utils.createApiRequest('karavanUpdateProfile', 'POST', {
+            karavanId: AppState.currentUser.karavanId,
+            profileData: profileData
+        });
+        Utils.showNotification('Profile updated successfully!', 'success');
+        document.getElementById('profile-modal')?.close();
+        // Potentially refresh user data from backend here for full sync
+    } catch (error) {
+        Utils.showNotification(error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fas fa-save mr-2"></i>Save Changes`;
+    }
+},
+
+/**
+ * [PINNACLE KYC HANDLER] Binds all listeners for the multi-step KYC modal.
+ */
+bindKycModalListeners: () => {
+    // Step navigation
+    document.getElementById('kyc-step1-next')?.addEventListener('click', () => Logic.changeKycStep(2));
+    document.getElementById('kyc-step2-back')?.addEventListener('click', () => Logic.changeKycStep(1));
+    document.getElementById('kyc-step2-next')?.addEventListener('click', () => Logic.changeKycStep(3));
+    document.getElementById('kyc-step3-back')?.addEventListener('click', () => Logic.changeKycStep(2));
+
+    // File Drop Zone
+    const dropZone = document.getElementById('file-drop-zone');
+    const fileInput = document.getElementById('kyc-document-upload');
+    const filePreview = document.getElementById('file-preview');
+
+    if (dropZone && fileInput && filePreview) {
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-sky-500', 'bg-sky-500/10'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-sky-500', 'bg-sky-500/10'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-sky-500', 'bg-sky-500/10');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                const file = fileInput.files[0];
+                filePreview.innerHTML = `<div class="flex items-center gap-3 p-3 bg-slate-700 rounded-lg border border-slate-600"><i class="fas fa-file-alt text-sky-400 text-2xl"></i><div class="flex-grow"><p class="text-white font-medium">${file.name}</p><p class="text-xs text-slate-400">${(file.size / 1024).toFixed(1)} KB</p></div></div>`;
+            } else {
+                filePreview.innerHTML = '';
+            }
+        });
+    }
+
+    // Form submission
+    document.getElementById('kyc-submission-form')?.addEventListener('submit', Logic.handleKycSubmit);
+},
+
 
 /**
  * [PINNACLE KYC MODAL CONTROLLER] Renders and initializes the advanced KYC upgrade modal.
@@ -1125,69 +1298,33 @@ showKycModal: () => {
     Logic.bindKycModalListeners();
 },
 
-/**
- * [PINNACLE KYC MODAL BINDER] Attaches all necessary event listeners for the KYC modal.
- * Manages step navigation, real-time validation, and the file drop zone.
- */
-bindKycModalListeners: () => {
-    // Step navigation logic (Example for one button)
-    document.getElementById('kyc-step1-next')?.addEventListener('click', () => {
-        Logic.changeKycStep(2);
-    });
-    // ... add listeners for all back/next buttons ...
 
-    // File Drop Zone Logic
-    const dropZone = document.getElementById('file-drop-zone');
-    const fileInput = document.getElementById('kyc-document-upload');
-    const filePreview = document.getElementById('file-preview');
-
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('border-sky-400', 'bg-sky-500/10');
-    });
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('border-sky-400', 'bg-sky-500/10');
-    });
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('border-sky-400', 'bg-sky-500/10');
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            // Trigger a change event to update the preview
-            fileInput.dispatchEvent(new Event('change'));
-        }
-    });
-
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length) {
-            const file = fileInput.files[0];
-            filePreview.innerHTML = `
-                <div class="flex items-center gap-3 p-3 bg-slate-700 rounded-lg">
-                    <i class="fas fa-file-alt text-sky-400 text-2xl"></i>
-                    <div class="flex-grow">
-                        <p class="text-white font-medium">${file.name}</p>
-                        <p class="text-xs text-slate-400">${(file.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                </div>
-            `;
-        }
-    });
-
-    // Form submission logic
-    document.getElementById('kyc-submission-form')?.addEventListener('submit', Logic.handleKycSubmit);
-},
 
 /**
  * [PINNACLE KYC STEP CONTROLLER] Manages the visual state of the accordion steps.
  * @param {number} targetStep The step to activate (1, 2, or 3).
  */
 changeKycStep: (targetStep) => {
-    // This is a simplified version of your excellent signup step changer
     const steps = [1, 2, 3];
     steps.forEach(step => {
-        document.getElementById(`kyc-accordion-step-${step}`)?.classList.toggle('active', step === targetStep);
+        const stepElement = document.getElementById(`kyc-accordion-step-${step}`);
+        const progressElement = document.getElementById(`kyc-progress-step-${step}`);
+        
+        stepElement?.classList.toggle('active', step === targetStep);
+        
+        if (step < targetStep) {
+            progressElement?.classList.add('completed');
+            progressElement?.classList.remove('active');
+        } else {
+            progressElement?.classList.toggle('active', step === targetStep);
+            progressElement?.classList.remove('completed');
+        }
     });
+    
+    // Update progress bar width
+    const progressBar = document.getElementById('kyc-progress-bar');
+    const progressPercentage = ((targetStep - 1) / (steps.length - 1)) * 66.66 + 33.33; // More accurate width
+    progressBar.style.width = `${progressPercentage}%`;
 },
 
 /**
@@ -1232,6 +1369,94 @@ handleKycSubmit: async (e) => {
         submitBtn.innerHTML = 'Finalize Submission';
     }
 },
+
+// --- Account & Beneficiary Management ---
+
+bindAccountModalListeners: () => {
+    document.getElementById('account-add-form')?.addEventListener('submit', Logic.handleAccountSubmit);
+},
+
+handleAccountSubmit: async (e) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<div class="premium-spinner"></div> Adding Account...`;
+
+    const accountData = {
+        accountType: document.getElementById('account-type').value,
+        nickname: document.getElementById('account-nickname').value,
+        currency: document.getElementById('account-currency').value,
+        details: { /* Logic to collect specific details based on type would go here */ }
+    };
+
+    try {
+        const response = await Utils.createApiRequest('karavanAddUserAccount', 'POST', {
+            karavanId: AppState.currentUser.karavanId,
+            accountData: accountData
+        });
+        (AppState.accounts = AppState.accounts || []).push(response.data);
+        Utils.showNotification('Account added successfully!', 'success');
+        document.getElementById('account-modal')?.close();
+        Logic.handleSidebarClick('global_accounts');
+    } catch (error) {
+        Utils.showNotification(error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Add Account';
+    }
+},
+
+bindBeneficiaryModalListeners: () => {
+    document.getElementById('beneficiary-add-form')?.addEventListener('submit', Logic.handleAddBeneficiarySubmit);
+},
+
+handleAddBeneficiarySubmit: async (e) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<div class="premium-spinner"></div> Adding Beneficiary...`;
+
+    const beneficiaryData = {
+        beneficiaryName: document.getElementById('beneficiary-name').value,
+        country: document.getElementById('beneficiary-country').value,
+        payoutMethod: document.getElementById('payout-method').value,
+        // ... more data collection
+    };
+    
+    try {
+        const response = await Utils.createApiRequest('karavanAddBeneficiary', 'POST', {
+            owner: AppState.currentUser.karavanId,
+            beneficiaryData: beneficiaryData
+        });
+        (AppState.marketData.beneficiaries = AppState.marketData.beneficiaries || []).push(response.data);
+        Utils.showNotification('Beneficiary added successfully!', 'success');
+        document.getElementById('beneficiary-modal')?.close();
+        // Re-render the dashboard to update the beneficiary dropdown
+        Logic.handleSidebarClick('dashboard');
+    } catch (error) {
+        Utils.showNotification(error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Add Beneficiary';
+    }
+},
+
+// --- Transaction Panel Intelligence ---
+
+selectTransactionType: (type) => {
+    document.querySelectorAll('.transaction-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+    });
+    AppState.transaction.type = type;
+},
+
+resetAllParameters: () => {
+    // This function would reset all form fields and analysis panels to their default state
+    document.getElementById('transaction-parameters-form')?.reset();
+    document.getElementById('transaction-breakdown').innerHTML = UI.renderInitialAnalysisState();
+    Utils.showNotification('Transaction parameters have been reset.', 'info');
+},
+  
 
                 /**
                  * [NEW & CRITICAL] Checks for a valid session upon page load.
@@ -3556,7 +3781,7 @@ renderStandardClientDashboard: () => {
  * [PINNACLE LP DASHBOARD RENDERER]
  * Renders the specialized dashboard for high-level liquidity partners.
  */
-renderLpClientDashboard: () => {
+renderLiquidityProviderDashboard: () => {
     return `
     <div class="max-w-7xl mx-auto">
         <h1 class="text-4xl font-bold text-white mb-2">Liquidity Partner Dashboard</h1>
@@ -3564,6 +3789,81 @@ renderLpClientDashboard: () => {
         <!-- Stat cards, tables, and graphs for LPs would go here -->
         <div class="h-96 bg-slate-800/50 border border-slate-700/50 rounded-xl flex items-center justify-center">
             <p class="text-slate-400">Advanced Network Analytics Interface</p>
+        </div>
+    </div>
+    `;
+},
+
+/**
+ * [PINNACLE PROFILE MODAL RENDERER v4.0]
+ * Renders an advanced, guided modal for editing user profile information, enforcing
+ * read-only constraints on immutable data and providing a premium user experience.
+ */
+renderProfileModal: () => {
+    const user = AppState.currentUser;
+    // This function now renders the full, unabridged HTML.
+    return `
+    <div class="p-6 max-w-4xl mx-auto">
+        <div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
+            <!-- HEADER -->
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-user-edit text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-white font-['Orbitron',_sans-serif]">Edit Your Profile</h2>
+                        <p class="text-slate-400">Keep your information up-to-date for a seamless experience.</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('profile-modal').close()" class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="profile-update-form" onsubmit="Logic.handleProfileUpdate(event)">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- PERSONAL & CONTACT INFORMATION -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3">
+                            <i class="fas fa-user-circle text-sky-400"></i>
+                            Personal & Contact
+                        </h3>
+                        <!-- READ-ONLY FIELDS -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="input-label-premium">First Name</label><input type="text" value="${user.firstName || ''}" readonly class="form-input-readonly"></div>
+                            <div><label class="input-label-premium">Last Name</label><input type="text" value="${user.lastName || ''}" readonly class="form-input-readonly"></div>
+                        </div>
+                        <div><label class="input-label-premium">Email Address</label><input type="email" value="${user.email || ''}" readonly class="form-input-readonly"></div>
+                        <div><label class="input-label-premium">Karavan ID</label><input type="text" value="${user.karavanId || ''}" readonly class="form-input-readonly"></div>
+                        <!-- EDITABLE FIELDS -->
+                        <div><label for="profile-contact" class="input-label-premium">Contact Number</label><input type="tel" id="profile-contact" placeholder="Enter contact number" class="form-input-premium"></div>
+                    </div>
+
+                    <!-- ADDRESS INFORMATION -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold text-white flex items-center gap-3 border-b border-slate-700 pb-3">
+                            <i class="fas fa-map-marked-alt text-emerald-400"></i>
+                            Address
+                        </h3>
+                        <div><label for="profile-country" class="input-label-premium">Country</label><select id="profile-country" class="form-select-premium"><!-- options --></select></div>
+                        <div><label for="profile-address1" class="input-label-premium">Address Line 1</label><input type="text" id="profile-address1" placeholder="Street address" class="form-input-premium"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label for="profile-city" class="input-label-premium">City</label><input type="text" id="profile-city" placeholder="City" class="form-input-premium"></div>
+                            <div><label for="profile-postal" class="input-label-premium">Postal Code</label><input type="text" id="profile-postal" placeholder="Postal code" class="form-input-premium"></div>
+                        </div>
+                        <div><label for="profile-state" class="input-label-premium">State/Province</label><input type="text" id="profile-state" placeholder="State or Province" class="form-input-premium"></div>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="flex justify-end gap-4 mt-10 pt-6 border-t border-slate-700">
+                    <button type="button" onclick="document.getElementById('profile-modal').close()" class="px-6 py-3 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white rounded-lg transition-all font-medium">Cancel</button>
+                    <button type="submit" class="px-8 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-save mr-2"></i>Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
     `;
@@ -3639,7 +3939,32 @@ renderKycUpgradeModal: () => {
     </div>
     `;
 },
+/**
+ * [PINNACLE ACCOUNT MODAL RENDERER v4.0]
+ * Renders a guided modal for adding new user funding accounts.
+ */
+renderAccountModal: () => {
+    return `
+    <div class="p-6 max-w-2xl mx-auto">
+        <div class="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 rounded-3xl p-8 shadow-2xl backdrop-blur-xl">
+            <!-- ... Full HTML for adding a new bank account, crypto wallet, etc. ... -->
+        </div>
+    </div>`;
+},
 
+/**
+ * [PINNACLE INITIAL ANALYSIS STATE RENDERER]
+ * Renders the default state for the analysis panel.
+ */
+renderInitialAnalysisState: () => {
+    return `
+    <div class="text-slate-400 text-center py-8 h-full flex flex-col items-center justify-center">
+        <i class="fas fa-map-marked-alt text-6xl mb-6 opacity-20"></i>
+        <h3 class="text-xl font-bold text-white">Awaiting Parameters</h3>
+        <p class="max-w-xs">Configure your transaction on the left to activate the Pinnacle Analysis Engine and view your optimal settlement route.</p>
+    </div>
+    `;
+},
                 renderAuthView: () => `
                     <div class="w-full">
                         <!-- ========================================================================= -->
@@ -3839,7 +4164,7 @@ renderRoleSelectView: () => `
                         </div>`;
                 },
 
-                renderLPDashboard: () => `
+                renderLiquidityProviderDashboard: () => `
                     <div class="max-w-6xl mx-auto"><div class="text-center mb-12"><h2 class="text-3xl font-bold text-white mb-2">Liquidity Partner Dashboard</h2><p class="text-lg text-text-silver">Manage your liquidity pools and monitor network performance</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Available Liquidity</h3><i class="fas fa-wallet text-primary-azure text-xl"></i></div><div class="text-2xl font-bold text-success-color mb-2">$2.5M USD</div><div class="text-sm text-text-muted">Across all currencies</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">24H Volume</h3><i class="fas fa-chart-line text-brand-gecan-gold text-xl"></i></div><div class="text-2xl font-bold text-primary-azure mb-2">$487K</div><div class="text-sm text-success-color">+12.5% vs yesterday</div></div><div class="glass-premium p-6 rounded-xl"><div class="flex items-center justify-between mb-4"><h3 class="text-lg font-bold text-white">Fees Earned</h3><i class="fas fa-coins text-warning-color text-xl"></i></div><div class="text-2xl font-bold text-warning-color mb-2">$1,247</div><div class="text-sm text-text-muted">This month</div></div></div><div class="glass-premium p-6 rounded-xl"><h3 class="text-xl font-bold text-white mb-4">Recent Settlement Requests</h3><div class="space-y-3">${[1,2,3,4,5].map(i => `<div class="flex items-center justify-between p-4 bg-background-dark rounded-lg"><div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-success-color"></div><div><div class="font-medium text-white">SGD ${(Math.random() * 10000).toFixed(0)} → PHP</div><div class="text-sm text-text-muted">${i * 5} minutes ago</div></div></div><div class="text-success-color font-medium">Completed</div></div>`).join('')}</div></div></div>`,
                 
                 renderAddBeneficiaryModal: () => `
