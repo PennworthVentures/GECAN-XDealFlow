@@ -6575,27 +6575,41 @@ toggleBeneficiaryDetails: (method) => {
 },
 
 changeBeneficiaryStep: (targetStep) => {
-    // Military-grade validation gates
-    if (targetStep > 1 && !document.getElementById('beneficiary-name')?.value.trim()) {
-        return Utils.showNotification("Beneficiary Full Name is required to proceed.", 'warning');
-    }
-    if (targetStep > 2) {
-        if (!document.getElementById('beneficiary-country')?.value) {
-            return Utils.showNotification("Country is required to proceed.", 'warning');
+    // --- Military-Grade Validation Gates ---
+    // Validate Step 1 before allowing progression to Step 2
+    if (targetStep > 1) {
+        const nameInput = document.getElementById('beneficiary-name');
+        if (!nameInput?.value.trim()) {
+            return Utils.showNotification("Beneficiary Full Name is a required field to proceed.", 'warning');
         }
-        if (!document.getElementById('payout-method')?.value) {
-            return Utils.showNotification("Payout Method is required to proceed.", 'warning');
+    }
+    // Validate Step 2 before allowing progression to Step 3
+    if (targetStep > 2) {
+        const countryInput = document.getElementById('beneficiary-country');
+        const payoutMethodInput = document.getElementById('payout-method');
+        if (!countryInput?.value) {
+            return Utils.showNotification("Country is a required field to proceed.", 'warning');
+        }
+        if (!payoutMethodInput?.value) {
+            return Utils.showNotification("Payout Method is a required field to proceed.", 'warning');
         }
     }
     
-    // On step 3, dynamically render the required details field
+    // --- Dynamic UI Rendering on Step Transition ---
+    // When the user is about to view Step 3, we must dynamically render the correct
+    // details input field (Bank, Mobile, or Crypto) based on their choice from Step 2.
     if (targetStep === 3) {
         const payoutMethod = document.getElementById('payout-method').value;
         UI.toggleBeneficiaryDetails(payoutMethod);
     }
     
+    // --- State Transition Logic ---
+    // Hide all steps, then activate the target step.
     document.querySelectorAll('.beneficiary-step').forEach(step => step.classList.remove('active'));
-    document.getElementById(`beneficiary-step-${targetStep}`)?.classList.add('active');
+    const targetStepElement = document.getElementById(`beneficiary-step-${targetStep}`);
+    if (targetStepElement) {
+        targetStepElement.classList.add('active');
+    }
 },
                 
                 toggleBankDetails: (e) => {
