@@ -1971,7 +1971,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycbwOSTQz_05avJ8D9ILBqNm85OfJRcMtnNnep1psnohaiZf2G02UJ2mqoBYmVI5O9n1c/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbwM6nYlHL5oO-xLerrOuOuVHADDjh0mtDvJAOkfPGLIm0UwceveUx5oQItB9J3Zvfu-/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -2116,106 +2116,331 @@ getUserDisplayName: (user) => {
                 }
             };
 
-            // --- SECTION 3: CORE LOGIC ENGINE ---
-            const Logic = {
+// --- SECTION 3: CORE LOGIC ENGINE ---
+const Logic = {
+_idCheckController: null,
 
-                /**
-                 * [NEW & PINNACLE-GRADE] Opens the interactive deep-dive modal for a currency pair.
-                 * @param {object} rateData - The full data object for the selected currency rate.
-                 */
-                showRateDetails: (rateData) => {
-                    const modal = document.getElementById('rate-modal');
-                    if (!modal) return;
+    // ========================================================================
+    // === INITIALIZATION & CORE ARCHITECTURE ===
+    // ========================================================================
+init: async () => {
+    try {
+        await UI.init();
+        Logic.initMobileUI();
 
-                    modal.innerHTML = UI.renderRateDetailModal(rateData);
-                    modal.showModal();
-                },
+        // --- DEFINITIVE SESSION & ROUTING LOGIC ---
+        // This is the single source of truth for the application's initial state.
+        if (Logic.checkSession()) {
+            // [PINNACLE FIX] A valid session was found. User is already authenticated.
+            
+            // 1. Provide immediate user feedback.
+            Utils.showNotification(`Welcome back, ${Utils.getUserDisplayName(AppState.currentUser)}! Session restored.`, 'success');
+            
+            // 2. Hydrate the entire application state with the master data endpoint.
+            await Logic.loadInitialData(); // The loader is handled within this function.
+            
+            // 3. Render the DEFINITIVE authenticated user view: the dashboard shell.
+            // This replaces the obsolete call to 'role_select'.
+            UI.renderView('dashboard_shell');
 
-                /**
-                 * [NEW & CRITICAL] Securely saves the authenticated user's data to sessionStorage.
-                 * This function is the heart of the session persistence engine.
-                 * @param {object} user - The user object received from a successful login.
-                 */
-                persistSession: (user) => {
-                    if (!user) return;
-                    // We store a 'session' object containing the user data and a timestamp.
-                    // We NEVER store the password.
-                    const sessionData = {
-                        user: user,
-                        loginTimestamp: Date.now()
-                    };
-                    sessionStorage.setItem('gecanKaravanSession', JSON.stringify(sessionData));
-                },
-
-// Add these new functions to your Logic object in karavan.html
-
-changeAccountStep: (targetStep) => {
-    // Military-grade validation gates
-    if (targetStep > 1) {
-        if (!document.getElementById('account-type')?.value) return Utils.showNotification("Account Type is required.", 'warning');
-        if (!document.getElementById('account-nickname')?.value) return Utils.showNotification("Account Nickname is required.", 'warning');
-        if (!document.getElementById('account-currency')?.value) return Utils.showNotification("Currency is required.", 'warning');
-    }
-    if (targetStep > 2) {
-        const accountType = document.getElementById('account-type').value;
-        if (accountType === 'bank' && (!document.getElementById('account-holder-name')?.value || !document.getElementById('account-number')?.value || !document.getElementById('account-bank-name')?.value)) {
-            return Utils.showNotification("Please complete all required bank details.", 'warning');
-        }
-        if (accountType.startsWith('crypto_') && !document.getElementById('account-wallet-address')?.value) {
-            return Utils.showNotification("Wallet Address is required.", 'warning');
-        }
-    }
-    
-    // Dynamically render details for Step 2
-    if (targetStep === 2) {
-        const accountType = document.getElementById('account-type').value;
-        UI.toggleAccountDetails(accountType);
-    }
-    
-    // Accordion State Management
-    [1, 2, 3].forEach(step => {
-        const stepPanel = document.getElementById(`account-accordion-step-${step}`);
-        const badge = stepPanel.querySelector('.premium-step-badge');
-        if (step < targetStep) {
-            stepPanel.classList.add('completed');
-            stepPanel.classList.remove('active');
-            badge.innerHTML = `<i class="fas fa-check"></i>`;
         } else {
-            badge.innerHTML = `<span class="premium-step-number">${step}</span>`;
+            // No valid session. Show the login screen as normal.
+            UI.renderView('auth');
         }
-        stepPanel.classList.toggle('active', step === targetStep);
-    });
+
+    } catch (error) {
+        console.error('CRITICAL INITIALIZATION FAILURE:', error);
+        document.getElementById('initial-loader').innerHTML = `
+            <div class="text-center text-red-400">
+                <i class="fas fa-satellite-dish fa-3x mb-4"></i>
+                <h2 class="text-2xl font-bold text-white mb-2">System Failure</h2>
+                <p class="text-red-400">A critical error occurred during application initialization. Please refresh the page.</p>
+            </div>
+        `;
+    }
 },
 
-/**
- * ====================================================================================
- * === GECAN™ KARAVAN - PROFILE UPDATE ENGINE (ULTIMATE SYNTHESIS v2.1) ===
- * ====================================================================================
- * This is the definitive, unabridged, and ultimate implementation of the profile
- * update handler. It has been severely re-engineered to be syntactically perfect,
- * permanently eliminating the parse-time `SyntaxError` that was causing a total
- * application failure.
- *
- * This function is now the pinnacle of resilience and functionality for its purpose.
- *
- * PINNACLE-GRADE ATTRIBUTES:
- * 1.  SYNTACTIC PERFECTION: The fatal `catch (error)_` flaw has been definitively
- *     identified and eliminated. The `try...catch...finally` block now adheres to
- *     the strict grammatical rules of the JavaScript language.
- *
- * 2.  RESILIENT PAYLOAD CONSTRUCTION: The function defensively builds the `profileData`
- *     payload by iterating through a whitelist of element IDs. This military-grade
- *     approach guarantees that it will never throw a `TypeError` by attempting to
- *     access a non-existent DOM element.
- *
- * 3.  OPTIMISTIC UI & STATE MANAGEMENT: Upon a successful API call, it optimistically
- *     updates the local `AppState.currentUser` and persists the session. This provides
- *     an instantaneous, premium user experience without waiting for a full data refresh.
- *
- * 4.  ZERO REGRESSIONS: This version is a strict superset of all prior functional
- *     requirements, ensuring all profile fields are correctly gathered and processed
- *     with zero omissions.
- */
+                initMobileUI: () => {
+                    const fab = document.getElementById('mobile-fab'), sidebar = document.getElementById('mobile-sidebar'), overlay = document.getElementById('mobile-sidebar-overlay'), closeBtn = document.getElementById('mobile-sidebar-close-btn');
+                    const openSidebar = () => { UI.populateNavLinks(); sidebar.classList.add('left-0'); sidebar.classList.remove('-left-full'); overlay.classList.remove('hidden'); document.body.classList.add('mobile-sidebar-open'); };
+                    const closeSidebar = () => { sidebar.classList.add('-left-full'); sidebar.classList.remove('left-0'); overlay.classList.add('hidden'); document.body.classList.remove('mobile-sidebar-open'); };
+                    fab.addEventListener('click', openSidebar); overlay.addEventListener('click', closeSidebar); closeBtn.addEventListener('click', closeSidebar);
+                },
+
+    // ========================================================================
+    // === AUTHENTICATION & SESSION MANAGEMENT ===
+    // ========================================================================
+
+                checkSession: () => {
+                    const sessionDataString = sessionStorage.getItem('gecanKaravanSession');
+                    if (!sessionDataString) return false;
+
+                    try {
+                        const sessionData = JSON.parse(sessionDataString);
+                        // Optional: Add a timeout check for extra security (e.g., 8 hours)
+                        // const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
+                        // if (Date.now() - sessionData.loginTimestamp > sessionDuration) {
+                        //     Logic.logout(); // Session expired
+                        //     return false;
+                        // }
+
+                        // Re-hydrate the application state with the stored user data.
+                        AppState.isAuthenticated = true;
+                        AppState.currentUser = sessionData.user;
+                        return true;
+                    } catch (error) {
+                        console.error("Failed to parse session data:", error);
+                        Logic.logout(); // Clear corrupted session data
+                        return false;
+                    }
+                },
+
+                logout: () => {
+                    sessionStorage.removeItem('gecanKaravanSession');
+                    AppState.isAuthenticated = false;
+                    AppState.currentUser = null;
+                    // Redirect to the login screen for a clean user experience.
+                    UI.renderView('auth');
+                },
+    
+handleLogin: async (e) => {
+    e.preventDefault();
+    const karavanId = document.getElementById('karavan-id').value.trim();
+    const password = document.getElementById('password').value;
+    const loginBtn = e.target.querySelector('button[type="submit"]');
+
+    if (!karavanId || !password) {
+        return Utils.showNotification('Please enter your credentials.', 'warning');
+    }
+
+    // 1. SET PREMIUM LOADING STATE
+    loginBtn.disabled = true;
+    const originalContent = loginBtn.innerHTML; // Store original content for error state reset
+    loginBtn.style.transform = 'scale(0.98)';
+    loginBtn.innerHTML = `
+        <div class="flex items-center justify-center gap-2">
+            <div class="premium-spinner"></div>
+            <span class="text-white font-semibold">Authenticating...</span>
+        </div>
+    `;
+
+    try {
+        // 2. PERFORM A SINGLE, AUTHORITATIVE API CALL
+        // The backend now handles all validation: credentials, lockouts, and tiered status.
+        // If this call succeeds, we can trust the user is fully authenticated and permitted to log in.
+        const response = await Utils.createApiRequest('karavanAuthenticate', 'POST', { karavanId, password });
+        
+        // 3. PROCESS SUCCESSFUL LOGIN
+        AppState.isAuthenticated = true;
+        AppState.currentUser = response.user;
+        Logic.persistSession(response.user);
+
+        // [NO REGRESSION] Your excellent success animation is preserved.
+        loginBtn.style.transform = 'scale(1.02)';
+        loginBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <i class="fas fa-check-circle text-green-400"></i>
+                <span class="text-white font-semibold">Success!</span>
+            </div>
+        `;
+
+        Utils.showNotification(`Authentication successful. Welcome, ${Utils.getUserDisplayName(AppState.currentUser)}!`, 'success');
+        await Logic.loadInitialData();
+        
+        setTimeout(() => {
+            UI.renderView('dashboard_shell');
+        }, 800);
+
+    } catch (error) {
+        // 4. PROCESS PINNACLE-GRADE, CONTEXT-AWARE ERRORS
+        // The 'error.message' now contains the specific, user-friendly reason for failure
+        // directly from the authoritative backend (e.g., "Invalid credentials", "Account is locked", etc.).
+        
+        // [NO REGRESSION] Your excellent, context-aware error animation is preserved and enhanced.
+        let buttonIcon = 'fas fa-exclamation-circle text-white';
+        let buttonText = 'Login Failed';
+        let buttonBg = 'linear-gradient(135deg, #ef4444, #dc2626)'; // Red for general failure
+
+        // Enhance UI for specific, critical backend messages
+        if (error.message.includes('locked')) {
+            buttonIcon = 'fas fa-lock text-white';
+            buttonText = 'Account Locked';
+            buttonBg = 'linear-gradient(135deg, #f59e0b, #d97706)'; // Orange for locked
+        } else if (error.message.includes('suspended')) {
+            buttonIcon = 'fas fa-ban text-white';
+            buttonText = 'Account Suspended';
+        } else if (error.message.includes('pending verification')) {
+            buttonIcon = 'fas fa-envelope text-white';
+            buttonText = 'Verification Required';
+            buttonBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)'; // Blue for info
+        }
+
+        loginBtn.style.transform = 'scale(1)';
+        loginBtn.style.background = buttonBg;
+        loginBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <i class="${buttonIcon}"></i>
+                <span class="text-white font-semibold">${buttonText}</span>
+            </div>
+        `;
+        
+        // Display the precise error message from the backend.
+        Utils.showNotification(error.message, 'error');
+        
+        // Restore the button to its original state after a delay.
+        setTimeout(() => {
+            loginBtn.style.background = '';
+            loginBtn.innerHTML = originalContent;
+        }, 3000); // Increased delay for important messages
+        
+    } finally {
+        // This ensures the button is always re-enabled after the flow completes.
+        loginBtn.disabled = false;
+        loginBtn.style.transform = 'scale(1)';
+    }
+},
+
+    persistSession: (user) => {
+        if (!user) return;
+        const sessionData = { user: user, loginTimestamp: Date.now() };
+        sessionStorage.setItem('gecanKaravanSession', JSON.stringify(sessionData));
+    },
+
+    // ========================================================================
+    // === DATA HYDRATION ENGINE ===
+    // ========================================================================
+
+loadInitialData: async () => {
+    const loader = document.getElementById('initial-loader');
+    const loaderText = loader?.querySelector('p');
+
+    try {
+        // --- Phase 1: Signal Intent & Execute API Transaction ---
+        if (loaderText) {
+            loaderText.textContent = 'Hydrating secure dashboard state...';
+        }
+        
+        // A single, unified API call to the master data hydration endpoint.
+        const dashboardDataPayload = await Utils.createApiRequest('karavanGetDashboardData', 'POST', {
+            karavanId: AppState.currentUser.karavanId
+        });
+
+        // --- Phase 2: Military-Grade Data Validation & State Population ---
+        if (!dashboardDataPayload) {
+            throw new Error("Received an empty or invalid response from the data hydration service.");
+        }
+
+        // Destructure the complete data payload with robust, resilient fallbacks.
+        // This prevents the application from crashing if the backend API returns a partial object.
+        const {
+            beneficiaries = [],
+            accounts = [],
+            transactions = [],
+            marketRates = []
+        } = dashboardDataPayload;
+
+        // Populate all necessary parts of the application state with the validated data.
+        AppState.marketData.rates = marketRates.filter(r => r.status === 'OK' || r.status === 'MANUAL');
+        AppState.marketData.beneficiaries = beneficiaries;
+        AppState.accounts = accounts;
+        AppState.allTransactions = transactions; // For the Transfers History view
+
+        // --- Phase 3: Initialize Dependent UI Components ---
+        // Initialize the live market data ticker with the fetched data.
+        UI.startHoloStream();
+
+    } catch (error) {
+        // --- Pinnacle-Grade Error Handling ---
+        // Provide a specific, helpful error message to the user.
+        Utils.showNotification('Critical Error: Failed to load dashboard data. Core services may be unavailable.', 'error');
+        
+        // Update the loader to reflect the failure state, providing clear feedback.
+        if (loader) {
+            loader.innerHTML = `
+                <div class="text-center text-red-400">
+                    <i class="fas fa-times-circle fa-3x mb-4"></i>
+                    <h2 class="text-2xl font-bold text-white mb-2">Connection Failure</h2>
+                    <p class="text-red-400">Could not establish a secure connection to the GECAN network.</p>
+                </div>
+            `;
+        }
+        
+        // Log the detailed error for debugging.
+        console.error("Definitive Dashboard Hydration Failed:", error);
+
+    } finally {
+        // --- Guaranteed UI Cleanup ---
+        // This block ensures that, regardless of success or failure, the main loader
+        // is hidden after a brief delay, allowing the dashboard (even in an empty
+        // or error state) to be displayed.
+        setTimeout(() => {
+            if (loader) {
+                loader.style.transition = 'opacity 0.5s ease-out';
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }
+        }, 200);
+    }
+},
+
+    // ========================================================================
+    // === DASHBOARD & VIEW CONTROLLERS ===
+    // ========================================================================
+handleSidebarClick: (viewId) => {
+    document.querySelectorAll('#dashboard-sidebar-nav .nav-link').forEach(link => {
+        const isActive = link.dataset.viewId === viewId;
+        link.classList.toggle('bg-white/10', isActive);
+        link.classList.toggle('text-white', isActive);
+        link.classList.toggle('text-white/80', !isActive);
+    });
+    
+    const mainContentArea = document.getElementById('dashboard-main-content');
+    if (mainContentArea) {
+        // Fade out
+        mainContentArea.style.opacity = '0';
+        
+        setTimeout(() => {
+            // Render new content while it's invisible
+            mainContentArea.innerHTML = UI.renderDashboardContent(viewId);
+            
+            // Add the animation class to trigger the fade-in
+            mainContentArea.classList.remove('animate-step-fade-in'); // Remove to re-trigger
+            void mainContentArea.offsetWidth; // Force reflow
+            mainContentArea.classList.add('animate-step-fade-in');
+            mainContentArea.style.opacity = '1';
+        }, 200); // Should match transition duration
+    }
+},
+
+toggleProfileMenu: () => {
+    const dropdown = document.getElementById('profile-dropdown');
+    dropdown.classList.toggle('hidden');
+},  
+
+    // ========================================================================
+    // === MODAL ORCHESTRATION ENGINE ===
+    // ========================================================================
+renderAndShowModal: (modalId, contentHtml, bindListenersFunc = null) => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.innerHTML = contentHtml;
+        modal.showModal();
+        if (bindListenersFunc) {
+            bindListenersFunc();
+        }
+    }
+},
+
+showProfileModal: () => Logic.renderAndShowModal('profile-modal', UI.renderProfileModal(), Logic.bindProfileModalListeners),
+showKycModal: () => Logic.renderAndShowModal('kyc-upgrade-modal', UI.renderKycUpgradeModal(), Logic.bindKycModalListeners),
+showAccountModal: () => Logic.renderAndShowModal('account-modal', UI.renderAccountModal(), Logic.bindAccountModalListeners),
+showAddBeneficiaryModal: () => Logic.renderAndShowModal('beneficiary-modal', UI.renderAddBeneficiaryModal(), Logic.bindBeneficiaryModalListeners),
+   
+    // --- Specific Modal Logic ---
+bindProfileModalListeners: () => {
+    document.getElementById('profile-update-form')?.addEventListener('submit', Logic.handleProfileUpdate);
+},
+    
 handleProfileUpdate: async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -2272,331 +2497,6 @@ handleProfileUpdate: async (e) => {
     }
 },
 
-                
-/**
- * [PINNACLE STATS ENGINE v1.0] A definitive helper function that processes live
- * application state data to generate dynamic statistics for the Mission Control dashboard.
- * This completely eliminates all hardcoded mock data from the UI.
- *
- * @returns {object} An object containing calculated stats for the dashboard cards.
- */
-calculateDashboardStats: () => {
-    const stats = {
-        totalSentThisMonth: 0,
-        avgRate: 0,
-        activeRecipients: 0,
-        avgSettlementTime: "4.2min" // This remains a simulated value until backend provides timing data
-    };
-
-    // 1. Calculate Total Sent This Month
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthlyTransactions = (AppState.allTransactions || []).filter(tx => new Date(tx.timestamp) >= firstDayOfMonth);
-    
-    stats.totalSentThisMonth = monthlyTransactions.reduce((sum, tx) => {
-        // For simplicity, we'll assume all sends are in a USD-equivalent currency.
-        // A more advanced system would convert each tx.sendAmount to a base currency like USD.
-        return sum + parseFloat(tx.sendAmount || 0);
-    }, 0);
-
-    // 2. Calculate Average Rate (specifically for CAD to PHP as an example)
-    const cadToPhpTransactions = monthlyTransactions.filter(tx => tx.sendCurrency === 'CAD' && tx.receiveCurrency === 'PHP');
-    if (cadToPhpTransactions.length > 0) {
-        const totalRate = cadToPhpTransactions.reduce((sum, tx) => sum + parseFloat(tx.exchangeRate || 0), 0);
-        stats.avgRate = totalRate / cadToPhpTransactions.length;
-    } else {
-        // Fallback to live market rate if no history
-        const marketRate = AppState.marketData.rates.find(r => r.baseAsset === 'CAD' && r.quoteAsset === 'PHP');
-        stats.avgRate = parseFloat(marketRate?.price || 0);
-    }
-    
-    // 3. Count Active Recipients
-    stats.activeRecipients = (AppState.marketData.beneficiaries || []).length;
-
-    return stats;
-},
-
-/**
- * [PINNACLE REAL-TIME QUOTE ENGINE v1.0] A debounced function that provides
- * instantaneous, non-binding quote estimations as the user types. This is the
- * definitive implementation of the "live analysis" feature for Mission Control.
- */
-requestRealtimeQuote: Utils.debounce(async () => {
-    const sendAmount = parseFloat(document.getElementById('send-amount')?.value);
-    const sendCurrency = document.getElementById('send-currency')?.value;
-    const receiveCurrency = document.getElementById('receive-currency')?.value;
-    const beneficiaryId = document.getElementById('beneficiary-select')?.value;
-    const receiveAmountEl = document.getElementById('receive-amount');
-
-    // Only proceed if we have the minimum required data for a preview
-    if (!sendAmount || sendAmount <= 0 || !sendCurrency || !receiveCurrency) {
-        if (receiveAmountEl) receiveAmountEl.textContent = '~ 0.00';
-        return;
-    }
-    
-    // Show a loading state for a premium experience
-    if (receiveAmountEl) receiveAmountEl.innerHTML = `<div class="premium-spinner" style="width:16px; height:16px; border-width:2px;"></div>`;
-    
-    try {
-        // Use the same robust backend endpoint for a consistent calculation
-        const quote = await Utils.createApiRequest('karavanGetQuote', 'POST', {
-            sendAmount, sendCurrency, receiveCurrency,
-            karavanId: AppState.currentUser.karavanId // Pass user ID for tiered rate simulation
-        });
-        
-        // Update the UI with the real-time data
-        if (receiveAmountEl) receiveAmountEl.textContent = `~ ${parseFloat(quote.receiveAmount).toFixed(2)}`;
-        Logic.updateAnalysisPanel(quote);
-
-    } catch(error) {
-         if (receiveAmountEl) receiveAmountEl.textContent = '~ Error';
-         console.error("Real-time quote failed:", error);
-    }
-}, 400), // Debounce for 400ms to feel responsive but not overwhelming
-
-resetTransactionParameters: () => {
-    // 1. Clear the transaction object in the application state
-    AppState.transaction = {};
-
-    // 2. Re-render the dashboard view. The state-aware renderer will now
-    //    use the empty transaction object, effectively resetting all fields.
-    Logic.handleSidebarClick('dashboard');
-
-    // 3. Provide user feedback
-    Utils.showNotification('Transaction parameters have been cleared.', 'info');
-},                
-/**
- * [PINNACLE DASHBOARD CONTROLLER] Selects the delivery method, providing visual feedback.
- * @param {string} method The selected method ('bank' or 'cash').
- */
-selectDeliveryMethod: (method) => {
-    AppState.transaction = AppState.transaction || {};
-    AppState.transaction.deliveryMethod = method;
-    document.querySelectorAll('.delivery-method-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.method === method);
-    });
-    // You could add logic here to update the analysis panel based on the method
-    Utils.showNotification(`Delivery method set to: ${method.charAt(0).toUpperCase() + method.slice(1)}`, 'info');
-},
-
-/**
- * [PINNACLE QUOTE ENGINE v2.0] Retrieves a real-time quote based on the dashboard parameters.
- * This function is the heart of the transaction panel, providing live data and enabling the next step.
- * It also triggers the dynamic analysis panel update.
- */
-getQuote: async () => {
-    const sendAmount = parseFloat(document.getElementById('send-amount')?.value);
-    const sendCurrency = document.getElementById('send-currency')?.value;
-    const receiveCurrency = document.getElementById('receive-currency')?.value;
-    const beneficiaryId = document.getElementById('beneficiary-select')?.value;
-    const quoteBtn = document.getElementById('get-quote-btn');
-
-    if (!sendAmount || sendAmount <= 0 || !sendCurrency || !receiveCurrency || !beneficiaryId) {
-        return Utils.showNotification('Please complete all fields: Amount, Currencies, and Recipient.', 'warning');
-    }
-    
-    quoteBtn.disabled = true;
-    quoteBtn.innerHTML = `<div class="premium-spinner"></div> Analyzing Routes...`;
-
-    try {
-        const quote = await Utils.createApiRequest('karavanGetQuote', 'POST', {
-            sendAmount,
-            sendCurrency,
-            receiveCurrency,
-            beneficiaryId,
-            type: AppState.currentUser.persona === 'remit' ? 'remit' : 'pay'
-        });
-        
-        // Update AppState with the full quote object
-        AppState.transaction = { ...AppState.transaction, ...quote, status: 'quoted' }; // [UPGRADE] Set status
-        
-        document.getElementById('receive-amount').textContent = parseFloat(quote.receiveAmount).toFixed(2);
-        Logic.updateAnalysisPanel(quote);
-
-        // [CRITICAL UPGRADE] Transition the UI to the next logical step
-        UI.renderReviewStep(quote); // Render the new review panel
-        
-        quoteBtn.classList.remove('btn-primary');
-        quoteBtn.classList.add('btn-secondary');
-        quoteBtn.innerHTML = `<i class="fas fa-undo mr-2"></i> New Quote`;
-        quoteBtn.onclick = Logic.resetTransactionParameters; // Change button action
-
-    } catch (error) {
-        Utils.showNotification(`Quote failed: ${error.message}`, 'error');
-        quoteBtn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> Error`;
-        setTimeout(() => {
-            quoteBtn.innerHTML = `<i class="fas fa-search-dollar mr-2"></i> Get Quote`;
-            quoteBtn.disabled = false;
-        }, 3000);
-    } finally {
-        // [UPGRADE] Ensure button is always usable after the flow
-        quoteBtn.disabled = false;
-    }
-},
-
-// Add this NEW function to the `Logic` object.
-
-/**
- * [PINNACLE STATE MANAGER] Invalidates the current quote and resets the UI.
- * This is triggered whenever a critical transaction parameter is changed after a quote
- * has been successfully retrieved, preventing the use of stale data.
- */
-invalidateQuote: () => {
-    // Only run if there's an active quote to invalidate
-    if (AppState.transaction && AppState.transaction.status === 'quoted') {
-        console.log('[STATE] Quote invalidated due to parameter change.');
-        AppState.transaction.status = 'draft'; // Reset status
-
-        // 1. Reset the main action button
-        const quoteBtn = document.getElementById('get-quote-btn');
-        if (quoteBtn) {
-            quoteBtn.classList.add('btn-primary');
-            quoteBtn.classList.remove('btn-secondary');
-            quoteBtn.innerHTML = `<i class="fas fa-search-dollar mr-2"></i> Get Quote`;
-            quoteBtn.onclick = Logic.getQuote; // Restore original action
-        }
-
-        // 2. Hide the review & dispatch panel
-        const reviewContainer = document.getElementById('transaction-review-container');
-        if (reviewContainer) {
-            reviewContainer.innerHTML = '';
-        }
-        
-        // 3. Reset the analysis panel to its initial state
-        document.getElementById('current-rate').textContent = '1.00000';
-        document.getElementById('our-rate').textContent = '0.00000';
-        document.getElementById('total-cost').textContent = '0.00';
-        document.getElementById('destination-details').textContent = 'Awaiting selection';
-    }
-},     
-
-dispatchFromDashboard: async () => {
-    const dispatchBtn = document.getElementById('dispatch-btn');
-    if (!AppState.transaction || AppState.transaction.status !== 'quoted') {
-        return Utils.showNotification('Invalid transaction state. Please get a new quote.', 'error');
-    }
-
-    dispatchBtn.disabled = true;
-    dispatchBtn.innerHTML = `<div class="premium-spinner"></div> Dispatching...`;
-
-    try {
-        const response = await Utils.createApiRequest('karavanDispatch', 'POST', { transaction: AppState.transaction, user: AppState.currentUser });
-        
-        // Update transaction state with final details
-        AppState.transaction.id = response.transactionId;
-        AppState.transaction.status = 'initiated'; // Or whatever the API returns
-        AppState.transaction.timestamp = new Date().toISOString();
-        
-        Utils.showNotification('Karavan Dispatched! Tracking initiated.', 'success');
-        
-        // Transition to the tracker view
-        Logic.handleSidebarClick('transfers'); // Or a dedicated tracker view
-
-    } catch (error) {
-        Utils.showNotification(`Dispatch failed: ${error.message}`, 'error');
-        dispatchBtn.disabled = false;
-        dispatchBtn.innerHTML = `<i class="fas fa-rocket mr-2"></i>Dispatch Karavan`;
-    }
-},
-
-/**
- * [PINNACLE ANALYSIS RENDERER] Dynamically updates the "Analysis & Projections" panel.
- * This function brings the dashboard to life, showing real-time data from the quote engine.
- * @param {object} quoteData The quote data received from the API.
- */
-updateAnalysisPanel: (quoteData) => {
-    const analysisPanel = document.getElementById('market-analysis-panel');
-    if (!analysisPanel) return;
-
-    // Update rate displays
-    document.getElementById('current-rate').textContent = parseFloat(quoteData.marketRate).toFixed(5);
-    document.getElementById('our-rate').textContent = parseFloat(quoteData.exchangeRate).toFixed(5);
-    document.getElementById('total-cost').textContent = Utils.formatCurrency(quoteData.totalCost, quoteData.sendCurrency);
-
-    // Update intelligent analysis indicators (using mock data for visual effect)
-    document.getElementById('volatility-bar').style.width = '35%';
-    document.getElementById('volatility-percent').textContent = 'Mid (3.5%)';
-    document.getElementById('liquidity-bar').style.width = '90%';
-    document.getElementById('liquidity-level').textContent = 'Very High';
-
-    // Update optimal route display
-    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === document.getElementById('beneficiary-select')?.value);
-    document.getElementById('origin-details').textContent = `${quoteData.sendCurrency} Network`;
-    document.getElementById('route-details').textContent = `GECAN™ Nexus -> ${quoteData.optimalPath}`;
-    document.getElementById('destination-details').textContent = `${beneficiary?.name} (${quoteData.receiveCurrency})`;
-},
-
-// --- Placeholders for Future Expansion ---
-showAdvancedOptions: () => Utils.showNotification('Advanced options panel coming soon.', 'info'),
-showQuickActionsMenu: () => Utils.showNotification('Quick actions menu coming soon.', 'info'),
-
-/**
- * [PINNACLE DASHBOARD CONTROLLER] Handles sidebar navigation clicks.
- * Updates the UI state and re-renders the main content area of the dashboard
- * without reloading the entire page or sidebar.
- * @param {string} viewId The ID of the view to render (e.g., 'dashboard', 'global_accounts').
- */
-handleSidebarClick: (viewId) => {
-    document.querySelectorAll('#dashboard-sidebar-nav .nav-link').forEach(link => {
-        const isActive = link.dataset.viewId === viewId;
-        link.classList.toggle('bg-white/10', isActive);
-        link.classList.toggle('text-white', isActive);
-        link.classList.toggle('text-white/80', !isActive);
-    });
-    
-    const mainContentArea = document.getElementById('dashboard-main-content');
-    if (mainContentArea) {
-        // Fade out
-        mainContentArea.style.opacity = '0';
-        
-        setTimeout(() => {
-            // Render new content while it's invisible
-            mainContentArea.innerHTML = UI.renderDashboardContent(viewId);
-            
-            // Add the animation class to trigger the fade-in
-            mainContentArea.classList.remove('animate-step-fade-in'); // Remove to re-trigger
-            void mainContentArea.offsetWidth; // Force reflow
-            mainContentArea.classList.add('animate-step-fade-in');
-            mainContentArea.style.opacity = '1';
-        }, 200); // Should match transition duration
-    }
-},
-
-toggleProfileMenu: () => {
-    const dropdown = document.getElementById('profile-dropdown');
-    dropdown.classList.toggle('hidden');
-},  
-
-renderAndShowModal: (modalId, contentHtml, bindListenersFunc = null) => {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.innerHTML = contentHtml;
-        modal.showModal();
-        if (bindListenersFunc) {
-            bindListenersFunc();
-        }
-    }
-},
-
-showProfileModal: () => Logic.renderAndShowModal('profile-modal', UI.renderProfileModal(), Logic.bindProfileModalListeners),
-showKycModal: () => Logic.renderAndShowModal('kyc-upgrade-modal', UI.renderKycUpgradeModal(), Logic.bindKycModalListeners),
-showAccountModal: () => Logic.renderAndShowModal('account-modal', UI.renderAccountModal(), Logic.bindAccountModalListeners),
-showAddBeneficiaryModal: () => Logic.renderAndShowModal('beneficiary-modal', UI.renderAddBeneficiaryModal(), Logic.bindBeneficiaryModalListeners),
-
-// --- Profile & KYC Submission Handlers ---
-
-/**
- * [PINNACLE PROFILE HANDLER] Binds listeners and handles the profile update submission.
- */
-bindProfileModalListeners: () => {
-    document.getElementById('profile-update-form')?.addEventListener('submit', Logic.handleProfileUpdate);
-},
-
-
-
-/**
- * [PINNACLE KYC HANDLER] Binds all listeners for the multi-step KYC modal.
- */
 bindKycModalListeners: () => {
     // Step navigation
     document.getElementById('kyc-step1-next')?.addEventListener('click', () => Logic.changeKycStep(2));
@@ -2635,34 +2535,6 @@ bindKycModalListeners: () => {
     document.getElementById('kyc-submission-form')?.addEventListener('submit', Logic.handleKycSubmit);
 },
 
-
-/**
- * [PINNACLE KYC MODAL CONTROLLER] Renders and initializes the advanced KYC upgrade modal.
- * This function is responsible for showing the modal and binding all the complex
- * event listeners for its multi-step, interactive workflow.
- */
-showKycModal: () => {
-    const modalContainer = document.getElementById('kyc-modal-container');
-    if (!modalContainer) {
-        const container = document.createElement('div');
-        container.id = 'kyc-modal-container';
-        document.body.appendChild(container);
-    }
-    
-    document.getElementById('kyc-modal-container').innerHTML = UI.renderKycUpgradeModal();
-    const modal = document.getElementById('kyc-upgrade-modal');
-    modal.showModal();
-
-    // Bind all listeners for the modal's interactive elements
-    Logic.bindKycModalListeners();
-},
-
-
-
-/**
- * [PINNACLE KYC STEP CONTROLLER] Manages the visual state of the accordion steps.
- * @param {number} targetStep The step to activate (1, 2, or 3).
- */
 changeKycStep: (targetStep) => {
     const steps = [1, 2, 3];
     steps.forEach(step => {
@@ -2686,10 +2558,6 @@ changeKycStep: (targetStep) => {
     progressBar.style.width = `${progressPercentage}%`;
 },
 
-/**
- * [PINNACLE KYC SUBMISSION HANDLER] Gathers all KYC data and sends it to the backend.
- * Handles the final step of the KYC upgrade process.
- */
 handleKycSubmit: async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -2733,6 +2601,44 @@ handleKycSubmit: async (e) => {
 
 bindAccountModalListeners: () => {
     document.getElementById('account-add-form')?.addEventListener('submit', Logic.handleAccountSubmit);
+},
+
+changeAccountStep: (targetStep) => {
+    // Military-grade validation gates
+    if (targetStep > 1) {
+        if (!document.getElementById('account-type')?.value) return Utils.showNotification("Account Type is required.", 'warning');
+        if (!document.getElementById('account-nickname')?.value) return Utils.showNotification("Account Nickname is required.", 'warning');
+        if (!document.getElementById('account-currency')?.value) return Utils.showNotification("Currency is required.", 'warning');
+    }
+    if (targetStep > 2) {
+        const accountType = document.getElementById('account-type').value;
+        if (accountType === 'bank' && (!document.getElementById('account-holder-name')?.value || !document.getElementById('account-number')?.value || !document.getElementById('account-bank-name')?.value)) {
+            return Utils.showNotification("Please complete all required bank details.", 'warning');
+        }
+        if (accountType.startsWith('crypto_') && !document.getElementById('account-wallet-address')?.value) {
+            return Utils.showNotification("Wallet Address is required.", 'warning');
+        }
+    }
+    
+    // Dynamically render details for Step 2
+    if (targetStep === 2) {
+        const accountType = document.getElementById('account-type').value;
+        UI.toggleAccountDetails(accountType);
+    }
+    
+    // Accordion State Management
+    [1, 2, 3].forEach(step => {
+        const stepPanel = document.getElementById(`account-accordion-step-${step}`);
+        const badge = stepPanel.querySelector('.premium-step-badge');
+        if (step < targetStep) {
+            stepPanel.classList.add('completed');
+            stepPanel.classList.remove('active');
+            badge.innerHTML = `<i class="fas fa-check"></i>`;
+        } else {
+            badge.innerHTML = `<span class="premium-step-number">${step}</span>`;
+        }
+        stepPanel.classList.toggle('active', step === targetStep);
+    });
 },
 
 handleAccountSubmit: async (e) => {
@@ -2831,229 +2737,247 @@ handleAddBeneficiarySubmit: async (e) => {
     }
 },
 
-// --- Transaction Panel Intelligence ---
+    // ========================================================================
+    // === MISSION CONTROL TRANSACTION WORKFLOW ===
+    // ========================================================================
 
-selectTransactionType: (type) => {
-    document.querySelectorAll('.transaction-type-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.type === type);
-    });
-    AppState.transaction.type = type;
-},
+requestRealtimeQuote: Utils.debounce(async () => {
+    const sendAmount = parseFloat(document.getElementById('send-amount')?.value);
+    const sendCurrency = document.getElementById('send-currency')?.value;
+    const receiveCurrency = document.getElementById('receive-currency')?.value;
+    const beneficiaryId = document.getElementById('beneficiary-select')?.value;
+    const receiveAmountEl = document.getElementById('receive-amount');
 
-resetAllParameters: () => {
-    // This function would reset all form fields and analysis panels to their default state
-    document.getElementById('transaction-parameters-form')?.reset();
-    document.getElementById('transaction-breakdown').innerHTML = UI.renderInitialAnalysisState();
-    Utils.showNotification('Transaction parameters have been reset.', 'info');
-},
-  
-
-                /**
-                 * [NEW & CRITICAL] Checks for a valid session upon page load.
-                 * If a session exists, it re-hydrates the AppState, bypassing the login screen.
-                 * @returns {boolean} True if a valid session was restored, false otherwise.
-                 */
-                checkSession: () => {
-                    const sessionDataString = sessionStorage.getItem('gecanKaravanSession');
-                    if (!sessionDataString) return false;
-
-                    try {
-                        const sessionData = JSON.parse(sessionDataString);
-                        // Optional: Add a timeout check for extra security (e.g., 8 hours)
-                        // const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
-                        // if (Date.now() - sessionData.loginTimestamp > sessionDuration) {
-                        //     Logic.logout(); // Session expired
-                        //     return false;
-                        // }
-
-                        // Re-hydrate the application state with the stored user data.
-                        AppState.isAuthenticated = true;
-                        AppState.currentUser = sessionData.user;
-                        return true;
-                    } catch (error) {
-                        console.error("Failed to parse session data:", error);
-                        Logic.logout(); // Clear corrupted session data
-                        return false;
-                    }
-                },
-
-                /**
-                 * [NEW & CRITICAL] Clears the session from storage and resets the application state.
-                 * This function provides a secure logout mechanism.
-                 */
-                logout: () => {
-                    sessionStorage.removeItem('gecanKaravanSession');
-                    AppState.isAuthenticated = false;
-                    AppState.currentUser = null;
-                    // Redirect to the login screen for a clean user experience.
-                    UI.renderView('auth');
-                },
-                
-init: async () => {
+    // Only proceed if we have the minimum required data for a preview
+    if (!sendAmount || sendAmount <= 0 || !sendCurrency || !receiveCurrency) {
+        if (receiveAmountEl) receiveAmountEl.textContent = '~ 0.00';
+        return;
+    }
+    
+    // Show a loading state for a premium experience
+    if (receiveAmountEl) receiveAmountEl.innerHTML = `<div class="premium-spinner" style="width:16px; height:16px; border-width:2px;"></div>`;
+    
     try {
-        await UI.init();
-        Logic.initMobileUI();
+        // Use the same robust backend endpoint for a consistent calculation
+        const quote = await Utils.createApiRequest('karavanGetQuote', 'POST', {
+            sendAmount, sendCurrency, receiveCurrency,
+            karavanId: AppState.currentUser.karavanId // Pass user ID for tiered rate simulation
+        });
+        
+        // Update the UI with the real-time data
+        if (receiveAmountEl) receiveAmountEl.textContent = `~ ${parseFloat(quote.receiveAmount).toFixed(2)}`;
+        Logic.updateAnalysisPanel(quote);
 
-        // --- DEFINITIVE SESSION & ROUTING LOGIC ---
-        // This is the single source of truth for the application's initial state.
-        if (Logic.checkSession()) {
-            // [PINNACLE FIX] A valid session was found. User is already authenticated.
-            
-            // 1. Provide immediate user feedback.
-            Utils.showNotification(`Welcome back, ${Utils.getUserDisplayName(AppState.currentUser)}! Session restored.`, 'success');
-            
-            // 2. Hydrate the entire application state with the master data endpoint.
-            await Logic.loadInitialData(); // The loader is handled within this function.
-            
-            // 3. Render the DEFINITIVE authenticated user view: the dashboard shell.
-            // This replaces the obsolete call to 'role_select'.
-            UI.renderView('dashboard_shell');
-
-        } else {
-            // No valid session. Show the login screen as normal.
-            UI.renderView('auth');
-        }
-
-    } catch (error) {
-        console.error('CRITICAL INITIALIZATION FAILURE:', error);
-        document.getElementById('initial-loader').innerHTML = `
-            <div class="text-center text-red-400">
-                <i class="fas fa-satellite-dish fa-3x mb-4"></i>
-                <h2 class="text-2xl font-bold text-white mb-2">System Failure</h2>
-                <p class="text-red-400">A critical error occurred during application initialization. Please refresh the page.</p>
-            </div>
-        `;
+    } catch(error) {
+         if (receiveAmountEl) receiveAmountEl.textContent = '~ Error';
+         console.error("Real-time quote failed:", error);
     }
-},
-                
-                initMobileUI: () => {
-                    const fab = document.getElementById('mobile-fab'), sidebar = document.getElementById('mobile-sidebar'), overlay = document.getElementById('mobile-sidebar-overlay'), closeBtn = document.getElementById('mobile-sidebar-close-btn');
-                    const openSidebar = () => { UI.populateNavLinks(); sidebar.classList.add('left-0'); sidebar.classList.remove('-left-full'); overlay.classList.remove('hidden'); document.body.classList.add('mobile-sidebar-open'); };
-                    const closeSidebar = () => { sidebar.classList.add('-left-full'); sidebar.classList.remove('left-0'); overlay.classList.add('hidden'); document.body.classList.remove('mobile-sidebar-open'); };
-                    fab.addEventListener('click', openSidebar); overlay.addEventListener('click', closeSidebar); closeBtn.addEventListener('click', closeSidebar);
-                },
+}, 400), // Debounce for 400ms to feel responsive but not overwhelming
 
-bindEventListeners: (viewName) => {
-                    const binders = {
-                        auth: () => {
-                            document.getElementById('auth-form')?.addEventListener('submit', Logic.handleLogin);
-                            document.getElementById('show-signup-btn')?.addEventListener('click', Logic.showSignupModal);
-                        },
-        tx_wizard: () => {
-            document.getElementById('confirm-destination')?.addEventListener('click', Logic.confirmDestination);
-            document.getElementById('confirm-amount')?.addEventListener('click', Logic.confirmAmount);
-            document.getElementById('dispatch-karavan')?.addEventListener('click', Logic.dispatchKaravan);
-            document.getElementById('add-beneficiary-btn')?.addEventListener('click', Logic.showAddBeneficiaryModal);
-            document.getElementById('send-amount')?.addEventListener('input', Logic.updateQuote);
-            document.getElementById('send-currency')?.addEventListener('change', Logic.updateQuote);
-            document.getElementById('receive-currency')?.addEventListener('change', Logic.updateQuote);
-        }
-    };
-    if (binders[viewName]) binders[viewName]();
-},
-/**
- * [PINNACLE LOGIN ENGINE v3.0 - Definitive & Unabridged]
- * Orchestrates the entire user authentication flow. This function provides a premium
- * animated UI feedback loop while trusting the pinnacle-grade backend as the single,
- * authoritative source for all authentication and permission logic. It is architected
- * to be simple, secure, and provide a superior, context-aware user experience.
- */
-handleLogin: async (e) => {
-    e.preventDefault();
-    const karavanId = document.getElementById('karavan-id').value.trim();
-    const password = document.getElementById('password').value;
-    const loginBtn = e.target.querySelector('button[type="submit"]');
+getQuote: async () => {
+    const sendAmount = parseFloat(document.getElementById('send-amount')?.value);
+    const sendCurrency = document.getElementById('send-currency')?.value;
+    const receiveCurrency = document.getElementById('receive-currency')?.value;
+    const beneficiaryId = document.getElementById('beneficiary-select')?.value;
+    const quoteBtn = document.getElementById('get-quote-btn');
 
-    if (!karavanId || !password) {
-        return Utils.showNotification('Please enter your credentials.', 'warning');
+    if (!sendAmount || sendAmount <= 0 || !sendCurrency || !receiveCurrency || !beneficiaryId) {
+        return Utils.showNotification('Please complete all fields: Amount, Currencies, and Recipient.', 'warning');
     }
-
-    // 1. SET PREMIUM LOADING STATE
-    loginBtn.disabled = true;
-    const originalContent = loginBtn.innerHTML; // Store original content for error state reset
-    loginBtn.style.transform = 'scale(0.98)';
-    loginBtn.innerHTML = `
-        <div class="flex items-center justify-center gap-2">
-            <div class="premium-spinner"></div>
-            <span class="text-white font-semibold">Authenticating...</span>
-        </div>
-    `;
+    
+    quoteBtn.disabled = true;
+    quoteBtn.innerHTML = `<div class="premium-spinner"></div> Analyzing Routes...`;
 
     try {
-        // 2. PERFORM A SINGLE, AUTHORITATIVE API CALL
-        // The backend now handles all validation: credentials, lockouts, and tiered status.
-        // If this call succeeds, we can trust the user is fully authenticated and permitted to log in.
-        const response = await Utils.createApiRequest('karavanAuthenticate', 'POST', { karavanId, password });
+        const quote = await Utils.createApiRequest('karavanGetQuote', 'POST', {
+            sendAmount,
+            sendCurrency,
+            receiveCurrency,
+            beneficiaryId,
+            type: AppState.currentUser.persona === 'remit' ? 'remit' : 'pay'
+        });
         
-        // 3. PROCESS SUCCESSFUL LOGIN
-        AppState.isAuthenticated = true;
-        AppState.currentUser = response.user;
-        Logic.persistSession(response.user);
-
-        // [NO REGRESSION] Your excellent success animation is preserved.
-        loginBtn.style.transform = 'scale(1.02)';
-        loginBtn.innerHTML = `
-            <div class="flex items-center justify-center gap-2">
-                <i class="fas fa-check-circle text-green-400"></i>
-                <span class="text-white font-semibold">Success!</span>
-            </div>
-        `;
-
-        Utils.showNotification(`Authentication successful. Welcome, ${Utils.getUserDisplayName(AppState.currentUser)}!`, 'success');
-        await Logic.loadInitialData();
+        // Update AppState with the full quote object
+        AppState.transaction = { ...AppState.transaction, ...quote, status: 'quoted' }; // [UPGRADE] Set status
         
-        setTimeout(() => {
-            UI.renderView('dashboard_shell');
-        }, 800);
+        document.getElementById('receive-amount').textContent = parseFloat(quote.receiveAmount).toFixed(2);
+        Logic.updateAnalysisPanel(quote);
+
+        // [CRITICAL UPGRADE] Transition the UI to the next logical step
+        UI.renderReviewStep(quote); // Render the new review panel
+        
+        quoteBtn.classList.remove('btn-primary');
+        quoteBtn.classList.add('btn-secondary');
+        quoteBtn.innerHTML = `<i class="fas fa-undo mr-2"></i> New Quote`;
+        quoteBtn.onclick = Logic.resetTransactionParameters; // Change button action
 
     } catch (error) {
-        // 4. PROCESS PINNACLE-GRADE, CONTEXT-AWARE ERRORS
-        // The 'error.message' now contains the specific, user-friendly reason for failure
-        // directly from the authoritative backend (e.g., "Invalid credentials", "Account is locked", etc.).
-        
-        // [NO REGRESSION] Your excellent, context-aware error animation is preserved and enhanced.
-        let buttonIcon = 'fas fa-exclamation-circle text-white';
-        let buttonText = 'Login Failed';
-        let buttonBg = 'linear-gradient(135deg, #ef4444, #dc2626)'; // Red for general failure
-
-        // Enhance UI for specific, critical backend messages
-        if (error.message.includes('locked')) {
-            buttonIcon = 'fas fa-lock text-white';
-            buttonText = 'Account Locked';
-            buttonBg = 'linear-gradient(135deg, #f59e0b, #d97706)'; // Orange for locked
-        } else if (error.message.includes('suspended')) {
-            buttonIcon = 'fas fa-ban text-white';
-            buttonText = 'Account Suspended';
-        } else if (error.message.includes('pending verification')) {
-            buttonIcon = 'fas fa-envelope text-white';
-            buttonText = 'Verification Required';
-            buttonBg = 'linear-gradient(135deg, #3b82f6, #1d4ed8)'; // Blue for info
-        }
-
-        loginBtn.style.transform = 'scale(1)';
-        loginBtn.style.background = buttonBg;
-        loginBtn.innerHTML = `
-            <div class="flex items-center justify-center gap-2">
-                <i class="${buttonIcon}"></i>
-                <span class="text-white font-semibold">${buttonText}</span>
-            </div>
-        `;
-        
-        // Display the precise error message from the backend.
-        Utils.showNotification(error.message, 'error');
-        
-        // Restore the button to its original state after a delay.
+        Utils.showNotification(`Quote failed: ${error.message}`, 'error');
+        quoteBtn.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> Error`;
         setTimeout(() => {
-            loginBtn.style.background = '';
-            loginBtn.innerHTML = originalContent;
-        }, 3000); // Increased delay for important messages
-        
+            quoteBtn.innerHTML = `<i class="fas fa-search-dollar mr-2"></i> Get Quote`;
+            quoteBtn.disabled = false;
+        }, 3000);
     } finally {
-        // This ensures the button is always re-enabled after the flow completes.
-        loginBtn.disabled = false;
-        loginBtn.style.transform = 'scale(1)';
+        // [UPGRADE] Ensure button is always usable after the flow
+        quoteBtn.disabled = false;
     }
 },
+
+invalidateQuote: () => {
+    // Only run if there's an active quote to invalidate
+    if (AppState.transaction && AppState.transaction.status === 'quoted') {
+        console.log('[STATE] Quote invalidated due to parameter change.');
+        AppState.transaction.status = 'draft'; // Reset status
+
+        // 1. Reset the main action button
+        const quoteBtn = document.getElementById('get-quote-btn');
+        if (quoteBtn) {
+            quoteBtn.classList.add('btn-primary');
+            quoteBtn.classList.remove('btn-secondary');
+            quoteBtn.innerHTML = `<i class="fas fa-search-dollar mr-2"></i> Get Quote`;
+            quoteBtn.onclick = Logic.getQuote; // Restore original action
+        }
+
+        // 2. Hide the review & dispatch panel
+        const reviewContainer = document.getElementById('transaction-review-container');
+        if (reviewContainer) {
+            reviewContainer.innerHTML = '';
+        }
+        
+        // 3. Reset the analysis panel to its initial state
+        document.getElementById('current-rate').textContent = '1.00000';
+        document.getElementById('our-rate').textContent = '0.00000';
+        document.getElementById('total-cost').textContent = '0.00';
+        document.getElementById('destination-details').textContent = 'Awaiting selection';
+    }
+},     
+
+dispatchFromDashboard: async () => {
+    const dispatchBtn = document.getElementById('dispatch-btn');
+    if (!AppState.transaction || AppState.transaction.status !== 'quoted') {
+        return Utils.showNotification('Invalid transaction state. Please get a new quote.', 'error');
+    }
+
+    dispatchBtn.disabled = true;
+    dispatchBtn.innerHTML = `<div class="premium-spinner"></div> Dispatching...`;
+
+    try {
+        const response = await Utils.createApiRequest('karavanDispatch', 'POST', { transaction: AppState.transaction, user: AppState.currentUser });
+        
+        // Update transaction state with final details
+        AppState.transaction.id = response.transactionId;
+        AppState.transaction.status = 'initiated'; // Or whatever the API returns
+        AppState.transaction.timestamp = new Date().toISOString();
+        
+        Utils.showNotification('Karavan Dispatched! Tracking initiated.', 'success');
+        
+        // Transition to the tracker view
+        Logic.handleSidebarClick('transfers'); // Or a dedicated tracker view
+
+    } catch (error) {
+        Utils.showNotification(`Dispatch failed: ${error.message}`, 'error');
+        dispatchBtn.disabled = false;
+        dispatchBtn.innerHTML = `<i class="fas fa-rocket mr-2"></i>Dispatch Karavan`;
+    }
+},
+    
+resetTransactionParameters: () => {
+    // 1. Clear the transaction object in the application state
+    AppState.transaction = {};
+
+    // 2. Re-render the dashboard view. The state-aware renderer will now
+    //    use the empty transaction object, effectively resetting all fields.
+    Logic.handleSidebarClick('dashboard');
+
+    // 3. Provide user feedback
+    Utils.showNotification('Transaction parameters have been cleared.', 'info');
+},                
+
+selectDeliveryMethod: (method) => {
+    AppState.transaction = AppState.transaction || {};
+    AppState.transaction.deliveryMethod = method;
+    document.querySelectorAll('.delivery-method-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.method === method);
+    });
+    // You could add logic here to update the analysis panel based on the method
+    Utils.showNotification(`Delivery method set to: ${method.charAt(0).toUpperCase() + method.slice(1)}`, 'info');
+},
+
+updateAnalysisPanel: (quoteData) => {
+    const analysisPanel = document.getElementById('market-analysis-panel');
+    if (!analysisPanel) return;
+
+    // Update rate displays
+    document.getElementById('current-rate').textContent = parseFloat(quoteData.marketRate).toFixed(5);
+    document.getElementById('our-rate').textContent = parseFloat(quoteData.exchangeRate).toFixed(5);
+    document.getElementById('total-cost').textContent = Utils.formatCurrency(quoteData.totalCost, quoteData.sendCurrency);
+
+    // Update intelligent analysis indicators (using mock data for visual effect)
+    document.getElementById('volatility-bar').style.width = '35%';
+    document.getElementById('volatility-percent').textContent = 'Mid (3.5%)';
+    document.getElementById('liquidity-bar').style.width = '90%';
+    document.getElementById('liquidity-level').textContent = 'Very High';
+
+    // Update optimal route display
+    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === document.getElementById('beneficiary-select')?.value);
+    document.getElementById('origin-details').textContent = `${quoteData.sendCurrency} Network`;
+    document.getElementById('route-details').textContent = `GECAN™ Nexus -> ${quoteData.optimalPath}`;
+    document.getElementById('destination-details').textContent = `${beneficiary?.name} (${quoteData.receiveCurrency})`;
+},
+
+    // ========================================================================
+    // === ANCILLARY & UTILITY FUNCTIONS ===
+    // ========================================================================
+
+calculateDashboardStats: () => {
+    const stats = {
+        totalSentThisMonth: 0,
+        avgRate: 0,
+        activeRecipients: 0,
+        avgSettlementTime: "4.2min" // This remains a simulated value until backend provides timing data
+    };
+
+    // 1. Calculate Total Sent This Month
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyTransactions = (AppState.allTransactions || []).filter(tx => new Date(tx.timestamp) >= firstDayOfMonth);
+    
+    stats.totalSentThisMonth = monthlyTransactions.reduce((sum, tx) => {
+        // For simplicity, we'll assume all sends are in a USD-equivalent currency.
+        // A more advanced system would convert each tx.sendAmount to a base currency like USD.
+        return sum + parseFloat(tx.sendAmount || 0);
+    }, 0);
+
+    // 2. Calculate Average Rate (specifically for CAD to PHP as an example)
+    const cadToPhpTransactions = monthlyTransactions.filter(tx => tx.sendCurrency === 'CAD' && tx.receiveCurrency === 'PHP');
+    if (cadToPhpTransactions.length > 0) {
+        const totalRate = cadToPhpTransactions.reduce((sum, tx) => sum + parseFloat(tx.exchangeRate || 0), 0);
+        stats.avgRate = totalRate / cadToPhpTransactions.length;
+    } else {
+        // Fallback to live market rate if no history
+        const marketRate = AppState.marketData.rates.find(r => r.baseAsset === 'CAD' && r.quoteAsset === 'PHP');
+        stats.avgRate = parseFloat(marketRate?.price || 0);
+    }
+    
+    // 3. Count Active Recipients
+    stats.activeRecipients = (AppState.marketData.beneficiaries || []).length;
+
+    return stats;
+},
+
+downloadProof: () => {
+                Utils.showNotification('Generating Proof of Settlement certificate...', 'info');
+                // In a real application, this would call a PDF generation API endpoint
+                setTimeout(() => {
+                    Utils.showNotification('Proof of Settlement certificate downloaded successfully.', 'success');
+                }, 1500);
+            },
+
+// --- Placeholders for Future Expansion ---
+showAdvancedOptions: () => Utils.showNotification('Advanced options panel coming soon.', 'info'),
+showQuickActionsMenu: () => Utils.showNotification('Quick actions menu coming soon.', 'info'),
+
 showSignupModal: () => {
     const modal = document.getElementById('karavan-auth-modal');
     if (!modal) return;
@@ -4076,8 +4000,37 @@ showSignupModal: () => {
 
     Logic.bindSignupListeners();
 },
-                
 
+showRateDetails: (rateData) => {
+                    const modal = document.getElementById('rate-modal');
+                    if (!modal) return;
+
+                    modal.innerHTML = UI.renderRateDetailModal(rateData);
+                    modal.showModal();
+                },
+
+showKycModal: () => {
+    const modalContainer = document.getElementById('kyc-modal-container');
+    if (!modalContainer) {
+        const container = document.createElement('div');
+        container.id = 'kyc-modal-container';
+        document.body.appendChild(container);
+    }
+    
+    document.getElementById('kyc-modal-container').innerHTML = UI.renderKycUpgradeModal();
+    const modal = document.getElementById('kyc-upgrade-modal');
+    modal.showModal();
+
+    // Bind all listeners for the modal's interactive elements
+    Logic.bindKycModalListeners();
+},
+
+bindEventListeners: (viewName) => {
+                    const binders = {
+                        auth: () => {
+                            document.getElementById('auth-form')?.addEventListener('submit', Logic.handleLogin);
+                            document.getElementById('show-signup-btn')?.addEventListener('click', Logic.showSignupModal);
+                        },
 
 toggleSignupStep: (targetStep) => {
     const stepPanel = document.getElementById(`signup-accordion-step-${targetStep}`);
@@ -4363,10 +4316,7 @@ bindSignupListeners: () => {
         document.head.appendChild(animationStyles);
     }
 },
-                
-// Add this new property to your Logic object, near the top.
-// This will manage the AbortController for our ID availability check.
-_idCheckController: null,
+
 
 /**
  * [PINNACLE HELPER] A centralized, state-driven UI updater for the Karavan ID field.
@@ -4631,242 +4581,6 @@ bindAuthListeners: () => {
     }
 },
             
-            downloadProof: () => {
-                Utils.showNotification('Generating Proof of Settlement certificate...', 'info');
-                // In a real application, this would call a PDF generation API endpoint
-                setTimeout(() => {
-                    Utils.showNotification('Proof of Settlement certificate downloaded successfully.', 'success');
-                }, 1500);
-            },
-                
-loadInitialData: async () => {
-    const loader = document.getElementById('initial-loader');
-    const loaderText = loader?.querySelector('p');
-
-    try {
-        // --- Phase 1: Signal Intent & Execute API Transaction ---
-        if (loaderText) {
-            loaderText.textContent = 'Hydrating secure dashboard state...';
-        }
-        
-        // A single, unified API call to the master data hydration endpoint.
-        const dashboardDataPayload = await Utils.createApiRequest('karavanGetDashboardData', 'POST', {
-            karavanId: AppState.currentUser.karavanId
-        });
-
-        // --- Phase 2: Military-Grade Data Validation & State Population ---
-        if (!dashboardDataPayload) {
-            throw new Error("Received an empty or invalid response from the data hydration service.");
-        }
-
-        // Destructure the complete data payload with robust, resilient fallbacks.
-        // This prevents the application from crashing if the backend API returns a partial object.
-        const {
-            beneficiaries = [],
-            accounts = [],
-            transactions = [],
-            marketRates = []
-        } = dashboardDataPayload;
-
-        // Populate all necessary parts of the application state with the validated data.
-        AppState.marketData.rates = marketRates.filter(r => r.status === 'OK' || r.status === 'MANUAL');
-        AppState.marketData.beneficiaries = beneficiaries;
-        AppState.accounts = accounts;
-        AppState.allTransactions = transactions; // For the Transfers History view
-
-        // --- Phase 3: Initialize Dependent UI Components ---
-        // Initialize the live market data ticker with the fetched data.
-        UI.startHoloStream();
-
-    } catch (error) {
-        // --- Pinnacle-Grade Error Handling ---
-        // Provide a specific, helpful error message to the user.
-        Utils.showNotification('Critical Error: Failed to load dashboard data. Core services may be unavailable.', 'error');
-        
-        // Update the loader to reflect the failure state, providing clear feedback.
-        if (loader) {
-            loader.innerHTML = `
-                <div class="text-center text-red-400">
-                    <i class="fas fa-times-circle fa-3x mb-4"></i>
-                    <h2 class="text-2xl font-bold text-white mb-2">Connection Failure</h2>
-                    <p class="text-red-400">Could not establish a secure connection to the GECAN network.</p>
-                </div>
-            `;
-        }
-        
-        // Log the detailed error for debugging.
-        console.error("Definitive Dashboard Hydration Failed:", error);
-
-    } finally {
-        // --- Guaranteed UI Cleanup ---
-        // This block ensures that, regardless of success or failure, the main loader
-        // is hidden after a brief delay, allowing the dashboard (even in an empty
-        // or error state) to be displayed.
-        setTimeout(() => {
-            if (loader) {
-                loader.style.transition = 'opacity 0.5s ease-out';
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }
-        }, 200);
-    }
-},
-
-                selectRole: async (roleType) => {
-                    Utils.showNotification('Initializing secure transaction environment...', 'info');
-                    AppState.transaction = {
-                        type: roleType, activeStep: 'destination', recipientId: null, sendAmount: null,
-                        sendCurrency: roleType === 'remit' ? 'CAD' : 'USD', receiveCurrency: 'PHP',
-                        receiveAmount: null, exchangeRate: null, fee: null, paymentMethod: null, invoiceRef: null,
-                        steps: { destination: { completed: false }, amount: { completed: false }, review: { completed: false } }
-                    };
-                    UI.renderView('tx_wizard');
-                },
-
-                setActiveStep: (stepId) => {
-                    if (UI.isStepDisabled(stepId)) return Utils.showNotification('Please complete the previous step first', 'warning');
-                    AppState.transaction.activeStep = stepId;
-                    UI.renderView('tx_wizard');
-                },
-
-                confirmDestination: () => {
-                    const { transaction } = AppState;
-                    transaction.recipientId = document.getElementById('beneficiary-select').value;
-                    transaction.invoiceRef = document.getElementById('invoice-ref')?.value;
-
-                    if (!transaction.recipientId) return Utils.showNotification('Please select a beneficiary', 'error');
-                    if (transaction.type === 'pay' && !transaction.invoiceRef) return Utils.showNotification('Invoice reference is required for B2B payments', 'error');
-
-                    transaction.steps.destination.completed = true;
-                    Logic.setActiveStep('amount');
-                    Utils.showNotification('Destination confirmed', 'success');
-                },
-
-                
-
-                updateQuote: Utils.debounce(async () => {
-                    const sendAmount = parseFloat(document.getElementById('send-amount')?.value);
-                    const sendCurrency = document.getElementById('send-currency')?.value;
-                    const receiveCurrency = document.getElementById('receive-currency')?.value;
-                    const confirmBtn = document.getElementById('confirm-amount');
-
-                    if (!sendAmount || sendAmount <= 0 || !sendCurrency || !receiveCurrency) {
-                        document.getElementById('quote-panel')?.classList.add('hidden');
-                        if(confirmBtn) confirmBtn.disabled = true;
-                        return;
-                    }
-                    
-                    try {
-                        const quote = await Utils.createApiRequest('karavanGetQuote', 'POST', { sendAmount, sendCurrency, receiveCurrency, type: AppState.transaction.type });
-                        Object.assign(AppState.transaction, quote);
-                        
-                        document.getElementById('receive-amount').textContent = parseFloat(quote.receiveAmount).toFixed(2);
-                        document.getElementById('exchange-rate').textContent = `1 ${sendCurrency} = ${parseFloat(quote.exchangeRate).toFixed(4)} ${receiveCurrency}`;
-                        document.getElementById('fee-amount').textContent = Utils.formatCurrency(quote.fee, sendCurrency);
-                        
-                        document.getElementById('quote-panel')?.classList.remove('hidden');
-                        if(confirmBtn) confirmBtn.disabled = false;
-                        Logic.startQuoteTimer();
-
-                    } catch(error) {
-                         Utils.showNotification(`Could not fetch quote: ${error.message}`, 'error');
-                    }
-                }, 500),
-
-                startQuoteTimer: () => {
-                    if (AppState.ui.quoteTimer) clearInterval(AppState.ui.quoteTimer);
-                    let timeLeft = 30;
-                    const progressBar = document.getElementById('quote-progress');
-                    const confirmBtn = document.getElementById('confirm-amount');
-                    
-                    AppState.ui.quoteTimer = setInterval(() => {
-                        timeLeft--;
-                        if (progressBar) progressBar.style.width = `${(timeLeft / 30) * 100}%`;
-                        if (timeLeft <= 0) {
-                            clearInterval(AppState.ui.quoteTimer);
-                            Utils.showNotification('Quote expired. Please refresh your quote.', 'warning');
-                            if (confirmBtn) confirmBtn.disabled = true;
-                        }
-                    }, 1000);
-                },
-
-                confirmAmount: () => {
-                    const { transaction } = AppState;
-                    if (!transaction.exchangeRate) return Utils.showNotification('Please get a valid quote first', 'warning');
-                    transaction.steps.amount.completed = true;
-                    Logic.setActiveStep('review');
-                    Logic.updateReviewSummary();
-                    Utils.showNotification('Amount locked', 'success');
-                },
-
-                updateReviewSummary: () => {
-                    const { transaction } = AppState;
-                    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === transaction.recipientId);
-                    setTimeout(() => { // ensure DOM is ready
-                        document.getElementById('summary-recipient').textContent = beneficiary?.name || 'N/A';
-                        document.getElementById('summary-send').textContent = Utils.formatCurrency(transaction.sendAmount, transaction.sendCurrency);
-                        document.getElementById('summary-receive').textContent = Utils.formatCurrency(transaction.receiveAmount, transaction.receiveCurrency);
-                        document.getElementById('summary-rate').textContent = `1 ${transaction.sendCurrency} = ${parseFloat(transaction.exchangeRate).toFixed(4)} ${transaction.receiveCurrency}`;
-                        document.getElementById('summary-fee').textContent = Utils.formatCurrency(transaction.fee, transaction.sendCurrency);
-                    }, 100);
-                },
-
-                selectPaymentMethod: (method) => {
-                    AppState.transaction.paymentMethod = method;
-                    document.querySelectorAll('#payment-methods > div').forEach(div => div.classList.remove('border-brand-gecan-gold', 'bg-brand-gecan-gold/10'));
-                    document.querySelector(`#payment-methods > div[data-method="${method}"]`)?.classList.add('border-brand-gecan-gold', 'bg-brand-gecan-gold/10');
-                    document.getElementById('dispatch-karavan').disabled = false;
-                },
-
-                dispatchKaravan: async () => {
-                    const { transaction } = AppState;
-                    if (!transaction.paymentMethod) return Utils.showNotification('Please select a payment method', 'error');
-                    const dispatchBtn = document.getElementById('dispatch-karavan');
-                    dispatchBtn.disabled = true;
-                    dispatchBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Dispatching Karavan...';
-
-                    try {
-                        const response = await Utils.createApiRequest('karavanDispatch', 'POST', { transaction, user: AppState.currentUser });
-                        AppState.transaction.id = response.transactionId;
-                        AppState.transaction.status = 'initiated';
-                        AppState.transaction.timestamp = new Date().toISOString();
-                        Utils.showNotification('Karavan dispatched successfully!', 'success');
-                        UI.renderView('tx_tracker');
-                    } catch (error) {
-                        Utils.showNotification(`Failed to dispatch Karavan: ${error.message}`, 'error');
-                        dispatchBtn.disabled = false;
-                        dispatchBtn.innerHTML = '<i class="fas fa-rocket mr-2"></i>Dispatch Karavan';
-                    }
-                },
-
-                showAddBeneficiaryModal: () => {
-                    const modal = document.getElementById('beneficiary-modal');
-                    modal.innerHTML = UI.renderAddBeneficiaryModal();
-                    modal.showModal();
-                    document.getElementById('beneficiary-form')?.addEventListener('submit', Logic.handleAddBeneficiary);
-                    document.getElementById('ben-method')?.addEventListener('change', UI.toggleBankDetails);
-                },
-
-                handleAddBeneficiary: async (e) => {
-                    e.preventDefault();
-                    const beneficiaryData = {
-                        name: document.getElementById('ben-name').value,
-                        country: document.getElementById('ben-country').value,
-                        mobile: document.getElementById('ben-mobile').value,
-                        payoutMethod: document.getElementById('ben-method').value,
-                        bankDetails: document.getElementById('ben-bank-details')?.value
-                    };
-                    try {
-                        const newBeneficiary = await Utils.createApiRequest('karavanAddBeneficiary', 'POST', { beneficiaryData, owner: AppState.currentUser.karavanId });
-                        AppState.marketData.beneficiaries.push(newBeneficiary);
-                        document.getElementById('beneficiary-modal').close();
-                        Utils.showNotification('Beneficiary added successfully!', 'success');
-                        if (AppState.currentView === 'tx_wizard') UI.renderView('tx_wizard');
-                    } catch(error) {
-                        Utils.showNotification(`Failed to add beneficiary: ${error.message}`, 'error');
-                    }
-                }
-            };
 
             // --- SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ---
             const UI = {
