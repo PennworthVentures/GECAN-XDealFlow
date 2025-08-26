@@ -4560,14 +4560,15 @@ bindAuthListeners: () => {
             showSignup.style.transform = 'scale(0.95)';
             setTimeout(() => showSignup.style.transform = '', 150);
             
-            Logic.showSignupModal();
-        });
-    }
+                Logic.showSignupModal();
+            });
+        }
+    } // <-- 1. This brace closes the `bindAuthListeners` function. It was missing before.
 
-};          
+}; // <-- 2. This brace and semicolon close the entire `Logic` object.
 
-            // --- SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ---
-            const UI = {
+// --- SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ---
+const UI = {
                 init: async () => {
                     UI.populateNavLinks();
                     document.getElementById('initial-loader').style.display = 'none';
