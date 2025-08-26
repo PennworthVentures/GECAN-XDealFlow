@@ -1944,15 +1944,32 @@
     <!-- ========================================================================= -->
     <!-- === PINNACLE LIQUIDITY CONDUIT (Footer Ticker) === -->
     <!-- ========================================================================= -->
-    <footer class="liquidity-conduit">
-        <div class="conduit-track-wrapper">
-            <div id="conduit-track" class="conduit-track">
-                <!-- Live market data crystals will be injected here -->
+<footer class="liquidity-conduit">
+    <div class="conduit-track-wrapper">
+        <div id="conduit-track" class="conduit-track">
+            <!-- Live market data crystals will be injected here -->
+        </div>
+    </div>
+
+    <!-- THIS ENTIRE BLOCK MUST BE RESTORED INSIDE THE FOOTER -->
+    <div class="container mx-auto p-6 md:p-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-[var(--text-silver)]">
+            <div>
+                <h3 class="font-bold text-lg mb-3 bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-600">GECAN™</h3>
+                <p class="mb-2">Global Energy & Commodities Alliance Network. Powered by Pennworth Ventures.</p>
+                <p class="text-xs text-gray-500">© 2025 GECAN™. All Rights Reserved.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-white mb-3">Legal Disclaimer</h4>
+                <p class="text-xs leading-relaxed">The information on this platform is for informational purposes only. GECAN™ acts solely as an intermediary. We make no warranties regarding the accuracy, completeness, or performance of any offer or counterparty.</p>
+            </div>
+            <div>
+                <h4 class="font-semibold text-white mb-3">Risk & Compliance</h4>
+                <p class="text-xs leading-relaxed">All transactions carry inherent financial, operational, and regulatory risks. Users must conduct independent due diligence and agree to indemnify GECAN™ from any and all claims or liabilities arising from platform use.</p>
             </div>
         </div>
-
-
-    </footer>
+    </div>
+</footer>
 
     <!-- ========================================================================= -->
     <!-- === GLOBAL MODAL DIALOG CONTAINERS === -->
@@ -1996,21 +2013,6 @@
 
             // --- SECTION 2: UTILITY BELT ---
             const Utils = {
-/**
- * [PINNACLE API ENGINE v3.1 - Definitive & Unabridged]
- * A universal, military-grade API request utility engineered for maximum robustness.
- * It natively supports POST/GET methods, provides a secure error handling pipeline, and
- * integrates an AbortController signal for cancellable fetch requests. This version
- * is fully backward-compatible with legacy calls that do not provide a signal,
- * ensuring zero regression while enabling advanced, race-condition-proof functionality.
- *
- * @param {string} action - The specific API endpoint to be called on the backend.
- * @param {string} [method='POST'] - The HTTP method to use (POST or GET).
- * @param {object} [params={}] - The data payload or query parameters for the request.
- * @param {AbortSignal|null} [signal=null] - An optional AbortController signal to allow for request cancellation.
- * @returns {Promise<object>} A promise that resolves with the response data from the server,
- *                            or a special `{ aborted: true }` object if the request was cancelled.
- */
 createApiRequest: async (action, method = 'POST', params = {}, signal = null) => {
     const upperMethod = method.toUpperCase();
     const url = new URL(API_URL);
@@ -2074,7 +2076,7 @@ getUserDisplayName: (user) => {
     // This provides a fallback chain, ensuring a name is always found.
     return user.partnerName || user.fullName || user.karavanId || 'Valued Partner';
 },                
-                showNotification: (message, type = 'info') => {
+                showNotification: (message, type = 'info', duration = null) => {
                     const modal = document.getElementById('notification-modal');
                     if (!modal) return;
                     
@@ -2099,7 +2101,21 @@ getUserDisplayName: (user) => {
                         </div>
                     `;
                     modal.showModal();
-                    document.getElementById('notification-ok-btn').onclick = () => modal.close();
+                    
+                    const okBtn = document.getElementById('notification-ok-btn');
+                    let timeoutId = null;
+
+                    const closeModal = () => {
+                        if (timeoutId) clearTimeout(timeoutId); // Clear timer if closed manually
+                        modal.close();
+                    };
+
+                    okBtn.onclick = closeModal;
+
+                    // [PINNACLE UPGRADE] Automatically close after the specified duration.
+                    if (duration && typeof duration === 'number') {
+                        timeoutId = setTimeout(closeModal, duration);
+                    }
                 },
 
                 formatCurrency: (amount, currency = 'USD', decimals = 2) => {
@@ -4028,11 +4044,19 @@ showKycModal: () => {
 },
 
 bindEventListeners: (viewName) => {
-                    const binders = {
-                        auth: () => {
-                            document.getElementById('auth-form')?.addEventListener('submit', Logic.handleLogin);
-                            document.getElementById('show-signup-btn')?.addEventListener('click', Logic.showSignupModal);
-                        },
+    const binders = {
+        auth: () => {
+            document.getElementById('auth-form')?.addEventListener('submit', Logic.handleLogin);
+            document.getElementById('show-signup-btn')?.addEventListener('click', Logic.showSignupModal);
+        },
+        // Add other view binders here as needed, e.g., dashboard_shell, etc.
+    };
+
+    const binder = binders[viewName]; // Get the correct function
+    if (binder) {
+        binder(); // Execute it
+    }
+},
 
 toggleSignupStep: (targetStep) => {
     const stepPanel = document.getElementById(`signup-accordion-step-${targetStep}`);
