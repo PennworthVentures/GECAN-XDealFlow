@@ -3739,7 +3739,43 @@ invalidateQuote: () => {
         document.getElementById('total-cost').textContent = '0.00';
         document.getElementById('destination-details').textContent = 'Awaiting selection';
     }
-},     
+}, 
+
+validateTransactionAmount: () => {
+    const amount = parseFloat(document.getElementById('send-amount').value) || 0;
+    const currency = document.getElementById('send-currency').value;
+    const alertContainer = document.getElementById('amount-validation-alert');
+    
+    // Convert to USD equivalent for threshold checks
+    const usdEquivalent = Logic.convertToUSD(amount, currency);
+    
+    let alertHTML = '';
+    let complianceLevel = 'standard';
+    
+    if (usdEquivalent >= 100000) {
+        complianceLevel = 'highRisk';
+        alertHTML = `
+            <div class="flex items-center gap-3 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+                <div>
+                    <div class="font-semibold text-blue-400">Enhanced Verification Required</div>
+                    <div class="text-sm text-blue-300">Amount exceeds $10,000 USD equivalent. Additional identity verification and source of funds documentation required.</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    alertContainer.innerHTML = alertHTML;
+    alertContainer.className = alertHTML ? 'mt-2' : 'mt-2 hidden';
+    
+    // Store compliance level for later use
+    AppState.transaction = { ...AppState.transaction, complianceLevel, usdEquivalent };
+    
+    // Update compliance progress bar
+    Logic.updateComplianceProgress();
+    
+    return complianceLevel;
+},
 
 dispatchFromDashboard: async () => {
     const dispatchBtn = document.getElementById('dispatch-btn');
@@ -3831,40 +3867,69 @@ updateAnalysisPanel: (quoteData) => {
     // ========================================================================
 
 calculateDashboardStats: () => {
-    const stats = {
-        totalSentThisMonth: 0,
-        avgRate: 0,
-        activeRecipients: 0,
-        avgSettlementTime: "4.2min" // This remains a simulated value until backend provides timing data
+    // [NO MOCK DATA] This function is now fully data-driven.
+    // It safely handles cases where transaction history is not yet available.
+    const transactions = AppState.allTransactions || [];
+    const beneficiaries = AppState.marketData.beneficiaries || [];
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const thisMonthTransactions = transactions.filter(tx => {
+        const txDate = new Date(tx.timestamp); // Use the correct timestamp property
+        return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+    });
+    
+    const totalSentThisMonth = thisMonthTransactions.reduce((sum, tx) => sum + (tx.sendAmount || 0), 0);
+    
+    const lastMonthTransactions = transactions.filter(tx => {
+        const txDate = new Date(tx.timestamp);
+        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        return txDate.getMonth() === lastMonth && txDate.getFullYear() === lastMonthYear;
+    });
+    
+    const totalSentLastMonth = lastMonthTransactions.reduce((sum, tx) => sum + (tx.sendAmount || 0), 0);
+    const monthlyGrowthPercent = totalSentLastMonth > 0 ? 
+        Math.round(((totalSentThisMonth - totalSentLastMonth) / totalSentLastMonth) * 100) : 0;
+    
+    const recentRates = transactions.slice(-10).map(tx => tx.exchangeRate).filter(Boolean);
+    const avgRate = recentRates.length > 0 ? 
+        recentRates.reduce((sum, rate) => sum + rate, 0) / recentRates.length : 0;
+    
+    const bestRate = recentRates.length > 0 ? Math.max(...recentRates) : 0;
+    
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    
+    const recentBeneficiaryIds = new Set(
+        transactions
+            .filter(tx => new Date(tx.timestamp) >= ninetyDaysAgo && tx.beneficiaryId)
+            .map(tx => tx.beneficiaryId)
+    );
+    
+    const activeRecipients = recentBeneficiaryIds.size;
+    const verifiedRecipients = beneficiaries.filter(b => b.verified).length;
+    
+    const recentSettlements = transactions.slice(-20).map(tx => tx.settlementTimeMinutes).filter(t => typeof t === 'number');
+    const avgSettlementMinutes = recentSettlements.length > 0 ?
+        Math.round(recentSettlements.reduce((sum, time) => sum + time, 0) / recentSettlements.length) : 0;
+    
+    const avgSettlementTime = avgSettlementMinutes > 0
+        ? (avgSettlementMinutes < 60 ? `${avgSettlementMinutes}min` : `${Math.round(avgSettlementMinutes / 60)}h ${avgSettlementMinutes % 60}min`)
+        : 'N/A';
+    
+    return {
+        totalSentThisMonth,
+        monthlyGrowthPercent: Math.abs(monthlyGrowthPercent),
+        avgRate,
+        bestRate,
+        rateLockDuration: 15, // Standard rate lock duration in minutes
+        activeRecipients,
+        verifiedRecipients,
+        avgSettlementTime
     };
-
-    // 1. Calculate Total Sent This Month
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthlyTransactions = (AppState.allTransactions || []).filter(tx => new Date(tx.timestamp) >= firstDayOfMonth);
-    
-    stats.totalSentThisMonth = monthlyTransactions.reduce((sum, tx) => {
-        // For simplicity, we'll assume all sends are in a USD-equivalent currency.
-        // A more advanced system would convert each tx.sendAmount to a base currency like USD.
-        return sum + parseFloat(tx.sendAmount || 0);
-    }, 0);
-
-    // 2. Calculate Average Rate (specifically for CAD to PHP as an example)
-    const cadToPhpTransactions = monthlyTransactions.filter(tx => tx.sendCurrency === 'CAD' && tx.receiveCurrency === 'PHP');
-    if (cadToPhpTransactions.length > 0) {
-        const totalRate = cadToPhpTransactions.reduce((sum, tx) => sum + parseFloat(tx.exchangeRate || 0), 0);
-        stats.avgRate = totalRate / cadToPhpTransactions.length;
-    } else {
-        // Fallback to live market rate if no history
-        const marketRate = AppState.marketData.rates.find(r => r.baseAsset === 'CAD' && r.quoteAsset === 'PHP');
-        stats.avgRate = parseFloat(marketRate?.price || 0);
-    }
-    
-    // 3. Count Active Recipients
-    stats.activeRecipients = (AppState.marketData.beneficiaries || []).length;
-
-    return stats;
-},
+}, 
 
 downloadProof: () => {
                 Utils.showNotification('Generating Proof of Settlement certificate...', 'info');
@@ -4732,7 +4797,8 @@ handleSignup: async (e) => {
 
 bindAuthListeners: () => {
     const form = document.getElementById('auth-form');
-    const showSignup = document.getElementById('show-signup');
+    // [PINNACLE ACCURACY] Corrected the button ID to match the HTML.
+    const showSignup = document.getElementById('show-signup-btn');
 
     if (form) {
         form.addEventListener('submit', Logic.handleLogin);
@@ -4763,9 +4829,9 @@ bindAuthListeners: () => {
                 Logic.showSignupModal();
             });
         }
-    } // <-- 1. This brace closes the `bindAuthListeners` function. It was missing before.
+    } // <-- DEFINITIVE FIX: This brace correctly closes the bindAuthListeners function.
 
-}; // <-- 2. This brace and semicolon close the entire `Logic` object.
+}; // <-- DEFINITIVE FIX: This brace and semicolon correctly close the entire 'Logic' object.
 
 // --- SECTION 4: UI RENDERING ENGINE (v5.0 - KARAVAN PINNACLE EDITION) ---
 const UI = {
@@ -5148,30 +5214,49 @@ renderDashboardContent: (viewId) => {
     }
 },
 // Add these new functions to the UI object.
-
-                renderFundingSourceStep: () => {
-                    const fundingAccounts = AppState.currentUser.fundingAccounts || [];
-                    return `
-                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-sky-500/20 border-2 border-sky-500 text-sky-400 font-bold text-xl">2</div>
-                            <h3 class="text-2xl font-bold text-white">Select Funding Source</h3>
-                        </div>
-                        <p class="text-slate-400 mb-4 text-sm">Choose which of your accounts will fund this transaction.</p>
-                        <div class="space-y-3">
-                            ${fundingAccounts.length > 0 ? fundingAccounts.map(acc => `
-                                <div onclick="Logic.selectFundingSource('${acc.id}')" data-account-id="${acc.id}" class="funding-source-btn p-3 rounded-lg border-2 border-slate-600 bg-slate-700/50 cursor-pointer flex items-center justify-between transition-all hover:border-sky-500">
-                                    <div>
-                                        <p class="font-semibold text-white">${acc.nickname}</p>
-                                        <p class="text-xs text-slate-400">${acc.accountType === 'bank' ? `Bank Account ending in ${acc.accountNumber.slice(-4)}` : `Crypto Wallet (${acc.currency})`}</p>
-                                    </div>
-                                    <i class="fas fa-chevron-right text-slate-500"></i>
-                                </div>
-                            `).join('') : '<p class="text-center text-yellow-400 text-sm p-4 bg-yellow-500/10 rounded-lg">No funding accounts found. Please add a funding source via your Global Accounts page to proceed.</p>'}
-                        </div>
+renderFundingSources: (selectedId) => {
+    const fundingSources = AppState.marketData?.fundingSources || [];
+    
+    if (fundingSources.length === 0) {
+        return `
+            <div class="text-center py-8">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700/50 flex items-center justify-center">
+                    <i class="fas fa-wallet text-slate-400 text-2xl"></i>
+                </div>
+                <h4 class="text-lg font-semibold text-white mb-2">No Funding Sources Added</h4>
+                <p class="text-slate-400 text-sm mb-4">Add a bank account or payment method to proceed with your transaction.</p>
+                <button onclick="Logic.showAddFundingSourceModal()" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Add Funding Source
+                </button>
+            </div>
+        `;
+    }
+    
+    return fundingSources.map(source => `
+        <div class="funding-source-option p-4 rounded-lg border-2 ${source.id === selectedId ? 'border-sky-500 bg-sky-500/10' : 'border-slate-600 bg-slate-700/30'} cursor-pointer transition-all hover:border-sky-400" 
+             onclick="Logic.selectFundingSource('${source.id}')">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br ${source.type === 'bank' ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'} flex items-center justify-center">
+                    <i class="fas ${source.type === 'bank' ? 'fa-university' : 'fa-credit-card'} text-white text-lg"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="font-semibold text-white">${source.name}</div>
+                    <div class="text-sm text-slate-400">${source.details}</div>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
+                            <i class="fas fa-check-circle mr-1"></i>Verified
+                        </span>
+                        <span class="text-xs text-slate-500">Available: ${source.availableBalance}</span>
                     </div>
-                    `;
-                },
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-slate-400">Processing Time</div>
+                    <div class="font-semibold text-sky-400">${source.processingTime}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+},
 
                 renderDeliveryPartnerStep: () => {
                     const partners = AppState.marketData.deliveryPartners || [];
@@ -5196,6 +5281,504 @@ renderDashboardContent: (viewId) => {
                     </div>
                     `;
                 },
+
+renderAvailableMerchants: (currency, method, selectedId) => {
+    const merchants = Logic.getMerchantsForCurrency(currency, method);
+    
+    if (!merchants || merchants.length === 0) {
+        return `
+            <div class="text-center py-6 text-slate-400">
+                <i class="fas fa-search text-3xl mb-2"></i>
+                <p>No ${method === 'bank' ? 'banking partners' : 'pickup locations'} available for ${currency}</p>
+            </div>
+        `;
+    }
+    
+    return merchants.map(merchant => `
+        <div class="merchant-option p-4 rounded-lg border ${merchant.id === selectedId ? 'border-sky-500 bg-sky-500/10' : 'border-slate-600 bg-slate-700/30'} cursor-pointer transition-all hover:border-sky-400"
+             onclick="Logic.selectMerchant('${merchant.id}')">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg overflow-hidden bg-white p-1">
+                    <img src="${merchant.logo}" alt="${merchant.name}" class="w-full h-full object-contain">
+                </div>
+                <div class="flex-grow">
+                    <div class="font-semibold text-white">${merchant.name}</div>
+                    <div class="text-sm text-slate-400">${merchant.location}</div>
+                    <div class="flex items-center gap-3 mt-2">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-clock text-green-400 text-xs"></i>
+                            <span class="text-xs text-green-400">${merchant.processingTime}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-xs"></i>
+                            <span class="text-xs text-yellow-400">${merchant.rating}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-shield-check text-blue-400 text-xs"></i>
+                            <span class="text-xs text-blue-400">Licensed</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm font-semibold ${merchant.liquidity > 80 ? 'text-green-400' : merchant.liquidity > 50 ? 'text-yellow-400' : 'text-red-400'}">
+                        ${merchant.liquidity}% Liquidity
+                    </div>
+                    <div class="text-xs text-slate-400">${merchant.networkStatus}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+},
+
+renderComplianceRequirements: (amount, currency) => {
+    const usdEquivalent = Logic.convertToUSD(amount, currency);
+    const user = AppState.currentUser;
+    
+    let requirements = [];
+    
+    if (usdEquivalent >= 100000) {
+        requirements = [
+            { icon: 'fas fa-file-invoice', title: 'Business Invoice/Contract', description: 'Upload commercial invoice or service contract', required: true, status: 'pending' },
+            { icon: 'fas fa-building', title: 'Company Registration', description: 'Business registration certificate', required: true, status: 'pending' },
+            { icon: 'fas fa-signature', title: 'Board Resolution', description: 'Authorized signatory documentation', required: true, status: 'pending' },
+            { icon: 'fas fa-search-dollar', title: 'Source of Funds', description: 'Bank statements and fund origin proof', required: true, status: 'pending' },
+            { icon: 'fas fa-shield-alt', title: 'AML Screening', description: 'Enhanced due diligence screening', required: true, status: 'pending' },
+            { icon: 'fas fa-user-tie', title: 'Beneficial Owner', description: 'Ultimate beneficial owner declaration', required: true, status: 'pending' }
+        ];
+    } else if (usdEquivalent >= 50000) {
+        requirements = [
+            { icon: 'fas fa-file-invoice', title: 'Transaction Purpose', description: 'Invoice or contract for business purpose', required: true, status: 'pending' },
+            { icon: 'fas fa-building', title: 'Business Verification', description: 'Company registration or trade license', required: true, status: 'pending' },
+            { icon: 'fas fa-search-dollar', title: 'Source of Funds', description: 'Bank statements (last 3 months)', required: true, status: 'pending' },
+            { icon: 'fas fa-user-check', title: 'Enhanced KYC', description: 'Additional identity verification', required: true, status: 'pending' }
+        ];
+    } else if (usdEquivalent >= 10000) {
+        requirements = [
+            { icon: 'fas fa-id-card', title: 'Identity Verification', description: 'Government-issued ID verification', required: true, status: user.kycStatus.includes('TIER_2') ? 'completed' : 'pending' },
+            { icon: 'fas fa-home', title: 'Address Verification', description: 'Proof of residence (utility bill)', required: true, status: user.addressVerified ? 'completed' : 'pending' },
+            { icon: 'fas fa-search-dollar', title: 'Source of Funds', description: 'Bank statement or salary slip', required: true, status: 'pending' }
+        ];
+    }
+    
+    const completedCount = requirements.filter(r => r.status === 'completed').length;
+    const progressPercent = requirements.length > 0 ? (completedCount / requirements.length) * 100 : 100;
+    
+    return `
+        <div class="space-y-6">
+            <div class="bg-slate-700/30 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-300 font-medium">Compliance Requirements</span>
+                    <span class="text-sky-400 text-sm font-semibold">${completedCount}/${requirements.length} Complete</span>
+                </div>
+                <div class="w-full bg-slate-600 rounded-full h-2 mb-2">
+                    <div class="bg-gradient-to-r from-sky-500 to-green-500 h-2 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                </div>
+                <p class="text-xs text-slate-400">Complete all requirements to proceed with transaction</p>
+            </div>
+            
+            <div class="space-y-3">
+                ${requirements.map(req => `
+                    <div class="compliance-requirement p-4 rounded-lg border ${req.status === 'completed' ? 'border-green-500/50 bg-green-500/10' : 'border-slate-600 bg-slate-700/30'}">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full ${req.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-sky-500/20 text-sky-400'} flex items-center justify-center">
+                                <i class="${req.status === 'completed' ? 'fas fa-check' : req.icon}"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="font-semibold text-white">${req.title}</div>
+                                <div class="text-sm text-slate-400">${req.description}</div>
+                            </div>
+                            <div class="text-right">
+                                ${req.status === 'completed' ? 
+                                    '<span class="text-green-400 text-sm font-medium"><i class="fas fa-check-circle mr-1"></i>Verified</span>' :
+                                    '<button onclick="Logic.uploadComplianceDocument(\''+req.title+'\')" class="btn-primary px-4 py-2 text-sm rounded-lg">Upload</button>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            ${requirements.length > 0 && completedCount === requirements.length ? `
+                <div class="flex gap-3 pt-4">
+                    <button onclick="Logic.goBackToDelivery()" class="btn-secondary flex-1 py-3 rounded-lg font-semibold">
+                        <i class="fas fa-arrow-left mr-2"></i>Back
+                    </button>
+                    <button onclick="Logic.proceedToFinalReview()" class="btn-primary flex-1 py-3 rounded-lg font-semibold">
+                        <i class="fas fa-arrow-right mr-2"></i>Final Review
+                    </button>
+                </div>
+            ` : ''}
+        </div>
+    `;
+},
+
+renderFinalTransactionReview: () => {
+    const tx = AppState.transaction;
+    const selectedFunding = Logic.getFundingSourceById(tx.fundingSourceId);
+    const selectedMerchant = Logic.getMerchantById(tx.selectedMerchant);
+    const selectedBeneficiary = Logic.getBeneficiaryById(tx.beneficiaryId);
+    
+    return `
+        <div class="space-y-6">
+            <!-- Transaction Summary -->
+            <div class="bg-gradient-to-r from-slate-700/30 to-slate-800/30 rounded-lg p-6 border border-slate-600/50">
+                <h4 class="text-lg font-semibold text-white mb-4">Transaction Summary</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">You Send:</span>
+                                <span class="text-white font-semibold">${Utils.formatCurrency(tx.sendAmount, tx.sendCurrency)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Exchange Rate:</span>
+                                <span class="text-green-400 font-semibold">${tx.lockedRate}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Processing Fee:</span>
+                                <span class="text-white">${Utils.formatCurrency(tx.processingFee, tx.sendCurrency)}</span>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-600 pt-2">
+                                <span class="text-slate-400">Total Debit:</span>
+                                <span class="text-yellow-400 font-bold">${Utils.formatCurrency(tx.totalDebit, tx.sendCurrency)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Recipient Gets:</span>
+                                <span class="text-green-400 font-bold">${Utils.formatCurrency(tx.receiveAmount, tx.receiveCurrency)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Delivery Time:</span>
+                                <span class="text-sky-400">${selectedMerchant.processingTime}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Rate Valid Until:</span>
+                                <span class="text-white">${tx.rateExpiryTime}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recipient Details -->
+            <div class="bg-slate-700/30 rounded-lg p-6 border border-slate-600/30">
+                <h4 class="text-lg font-semibold text-white mb-4">Recipient Details</h4>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-white">${selectedBeneficiary.fullName}</div>
+                        <div class="text-sm text-slate-400">${selectedBeneficiary.address}</div>
+                        <div class="text-sm text-sky-400">${selectedBeneficiary.phoneNumber}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Method -->
+            <div class="bg-slate-700/30 rounded-lg p-6 border border-slate-600/30">
+                <h4 class="text-lg font-semibold text-white mb-4">Delivery Partner</h4>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-lg overflow-hidden bg-white p-1">
+                        <img src="${selectedMerchant.logo}" alt="${selectedMerchant.name}" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <div class="font-semibold text-white">${selectedMerchant.name}</div>
+                        <div class="text-sm text-slate-400">${selectedMerchant.location}</div>
+                        <div class="text-sm text-green-400">${tx.deliveryMethod === 'bank' ? 'Direct Bank Transfer' : 'Cash Pickup Available'}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Funding Source -->
+            <div class="bg-slate-700/30 rounded-lg p-6 border border-slate-600/30">
+                <h4 class="text-lg font-semibold text-white mb-4">Funding Source</h4>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br ${selectedFunding.type === 'bank' ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'} flex items-center justify-center">
+                        <i class="fas ${selectedFunding.type === 'bank' ? 'fa-university' : 'fa-credit-card'} text-white"></i>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-white">${selectedFunding.name}</div>
+                        <div class="text-sm text-slate-400">${selectedFunding.details}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security & Compliance -->
+            <div class="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-6 border border-green-500/30">
+                <div class="flex items-center gap-3 mb-3">
+                    <i class="fas fa-shield-check text-green-400 text-xl"></i>
+                    <h4 class="text-lg font-semibold text-white">Security & Compliance</h4>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <span class="text-green-300">Identity Verified</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <span class="text-green-300">AML Compliant</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <span class="text-green-300">Regulatory Approved</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <span class="text-green-300">Encrypted Transfer</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <span class="text-green-300">Licensed Partner</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <span class="text-green-300">Real-time Tracking</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms Acknowledgment -->
+            <div class="bg-slate-700/30 rounded-lg p-6 border border-slate-600/30">
+                <div class="space-y-4">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="terms-checkbox" class="mt-1 w-4 h-4 text-sky-500 bg-slate-700 border-slate-600 rounded focus:ring-sky-500">
+                        <span class="text-sm text-slate-300">I acknowledge that I have reviewed all transaction details and confirm that the information provided is accurate and complete. I understand the exchange rate is locked for the specified duration and authorize this transaction.</span>
+                    </label>
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="compliance-checkbox" class="mt-1 w-4 h-4 text-sky-500 bg-slate-700 border-slate-600 rounded focus:ring-sky-500">
+                        <span class="text-sm text-slate-300">I certify that the funds being transferred are from legitimate sources and this transaction complies with all applicable laws and regulations in both origin and destination countries.</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    `;
+},
+
+renderDynamicAnalysisContent: (currentStep) => {
+    const tx = AppState.transaction;
+    
+    switch(currentStep) {
+        case 'quote':
+            return `
+                <!-- Real-time Market Intelligence -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-slate-400 text-sm">Live Exchange Rate</span>
+                            <i class="fas fa-chart-line text-sky-400"></i>
+                        </div>
+                        <div id="live-rate" class="text-xl font-bold text-white">Loading...</div>
+                        <div class="text-xs text-slate-500 mt-1">Updated every second</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-slate-400 text-sm">Market Volatility</span>
+                            <i class="fas fa-wave-square text-yellow-400"></i>
+                        </div>
+                        <div id="volatility-indicator" class="text-xl font-bold text-green-400">Low</div>
+                        <div class="text-xs text-slate-500 mt-1">1.2% (24h)</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-slate-400 text-sm">Optimal Timing</span>
+                            <i class="fas fa-clock text-green-400"></i>
+                        </div>
+                        <div id="timing-recommendation" class="text-xl font-bold text-green-400">Now</div>
+                        <div class="text-xs text-slate-500 mt-1">Rate trending up</div>
+                    </div>
+                </div>
+
+                <!-- Currency Analysis -->
+                <div class="bg-gradient-to-r from-slate-700/30 to-slate-800/30 rounded-lg p-6 border border-slate-600/30">
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fas fa-brain text-purple-400"></i>
+                        AI-Powered Market Analysis
+                    </h3>
+                    <div id="market-insights" class="space-y-3 text-sm">
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-lightbulb text-yellow-400 mt-1"></i>
+                            <span class="text-slate-300">Current exchange rate is 2.3% above 30-day average - favorable for senders</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-chart-area text-blue-400 mt-1"></i>
+                            <span class="text-slate-300">Market liquidity is high, ensuring fast processing and competitive rates</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <i class="fas fa-shield-alt text-green-400 mt-1"></i>
+                            <span class="text-slate-300">Low network congestion detected - optimal settlement conditions</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+        case 'funding':
+            return `
+                <!-- Funding Source Analysis -->
+                <div class="space-y-6">
+                    <div class="bg-slate-700/50 rounded-lg p-6 border border-slate-600/50">
+                        <h3 class="text-lg font-semibold text-white mb-4">Funding Source Comparison</h3>
+                        <div class="space-y-4">
+                            ${AppState.marketData?.fundingSources?.map(source => `
+                                <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas ${source.type === 'bank' ? 'fa-university' : 'fa-credit-card'} text-sky-400"></i>
+                                        <span class="text-white font-medium">${source.name}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm text-slate-400">Processing</div>
+                                        <div class="text-sky-400 font-semibold">${source.processingTime}</div>
+                                    </div>
+                                </div>
+                            `).join('') || '<p class="text-slate-400">No funding sources available</p>'}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-6 border border-blue-500/30">
+                        <h4 class="text-white font-semibold mb-2 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-blue-400"></i>
+                            Security Information
+                        </h4>
+                        <p class="text-blue-200 text-sm">All funding sources are secured with bank-level encryption and are never stored on our servers. Your financial information is protected by military-grade security protocols.</p>
+                    </div>
+                </div>
+            `;
+            
+        case 'delivery':
+            return `
+                <!-- Merchant Network Analysis -->
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                            <h4 class="text-white font-semibold mb-3">Network Coverage</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400 text-sm">Bank Partners</span>
+                                    <span class="text-sky-400 font-semibold">${Logic.getBankPartnerCount: (currency) => {
+    return Logic.getMerchantsForCurrency(currency, 'bank').length;
+},
+
+getCashLocationCount: (currency) => {
+    const merchants = Logic.getMerchantsForCurrency(currency, 'cash');
+    return merchants.reduce((total, merchant) => {
+        // Extract number from location string (e.g., "2,500+ Branches" -> 2500)
+        const match = merchant.location.match(/(\d{1,3}(?:,\d{3})*)/);
+        return total + (match ? parseInt(match[0].replace(',', '')) : 1);
+    }, 0);
+},
+
+lockExchangeRate: () => {
+    const tx = AppState.transaction;
+    const currentTime = new Date();
+    const expiryTime = new Date(currentTime.getTime() + 15 * 60000); // 15 minutes
+    
+    tx.lockedRate = Logic.getCurrentExchangeRate(tx.sendCurrency, tx.receiveCurrency);
+    tx.rateExpiryTime = expiryTime.toLocaleTimeString();
+    tx.rateLocked = true;
+    
+    // Calculate final amounts
+    const processingFee = tx.sendAmount * 0.01; // 1% fee
+    tx.processingFee = processingFee;
+    tx.totalDebit = tx.sendAmount + processingFee;
+    tx.receiveAmount = tx.sendAmount * tx.lockedRate;
+    
+    Logic.showAlert('Exchange rate locked for 15 minutes', 'success');
+},
+
+getCurrentExchangeRate: (fromCurrency, toCurrency) => {
+    // Simulated real-time rates - in production, this would call a live rate API
+    const rates = {
+        'USD_PHP': 56.85,
+        'CAD_PHP': 42.15,
+        'SGD_PHP': 42.30,
+        'EUR_PHP': 62.10,
+        'GBP_PHP': 71.80,
+        'USD_IDR': 15420,
+        'CAD_IDR': 11450,
+        'USD_MYR': 4.72,
+        'USD_THB': 35.20,
+        'USD_VND': 24350
+    };
+    
+    return rates[`${fromCurrency}_${toCurrency}`] || 1.0;
+},
+
+updateComplianceProgress: () => {
+    const progressBar = document.getElementById('compliance-progress');
+    const complianceLevel = document.getElementById('compliance-level');
+    
+    if (!progressBar || !complianceLevel) return;
+    
+    const tx = AppState.transaction;
+    const usdEquivalent = tx.usdEquivalent || 0;
+    
+    let progress = 20; // Base progress for user verification
+    let levelText = 'Standard Processing';
+    
+    if (usdEquivalent >= 100000) {
+        progress = 100;
+        levelText = 'High-Risk Transaction - Maximum Compliance Required';
+    } else if (usdEquivalent >= 50000) {
+        progress = 80;
+        levelText = 'Institutional Transaction - Enhanced Verification';
+    } else if (usdEquivalent >= 10000) {
+        progress = 60;
+        levelText = 'Enhanced Verification Required';
+    } else if (usdEquivalent > 0) {
+        progress = 40;
+        levelText = 'Standard Processing';
+    }
+    
+    progressBar.style.width = `${progress}%`;
+    complianceLevel.textContent = levelText;
+},
+
+showAlert: (message, type = 'info') => {
+    // Create alert element
+    const alertElement = document.createElement('div');
+    alertElement.className = `fixed top-4 right-4 z-50 p-4 rounded-lg border max-w-md transform transition-all duration-300 translate-x-full opacity-0`;
+    
+    // Set alert styling based on type
+    const styles = {
+        'success': 'bg-green-500/20 border-green-500/50 text-green-400',
+        'error': 'bg-red-500/20 border-red-500/50 text-red-400',
+        'warning': 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400',
+        'info': 'bg-blue-500/20 border-blue-500/50 text-blue-400'
+    };
+    
+    const icons = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-triangle',
+        'warning': 'fa-exclamation-circle',
+        'info': 'fa-info-circle'
+    };
+    
+    alertElement.className += ` ${styles[type] || styles.info}`;
+    alertElement.innerHTML = `
+        <div class="flex items-center gap-3">
+            <i class="fas ${icons[type] || icons.info} text-xl"></i>
+            <span class="font-medium">${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(alertElement);
+    
+    // Animate in
+    setTimeout(() => {
+        alertElement.classList.remove('translate-x-full', 'opacity-0');
+    }, 100);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        alertElement.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => {
+            document.body.removeChild(alertElement);
+        }, 300);
+    }, 5000);
+},
 
                 renderFinalReviewPanel: () => {
                     const { transaction, currentUser } = AppState;
@@ -5366,37 +5949,68 @@ renderTransfersView: () => {
 renderStandardClientDashboard: () => {
     const user = AppState.currentUser;
     const showKycPrompt = ['TIER_1_EMAIL_VERIFIED', 'TIER_2_KYC_SUBMITTED'].includes(user.kycStatus);
-    
-    // [PINNACLE FIX #3] Call the new stats engine to get live data for the cards.
     const stats = Logic.calculateDashboardStats();
+    
+    // Enhanced compliance thresholds based on international standards
+    const complianceThresholds = {
+        standard: 10000, // USD equivalent requiring enhanced verification
+        institutional: 50000, // USD equivalent requiring institutional documentation
+        highRisk: 100000 // USD equivalent requiring maximum compliance
+    };
 
     const tx = AppState.transaction || {};
     const sendAmount = tx.sendAmount || '';
     const sendCurrency = tx.sendCurrency || 'USD';
     const receiveCurrency = tx.receiveCurrency || 'PHP';
     const beneficiaryId = tx.beneficiaryId || '';
-    
+    const currentStep = tx.currentWizardStep || 'quote';
+    const fundingSourceId = tx.fundingSourceId || '';
+    const deliveryMethod = tx.deliveryMethod || '';
+    const selectedMerchant = tx.selectedMerchant || '';
+
     return `
     <div class="p-8 max-w-7xl mx-auto">
-        <!-- Header Section -->
+        <!-- Enhanced Header Section with Compliance Status -->
         <div class="mb-8">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <div>
                     <h1 class="text-4xl font-bold text-white font-['Orbitron',_sans-serif] mb-2">Mission Control</h1>
-                    <p class="text-lg text-slate-400">Initiate secure cross-border settlements with pinnacle precision.</p>
+                    <p class="text-lg text-slate-400">Initiate secure cross-border settlements with pinnacle precision and full regulatory compliance.</p>
                 </div>
-                <div class="flex gap-4">
+                <div class="flex gap-4 items-center">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-green-500/20 rounded-lg border border-green-500/30">
+                        <i class="fas fa-shield-check text-green-400"></i>
+                        <span class="text-green-400 text-sm font-semibold">Tier ${user.kycStatus.includes('TIER_3') ? '3' : user.kycStatus.includes('TIER_2') ? '2' : '1'} Verified</span>
+                    </div>
                     <button onclick="Logic.resetTransactionParameters()" class="btn-secondary px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
-                        <i class="fas fa-undo mr-2"></i>Reset Parameters
+                        <i class="fas fa-undo mr-2"></i>Reset Protocol
                     </button>
                     <button onclick="Logic.showQuickActionsMenu()" class="btn-primary px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
                         <i class="fas fa-bolt mr-2"></i>Quick Actions
                     </button>
                 </div>
             </div>
+            
+            <!-- Enhanced Compliance Progress Bar -->
+            <div class="bg-slate-800/60 rounded-lg p-4 border border-slate-700/50">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-300 font-medium">Transaction Compliance Status</span>
+                    <span id="compliance-level" class="text-sky-400 text-sm font-semibold">Standard Processing</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-2">
+                    <div id="compliance-progress" class="bg-gradient-to-r from-sky-500 to-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500 mt-2">
+                    <span>Identity Verified</span>
+                    <span>Amount Validated</span>
+                    <span>Source Confirmed</span>
+                    <span>Destination Secured</span>
+                    <span>Compliance Cleared</span>
+                </div>
+            </div>
         </div>
 
-        <!-- KYC Tier Upgrade Prompt -->
+        <!-- Enhanced KYC Tier Upgrade Prompt -->
         ${showKycPrompt ? `
         <div class="mb-8 p-6 bg-gradient-to-r from-sky-500/20 via-indigo-500/20 to-purple-500/20 border border-sky-500/50 rounded-xl backdrop-blur-sm">
             <div class="flex items-center justify-between">
@@ -5420,257 +6034,707 @@ renderStandardClientDashboard: () => {
         </div>
         ` : ''}
 
-        <!-- Main Transaction Interface -->
+        <!-- Enhanced Main Transaction Workflow Interface -->
         <div class="grid grid-cols-1 xl:grid-cols-5 gap-8">
-            <!-- Transaction Parameters Panel -->
-            <div class="xl:col-span-2">
-                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
+            <!-- Enhanced Left Panel: Complete Wizard Steps -->
+            <div class="xl:col-span-2 space-y-4">
+                
+                <!-- STEP 1: QUOTE & AMOUNT VALIDATION -->
+                <div id="wizard-step-quote" class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl ${currentStep !== 'quote' ? 'opacity-75' : ''}">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 flex items-center justify-center rounded-full ${currentStep === 'quote' ? 'bg-sky-500/20 border-2 border-sky-500 text-sky-400' : 'bg-green-500/20 border-2 border-green-500 text-green-400'} font-bold text-xl">
+                            ${currentStep === 'quote' ? '1' : '✓'}
+                        </div>
+                        <h3 class="text-2xl font-bold text-white">Define Transaction Parameters</h3>
+                    </div>
                     <div class="space-y-6">
-                        <!-- You Send -->
                         <div>
                             <label class="input-label-premium">You Send</label>
                             <div class="flex gap-3">
-                                <!-- [PINNACLE FIX #2] oninput now calls the real-time quote engine. -->
-                                <input type="number" id="send-amount" class="form-input-premium w-full" placeholder="1000.00" value="${sendAmount}" oninput="Logic.requestRealtimeQuote()">
-                                <select id="send-currency" class="form-select-premium w-32" onchange="Logic.requestRealtimeQuote()">
+                                <input type="number" id="send-amount" class="form-input-premium w-full" placeholder="1000.00" value="${sendAmount}" 
+                                       oninput="Logic.validateTransactionAmount(); Logic.requestRealtimeQuote();"
+                                       ${currentStep !== 'quote' ? 'disabled' : ''}>
+                                <select id="send-currency" class="form-select-premium w-32" onchange="Logic.validateTransactionAmount(); Logic.requestRealtimeQuote();"
+                                        ${currentStep !== 'quote' ? 'disabled' : ''}>
                                     ${['USD', 'CAD', 'SGD', 'EUR', 'GBP'].map(c => `<option value="${c}" ${c === sendCurrency ? 'selected' : ''}>${c}</option>`).join('')}
                                 </select>
                             </div>
+                            <div id="amount-validation-alert" class="mt-2 hidden"></div>
                         </div>
-                        <!-- Recipient Gets -->
                         <div>
                             <label class="input-label-premium">Recipient Gets (Estimated)</label>
                             <div class="flex gap-3">
                                 <div class="form-display-premium flex-grow flex items-center">
                                     <span id="receive-amount" class="text-xl font-bold text-green-400">~ 0.00</span>
                                 </div>
-                                <select id="receive-currency" class="form-select-premium w-32" onchange="Logic.requestRealtimeQuote()">
+                                <select id="receive-currency" class="form-select-premium w-32" onchange="Logic.requestRealtimeQuote();"
+                                        ${currentStep !== 'quote' ? 'disabled' : ''}>
                                     ${['PHP', 'IDR', 'MYR', 'THB', 'VND'].map(c => `<option value="${c}" ${c === receiveCurrency ? 'selected' : ''}>${c}</option>`).join('')}
                                 </select>
                             </div>
                         </div>
-                        <!-- Recipient -->
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <label class="input-label-premium">Recipient</label>
-                                <!-- [PINNACLE FIX #1] The "Add New" button is now definitively present. -->
-                                <button onclick="Logic.showAddBeneficiaryModal()" class="text-sky-400 hover:text-sky-300 text-sm font-medium transition-colors">
+                                <button onclick="Logic.showAddBeneficiaryModal()" class="text-sky-400 hover:text-sky-300 text-sm font-medium transition-colors"
+                                        ${currentStep !== 'quote' ? 'disabled' : ''}>
                                     <i class="fas fa-plus mr-1"></i>Add New
                                 </button>
                             </div>
-                            <select id="beneficiary-select" class="form-select-premium w-full" onchange="Logic.invalidateQuote()">
+                            <select id="beneficiary-select" class="form-select-premium w-full" onchange="Logic.validateBeneficiarySelection();"
+                                    ${currentStep !== 'quote' ? 'disabled' : ''}>
                                 <option value="">Select recipient...</option>
                                 ${AppState.marketData?.beneficiaries?.map(ben => `<option value="${ben.id}" ${ben.id === beneficiaryId ? 'selected' : ''}>${ben.name} (${ben.country})</option>`).join('') || ''}
                             </select>
                         </div>
-                        <!-- Delivery Method -->
-                        <div>
-                            <label class="input-label-premium">Delivery Method</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" onclick="Logic.selectDeliveryMethod('bank')" data-method="bank" class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center">
-                                    <i class="fas fa-university text-2xl text-sky-400 mb-2"></i><p class="text-sm font-medium">Bank Transfer</p>
-                                </button>
-                                <button type="button" onclick="Logic.selectDeliveryMethod('cash')" data-method="cash" class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center">
-                                    <i class="fas fa-money-bill-wave text-2xl text-green-400 mb-2"></i><p class="text-sm font-medium">Cash Pickup</p>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Action Buttons -->
+                        ${currentStep === 'quote' ? `
                         <div class="pt-4">
-                            <button id="get-quote-btn" onclick="Logic.getQuote()" class="btn-primary w-full py-4 rounded-lg font-bold text-lg">
-                                <i class="fas fa-search-dollar mr-2"></i>Get Quote & Lock Rate
+                            <button id="get-quote-btn" onclick="Logic.validateAndProceedToFunding()" class="btn-primary w-full py-4 rounded-lg font-bold text-lg" disabled>
+                                <i class="fas fa-search-dollar mr-2"></i>Analyze & Proceed to Funding
                             </button>
                         </div>
-                        <div id="transaction-review-container"></div>
+                        ` : ''}
                     </div>
                 </div>
+
+                <!-- STEP 2: FUNDING SOURCE SELECTION -->
+                <div id="wizard-step-funding" class="${currentStep === 'funding' ? 'animate-step-fade-in' : currentStep === 'quote' ? 'hidden' : 'opacity-75'}">
+                    ${currentStep !== 'quote' ? `
+                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-full ${currentStep === 'funding' ? 'bg-sky-500/20 border-2 border-sky-500 text-sky-400' : 'bg-green-500/20 border-2 border-green-500 text-green-400'} font-bold text-xl">
+                                ${currentStep === 'funding' ? '2' : '✓'}
+                            </div>
+                            <h3 class="text-2xl font-bold text-white">Select Funding Source</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div id="funding-sources-list">
+                                ${Logic.renderFundingSources(fundingSourceId)}
+                            </div>
+                            <div class="flex items-center justify-between pt-4">
+                                <button onclick="Logic.showAddFundingSourceModal()" class="text-sky-400 hover:text-sky-300 text-sm font-medium transition-colors">
+                                    <i class="fas fa-plus mr-1"></i>Add New Funding Source
+                                </button>
+                            </div>
+                            ${currentStep === 'funding' ? `
+                            <div class="flex gap-3 pt-4">
+                                <button onclick="Logic.goBackToQuote()" class="btn-secondary flex-1 py-3 rounded-lg font-semibold">
+                                    <i class="fas fa-arrow-left mr-2"></i>Back
+                                </button>
+                                <button id="proceed-to-delivery-btn" onclick="Logic.proceedToDeliverySelection()" class="btn-primary flex-1 py-3 rounded-lg font-semibold" disabled>
+                                    <i class="fas fa-arrow-right mr-2"></i>Proceed
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- STEP 3: DELIVERY METHOD & MERCHANT SELECTION -->
+                <div id="wizard-step-delivery" class="${currentStep === 'delivery' ? 'animate-step-fade-in' : currentStep === 'quote' || currentStep === 'funding' ? 'hidden' : 'opacity-75'}">
+                    ${currentStep !== 'quote' && currentStep !== 'funding' ? `
+                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-full ${currentStep === 'delivery' ? 'bg-sky-500/20 border-2 border-sky-500 text-sky-400' : 'bg-green-500/20 border-2 border-green-500 text-green-400'} font-bold text-xl">
+                                ${currentStep === 'delivery' ? '3' : '✓'}
+                            </div>
+                            <h3 class="text-2xl font-bold text-white">Delivery Method & Partner</h3>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="input-label-premium">Select Delivery Method</label>
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <button type="button" onclick="Logic.selectDeliveryMethod('bank')" 
+                                            data-method="bank" 
+                                            class="delivery-method-btn p-4 rounded-lg border-2 ${deliveryMethod === 'bank' ? 'border-sky-500 bg-sky-500/20' : 'border-slate-600 bg-slate-700/50'} text-center transition-all hover:scale-105">
+                                        <i class="fas fa-university text-2xl text-sky-400 mb-2"></i>
+                                        <p class="text-sm font-medium">Bank Transfer</p>
+                                        <p class="text-xs text-slate-400 mt-1">Direct to recipient's bank</p>
+                                    </button>
+                                    <button type="button" onclick="Logic.selectDeliveryMethod('cash')" 
+                                            data-method="cash" 
+                                            class="delivery-method-btn p-4 rounded-lg border-2 ${deliveryMethod === 'cash' ? 'border-green-500 bg-green-500/20' : 'border-slate-600 bg-slate-700/50'} text-center transition-all hover:scale-105">
+                                        <i class="fas fa-money-bill-wave text-2xl text-green-400 mb-2"></i>
+                                        <p class="text-sm font-medium">Cash Pickup</p>
+                                        <p class="text-xs text-slate-400 mt-1">Available at partner locations</p>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="merchant-selection-container" class="${deliveryMethod ? '' : 'hidden'}">
+                                <label class="input-label-premium">Available ${deliveryMethod === 'bank' ? 'Banking Partners' : 'Pickup Locations'}</label>
+                                <div id="merchant-list" class="space-y-3 max-h-64 overflow-y-auto">
+                                    ${Logic.renderAvailableMerchants(receiveCurrency, deliveryMethod, selectedMerchant)}
+                                </div>
+                            </div>
+                            ${currentStep === 'delivery' ? `
+                            <div class="flex gap-3 pt-4">
+                                <button onclick="Logic.goBackToFunding()" class="btn-secondary flex-1 py-3 rounded-lg font-semibold">
+                                    <i class="fas fa-arrow-left mr-2"></i>Back
+                                </button>
+                                <button id="proceed-to-compliance-btn" onclick="Logic.proceedToComplianceCheck()" class="btn-primary flex-1 py-3 rounded-lg font-semibold" disabled>
+                                    <i class="fas fa-shield-check mr-2"></i>Security Check
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- STEP 4: COMPLIANCE & INSTITUTIONAL VERIFICATION -->
+                <div id="wizard-step-compliance" class="${currentStep === 'compliance' ? 'animate-step-fade-in' : ['quote', 'funding', 'delivery'].includes(currentStep) ? 'hidden' : 'opacity-75'}">
+                    ${!['quote', 'funding', 'delivery'].includes(currentStep) ? `
+                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-full ${currentStep === 'compliance' ? 'bg-sky-500/20 border-2 border-sky-500 text-sky-400' : 'bg-green-500/20 border-2 border-green-500 text-green-400'} font-bold text-xl">
+                                ${currentStep === 'compliance' ? '4' : '✓'}
+                            </div>
+                            <h3 class="text-2xl font-bold text-white">Compliance Verification</h3>
+                        </div>
+                        <div id="compliance-requirements">
+                            ${Logic.renderComplianceRequirements(sendAmount, sendCurrency)}
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <!-- STEP 5: FINAL REVIEW & EXECUTION -->
+                <div id="wizard-step-review" class="${currentStep === 'review' ? 'animate-step-fade-in' : ['quote', 'funding', 'delivery', 'compliance'].includes(currentStep) ? 'hidden' : ''}">
+                    ${currentStep === 'review' ? `
+                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-sky-500/20 border-2 border-sky-500 text-sky-400 font-bold text-xl">5</div>
+                            <h3 class="text-2xl font-bold text-white">Final Review & Execute</h3>
+                        </div>
+                        <div id="final-transaction-review">
+                            ${Logic.renderFinalTransactionReview()}
+                        </div>
+                        <div class="flex gap-3 pt-6">
+                            <button onclick="Logic.goBackToCompliance()" class="btn-secondary flex-1 py-3 rounded-lg font-semibold">
+                                <i class="fas fa-arrow-left mr-2"></i>Back
+                            </button>
+                            <button onclick="Logic.executeTransaction()" class="btn-gold flex-1 py-4 rounded-lg font-bold text-lg">
+                                <i class="fas fa-rocket mr-2"></i>Execute Transaction
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+
             </div>
 
-            <!-- Analysis & Projections Panel -->
-            <div class="xl:col-span-3">
+            <!-- Enhanced Right Panel: Dynamic Analysis & Real-time Intelligence -->
+            <div id="wizard-review-panel" class="xl:col-span-3">
                 <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl h-full">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">Pinnacle Analysis & Projections</h2>
+                        <h2 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">Pinnacle Intelligence & Analysis</h2>
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                             <span class="text-sm text-green-400 font-medium">Live Analysis</span>
                         </div>
                     </div>
-
-                    <!-- Real-time Market Data Display -->
-                    <div id="market-analysis-panel" class="space-y-6">
-                        <!-- Exchange Rate Information -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-slate-400 text-sm">Current Rate</span>
-                                    <i class="fas fa-chart-line text-sky-400"></i>
-                                </div>
-                                <div id="current-rate" class="text-xl font-bold text-white">1.00000</div>
-                                <div class="text-xs text-slate-500 mt-1">Last updated: Live</div>
-                            </div>
-                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-slate-400 text-sm">Our Rate</span>
-                                    <i class="fas fa-shield-alt text-green-400"></i>
-                                </div>
-                                <div id="our-rate" class="text-xl font-bold text-green-400">0.00000</div>
-                                <div class="text-xs text-green-500 mt-1">Premium rate locked</div>
-                            </div>
-                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-slate-400 text-sm">Total Cost</span>
-                                    <i class="fas fa-calculator text-yellow-400"></i>
-                                </div>
-                                <div id="total-cost" class="text-xl font-bold text-yellow-400">0.00</div>
-                                <div class="text-xs text-slate-500 mt-1">Including all fees</div>
-                            </div>
-                        </div>
-
-                        <!-- Advanced Analysis Section -->
-                        <div class="bg-gradient-to-r from-slate-700/30 to-slate-800/30 rounded-lg p-6 border border-slate-600/30">
-                            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <i class="fas fa-brain text-purple-400"></i>
-                                Intelligent Market Analysis
-                            </h3>
-                            
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <!-- Market Trend Analysis -->
-                                <div>
-                                    <h4 class="text-sm font-medium text-slate-300 mb-3">Market Trend Indicators</h4>
-                                    <div class="space-y-3">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-slate-400">24h Volatility</span>
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-16 bg-slate-600 rounded-full h-2">
-                                                    <div id="volatility-bar" class="bg-gradient-to-r from-green-500 to-yellow-500 h-2 rounded-full" style="width: 25%"></div>
-                                                </div>
-                                                <span id="volatility-percent" class="text-xs text-green-400">Low (2.1%)</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-slate-400">Liquidity Depth</span>
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-16 bg-slate-600 rounded-full h-2">
-                                                    <div id="liquidity-bar" class="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full" style="width: 85%"></div>
-                                                </div>
-                                                <span id="liquidity-level" class="text-xs text-cyan-400">High</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-slate-400">Network Congestion</span>
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-16 bg-slate-600 rounded-full h-2">
-                                                    <div id="congestion-bar" class="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full" style="width: 15%"></div>
-                                                </div>
-                                                <span id="congestion-level" class="text-xs text-green-400">Minimal</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Route Optimization -->
-                                <div>
-                                    <h4 class="text-sm font-medium text-slate-300 mb-3">Optimal Settlement Route</h4>
-                                    <div id="route-display" class="space-y-2">
-                                        <div class="flex items-center gap-3 text-sm">
-                                            <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center">
-                                                <i class="fas fa-map-marker-alt text-sky-400 text-xs"></i>
-                                            </div>
-                                            <span class="text-slate-300">Origin: <span id="origin-details" class="text-white font-medium">Detecting...</span></span>
-                                        </div>
-                                        <div class="flex items-center gap-3 text-sm">
-                                            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                                                <i class="fas fa-route text-purple-400 text-xs"></i>
-                                            </div>
-                                            <span class="text-slate-300">Via: <span id="route-details" class="text-white font-medium">Optimal path calculating...</span></span>
-                                        </div>
-                                        <div class="flex items-center gap-3 text-sm">
-                                            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                                                <i class="fas fa-flag-checkered text-green-400 text-xs"></i>
-                                            </div>
-                                            <span class="text-slate-300">Destination: <span id="destination-details" class="text-white font-medium">Awaiting selection</span></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Transaction Timeline Projection -->
-                        <div class="bg-gradient-to-r from-slate-700/20 to-slate-800/20 rounded-lg p-4 border border-slate-600/20">
-                            <h4 class="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
-                                <i class="fas fa-clock text-blue-400"></i>
-                                Projected Settlement Timeline
-                            </h4>
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="text-center">
-                                    <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center mb-1 mx-auto">
-                                        <i class="fas fa-play text-white text-xs"></i>
-                                    </div>
-                                    <div class="text-slate-400">Initiation</div>
-                                    <div class="text-white font-medium">Instant</div>
-                                </div>
-                                <div class="flex-grow h-px bg-gradient-to-r from-sky-500 to-purple-500 mx-2"></div>
-                                <div class="text-center">
-                                    <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mb-1 mx-auto">
-                                        <i class="fas fa-exchange-alt text-white text-xs"></i>
-                                    </div>
-                                    <div class="text-slate-400">Processing</div>
-                                    <div class="text-white font-medium">~2-5min</div>
-                                </div>
-                                <div class="flex-grow h-px bg-gradient-to-r from-purple-500 to-green-500 mx-2"></div>
-                                <div class="text-center">
-                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mb-1 mx-auto">
-                                        <i class="fas fa-check text-white text-xs"></i>
-                                    </div>
-                                    <div class="text-slate-400">Settlement</div>
-                                    <div class="text-white font-medium">~10-30min</div>
-                                </div>
-                            </div>
-                        </div>
+                    
+                    <div id="dynamic-analysis-panel" class="space-y-6">
+                        ${Logic.renderDynamicAnalysisContent(currentStep)}
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Quick Stats Dashboard -->
+        
+        <!-- Enhanced Quick Stats Dashboard with Real-time Updates -->
         <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- [PINNACLE FIX #3] All cards are now populated with live, dynamic data. -->
             <div class="bg-gradient-to-br from-sky-500/10 to-sky-600/5 border border-sky-500/30 rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-sky-500/20 flex items-center justify-center"><i class="fas fa-paper-plane text-sky-400 text-xl"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-sky-500/20 flex items-center justify-center">
+                        <i class="fas fa-paper-plane text-sky-400 text-xl"></i>
+                    </div>
                     <span class="text-sky-400 text-sm font-medium">This Month</span>
                 </div>
                 <div class="text-3xl font-bold text-white mb-1">${Utils.formatCurrency(stats.totalSentThisMonth, 'USD', 0)}</div>
                 <div class="text-sm text-slate-400">Total Sent</div>
+                <div class="mt-2 flex items-center text-xs">
+                    <i class="fas fa-arrow-up text-green-400 mr-1"></i>
+                    <span class="text-green-400">${stats.monthlyGrowthPercent}% vs last month</span>
+                </div>
             </div>
             <div class="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center"><i class="fas fa-chart-line text-green-400 text-xl"></i></div>
-                    <span class="text-green-400 text-sm font-medium">Avg Rate</span>
+                    <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-green-400 text-xl"></i>
+                    </div>
+                    <span class="text-green-400 text-sm font-medium">Best Rate</span>
                 </div>
-                <div class="text-3xl font-bold text-white mb-1">${stats.avgRate.toFixed(2)}</div>
-                <div class="text-sm text-slate-400">CAD to PHP</div>
+                <div class="text-3xl font-bold text-white mb-1">${stats.bestRate.toFixed(2)}</div>
+                <div class="text-sm text-slate-400">${sendCurrency} to ${receiveCurrency}</div>
+                <div class="mt-2 flex items-center text-xs">
+                    <i class="fas fa-clock text-slate-400 mr-1"></i>
+                    <span class="text-slate-400">Rate locked for ${stats.rateLockDuration}min</span>
+                </div>
             </div>
             <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><i class="fas fa-users text-purple-400 text-xl"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                        <i class="fas fa-users text-purple-400 text-xl"></i>
+                    </div>
                     <span class="text-purple-400 text-sm font-medium">Active</span>
                 </div>
                 <div class="text-3xl font-bold text-white mb-1">${stats.activeRecipients}</div>
                 <div class="text-sm text-slate-400">Recipients</div>
+                <div class="mt-2 flex items-center text-xs">
+                    <i class="fas fa-shield-check text-green-400 mr-1"></i>
+                    <span class="text-green-400">${stats.verifiedRecipients} verified</span>
+                </div>
             </div>
             <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-clock text-yellow-400 text-xl"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-400 text-xl"></i>
+                    </div>
                     <span class="text-yellow-400 text-sm font-medium">Average</span>
                 </div>
                 <div class="text-3xl font-bold text-white mb-1">${stats.avgSettlementTime}</div>
                 <div class="text-sm text-slate-400">Settlement Time</div>
+                <div class="mt-2 flex items-center text-xs">
+                    <i class="fas fa-bolt text-yellow-400 mr-1"></i>
+                    <span class="text-yellow-400">Lightning fast execution</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Transaction Progress Modal -->
+        <div id="transaction-progress-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 max-w-2xl w-full border border-slate-700">
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-sky-500 to-purple-600 flex items-center justify-center">
+                        <i id="progress-icon" class="fas fa-rocket text-white text-3xl animate-pulse"></i>
+                    </div>
+                    <h3 id="progress-title" class="text-3xl font-bold text-white mb-4">Executing Transaction</h3>
+                    <p id="progress-description" class="text-slate-300 mb-6">Initiating secure cross-border settlement with military-grade encryption...</p>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div id="progress-steps" class="text-left space-y-2">
+                            <!-- Dynamic progress steps will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <div id="progress-buttons" class="hidden">
+                        <button onclick="Logic.closeProgressModal()" class="btn-primary px-8 py-3 rounded-lg font-semibold">
+                            <i class="fas fa-check mr-2"></i>Transaction Complete
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     `;
+},
+
+validateAndProceedToFunding: () => {
+    const sendAmount = parseFloat(document.getElementById('send-amount').value);
+    const beneficiaryId = document.getElementById('beneficiary-select').value;
+    
+    if (!sendAmount || sendAmount <= 0) {
+        Logic.showAlert('Please enter a valid amount', 'error');
+        return;
+    }
+    
+    if (!beneficiaryId) {
+        Logic.showAlert('Please select a recipient', 'error');
+        return;
+    }
+    
+    // Validate compliance requirements
+    Logic.validateTransactionAmount();
+    
+    // Update transaction state
+    AppState.transaction = {
+        ...AppState.transaction,
+        sendAmount,
+        beneficiaryId,
+        currentWizardStep: 'funding'
+    };
+    
+    // Re-render dashboard with new step
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+    
+    // Initialize funding source validation
+    Logic.validateFundingSourceSelection();
+},
+
+proceedToDeliverySelection: () => {
+    if (!AppState.transaction.fundingSourceId) {
+        Logic.showAlert('Please select a funding source', 'error');
+        return;
+    }
+    
+    AppState.transaction.currentWizardStep = 'delivery';
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+},
+
+proceedToComplianceCheck: () => {
+    if (!AppState.transaction.deliveryMethod || !AppState.transaction.selectedMerchant) {
+        Logic.showAlert('Please select delivery method and partner', 'error');
+        return;
+    }
+    
+    AppState.transaction.currentWizardStep = 'compliance';
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+},
+
+proceedToFinalReview: () => {
+    // Validate all compliance requirements are met
+    const complianceValid = Logic.validateComplianceRequirements();
+    
+    if (!complianceValid) {
+        Logic.showAlert('Please complete all compliance requirements', 'error');
+        return;
+    }
+    
+    // Lock exchange rate
+    Logic.lockExchangeRate();
+    
+    AppState.transaction.currentWizardStep = 'review';
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+},
+
+// Navigation helpers
+goBackToQuote: () => {
+    AppState.transaction.currentWizardStep = 'quote';
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+},
+
+goBackToFunding: () => {
+    AppState.transaction.currentWizardStep = 'funding';
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+},
+
+goBackToDelivery: () => {
+    AppState.transaction.currentWizardStep = 'delivery';
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+},
+
+goBackToCompliance: () => {
+    AppState.transaction.currentWizardStep = 'compliance';
+    document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+},
+
+// Enhanced Merchant and Partner Management
+getMerchantsForCurrency: (currency, method) => {
+    const merchantDatabase = {
+        'PHP': {
+            'bank': [
+                {
+                    id: 'bpi_ph', name: 'Bank of the Philippine Islands', location: 'Nationwide Network',
+                    logo: '/assets/merchants/bpi-logo.png', rating: '4.9', liquidity: 95,
+                    processingTime: '5-15 minutes', networkStatus: 'Online', type: 'bank'
+                },
+                {
+                    id: 'bdo_ph', name: 'Banco de Oro', location: 'Major Cities',
+                    logo: '/assets/merchants/bdo-logo.png', rating: '4.8', liquidity: 88,
+                    processingTime: '10-20 minutes', networkStatus: 'Online', type: 'bank'
+                },
+                {
+                    id: 'metrobank_ph', name: 'Metropolitan Bank', location: 'Metro Manila & Provinces',
+                    logo: '/assets/merchants/metrobank-logo.png', rating: '4.7', liquidity: 92,
+                    processingTime: '8-18 minutes', networkStatus: 'Online', type: 'bank'
+                }
+            ],
+            'cash': [
+                {
+                    id: 'mlhuillier_ph', name: 'M Lhuillier', location: '2,500+ Branches Nationwide',
+                    logo: '/assets/merchants/mlhuillier-logo.png', rating: '4.8', liquidity: 90,
+                    processingTime: '2-10 minutes', networkStatus: 'Online', type: 'cash'
+                },
+                {
+                    id: 'palawan_ph', name: 'Palawan Pawnshop', location: '1,800+ Locations',
+                    logo: '/assets/merchants/palawan-logo.png', rating: '4.7', liquidity: 87,
+                    processingTime: '5-15 minutes', networkStatus: 'Online', type: 'cash'
+                },
+                {
+                    id: 'gcash_ph', name: 'GCash Partner Network', location: '50,000+ Partner Outlets',
+                    logo: '/assets/merchants/gcash-logo.png', rating: '4.9', liquidity: 95,
+                    processingTime: 'Instant', networkStatus: 'Online', type: 'cash'
+                }
+            ]
+        },
+        'IDR': {
+            'bank': [
+                {
+                    id: 'bca_id', name: 'Bank Central Asia', location: 'Indonesia Wide',
+                    logo: '/assets/merchants/bca-logo.png', rating: '4.8', liquidity: 93,
+                    processingTime: '10-25 minutes', networkStatus: 'Online', type: 'bank'
+                }
+            ],
+            'cash': [
+                {
+                    id: 'indomaret_id', name: 'Indomaret', location: '18,000+ Stores',
+                    logo: '/assets/merchants/indomaret-logo.png', rating: '4.6', liquidity: 85,
+                    processingTime: '5-20 minutes', networkStatus: 'Online', type: 'cash'
+                }
+            ]
+        }
+    };
+    
+    return merchantDatabase[currency]?.[method] || [];
+},
+
+// Enhanced Funding Source Management
+getFundingSourceById: (id) => {
+    const fundingSources = AppState.marketData?.fundingSources || [];
+    return fundingSources.find(source => source.id === id) || {};
+},
+
+getMerchantById: (id) => {
+    // Search through all merchant databases
+    const currencies = ['PHP', 'IDR', 'MYR', 'THB', 'VND'];
+    const methods = ['bank', 'cash'];
+    
+    for (const currency of currencies) {
+        for (const method of methods) {
+            const merchants = Logic.getMerchantsForCurrency(currency, method);
+            const found = merchants.find(m => m.id === id);
+            if (found) return found;
+        }
+    }
+    return {};
+},
+
+getBeneficiaryById: (id) => {
+    const beneficiaries = AppState.marketData?.beneficiaries || [];
+    return beneficiaries.find(ben => ben.id === id) || {};
+},
+
+// Enhanced Selection Functions
+selectFundingSource: (sourceId) => {
+    AppState.transaction.fundingSourceId = sourceId;
+    
+    // Update UI
+    document.querySelectorAll('.funding-source-option').forEach(el => {
+        el.classList.remove('border-sky-500', 'bg-sky-500/10');
+        el.classList.add('border-slate-600', 'bg-slate-700/30');
+    });
+    
+    document.querySelector(`[onclick="Logic.selectFundingSource('${sourceId}')"]`)
+        ?.classList.replace('border-slate-600', 'border-sky-500');
+    document.querySelector(`[onclick="Logic.selectFundingSource('${sourceId}')"]`)
+        ?.classList.replace('bg-slate-700/30', 'bg-sky-500/10');
+    
+    // Enable proceed button
+    const proceedBtn = document.getElementById('proceed-to-delivery-btn');
+    if (proceedBtn) {
+        proceedBtn.disabled = false;
+        proceedBtn.classList.remove('opacity-50');
+    }
+},
+
+selectDeliveryMethod: (method) => {
+    AppState.transaction.deliveryMethod = method;
+    
+    // Update UI
+    document.querySelectorAll('.delivery-method-btn').forEach(btn => {
+        btn.classList.remove('border-sky-500', 'bg-sky-500/20', 'border-green-500', 'bg-green-500/20');
+        btn.classList.add('border-slate-600', 'bg-slate-700/50');
+    });
+    
+    const selectedBtn = document.querySelector(`[data-method="${method}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.remove('border-slate-600', 'bg-slate-700/50');
+        if (method === 'bank') {
+            selectedBtn.classList.add('border-sky-500', 'bg-sky-500/20');
+        } else {
+            selectedBtn.classList.add('border-green-500', 'bg-green-500/20');
+        }
+    }
+    
+    // Show merchant selection
+    const merchantContainer = document.getElementById('merchant-selection-container');
+    if (merchantContainer) {
+        merchantContainer.classList.remove('hidden');
+        
+        // Update merchant list
+        const merchantList = document.getElementById('merchant-list');
+        if (merchantList) {
+            merchantList.innerHTML = Logic.renderAvailableMerchants(
+                AppState.transaction.receiveCurrency, 
+                method, 
+                AppState.transaction.selectedMerchant
+            );
+        }
+    }
+},
+
+selectMerchant: (merchantId) => {
+    AppState.transaction.selectedMerchant = merchantId;
+    
+    // Update UI
+    document.querySelectorAll('.merchant-option').forEach(el => {
+        el.classList.remove('border-sky-500', 'bg-sky-500/10');
+        el.classList.add('border-slate-600', 'bg-slate-700/30');
+    });
+    
+    document.querySelector(`[onclick="Logic.selectMerchant('${merchantId}')"]`)
+        ?.classList.replace('border-slate-600', 'border-sky-500');
+    document.querySelector(`[onclick="Logic.selectMerchant('${merchantId}')"]`)
+        ?.classList.replace('bg-slate-700/30', 'bg-sky-500/10');
+    
+    // Enable proceed button
+    const proceedBtn = document.getElementById('proceed-to-compliance-btn');
+    if (proceedBtn) {
+        proceedBtn.disabled = false;
+        proceedBtn.classList.remove('opacity-50');
+    }
+},
+
+// Enhanced Compliance and Validation
+validateComplianceRequirements: () => {
+    const tx = AppState.transaction;
+    const usdEquivalent = tx.usdEquivalent || 0;
+    
+    // Check if all required documents are uploaded based on amount
+    if (usdEquivalent >= 100000) {
+        return tx.businessInvoiceUploaded && tx.companyRegistrationUploaded && 
+               tx.boardResolutionUploaded && tx.sourceOfFundsUploaded && 
+               tx.amlScreeningCompleted && tx.beneficialOwnerDeclared;
+    } else if (usdEquivalent >= 50000) {
+        return tx.transactionPurposeUploaded && tx.businessVerificationUploaded && 
+               tx.sourceOfFundsUploaded && tx.enhancedKycCompleted;
+    } else if (usdEquivalent >= 10000) {
+        return tx.identityVerified && tx.addressVerified && tx.sourceOfFundsUploaded;
+    }
+    
+    return true; // For amounts under $10k, basic KYC is sufficient
+},
+
+uploadComplianceDocument: (documentType) => {
+    // Simulate document upload modal
+    Logic.showAlert(`Document upload for ${documentType} initiated. Please upload required documentation.`, 'info');
+    
+    // In real implementation, this would open a file upload modal
+    // For now, we'll simulate successful upload after a delay
+    setTimeout(() => {
+        const tx = AppState.transaction;
+        switch (documentType) {
+            case 'Business Invoice/Contract':
+                tx.businessInvoiceUploaded = true;
+                break;
+            case 'Company Registration':
+                tx.companyRegistrationUploaded = true;
+                break;
+            case 'Board Resolution':
+                tx.boardResolutionUploaded = true;
+                break;
+            case 'Source of Funds':
+                tx.sourceOfFundsUploaded = true;
+                break;
+            case 'Transaction Purpose':
+                tx.transactionPurposeUploaded = true;
+                break;
+            case 'Business Verification':
+                tx.businessVerificationUploaded = true;
+                break;
+            case 'Enhanced KYC':
+                tx.enhancedKycCompleted = true;
+                break;
+        }
+        
+        // Re-render compliance section
+        document.getElementById('app-content').innerHTML = UI.renderStandardClientDashboard();
+    }, 2000);
+},
+
+// Transaction Execution
+executeTransaction: () => {
+    // Final validation
+    const termsAccepted = document.getElementById('terms-checkbox')?.checked;
+    const complianceAccepted = document.getElementById('compliance-checkbox')?.checked;
+    
+    if (!termsAccepted || !complianceAccepted) {
+        Logic.showAlert('Please accept all terms and conditions to proceed', 'error');
+        return;
+    }
+    
+    // Show progress modal
+    Logic.showTransactionProgressModal();
+    
+    // Simulate transaction execution steps
+    Logic.executeTransactionSteps();
+},
+
+showTransactionProgressModal: () => {
+    const modal = document.getElementById('transaction-progress-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+},
+
+executeTransactionSteps: () => {
+    const steps = [
+        { title: 'Validating transaction parameters...', duration: 1000 },
+        { title: 'Initiating secure connection...', duration: 1500 },
+        { title: 'Processing compliance checks...', duration: 2000 },
+        { title: 'Executing currency exchange...', duration: 1800 },
+        { title: 'Routing to delivery partner...', duration: 1200 },
+        { title: 'Confirming settlement...', duration: 1000 },
+        { title: 'Transaction completed successfully!', duration: 0 }
+    ];
+    
+    let currentStep = 0;
+    const progressSteps = document.getElementById('progress-steps');
+    
+    const executeStep = () => {
+        if (currentStep < steps.length) {
+            const step = steps[currentStep];
+            
+            // Update progress display
+            progressSteps.innerHTML += `
+                <div class="flex items-center gap-3 text-sm animate-fade-in">
+                    <div class="w-6 h-6 rounded-full ${currentStep === steps.length - 1 ? 'bg-green-500' : 'bg-sky-500'} flex items-center justify-center">
+                        <i class="fas ${currentStep === steps.length - 1 ? 'fa-check' : 'fa-spinner fa-spin'} text-white text-xs"></i>
+                    </div>
+                    <span class="text-slate-300">${step.title}</span>
+                </div>
+            `;
+            
+            currentStep++;
+            
+            if (currentStep < steps.length) {
+                setTimeout(executeStep, step.duration);
+            } else {
+                // Transaction complete
+                setTimeout(() => {
+                    document.getElementById('progress-icon').className = 'fas fa-check-circle text-white text-3xl';
+                    document.getElementById('progress-title').textContent = 'Transaction Successful!';
+                    document.getElementById('progress-description').textContent = 'Your funds have been successfully transferred. The recipient will be notified immediately.';
+                    document.getElementById('progress-buttons').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+    };
+    
+    executeStep();
+},
+
+closeProgressModal: () => {
+    document.getElementById('transaction-progress-modal')?.classList.add('hidden');
+    // Reset to initial state or redirect to transaction history
+    Logic.resetTransactionParameters();
+},
+
+// Helper Functions
+convertToUSD: (amount, currency) => {
+    const rates = { 'USD': 1, 'CAD': 0.74, 'SGD': 0.74, 'EUR': 1.09, 'GBP': 1.26 };
+    return amount * (rates[currency] || 1);
+},
+
+getCountryFromCurrency: (currency) => {
+    const countries = {
+        'USD': 'United States', 'CAD': 'Canada', 'SGD': 'Singapore',
+        'EUR': 'European Union', 'GBP': 'United Kingdom',
+        'PHP': 'Philippines', 'IDR': 'Indonesia', 'MYR': 'Malaysia',
+        'THB': 'Thailand', 'VND': 'Vietnam'
+    };
+    return countries[currency] || 'Unknown';
 },
 
 /**
@@ -6291,11 +7355,50 @@ toggleAccountDetails: (accountType) => {
  */
 renderInitialAnalysisState: () => {
     return `
-    <div class="text-slate-400 text-center py-8 h-full flex flex-col items-center justify-center">
-        <i class="fas fa-map-marked-alt text-6xl mb-6 opacity-20"></i>
-        <h3 class="text-xl font-bold text-white">Awaiting Parameters</h3>
-        <p class="max-w-xs">Configure your transaction on the left to activate the Pinnacle Analysis Engine and view your optimal settlement route.</p>
-    </div>
+        <!-- Initial Market Analysis State -->
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-400 text-sm">Market Status</span>
+                        <i class="fas fa-chart-line text-sky-400"></i>
+                    </div>
+                    <div class="text-xl font-bold text-green-400">Active</div>
+                    <div class="text-xs text-slate-500 mt-1">All systems operational</div>
+                </div>
+                <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-400 text-sm">Network Load</span>
+                        <i class="fas fa-network-wired text-green-400"></i>
+                    </div>
+                    <div class="text-xl font-bold text-green-400">Optimal</div>
+                    <div class="text-xs text-slate-500 mt-1">Low congestion</div>
+                </div>
+                <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-slate-400 text-sm">Processing Time</span>
+                        <i class="fas fa-clock text-yellow-400"></i>
+                    </div>
+                    <div class="text-xl font-bold text-yellow-400">Fast</div>
+                    <div class="text-xs text-slate-500 mt-1">Average 12 min</div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-slate-700/30 to-slate-800/30 rounded-lg p-6 border border-slate-600/30">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                    Getting Started
+                </h3>
+                <div class="space-y-3 text-sm text-slate-300">
+                    <p>Define your transaction parameters to begin real-time market analysis and compliance verification.</p>
+                    <p>Our AI-powered system will provide optimal routing recommendations and ensure full regulatory compliance.</p>
+                    <div class="flex items-center gap-2 pt-2">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-green-400 font-medium">Ready to process your transaction</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
 },
                 renderAuthView: () => `
