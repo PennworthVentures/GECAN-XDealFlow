@@ -2761,16 +2761,50 @@
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
+                /**
+                 * Tracks the core initialization and authentication status of the application.
+                 */
                 isInitialized: false,
                 isAuthenticated: false,
-                currentUser: null,
-                currentView: 'auth',
-                transaction: null,
+
+                /**
+                 * Holds the complete, authoritative profile of the currently logged-in user.
+                 * This object is populated upon successful authentication and session restoration.
+                 * It is the single source of truth for user-specific data, limits, and accounts.
+                 */
+                currentUser: {
+                    karavanId: null,
+                    fullName: null,
+                    firstName: null,
+                    lastName: null,
+                    email: null,
+                    persona: null, // e.g., 'remit', 'pay', 'lp'
+                    kycStatus: null, // e.g., 'TIER_1_EMAIL_VERIFIED'
+                    transactionLimit: 0, // The user's standard transaction limit, fetched from the backend.
+                    fundingAccounts: [] // An array of the user's registered bank/crypto accounts for funding.
+                },
+
+                /**
+                 * The central object managing the state of a live, in-progress transaction wizard.
+                 * It is null until a user initiates a quote.
+                 */
+                transaction: null, // Kept as null initially to signify no active transaction.
+
+                /**
+                 * A repository for market and user-specific data fetched from the backend,
+                 * used to populate dropdowns and provide context throughout the application.
+                 */
                 marketData: {
-                    rates: [],
-                    beneficiaries: [],
+                    rates: [], // Live currency exchange rates.
+                    beneficiaries: [], // The user's list of trusted beneficiaries.
+                    deliveryPartners: [], // Available cash-out/delivery partners for a given destination.
                     availableCurrencies: ['USD', 'CAD', 'SGD', 'HKD', 'GBP', 'AED', 'PHP', 'MYR', 'THB', 'USDT', 'USDC']
                 },
+
+                /**
+                 * Manages UI-specific states, timers, and intervals to prevent memory leaks
+                 * and control dynamic visual elements.
+                 */
                 ui: {
                     quoteTimer: null,
                     trackingInterval: null,
@@ -4935,10 +4969,7 @@ const UI = {
                     const mainContent = document.getElementById('main-content');
                     const views = { 
                         auth: UI.renderAuthView, 
-                        dashboard_shell: UI.renderDashboardShell, // [NEW] The main entry point
-                        tx_wizard: UI.renderTransactionWizard, 
-                        lp_dashboard: UI.renderLPDashboard, 
-                        tx_tracker: UI.renderTransactionTracker 
+                        dashboard_shell: UI.renderDashboardShell, 
                     };
                     const renderFunction = views[viewName];
                     if (renderFunction) {
@@ -4947,6 +4978,7 @@ const UI = {
                         Logic.bindEventListeners(viewName);
                     }
                 },
+
 
 // Add these new functions to your UI object in karavan.html
 
@@ -5115,7 +5147,124 @@ renderDashboardContent: (viewId) => {
             return UI.renderPlaceholderView(viewId);
     }
 },
-// Add this definitive, synthesized function to the `UI` object, replacing any previous versions of `renderTransfersView`.
+// Add these new functions to the UI object.
+
+                renderFundingSourceStep: () => {
+                    const fundingAccounts = AppState.currentUser.fundingAccounts || [];
+                    return `
+                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-sky-500/20 border-2 border-sky-500 text-sky-400 font-bold text-xl">2</div>
+                            <h3 class="text-2xl font-bold text-white">Select Funding Source</h3>
+                        </div>
+                        <p class="text-slate-400 mb-4 text-sm">Choose which of your accounts will fund this transaction.</p>
+                        <div class="space-y-3">
+                            ${fundingAccounts.length > 0 ? fundingAccounts.map(acc => `
+                                <div onclick="Logic.selectFundingSource('${acc.id}')" data-account-id="${acc.id}" class="funding-source-btn p-3 rounded-lg border-2 border-slate-600 bg-slate-700/50 cursor-pointer flex items-center justify-between transition-all hover:border-sky-500">
+                                    <div>
+                                        <p class="font-semibold text-white">${acc.nickname}</p>
+                                        <p class="text-xs text-slate-400">${acc.accountType === 'bank' ? `Bank Account ending in ${acc.accountNumber.slice(-4)}` : `Crypto Wallet (${acc.currency})`}</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-slate-500"></i>
+                                </div>
+                            `).join('') : '<p class="text-center text-yellow-400 text-sm p-4 bg-yellow-500/10 rounded-lg">No funding accounts found. Please add a funding source via your Global Accounts page to proceed.</p>'}
+                        </div>
+                    </div>
+                    `;
+                },
+
+                renderDeliveryPartnerStep: () => {
+                    const partners = AppState.marketData.deliveryPartners || [];
+                    return `
+                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-sky-500/20 border-2 border-sky-500 text-sky-400 font-bold text-xl">3</div>
+                            <h3 class="text-2xl font-bold text-white">Select Delivery Partner</h3>
+                        </div>
+                        <p class="text-slate-400 mb-4 text-sm">Choose how the recipient will receive their funds through a verified GECAN Liquidity Partner.</p>
+                        <div class="space-y-3">
+                            ${partners.length > 0 ? partners.map(p => `
+                                <div onclick="Logic.selectDeliveryPartner('${p.id}')" data-partner-id="${p.id}" class="delivery-partner-btn p-3 rounded-lg border-2 border-slate-600 bg-slate-700/50 cursor-pointer flex items-center justify-between transition-all hover:border-sky-500">
+                                    <div>
+                                        <p class="font-semibold text-white">${p.name}</p>
+                                        <p class="text-xs text-slate-400">${p.type} - Est. ${p.speed}</p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-slate-500"></i>
+                                </div>
+                            `).join('') : '<p class="text-center text-yellow-400 text-sm p-4 bg-yellow-500/10 rounded-lg">No delivery partners are currently available for this destination. Please try another recipient or contact support.</p>'}
+                        </div>
+                    </div>
+                    `;
+                },
+
+                renderFinalReviewPanel: () => {
+                    const { transaction, currentUser } = AppState;
+                    const fundingAccount = currentUser.fundingAccounts.find(acc => acc.id === transaction.fundingSourceId);
+                    const deliveryPartner = AppState.marketData.deliveryPartners.find(p => p.id === transaction.deliveryPartnerId);
+
+                    return `
+                    <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-2xl p-8 shadow-2xl h-full flex flex-col">
+                        <h2 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif] mb-6">Final Review & Dispatch</h2>
+                        <div class="flex-grow space-y-4 text-sm">
+                            <div class="flex justify-between"><span class="text-slate-400">You Send:</span><span class="font-mono text-white font-bold">${Utils.formatCurrency(transaction.sendAmount, transaction.sendCurrency)}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">They Receive:</span><span class="font-mono text-green-400 font-bold">${Utils.formatCurrency(transaction.receiveAmount, transaction.receiveCurrency)}</span></div>
+                            <hr class="border-slate-700">
+                            <div class="flex justify-between"><span class="text-slate-400">Funding Source:</span><span class="text-white">${fundingAccount.nickname}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-400">Delivery Partner:</span><span class="text-white">${deliveryPartner.name}</span></div>
+                            <hr class="border-slate-700">
+                            <div class="flex justify-between"><span class="text-slate-400">GECAN™ Fee:</span><span class="font-mono text-white">${Utils.formatCurrency(transaction.fee, transaction.sendCurrency)}</span></div>
+                            <div class="flex justify-between text-base"><span class="text-slate-400">Total Debit:</span><span class="font-mono text-yellow-400 font-bold">${Utils.formatCurrency(transaction.totalCost, transaction.sendCurrency)}</span></div>
+                            ${transaction.diligencePackage ? `
+                                <div class="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-xs flex items-center gap-2">
+                                    <i class="fas fa-check-circle"></i><span>Enhanced Due Diligence documents attached.</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <button id="dispatch-btn" onclick="Logic.dispatchFromDashboard()" class="btn-gold w-full py-4 text-lg font-bold mt-6">
+                            <i class="fas fa-rocket mr-2"></i>Authorize & Dispatch Karavan
+                        </button>
+                    </div>
+                    `;
+                },
+                
+                renderEnhancedDiligenceModal: () => {
+                    return `
+                    <div class="dialog-content-wrapper" style="max-width: 48rem;">
+                        <div class="p-8">
+                            <div class="text-center mb-6">
+                                <i class="fas fa-shield-alt text-5xl text-yellow-400 mb-4"></i>
+                                <h2 class="text-3xl font-bold text-white font-['Orbitron',_sans-serif]">Enhanced Due Diligence Required</h2>
+                                <p class="text-slate-400 mt-2">This transaction exceeds your standard limit (${Utils.formatCurrency(AppState.currentUser.transactionLimit, 'USD', 0)}) and requires additional information for compliance.</p>
+                            </div>
+                            <form id="diligence-form">
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="input-label-premium">Purpose of Transaction</label>
+                                        <textarea id="diligence-purpose" class="form-input-premium" rows="3" placeholder="e.g., Payment for supplier invoice #INV-2025-ABC for raw materials." required></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="input-label-premium">Upload Supporting Documents (Invoice, PO, etc.)</label>
+                                        <div id="file-drop-zone" class="file-drop-zone"><i class="fas fa-cloud-upload-alt text-4xl text-slate-500"></i><p class="mt-2 font-semibold text-white">Drag & drop files here</p></div>
+                                        <input type="file" id="diligence-upload" class="hidden">
+                                        <div id="file-preview" class="mt-4"></div>
+                                    </div>
+                                    <div class="premium-security-section">
+                                        <h4 class="premium-security-header"><i class="fas fa-gavel mr-2"></i>Attestations</h4>
+                                        <label class="premium-checkbox-container">
+                                            <input type="checkbox" id="attestation-1" required><span class="premium-checkbox-checkmark"></span>
+                                            <span class="premium-checkbox-label">I attest that the purpose stated and documents provided are true, accurate, and directly related to this transaction.</span>
+                                        </label>
+                                    </div>
+                                    <div class="flex justify-end gap-4 pt-4">
+                                        <button type="button" class="btn-secondary px-6 py-3" onclick="document.getElementById('notification-modal').close()">Cancel Transaction</button>
+                                        <button type="submit" class="btn-primary px-6 py-3">Submit & Proceed</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    `;
+                },
 
 /**
  * [PINNACLE VIEW RENDERER - DEFINITIVE SYNTHESIS v3.0]
