@@ -2757,7 +2757,7 @@
         (function() {
             'use strict';
             
-            const API_URL = "https://script.google.com/macros/s/AKfycby87A2HNN7dp0LmtIMDIB7ykRp6Riv8mq60lVU3Xi1uiLSes5qOVBbiYc_lpVBtn0sF/exec";
+            const API_URL = "https://script.google.com/macros/s/AKfycbwd-EQ719bCV5FGytq6eSTZIlL7C1q9TsrsZDYRZoUdwm9OpQzo5H65N-MZCBVSi-l7/exec";
             
             // --- SECTION 1: STATE MACHINE ---
             const AppState = {
@@ -3267,7 +3267,20 @@ renderAndShowModal: (modalId, contentHtml, bindListenersFunc = null) => {
 showProfileModal: () => Logic.renderAndShowModal('profile-modal', UI.renderProfileModal(), Logic.bindProfileModalListeners),
 showKycModal: () => Logic.renderAndShowModal('kyc-upgrade-modal', UI.renderKycUpgradeModal(), Logic.bindKycModalListeners),
 showAccountModal: () => Logic.renderAndShowModal('account-modal', UI.renderAccountModal(), Logic.bindAccountModalListeners),
-showAddBeneficiaryModal: () => Logic.renderAndShowModal('beneficiary-modal', UI.renderAddBeneficiaryModal(), Logic.bindBeneficiaryModalListeners),
+
+    
+showAddBeneficiaryModal: () => {
+                    const modal = document.getElementById('beneficiary-modal');
+                    modal.innerHTML = UI.renderBeneficiaryModal('add'); // Use a unified modal renderer
+                    modal.showModal();
+                    Logic.bindBeneficiaryModalListeners('add');
+                },
+                showManageBeneficiaryModal: () => {
+                    const modal = document.getElementById('beneficiary-modal');
+                    modal.innerHTML = UI.renderBeneficiaryModal('manage');
+                    modal.showModal();
+                    Logic.bindBeneficiaryModalListeners('manage');
+                },    
    
     // --- Specific Modal Logic ---
 bindProfileModalListeners: () => {
@@ -3517,13 +3530,139 @@ handleAccountSubmit: async (e) => {
     }
 },
 
-bindBeneficiaryModalListeners: () => {
-    document.getElementById('beneficiary-add-form')?.addEventListener('submit', Logic.handleAddBeneficiarySubmit);
-    // Bind accordion headers to allow opening/closing steps (optional, for UX)
-    document.querySelectorAll('#beneficiary-accordion-step-1, #beneficiary-accordion-step-2, #beneficiary-accordion-step-3').forEach((el, index) => {
-        el.querySelector('.premium-accordion-header').addEventListener('click', () => Logic.changeBeneficiaryStep(index + 1));
-    });
+bindBeneficiaryModalListeners: (mode, beneficiary = null) => {
+    // --- MODE 1: BENEFICIARY MANAGEMENT LIST ---
+    if (mode === 'manage') {
+        const list = document.getElementById('beneficiary-management-list');
+        if (list) {
+            // Use highly performant event delegation to handle all button clicks within the list.
+            list.addEventListener('click', e => {
+                const editBtn = e.target.closest('.edit-beneficiary-btn');
+                const deleteBtn = e.target.closest('.delete-beneficiary-btn');
+                if (editBtn) Logic.handleBeneficiaryEditStart(editBtn.dataset.id);
+                if (deleteBtn) Logic.handleBeneficiaryDelete(deleteBtn.dataset.id);
+            });
+        }
+        // Add listener for the "Add New" button within the management view
+        const addBtn = document.getElementById('add-new-from-manage-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', Logic.showAddBeneficiaryModal);
+        }
+    } 
+    // --- MODE 2 & 3: ADD/EDIT FORM WORKFLOW ---
+    else { 
+        const form = document.getElementById('beneficiary-add-form');
+        if (!form) return;
+
+        // 1. Bind the main form submission event.
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            if (mode === 'add') {
+                Logic.handleAddBeneficiarySubmit(e);
+            } else if (mode === 'edit') {
+                Logic.handleBeneficiaryEditSubmit(e, beneficiary.id);
+            }
+        });
+
+        // 2. Bind accordion headers for guided navigation (Zero Regressions).
+        document.querySelectorAll('#beneficiary-accordion-step-1, #beneficiary-accordion-step-2, #beneficiary-accordion-step-3').forEach((el, index) => {
+            const header = el.querySelector('.premium-accordion-header');
+            if (header) {
+                header.addEventListener('click', () => Logic.changeBeneficiaryStep(index + 1));
+            }
+        });
+        
+        // 3. Bind dynamic UI triggers.
+        const payoutMethodSelect = document.getElementById('payout-method');
+        if (payoutMethodSelect) {
+            // This listener ensures the details section updates instantly when the payout method changes.
+            payoutMethodSelect.addEventListener('change', (e) => UI.toggleBeneficiaryDetails(e.target.value));
+        }
+
+        // 4. Initialize the first step's dynamic UI if in 'edit' mode.
+        if (mode === 'edit' && beneficiary) {
+            UI.toggleBeneficiaryDetails(beneficiary.payoutMethod);
+        }
+    }
 },
+
+                handleBeneficiaryEditStart: (beneficiaryId) => {
+                    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === beneficiaryId);
+                    if (!beneficiary) return Utils.showNotification("Beneficiary not found.", "error");
+                    
+                    const modal = document.getElementById('beneficiary-modal');
+                    modal.innerHTML = UI.renderBeneficiaryModal('edit', beneficiary);
+                    // No need to show modal, it's already open. Re-bind listeners for the new form.
+                    Logic.bindBeneficiaryModalListeners('edit', beneficiary);
+                },
+
+handleBeneficiaryEditSubmit: async (e, beneficiaryId) => {
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+
+    if (!document.getElementById('beneficiary-verify-identity')?.checked) {
+        return Utils.showNotification("You must re-verify the accuracy of the information before saving.", 'warning');
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<div class="premium-spinner"></div> Saving Changes...`;
+
+    // Unabridged data gathering for the update payload.
+    const updatedData = {
+        name: document.getElementById('beneficiary-name')?.value,
+        country: document.getElementById('beneficiary-country')?.value,
+        payoutMethod: document.getElementById('payout-method')?.value,
+        details: document.getElementById('bank-details')?.value || document.getElementById('mobile-number')?.value || document.getElementById('crypto-address')?.value,
+        email: document.getElementById('beneficiary-email')?.value,
+        address: document.getElementById('beneficiary-address')?.value,
+    };
+
+    try {
+        const result = await Utils.createApiRequest('karavanUpdateBeneficiary', 'POST', {
+            karavanId: AppState.currentUser.karavanId, beneficiaryId, updatedData
+        });
+
+        // Flawless State Synchronization
+        const index = AppState.marketData.beneficiaries.findIndex(b => b.id === beneficiaryId);
+        if (index !== -1) {
+            AppState.marketData.beneficiaries[index] = result.data;
+        }
+
+        Utils.showNotification(result.message, 'success');
+        document.getElementById('beneficiary-modal')?.close();
+        UI.refreshBeneficiaryDropdown();
+
+    } catch (error) {
+        Utils.showNotification(error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save Changes';
+    }
+},
+                
+                handleBeneficiaryDelete: async (beneficiaryId) => {
+                    if (!confirm("Are you sure you want to remove this beneficiary? This action cannot be undone.")) return;
+
+                    try {
+                        const result = await Utils.createApiRequest('karavanDeleteBeneficiary', 'POST', {
+                            karavanId: AppState.currentUser.karavanId, beneficiaryId
+                        });
+
+                        // Flawless State Synchronization
+                        AppState.marketData.beneficiaries = AppState.marketData.beneficiaries.filter(b => b.id !== result.deletedId);
+                        
+                        Utils.showNotification(result.message, 'success');
+                        // Refresh the management list inside the modal without closing it
+                        const listContainer = document.getElementById('beneficiary-management-list-container');
+                        if (listContainer) {
+                            listContainer.innerHTML = UI.renderBeneficiaryList();
+                        }
+                        UI.refreshBeneficiaryDropdown();
+
+                    } catch (error) {
+                        Utils.showNotification(error.message, 'error');
+                    }
+                },
 
 changeBeneficiaryStep: (targetStep) => {
     // --- 1. Military-Grade Validation Gates ---
@@ -3575,7 +3714,7 @@ handleAddBeneficiarySubmit: async (e) => {
     e.preventDefault();
     const submitBtn = e.target.querySelector('button[type="submit"]');
     
-    // Final validation check
+    // Final validation check (Zero Regressions)
     if (!document.getElementById('beneficiary-verify-identity')?.checked) {
         return Utils.showNotification("You must verify the accuracy of the beneficiary's information.", 'warning');
     }
@@ -3583,6 +3722,7 @@ handleAddBeneficiarySubmit: async (e) => {
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<div class="premium-spinner"></div> Adding...`;
 
+    // Unabridged data gathering from all form fields.
     const beneficiaryData = {
         name: document.getElementById('beneficiary-name')?.value,
         country: document.getElementById('beneficiary-country')?.value,
@@ -3601,19 +3741,17 @@ handleAddBeneficiarySubmit: async (e) => {
             beneficiaryData: beneficiaryData
         });
 
-         // --- DEFINITIVE GUARD CLAUSE ---
-    // This validates the response before modifying the application state.
-    if (!response || typeof response.data !== 'object' || !response.data.id) {
-        // Log the actual response for debugging.
-        console.error("Invalid response from server:", response);
-        throw new Error("API returned an invalid or incomplete beneficiary object.");
-    }
-
+        if (!response || typeof response.data !== 'object' || !response.data.id) {
+            throw new Error("API returned an invalid or incomplete beneficiary object.");
+        }
+        
+        // Flawless State Synchronization
         (AppState.marketData.beneficiaries = AppState.marketData.beneficiaries || []).push(response.data);
         
         Utils.showNotification('Trusted Beneficiary added successfully!', 'success');
         document.getElementById('beneficiary-modal')?.close();
         
+        // Refresh the main dashboard dropdown to include the new beneficiary.
         UI.refreshBeneficiaryDropdown();
 
     } catch (error) {
@@ -5366,54 +5504,60 @@ renderTransfersView: () => {
 renderStandardClientDashboard: () => {
     const user = AppState.currentUser;
     const showKycPrompt = ['TIER_1_EMAIL_VERIFIED', 'TIER_2_KYC_SUBMITTED'].includes(user.kycStatus);
-    
-    // [PINNACLE FIX #3] Call the new stats engine to get live data for the cards.
     const stats = Logic.calculateDashboardStats();
-
     const tx = AppState.transaction || {};
-    const sendAmount = tx.sendAmount || '';
-    const sendCurrency = tx.sendCurrency || 'USD';
-    const receiveCurrency = tx.receiveCurrency || 'PHP';
-    const beneficiaryId = tx.beneficiaryId || '';
     
+    // --- State-Driven UI Configuration ---
+    const isDestinationSet = tx.beneficiaryId && tx.sendCurrency && tx.receiveCurrency && tx.sendAmount > 0;
+    const isQuoteLocked = tx.status === 'quoted';
+    const isFundingSet = tx.fundingSourceId;
+    const isSettlementSet = tx.settlementPartner;
+
+    const generateCurrencyOptions = (selectedValue) => {
+        const uniqueCurrencies = Array.from(new Set((AppState.marketData.rates || []).flatMap(rate => [rate.baseAsset, rate.quoteAsset]))).sort();
+        if (uniqueCurrencies.length === 0) return '<option disabled>Loading currencies...</option>';
+        return uniqueCurrencies.map(c => `<option value="${c}" ${c === selectedValue ? 'selected' : ''}>${c}</option>`).join('');
+    };
+
+    // --- Definitive Content & Component Rendering ---
     return `
     <div class="p-8 max-w-7xl mx-auto">
-        <!-- Header Section -->
-        <div class="mb-8">
+        <!-- Header Section (Military-Grade Precision) -->
+        <div class="mb-8 animate-step-fade-in">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <div>
-                    <h1 class="text-4xl font-bold text-white font-['Orbitron',_sans-serif] mb-2">Mission Control</h1>
-                    <p class="text-lg text-slate-400">Initiate secure cross-border settlements with pinnacle precision.</p>
+                    <h1 class="text-4xl font-bold text-white font-['Orbitron',_sans-serif] mb-2 tracking-wide">Mission Control</h1>
+                    <p class="text-lg text-slate-400 font-medium">Initiate secure cross-border settlements with pinnacle precision.</p>
                 </div>
                 <div class="flex gap-4">
-                    <button onclick="Logic.resetTransactionParameters()" class="btn-secondary px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
-                        <i class="fas fa-undo mr-2"></i>Reset Parameters
+                    <button onclick="Logic.resetTransactionParameters()" class="btn-secondary px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-slate-500/25">
+                        <i class="fas fa-undo mr-2"></i>Reset Mission
                     </button>
-                    <button onclick="Logic.showQuickActionsMenu()" class="btn-primary px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105">
+                    <button onclick="Logic.showQuickActionsMenu()" class="btn-primary px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-sky-500/25">
                         <i class="fas fa-bolt mr-2"></i>Quick Actions
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- KYC Tier Upgrade Prompt -->
+        <!-- KYC Tier Upgrade Prompt (Premium Enhancement) -->
         ${showKycPrompt ? `
-        <div class="mb-8 p-6 bg-gradient-to-r from-sky-500/20 via-indigo-500/20 to-purple-500/20 border border-sky-500/50 rounded-xl backdrop-blur-sm">
-            <div class="flex items-center justify-between">
+        <div class="mb-8 p-6 bg-gradient-to-r from-sky-500/20 via-indigo-500/20 to-purple-500/20 border border-sky-500/50 rounded-xl backdrop-blur-sm animate-step-fade-in shadow-2xl shadow-sky-500/10" style="animation-delay: 0.1s;">
+            <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 transition-transform duration-300 hover:scale-110">
                         <i class="fas fa-level-up-alt text-white text-2xl"></i>
                     </div>
                     <div>
                         <h3 class="text-xl font-bold text-white mb-1">Unlock Enhanced Capabilities</h3>
-                        <p class="text-slate-300">Complete tier verification to access higher limits, priority routing, and institutional features.</p>
-                        <div class="flex items-center gap-2 mt-2">
+                        <p class="text-slate-300 mb-2">Complete tier verification to access higher limits, priority routing, and institutional features.</p>
+                        <div class="flex items-center gap-2">
                             <i class="fas fa-shield-alt text-green-400"></i>
                             <span class="text-sm text-green-400 font-medium">Bank-grade security protocol active</span>
                         </div>
                     </div>
                 </div>
-                <button onclick="Logic.showKycModal()" class="btn-gold px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-all shadow-lg">
+                <button onclick="Logic.showKycModal()" class="btn-gold px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-yellow-500/25">
                     <i class="fas fa-rocket mr-2"></i>Upgrade Now
                 </button>
             </div>
@@ -5422,75 +5566,149 @@ renderStandardClientDashboard: () => {
 
         <!-- Main Transaction Interface -->
         <div class="grid grid-cols-1 xl:grid-cols-5 gap-8">
-            <!-- Transaction Parameters Panel -->
-            <div class="xl:col-span-2">
-                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
-                    <div class="space-y-6">
-                        <!-- You Send -->
-                        <div>
-                            <label class="input-label-premium">You Send</label>
-                            <div class="flex gap-3">
-                                <!-- [PINNACLE FIX #2] oninput now calls the real-time quote engine. -->
-                                <input type="number" id="send-amount" class="form-input-premium w-full" placeholder="1000.00" value="${sendAmount}" oninput="Logic.requestRealtimeQuote()">
-                                <select id="send-currency" class="form-select-premium w-32" onchange="Logic.requestRealtimeQuote()">
-                                    ${['USD', 'CAD', 'SGD', 'EUR', 'GBP'].map(c => `<option value="${c}" ${c === sendCurrency ? 'selected' : ''}>${c}</option>`).join('')}
-                                </select>
+            <!-- Transaction Parameters Panel (Complete Guided Workflow) -->
+            <div class="xl:col-span-2 animate-step-fade-in" style="animation-delay: 0.2s;">
+                <div class="glass p-8 rounded-2xl shadow-2xl space-y-6">
+                    
+                    <!-- STAGE 1: PARAMETERS & QUOTE -->
+                    <div class="guided-step-card">
+                        <div class="step-header ${isQuoteLocked ? 'completed' : ''}">
+                            <div class="step-number transition-all duration-300 hover:scale-110">
+                                <i class="fas ${isQuoteLocked ? 'fa-check' : 'fa-bullseye'}"></i>
+                            </div>
+                            <div>
+                                <h3 class="step-title">Mission Stage 1: Parameters & Quote</h3>
+                                <p class="text-sm text-text-muted">Set parameters and lock in your institutional rate.</p>
                             </div>
                         </div>
-                        <!-- Recipient Gets -->
-                        <div>
-                            <label class="input-label-premium">Recipient Gets (Estimated)</label>
-                            <div class="flex gap-3">
-                                <div class="form-display-premium flex-grow flex items-center">
-                                    <span id="receive-amount" class="text-xl font-bold text-green-400">~ 0.00</span>
+                        <div class="step-content space-y-6">
+                            <div>
+                                <label class="input-label-premium">You Send</label>
+                                <div class="flex gap-3">
+                                    <input type="number" 
+                                           id="send-amount" 
+                                           class="form-input-premium w-full transition-all duration-300 focus:shadow-lg focus:shadow-sky-500/25" 
+                                           placeholder="1,000.00" 
+                                           value="${tx.sendAmount || ''}" 
+                                           oninput="Logic.requestRealtimeQuote()">
+                                    <select id="send-currency" 
+                                            class="form-select-premium w-32 transition-all duration-300 focus:shadow-lg focus:shadow-sky-500/25" 
+                                            onchange="Logic.requestRealtimeQuote()">
+                                        ${generateCurrencyOptions(tx.sendCurrency || 'USD')}
+                                    </select>
                                 </div>
-                                <select id="receive-currency" class="form-select-premium w-32" onchange="Logic.requestRealtimeQuote()">
-                                    ${['PHP', 'IDR', 'MYR', 'THB', 'VND'].map(c => `<option value="${c}" ${c === receiveCurrency ? 'selected' : ''}>${c}</option>`).join('')}
+                            </div>
+                            
+                            <div>
+                                <label class="input-label-premium">Recipient Gets (Estimated)</label>
+                                <div class="flex gap-3">
+                                    <div class="form-display-premium flex-grow flex items-center bg-gradient-to-r from-green-500/10 to-green-600/5 border-green-500/30">
+                                        <span id="receive-amount" class="text-xl font-bold text-green-400 animate-pulse">~ 0.00</span>
+                                    </div>
+                                    <select id="receive-currency" 
+                                            class="form-select-premium w-32 transition-all duration-300 focus:shadow-lg focus:shadow-green-500/25" 
+                                            onchange="Logic.requestRealtimeQuote()">
+                                        ${generateCurrencyOptions(tx.receiveCurrency || 'PHP')}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="input-label-premium">Recipient</label>
+                                    <div class="flex items-center gap-3">
+                                        <button onclick="Logic.showManageBeneficiaryModal()" 
+                                                class="text-slate-400 hover:text-white text-sm font-medium transition-all duration-200 hover:scale-105">
+                                            <i class="fas fa-cog mr-1"></i>Manage
+                                        </button>
+                                        <button onclick="Logic.showAddBeneficiaryModal()" 
+                                                class="text-sky-400 hover:text-sky-300 text-sm font-medium transition-all duration-200 hover:scale-105">
+                                            <i class="fas fa-plus mr-1"></i>Add New
+                                        </button>
+                                    </div>
+                                </div>
+                                <select id="beneficiary-select" 
+                                        class="form-select-premium w-full transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/25" 
+                                        onchange="Logic.invalidateQuote()">
+                                    <option value="">Select recipient...</option>
+                                    ${(AppState.marketData?.beneficiaries || []).map(ben => `
+                                        <option value="${ben.id}" ${ben.id === tx.beneficiaryId ? 'selected' : ''}>
+                                            ${ben.name} (${ben.country})
+                                        </option>
+                                    `).join('')}
                                 </select>
                             </div>
-                        </div>
-                        <!-- Recipient -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="input-label-premium">Recipient</label>
-                                <!-- [PINNACLE FIX #1] The "Add New" button is now definitively present. -->
-                                <button onclick="Logic.showAddBeneficiaryModal()" class="text-sky-400 hover:text-sky-300 text-sm font-medium transition-colors">
-                                    <i class="fas fa-plus mr-1"></i>Add New
+
+                            <!-- Delivery Method -->
+                            <div>
+                                <label class="input-label-premium">Delivery Method</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button type="button" 
+                                            onclick="Logic.selectDeliveryMethod('bank')" 
+                                            data-method="bank" 
+                                            class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center transition-all duration-300 hover:border-sky-500 hover:bg-sky-500/10 hover:-translate-y-1">
+                                        <i class="fas fa-university text-2xl text-sky-400 mb-2"></i>
+                                        <p class="text-sm font-medium">Bank Transfer</p>
+                                    </button>
+                                    <button type="button" 
+                                            onclick="Logic.selectDeliveryMethod('cash')" 
+                                            data-method="cash" 
+                                            class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center transition-all duration-300 hover:border-green-500 hover:bg-green-500/10 hover:-translate-y-1">
+                                        <i class="fas fa-money-bill-wave text-2xl text-green-400 mb-2"></i>
+                                        <p class="text-sm font-medium">Cash Pickup</p>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="pt-4">
+                                <button id="get-quote-btn" 
+                                        onclick="Logic.getQuote()" 
+                                        class="btn-primary w-full py-4 rounded-lg font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-sky-500/25">
+                                    <i class="fas fa-lock mr-2"></i>Get Quote & Lock Rate
                                 </button>
                             </div>
-                            <select id="beneficiary-select" class="form-select-premium w-full" onchange="Logic.invalidateQuote()">
-                                <option value="">Select recipient...</option>
-                                ${AppState.marketData?.beneficiaries?.map(ben => `<option value="${ben.id}" ${ben.id === beneficiaryId ? 'selected' : ''}>${ben.name} (${ben.country})</option>`).join('') || ''}
-                            </select>
                         </div>
-                        <!-- Delivery Method -->
-                        <div>
-                            <label class="input-label-premium">Delivery Method</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" onclick="Logic.selectDeliveryMethod('bank')" data-method="bank" class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center">
-                                    <i class="fas fa-university text-2xl text-sky-400 mb-2"></i><p class="text-sm font-medium">Bank Transfer</p>
-                                </button>
-                                <button type="button" onclick="Logic.selectDeliveryMethod('cash')" data-method="cash" class="delivery-method-btn p-4 rounded-lg border-2 border-slate-600 bg-slate-700/50 text-center">
-                                    <i class="fas fa-money-bill-wave text-2xl text-green-400 mb-2"></i><p class="text-sm font-medium">Cash Pickup</p>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Action Buttons -->
-                        <div class="pt-4">
-                            <button id="get-quote-btn" onclick="Logic.getQuote()" class="btn-primary w-full py-4 rounded-lg font-bold text-lg">
-                                <i class="fas fa-search-dollar mr-2"></i>Get Quote & Lock Rate
-                            </button>
-                        </div>
-                        <div id="transaction-review-container"></div>
                     </div>
+                    
+                    <!-- STAGE 2: FUNDING & SETTLEMENT -->
+                    <div class="guided-step-card ${!isQuoteLocked ? 'opacity-50 pointer-events-none' : ''}">
+                        <div class="step-header ${isFundingSet && isSettlementSet ? 'completed' : ''}">
+                            <div class="step-number transition-all duration-300 hover:scale-110">
+                                <i class="fas ${isFundingSet && isSettlementSet ? 'fa-check' : 'fa-handshake'}"></i>
+                            </div>
+                            <div>
+                                <h3 class="step-title">Mission Stage 2: Funding & Settlement</h3>
+                                <p class="text-sm text-text-muted">Select your funding source and review settlement partner.</p>
+                            </div>
+                        </div>
+                        <div class="step-content space-y-6">
+                            <div id="funding-source-container"></div>
+                            <div id="settlement-partner-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- STAGE 3: FINAL AUTHORIZATION -->
+                    <div class="guided-step-card ${!isSettlementSet ? 'opacity-50 pointer-events-none' : ''}">
+                        <div class="step-header">
+                            <div class="step-number transition-all duration-300 hover:scale-110">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div>
+                                <h3 class="step-title">Mission Stage 3: Final Authorization</h3>
+                                <p class="text-sm text-text-muted">Confirm details to dispatch your Karavan.</p>
+                            </div>
+                        </div>
+                        <div id="transaction-review-container" class="step-content"></div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- Analysis & Projections Panel -->
-            <div class="xl:col-span-3">
-                <div class="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl h-full">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif]">Pinnacle Analysis & Projections</h2>
+            <!-- Analysis & Projections Panel (Aesthetically Elevated) -->
+            <div class="xl:col-span-3 animate-step-fade-in" style="animation-delay: 0.3s;">
+                <div class="glass p-8 rounded-2xl shadow-2xl h-full flex flex-col">
+                    <div class="flex items-center justify-between mb-6 flex-shrink-0">
+                        <h2 class="text-2xl font-bold text-white font-['Orbitron',_sans-serif] tracking-wide">Pinnacle Analysis & Projections</h2>
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                             <span class="text-sm text-green-400 font-medium">Live Analysis</span>
@@ -5498,10 +5716,10 @@ renderStandardClientDashboard: () => {
                     </div>
 
                     <!-- Real-time Market Data Display -->
-                    <div id="market-analysis-panel" class="space-y-6">
+                    <div id="market-analysis-panel" class="space-y-6 flex-grow">
                         <!-- Exchange Rate Information -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-sky-500/20">
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-slate-400 text-sm">Current Rate</span>
                                     <i class="fas fa-chart-line text-sky-400"></i>
@@ -5509,7 +5727,7 @@ renderStandardClientDashboard: () => {
                                 <div id="current-rate" class="text-xl font-bold text-white">1.00000</div>
                                 <div class="text-xs text-slate-500 mt-1">Last updated: Live</div>
                             </div>
-                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/20">
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-slate-400 text-sm">Our Rate</span>
                                     <i class="fas fa-shield-alt text-green-400"></i>
@@ -5517,7 +5735,7 @@ renderStandardClientDashboard: () => {
                                 <div id="our-rate" class="text-xl font-bold text-green-400">0.00000</div>
                                 <div class="text-xs text-green-500 mt-1">Premium rate locked</div>
                             </div>
-                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+                            <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-yellow-500/20">
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-slate-400 text-sm">Total Cost</span>
                                     <i class="fas fa-calculator text-yellow-400"></i>
@@ -5543,7 +5761,7 @@ renderStandardClientDashboard: () => {
                                             <span class="text-sm text-slate-400">24h Volatility</span>
                                             <div class="flex items-center gap-2">
                                                 <div class="w-16 bg-slate-600 rounded-full h-2">
-                                                    <div id="volatility-bar" class="bg-gradient-to-r from-green-500 to-yellow-500 h-2 rounded-full" style="width: 25%"></div>
+                                                    <div id="volatility-bar" class="bg-gradient-to-r from-green-500 to-yellow-500 h-2 rounded-full transition-all duration-500" style="width: 25%"></div>
                                                 </div>
                                                 <span id="volatility-percent" class="text-xs text-green-400">Low (2.1%)</span>
                                             </div>
@@ -5552,7 +5770,7 @@ renderStandardClientDashboard: () => {
                                             <span class="text-sm text-slate-400">Liquidity Depth</span>
                                             <div class="flex items-center gap-2">
                                                 <div class="w-16 bg-slate-600 rounded-full h-2">
-                                                    <div id="liquidity-bar" class="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full" style="width: 85%"></div>
+                                                    <div id="liquidity-bar" class="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-500" style="width: 85%"></div>
                                                 </div>
                                                 <span id="liquidity-level" class="text-xs text-cyan-400">High</span>
                                             </div>
@@ -5561,7 +5779,7 @@ renderStandardClientDashboard: () => {
                                             <span class="text-sm text-slate-400">Network Congestion</span>
                                             <div class="flex items-center gap-2">
                                                 <div class="w-16 bg-slate-600 rounded-full h-2">
-                                                    <div id="congestion-bar" class="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full" style="width: 15%"></div>
+                                                    <div id="congestion-bar" class="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full transition-all duration-500" style="width: 15%"></div>
                                                 </div>
                                                 <span id="congestion-level" class="text-xs text-green-400">Minimal</span>
                                             </div>
@@ -5574,19 +5792,19 @@ renderStandardClientDashboard: () => {
                                     <h4 class="text-sm font-medium text-slate-300 mb-3">Optimal Settlement Route</h4>
                                     <div id="route-display" class="space-y-2">
                                         <div class="flex items-center gap-3 text-sm">
-                                            <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center">
+                                            <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center transition-all duration-300 hover:scale-110">
                                                 <i class="fas fa-map-marker-alt text-sky-400 text-xs"></i>
                                             </div>
                                             <span class="text-slate-300">Origin: <span id="origin-details" class="text-white font-medium">Detecting...</span></span>
                                         </div>
                                         <div class="flex items-center gap-3 text-sm">
-                                            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center transition-all duration-300 hover:scale-110">
                                                 <i class="fas fa-route text-purple-400 text-xs"></i>
                                             </div>
                                             <span class="text-slate-300">Via: <span id="route-details" class="text-white font-medium">Optimal path calculating...</span></span>
                                         </div>
                                         <div class="flex items-center gap-3 text-sm">
-                                            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                                            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center transition-all duration-300 hover:scale-110">
                                                 <i class="fas fa-flag-checkered text-green-400 text-xs"></i>
                                             </div>
                                             <span class="text-slate-300">Destination: <span id="destination-details" class="text-white font-medium">Awaiting selection</span></span>
@@ -5596,7 +5814,7 @@ renderStandardClientDashboard: () => {
                             </div>
                         </div>
 
-                        <!-- Transaction Timeline Projection -->
+                        <!-- Transaction Timeline Projection */
                         <div class="bg-gradient-to-r from-slate-700/20 to-slate-800/20 rounded-lg p-4 border border-slate-600/20">
                             <h4 class="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
                                 <i class="fas fa-clock text-blue-400"></i>
@@ -5604,7 +5822,7 @@ renderStandardClientDashboard: () => {
                             </h4>
                             <div class="flex items-center justify-between text-sm">
                                 <div class="text-center">
-                                    <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center mb-1 mx-auto">
+                                    <div class="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center mb-1 mx-auto transition-all duration-300 hover:scale-110">
                                         <i class="fas fa-play text-white text-xs"></i>
                                     </div>
                                     <div class="text-slate-400">Initiation</div>
@@ -5612,7 +5830,7 @@ renderStandardClientDashboard: () => {
                                 </div>
                                 <div class="flex-grow h-px bg-gradient-to-r from-sky-500 to-purple-500 mx-2"></div>
                                 <div class="text-center">
-                                    <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mb-1 mx-auto">
+                                    <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mb-1 mx-auto transition-all duration-300 hover:scale-110">
                                         <i class="fas fa-exchange-alt text-white text-xs"></i>
                                     </div>
                                     <div class="text-slate-400">Processing</div>
@@ -5620,7 +5838,7 @@ renderStandardClientDashboard: () => {
                                 </div>
                                 <div class="flex-grow h-px bg-gradient-to-r from-purple-500 to-green-500 mx-2"></div>
                                 <div class="text-center">
-                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mb-1 mx-auto">
+                                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center mb-1 mx-auto transition-all duration-300 hover:scale-110">
                                         <i class="fas fa-check text-white text-xs"></i>
                                     </div>
                                     <div class="text-slate-400">Settlement</div>
@@ -5633,36 +5851,43 @@ renderStandardClientDashboard: () => {
             </div>
         </div>
 
-        <!-- Quick Stats Dashboard -->
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- [PINNACLE FIX #3] All cards are now populated with live, dynamic data. -->
-            <div class="bg-gradient-to-br from-sky-500/10 to-sky-600/5 border border-sky-500/30 rounded-xl p-6">
+        <!-- Quick Stats Dashboard (Military-Grade Precision) -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-step-fade-in" style="animation-delay: 0.4s;">
+            <div class="bg-gradient-to-br from-sky-500/10 to-sky-600/5 border border-sky-500/30 rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-sky-500/20">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-sky-500/20 flex items-center justify-center"><i class="fas fa-paper-plane text-sky-400 text-xl"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-sky-500/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                        <i class="fas fa-paper-plane text-sky-400 text-xl"></i>
+                    </div>
                     <span class="text-sky-400 text-sm font-medium">This Month</span>
                 </div>
                 <div class="text-3xl font-bold text-white mb-1">${Utils.formatCurrency(stats.totalSentThisMonth, 'USD', 0)}</div>
                 <div class="text-sm text-slate-400">Total Sent</div>
             </div>
-            <div class="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-xl p-6">
+            <div class="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/20">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center"><i class="fas fa-chart-line text-green-400 text-xl"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                        <i class="fas fa-chart-line text-green-400 text-xl"></i>
+                    </div>
                     <span class="text-green-400 text-sm font-medium">Avg Rate</span>
                 </div>
                 <div class="text-3xl font-bold text-white mb-1">${stats.avgRate.toFixed(2)}</div>
                 <div class="text-sm text-slate-400">CAD to PHP</div>
             </div>
-            <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 rounded-xl p-6">
+            <div class="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center"><i class="fas fa-users text-purple-400 text-xl"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                        <i class="fas fa-users text-purple-400 text-xl"></i>
+                    </div>
                     <span class="text-purple-400 text-sm font-medium">Active</span>
                 </div>
                 <div class="text-3xl font-bold text-white mb-1">${stats.activeRecipients}</div>
                 <div class="text-sm text-slate-400">Recipients</div>
             </div>
-            <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 rounded-xl p-6">
+            <div class="bg-gradient-to-br from-yellow-500/10 to-yellow-600/5 border border-yellow-500/30 rounded-xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/20">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center"><i class="fas fa-clock text-yellow-400 text-xl"></i></div>
+                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                        <i class="fas fa-clock text-yellow-400 text-xl"></i>
+                    </div>
                     <span class="text-yellow-400 text-sm font-medium">Average</span>
                 </div>
                 <div class="text-3xl font-bold text-white mb-1">${stats.avgSettlementTime}</div>
@@ -5673,22 +5898,598 @@ renderStandardClientDashboard: () => {
     `;
 },
 
+
 /**
- * [PINNACLE UI ENGINE] Refreshes only the beneficiary dropdown list with the latest data.
- * This avoids a full view re-render, providing a seamless UX.
+ * PINNACLE MILITARY-GRADE BENEFICIARY MANAGEMENT SYSTEM
+ * Ultimate Premium Components with Zero Dependencies
  */
+
+renderBeneficiaryModal: (mode = 'add', beneficiary = null) => {
+    const isEdit = mode === 'edit';
+    const isManage = mode === 'manage';
+    const title = { add: 'Add New Beneficiary', edit: 'Edit Beneficiary', manage: 'Manage Beneficiaries' }[mode];
+    const titleIcon = { add: 'fa-user-plus', edit: 'fa-user-edit', manage: 'fa-users-cog' }[mode];
+    const iconColor = { add: 'from-green-500 to-emerald-600', edit: 'from-blue-500 to-indigo-600', manage: 'from-purple-500 to-indigo-600' }[mode];
+
+    let contentHTML = '';
+    
+    if (isManage) {
+        contentHTML = `
+        <div id="beneficiary-management-list-container" class="overflow-y-auto max-h-[60vh]">
+            ${UI.renderBeneficiaryList()}
+        </div>`;
+    } else {
+        contentHTML = `
+        <form id="beneficiary-form" class="space-y-8" onsubmit="Logic.submitBeneficiaryForm(event)">
+            <!-- Personal Information Section -->
+            <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Personal Information</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="input-label-premium flex items-center gap-2">
+                            <i class="fas fa-id-card text-sky-400 text-sm"></i>
+                            Full Legal Name *
+                        </label>
+                        <input type="text" 
+                               id="beneficiary-name" 
+                               class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-sky-500/25 focus:ring-2 focus:ring-sky-500/20" 
+                               value="${isEdit && beneficiary ? beneficiary.name : ''}" 
+                               placeholder="Enter complete legal name" 
+                               required>
+                        <div class="input-hint">Must match official documents</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="input-label-premium flex items-center gap-2">
+                            <i class="fas fa-globe text-purple-400 text-sm"></i>
+                            Destination Country *
+                        </label>
+                        <select id="beneficiary-country" 
+                                class="form-select-premium transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/25 focus:ring-2 focus:ring-purple-500/20" 
+                                onchange="Logic.updatePayoutMethods()" 
+                                required>
+                            <option value="">Select destination country...</option>
+                            <option value="PH" ${isEdit && beneficiary && beneficiary.country === 'PH' ? 'selected' : ''}>🇵🇭 Philippines</option>
+                            <option value="ID" ${isEdit && beneficiary && beneficiary.country === 'ID' ? 'selected' : ''}>🇮🇩 Indonesia</option>
+                            <option value="MY" ${isEdit && beneficiary && beneficiary.country === 'MY' ? 'selected' : ''}>🇲🇾 Malaysia</option>
+                            <option value="TH" ${isEdit && beneficiary && beneficiary.country === 'TH' ? 'selected' : ''}>🇹🇭 Thailand</option>
+                            <option value="VN" ${isEdit && beneficiary && beneficiary.country === 'VN' ? 'selected' : ''}>🇻🇳 Vietnam</option>
+                            <option value="SG" ${isEdit && beneficiary && beneficiary.country === 'SG' ? 'selected' : ''}>🇸🇬 Singapore</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="form-group">
+                        <label class="input-label-premium flex items-center gap-2">
+                            <i class="fas fa-phone text-green-400 text-sm"></i>
+                            Mobile Number
+                        </label>
+                        <input type="tel" 
+                               id="beneficiary-phone" 
+                               class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-green-500/25 focus:ring-2 focus:ring-green-500/20" 
+                               value="${isEdit && beneficiary ? (beneficiary.phone || '') : ''}" 
+                               placeholder="+63 9XX XXX XXXX">
+                        <div class="input-hint">Include country code for international numbers</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="input-label-premium flex items-center gap-2">
+                            <i class="fas fa-envelope text-blue-400 text-sm"></i>
+                            Email Address
+                        </label>
+                        <input type="email" 
+                               id="beneficiary-email" 
+                               class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/25 focus:ring-2 focus:ring-blue-500/20" 
+                               value="${isEdit && beneficiary ? (beneficiary.email || '') : ''}" 
+                               placeholder="recipient@example.com">
+                        <div class="input-hint">For transaction notifications</div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-6">
+                    <label class="input-label-premium flex items-center gap-2">
+                        <i class="fas fa-map-marker-alt text-red-400 text-sm"></i>
+                        Complete Address *
+                    </label>
+                    <textarea id="beneficiary-address" 
+                              class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-red-500/25 focus:ring-2 focus:ring-red-500/20" 
+                              rows="4" 
+                              placeholder="Complete street address including building number, street name, barangay/district, city, province, and postal code" 
+                              required>${isEdit && beneficiary ? (beneficiary.address || '') : ''}</textarea>
+                    <div class="input-hint">Provide detailed address for accurate delivery</div>
+                </div>
+            </div>
+
+            <!-- Relationship & Purpose Section -->
+            <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-handshake text-white text-sm"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Relationship & Purpose</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="input-label-premium flex items-center gap-2">
+                            <i class="fas fa-heart text-pink-400 text-sm"></i>
+                            Relationship to You *
+                        </label>
+                        <select id="beneficiary-relationship" 
+                                class="form-select-premium transition-all duration-300 focus:shadow-lg focus:shadow-pink-500/25 focus:ring-2 focus:ring-pink-500/20" 
+                                required>
+                            <option value="">Select relationship...</option>
+                            <option value="spouse" ${isEdit && beneficiary && beneficiary.relationship === 'spouse' ? 'selected' : ''}>Spouse/Partner</option>
+                            <option value="parent" ${isEdit && beneficiary && beneficiary.relationship === 'parent' ? 'selected' : ''}>Parent</option>
+                            <option value="child" ${isEdit && beneficiary && beneficiary.relationship === 'child' ? 'selected' : ''}>Child</option>
+                            <option value="sibling" ${isEdit && beneficiary && beneficiary.relationship === 'sibling' ? 'selected' : ''}>Sibling</option>
+                            <option value="relative" ${isEdit && beneficiary && beneficiary.relationship === 'relative' ? 'selected' : ''}>Other Relative</option>
+                            <option value="friend" ${isEdit && beneficiary && beneficiary.relationship === 'friend' ? 'selected' : ''}>Friend</option>
+                            <option value="business" ${isEdit && beneficiary && beneficiary.relationship === 'business' ? 'selected' : ''}>Business Partner</option>
+                            <option value="employee" ${isEdit && beneficiary && beneficiary.relationship === 'employee' ? 'selected' : ''}>Employee</option>
+                            <option value="service_provider" ${isEdit && beneficiary && beneficiary.relationship === 'service_provider' ? 'selected' : ''}>Service Provider</option>
+                            <option value="other" ${isEdit && beneficiary && beneficiary.relationship === 'other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="input-label-premium flex items-center gap-2">
+                            <i class="fas fa-bullseye text-yellow-400 text-sm"></i>
+                            Purpose of Transfer *
+                        </label>
+                        <select id="beneficiary-purpose" 
+                                class="form-select-premium transition-all duration-300 focus:shadow-lg focus:shadow-yellow-500/25 focus:ring-2 focus:ring-yellow-500/20" 
+                                required>
+                            <option value="">Select purpose...</option>
+                            <option value="family_support" ${isEdit && beneficiary && beneficiary.purpose === 'family_support' ? 'selected' : ''}>Family Support</option>
+                            <option value="living_expenses" ${isEdit && beneficiary && beneficiary.purpose === 'living_expenses' ? 'selected' : ''}>Living Expenses</option>
+                            <option value="education" ${isEdit && beneficiary && beneficiary.purpose === 'education' ? 'selected' : ''}>Education</option>
+                            <option value="medical" ${isEdit && beneficiary && beneficiary.purpose === 'medical' ? 'selected' : ''}>Medical Expenses</option>
+                            <option value="business" ${isEdit && beneficiary && beneficiary.purpose === 'business' ? 'selected' : ''}>Business Investment</option>
+                            <option value="property" ${isEdit && beneficiary && beneficiary.purpose === 'property' ? 'selected' : ''}>Property Purchase</option>
+                            <option value="gift" ${isEdit && beneficiary && beneficiary.purpose === 'gift' ? 'selected' : ''}>Gift</option>
+                            <option value="loan_repayment" ${isEdit && beneficiary && beneficiary.purpose === 'loan_repayment' ? 'selected' : ''}>Loan Repayment</option>
+                            <option value="other" ${isEdit && beneficiary && beneficiary.purpose === 'other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payout Method Section -->
+            <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <i class="fas fa-credit-card text-white text-sm"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Delivery Method</h3>
+                </div>
+                
+                <div class="form-group">
+                    <label class="input-label-premium flex items-center gap-2">
+                        <i class="fas fa-shipping-fast text-cyan-400 text-sm"></i>
+                        How should the recipient receive funds? *
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div class="delivery-method-card" onclick="Logic.selectPayoutMethod('bank_transfer')">
+                            <input type="radio" 
+                                   id="payout-bank" 
+                                   name="payout-method" 
+                                   value="bank_transfer" 
+                                   class="hidden"
+                                   ${isEdit && beneficiary && beneficiary.payoutMethod === 'bank_transfer' ? 'checked' : ''}>
+                            <label for="payout-bank" class="delivery-method-label">
+                                <div class="delivery-method-icon bg-blue-500/20 text-blue-400">
+                                    <i class="fas fa-university text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-white mb-1">Bank Transfer</h4>
+                                <p class="text-sm text-slate-400">Direct to bank account</p>
+                                <div class="delivery-method-features">
+                                    <span class="feature-badge">Fast</span>
+                                    <span class="feature-badge">Secure</span>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="delivery-method-card" onclick="Logic.selectPayoutMethod('cash_pickup')">
+                            <input type="radio" 
+                                   id="payout-cash" 
+                                   name="payout-method" 
+                                   value="cash_pickup" 
+                                   class="hidden"
+                                   ${isEdit && beneficiary && beneficiary.payoutMethod === 'cash_pickup' ? 'checked' : ''}>
+                            <label for="payout-cash" class="delivery-method-label">
+                                <div class="delivery-method-icon bg-green-500/20 text-green-400">
+                                    <i class="fas fa-money-bill-wave text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-white mb-1">Cash Pickup</h4>
+                                <p class="text-sm text-slate-400">Collect at partner locations</p>
+                                <div class="delivery-method-features">
+                                    <span class="feature-badge">Convenient</span>
+                                    <span class="feature-badge">No Account Needed</span>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="delivery-method-card" onclick="Logic.selectPayoutMethod('mobile_wallet')">
+                            <input type="radio" 
+                                   id="payout-mobile" 
+                                   name="payout-method" 
+                                   value="mobile_wallet" 
+                                   class="hidden"
+                                   ${isEdit && beneficiary && beneficiary.payoutMethod === 'mobile_wallet' ? 'checked' : ''}>
+                            <label for="payout-mobile" class="delivery-method-label">
+                                <div class="delivery-method-icon bg-purple-500/20 text-purple-400">
+                                    <i class="fas fa-mobile-alt text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-white mb-1">Mobile Wallet</h4>
+                                <p class="text-sm text-slate-400">Digital wallet transfer</p>
+                                <div class="delivery-method-features">
+                                    <span class="feature-badge">Instant</span>
+                                    <span class="feature-badge">Digital</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bank Details Section (conditionally shown) -->
+                <div id="bank-details-section" class="mt-8 space-y-6 ${isEdit && beneficiary && beneficiary.payoutMethod === 'bank_transfer' ? '' : 'hidden'}">
+                    <div class="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <i class="fas fa-university text-blue-400 text-sm"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white">Bank Account Information</h4>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <i class="fas fa-credit-card text-green-400 text-xs"></i>
+                                <span>${ben.payoutMethod === 'bank_transfer' ? 'Bank Transfer' : ben.payoutMethod === 'cash_pickup' ? 'Cash Pickup' : ben.payoutMethod === 'mobile_wallet' ? 'Mobile Wallet' : 'Not specified'}</span>
+                            </div>
+                            ${ben.phone ? `
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <i class="fas fa-phone text-blue-400 text-xs"></i>
+                                <span>${ben.phone}</span>
+                            </div>
+                            ` : ''}
+                            ${ben.email ? `
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <i class="fas fa-envelope text-purple-400 text-xs"></i>
+                                <span>${ben.email}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${ben.address ? `
+                        <div class="flex items-start gap-2 text-sm text-slate-500 mt-2">
+                            <i class="fas fa-map-marker-alt text-red-400 text-xs mt-1"></i>
+                            <span class="line-clamp-2">${ben.address}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="flex flex-col gap-2 ml-4">
+                        <button data-id="${ben.id}" 
+                                class="edit-beneficiary-btn w-12 h-12 rounded-full bg-gradient-to-br from-sky-500/20 to-blue-500/20 hover:from-sky-500/30 hover:to-blue-500/30 text-sky-400 hover:text-sky-300 border border-sky-500/30 hover:border-sky-400/50 transition-all duration-200 hover:scale-110 flex items-center justify-center group/btn"
+                                title="Edit Beneficiary"
+                                onclick="Logic.editBeneficiary('${ben.id}')">
+                            <i class="fas fa-edit transition-transform duration-200 group-hover/btn:scale-110"></i>
+                        </button>
+                        <button data-id="${ben.id}" 
+                                class="delete-beneficiary-btn w-12 h-12 rounded-full bg-gradient-to-br from-red-500/20 to-rose-500/20 hover:from-red-500/30 hover:to-rose-500/30 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/50 transition-all duration-200 hover:scale-110 flex items-center justify-center group/btn"
+                                title="Delete Beneficiary"
+                                onclick="Logic.confirmDeleteBeneficiary('${ben.id}')">
+                            <i class="fas fa-trash-alt transition-transform duration-200 group-hover/btn:scale-110"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Action Buttons -->
+                <div class="mt-4 pt-4 border-t border-slate-700/50 flex gap-3">
+                    <button onclick="Logic.quickSendToBeneficiary('${ben.id}')" 
+                            class="flex-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 hover:border-green-400/50 text-green-400 hover:text-green-300 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                        <i class="fas fa-paper-plane mr-2"></i>Quick Send
+                    </button>
+                    <button onclick="Logic.viewBeneficiaryHistory('${ben.id}')" 
+                            class="flex-1 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 border border-purple-500/30 hover:border-purple-400/50 text-purple-400 hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                        <i class="fas fa-history mr-2"></i>History
+                    </button>
+                </div>
+            </div>
+            `).join('')}
+        </div>
+    </div>`;
+},
+
 refreshBeneficiaryDropdown: () => {
     const select = document.getElementById('beneficiary-select');
     if (!select) return;
 
     const currentSelection = select.value;
-    select.innerHTML = `
-        <option value="">Select recipient...</option>
-        ${AppState.marketData?.beneficiaries?.map(ben => `
-            <option value="${ben.id}">${ben.name} (${ben.country})</option>
-        `).join('') || ''}
-    `;
-    select.value = currentSelection; // Attempt to re-select the previous value
+    const beneficiaries = AppState.marketData?.beneficiaries || [];
+    
+    // Enhanced dropdown with visual indicators and improved UX
+    const options = ['<option value="" class="text-slate-400">Select recipient...</option>'];
+    
+    beneficiaries.forEach(ben => {
+        const payoutIcon = ben.payoutMethod === 'bank_transfer' ? '🏦' : 
+                          ben.payoutMethod === 'cash_pickup' ? '💵' : 
+                          ben.payoutMethod === 'mobile_wallet' ? '📱' : '💳';
+        
+        const countryFlag = ben.country === 'PH' ? '🇵🇭' : 
+                           ben.country === 'ID' ? '🇮🇩' : 
+                           ben.country === 'MY' ? '🇲🇾' : 
+                           ben.country === 'TH' ? '🇹🇭' : 
+                           ben.country === 'VN' ? '🇻🇳' : 
+                           ben.country === 'SG' ? '🇸🇬' : '🌍';
+        
+        const isSelected = ben.id === currentSelection;
+        options.push(`
+            <option value="${ben.id}" ${isSelected ? 'selected' : ''} class="py-2">
+                ${payoutIcon} ${ben.name} ${countryFlag} ${ben.country} - ${ben.payoutMethod === 'bank_transfer' ? 'Bank' : ben.payoutMethod === 'cash_pickup' ? 'Cash' : ben.payoutMethod === 'mobile_wallet' ? 'Wallet' : 'Standard'}
+            </option>
+        `);
+    });
+    
+    select.innerHTML = options.join('');
+    
+    // Re-apply current selection if it still exists
+    if (currentSelection && beneficiaries.some(ben => ben.id === currentSelection)) {
+        select.value = currentSelection;
+        // Trigger change event to update any dependent elements
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    // Visual feedback for successful update
+    if (beneficiaries.length > 0) {
+        select.classList.add('animate-pulse', 'border-green-500/50');
+        setTimeout(() => {
+            select.classList.remove('animate-pulse', 'border-green-500/50');
+        }, 1500);
+    }
+    
+    // Update dropdown styling based on selection state
+    if (select.value) {
+        select.classList.add('text-white', 'border-sky-500/50');
+        select.classList.remove('text-slate-400');
+    } else {
+        select.classList.add('text-slate-400');
+        select.classList.remove('text-white', 'border-sky-500/50');
+    }
+} md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label class="input-label-premium flex items-center gap-2">
+                                    <i class="fas fa-building text-blue-400 text-sm"></i>
+                                    Bank Name *
+                                </label>
+                                <input type="text" 
+                                       id="beneficiary-bank-name" 
+                                       class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/25" 
+                                       value="${isEdit && beneficiary ? (beneficiary.bankName || '') : ''}" 
+                                       placeholder="e.g., BDO, BPI, Metrobank">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="input-label-premium flex items-center gap-2">
+                                    <i class="fas fa-hashtag text-blue-400 text-sm"></i>
+                                    Account Number *
+                                </label>
+                                <input type="text" 
+                                       id="beneficiary-account-number" 
+                                       class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/25" 
+                                       value="${isEdit && beneficiary ? (beneficiary.accountNumber || '') : ''}" 
+                                       placeholder="Enter complete account number">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                            <div class="form-group">
+                                <label class="input-label-premium flex items-center gap-2">
+                                    <i class="fas fa-code text-blue-400 text-sm"></i>
+                                    SWIFT/BIC Code
+                                </label>
+                                <input type="text" 
+                                       id="beneficiary-swift-code" 
+                                       class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/25" 
+                                       value="${isEdit && beneficiary ? (beneficiary.swiftCode || '') : ''}" 
+                                       placeholder="For international transfers">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="input-label-premium flex items-center gap-2">
+                                    <i class="fas fa-map-pin text-blue-400 text-sm"></i>
+                                    Branch Location
+                                </label>
+                                <input type="text" 
+                                       id="beneficiary-branch" 
+                                       class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-blue-500/25" 
+                                       value="${isEdit && beneficiary ? (beneficiary.branch || '') : ''}" 
+                                       placeholder="Branch name or location">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Wallet Details Section (conditionally shown) -->
+                <div id="mobile-wallet-section" class="mt-8 space-y-6 ${isEdit && beneficiary && beneficiary.payoutMethod === 'mobile_wallet' ? '' : 'hidden'}">
+                    <div class="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/30 rounded-lg p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                <i class="fas fa-mobile-alt text-purple-400 text-sm"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white">Mobile Wallet Information</h4>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label class="input-label-premium flex items-center gap-2">
+                                    <i class="fas fa-wallet text-purple-400 text-sm"></i>
+                                    Wallet Provider *
+                                </label>
+                                <select id="beneficiary-wallet-provider" 
+                                        class="form-select-premium transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/25">
+                                    <option value="">Select provider...</option>
+                                    <option value="gcash" ${isEdit && beneficiary && beneficiary.walletProvider === 'gcash' ? 'selected' : ''}>GCash</option>
+                                    <option value="paymaya" ${isEdit && beneficiary && beneficiary.walletProvider === 'paymaya' ? 'selected' : ''}>PayMaya</option>
+                                    <option value="grabpay" ${isEdit && beneficiary && beneficiary.walletProvider === 'grabpay' ? 'selected' : ''}>GrabPay</option>
+                                    <option value="dana" ${isEdit && beneficiary && beneficiary.walletProvider === 'dana' ? 'selected' : ''}>DANA</option>
+                                    <option value="ovo" ${isEdit && beneficiary && beneficiary.walletProvider === 'ovo' ? 'selected' : ''}>OVO</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="input-label-premium flex items-center gap-2">
+                                    <i class="fas fa-phone text-purple-400 text-sm"></i>
+                                    Wallet Number *
+                                </label>
+                                <input type="tel" 
+                                       id="beneficiary-wallet-number" 
+                                       class="form-input-premium transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/25" 
+                                       value="${isEdit && beneficiary ? (beneficiary.walletNumber || '') : ''}" 
+                                       placeholder="Mobile number linked to wallet">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 pt-8 border-t border-slate-700">
+                <button type="button" 
+                        onclick="Logic.closeBeneficiaryModal()" 
+                        class="btn-secondary flex-1 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-slate-500/25">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </button>
+                <button type="submit" 
+                        class="btn-primary flex-1 py-4 rounded-lg font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-sky-500/25">
+                    <i class="fas ${isEdit ? 'fa-save' : 'fa-plus'} mr-2"></i>
+                    ${isEdit ? 'Save Changes' : 'Add Beneficiary'}
+                </button>
+            </div>
+        </form>`;
+    }
+
+    return `
+    <div class="dialog-content-wrapper animate-step-fade-in" style="max-width: 64rem;">
+        <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-t-2xl">
+            <h2 class="text-2xl font-bold text-white flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br ${iconColor} flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-110">
+                    <i class="fas ${titleIcon} text-white text-lg"></i>
+                </div>
+                <div>
+                    <div class="text-2xl">${title}</div>
+                    <div class="text-sm text-slate-400 font-normal mt-1">${isManage ? 'Manage your saved recipients' : isEdit ? 'Update beneficiary information' : 'Add a new money transfer recipient'}</div>
+                </div>
+            </h2>
+            <button onclick="Logic.closeBeneficiaryModal()" 
+                    class="text-3xl text-slate-400 hover:text-white transition-all duration-200 hover:scale-110 hover:rotate-90 w-12 h-12 flex items-center justify-center rounded-full hover:bg-slate-700/50">
+                &times;
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto max-h-[75vh] bg-gradient-to-br from-slate-900 to-slate-800 rounded-b-2xl">
+            ${contentHTML}
+        </div>
+    </div>`;
+},
+
+renderBeneficiaryList: () => {
+    const beneficiaries = AppState.marketData?.beneficiaries || [];
+    
+    // --- Pinnacle-Grade Empty State UI ---
+    if (beneficiaries.length === 0) {
+        return `
+        <div class="text-center py-16 animate-step-fade-in">
+            <div class="w-32 h-32 rounded-full bg-gradient-to-br from-slate-700/30 to-slate-800/30 flex items-center justify-center mx-auto mb-6 border border-slate-600/30">
+                <i class="fas fa-users text-6xl text-slate-500"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">No Beneficiaries Yet</h3>
+            <p class="text-slate-400 mb-8 max-w-md mx-auto leading-relaxed">
+                Start by adding your first beneficiary to send money across borders with ease and security.
+            </p>
+            <button onclick="Logic.switchBeneficiaryModalMode('add')" 
+                    class="btn-primary px-8 py-4 rounded-lg font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-sky-500/25">
+                <i class="fas fa-plus mr-3"></i>Add Your First Beneficiary
+            </button>
+        </div>`;
+    }
+
+    // --- Supreme, Data-Driven Beneficiary List Rendering ---
+    return `
+    <div class="space-y-6">
+        <div class="flex justify-between items-center pb-4 border-b border-slate-700">
+            <div>
+                <h3 class="text-xl font-bold text-white">Your Beneficiaries</h3>
+                <p class="text-sm text-slate-400 mt-1">${beneficiaries.length} saved recipient${beneficiaries.length !== 1 ? 's' : ''}</p>
+            </div>
+            <button onclick="Logic.switchBeneficiaryModalMode('add')" 
+                    class="btn-primary px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-sky-500/25">
+                <i class="fas fa-plus mr-2"></i>Add New Beneficiary
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-4">
+            ${beneficiaries.map(ben => `
+            <div class="beneficiary-item group bg-gradient-to-r from-slate-800/80 to-slate-900/80 border border-slate-700/50 rounded-xl p-6 transition-all duration-300 hover:border-sky-500/50 hover:shadow-lg hover:shadow-sky-500/20 hover:-translate-y-1 animate-step-fade-in">
+                <div class="flex items-start gap-6">
+                    <!-- Left Side: Avatar & Actions -->
+                    <div class="flex flex-col items-center gap-4">
+                        <div class="relative">
+                            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+                                <i class="fas fa-user text-white text-2xl"></i>
+                            </div>
+                            <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center border-2 border-slate-800" title="Verified">
+                                <i class="fas fa-check text-white text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <button data-id="${ben.id}" class="edit-beneficiary-btn w-12 h-12 rounded-full bg-gradient-to-br from-sky-500/20 to-blue-500/20 hover:from-sky-500/30 hover:to-blue-500/30 text-sky-400 hover:text-sky-300 border border-sky-500/30 hover:border-sky-400/50 transition-all duration-200 hover:scale-110 flex items-center justify-center group/btn" title="Edit Beneficiary" onclick="Logic.handleBeneficiaryEditStart('${ben.id}')">
+                                <i class="fas fa-edit transition-transform duration-200 group-hover/btn:scale-110"></i>
+                            </button>
+                            <button data-id="${ben.id}" class="delete-beneficiary-btn w-12 h-12 rounded-full bg-gradient-to-br from-red-500/20 to-rose-500/20 hover:from-red-500/30 hover:to-rose-500/30 text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-400/50 transition-all duration-200 hover:scale-110 flex items-center justify-center group/btn" title="Delete Beneficiary" onclick="Logic.handleBeneficiaryDelete('${ben.id}')">
+                                <i class="fas fa-trash-alt transition-transform duration-200 group-hover/btn:scale-110"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Side: Details & Quick Actions -->
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-3 mb-4">
+                            <h4 class="text-2xl font-bold text-white group-hover:text-sky-300 transition-colors duration-200">${ben.name}</h4>
+                            <span class="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs font-semibold rounded-full border border-purple-500/30">${ben.relationship || 'Contact'}</span>
+                            <span class="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded-full border border-blue-500/30">${ben.country}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+                            <div class="flex items-center gap-2 text-slate-400"><i class="fas fa-credit-card text-green-400 text-xs w-4 text-center"></i><span>${ben.payoutMethod === 'bank_transfer' ? 'Bank Transfer' : ben.payoutMethod === 'cash_pickup' ? 'Cash Pickup' : ben.payoutMethod === 'mobile_wallet' ? 'Mobile Wallet' : 'Not specified'}</span></div>
+                            ${ben.phone ? `<div class="flex items-center gap-2 text-slate-400"><i class="fas fa-phone text-blue-400 text-xs w-4 text-center"></i><span>${ben.phone}</span></div>` : ''}
+                            ${ben.email ? `<div class="flex items-center gap-2 text-slate-400"><i class="fas fa-envelope text-purple-400 text-xs w-4 text-center"></i><span>${ben.email}</span></div>` : ''}
+                        </div>
+                        
+                        ${ben.address ? `<div class="flex items-start gap-2 text-sm text-slate-500 mt-2"><i class="fas fa-map-marker-alt text-red-400 text-xs mt-1 w-4 text-center"></i><span class="line-clamp-2">${ben.address}</span></div>` : ''}
+
+                        <!-- Quick Action Buttons -->
+                        <div class="mt-6 pt-4 border-t border-slate-700/50 flex gap-3">
+                            <button onclick="Logic.quickSendToBeneficiary('${ben.id}')" class="flex-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-green-500/30 hover:border-green-400/50 text-green-400 hover:text-green-300 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                                <i class="fas fa-paper-plane mr-2"></i>Quick Send
+                            </button>
+                            <button onclick="Logic.viewBeneficiaryHistory('${ben.id}')" class="flex-1 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 hover:from-purple-500/30 hover:to-indigo-500/30 border border-purple-500/30 hover:border-purple-400/50 text-purple-400 hover:text-purple-300 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                                <i class="fas fa-history mr-2"></i>History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `).join('')}
+        </div>
+    </div>`;
 },
 
 /**
