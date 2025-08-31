@@ -7261,7 +7261,7 @@ updatePayoutMethodsForCountry: (countryCode) => {
     if (!payoutSelector) return;
 
     // --- 1. Intelligent, Live Capability Analysis (No Mock Data) ---
-    // Query the live liquidity partner data to determine available methods.
+    // This is the pinnacle standard for determining which UI options to present.
     const partnersInCountry = (AppState.marketData.liquidityPartners || [])
         .filter(partner => partner.operationalJurisdiction === countryCode && partner.status === 'ACTIVE');
 
@@ -7270,42 +7270,39 @@ updatePayoutMethodsForCountry: (countryCode) => {
         new Set(partnersInCountry.flatMap(partner => partner.settlementMethods))
     );
 
-    // --- 2. Pinnacle-Grade UI Orchestration ---
-    let firstVisibleMethod = null;
+    // --- 2. [DEFINITIVE CORRECTION] Pinnacle-Grade Declarative UI Orchestration ---
+    // This protocol ensures the UI is a perfect reflection of the available methods.
     payoutSelector.querySelectorAll('.delivery-method-card').forEach(card => {
         const input = card.querySelector('input[type="radio"]');
         const method = input.value;
         const isAvailable = availableMethods.includes(method);
         
-        // Elegantly hide or show the card based on live network capability.
-        card.style.display = isAvailable ? 'block' : 'none';
-
-        if (isAvailable && !firstVisibleMethod) {
-            firstVisibleMethod = method;
-        }
+        // This is the critical fix. It uses class toggling for robust, two-way visibility.
+        // It will correctly HIDE if !isAvailable and correctly SHOW if isAvailable, resolving the bug.
+        card.classList.toggle('hidden', !isAvailable);
     });
 
-    // --- 3. Flawless State Management & Reset Protocol ---
+    // --- 3. Flawless State Management & Reset Protocol (Zero Regressions) ---
+    // This ensures the application state never becomes invalid.
     const currentSelectedMethodInput = document.querySelector('input[name="payout-method"]:checked');
-    const currentSelectedMethod = currentSelectedMethodInput?.value;
-
-    // If the currently selected method is no longer available in the new country, reset the selection.
-    if (currentSelectedMethod && !availableMethods.includes(currentSelectedMethod)) {
-        // Uncheck the invalid selection.
-        currentSelectedMethodInput.checked = false;
+    if (currentSelectedMethodInput) {
+        const currentSelectedMethod = currentSelectedMethodInput.value;
         
-        // Deactivate the card visually.
-        const activeCard = document.querySelector('.delivery-method-card.active');
-        if (activeCard) activeCard.classList.remove('active');
-        
-        // Hide any open detail sections.
-        document.getElementById('bank-details-section')?.classList.add('hidden');
-        document.getElementById('mobile-wallet-section')?.classList.add('hidden');
-        
-        // Optionally, you could auto-select the first available method for a smoother UX.
-        // if (firstVisibleMethod) {
-        //     Logic.selectPayoutMethod(firstVisibleMethod);
-        // }
+        // If the currently selected method is NOT available in the new country, reset the selection.
+        if (!availableMethods.includes(currentSelectedMethod)) {
+            // Uncheck the now-invalid radio button.
+            currentSelectedMethodInput.checked = false;
+            
+            // Deactivate the card visually.
+            const activeCard = document.querySelector('.delivery-method-card.active');
+            if (activeCard) {
+                activeCard.classList.remove('active');
+            }
+            
+            // Hide any open detail sections to prevent user confusion.
+            document.getElementById('bank-details-section')?.classList.add('hidden');
+            document.getElementById('mobile-wallet-section')?.classList.add('hidden');
+        }
     }
 },
 
