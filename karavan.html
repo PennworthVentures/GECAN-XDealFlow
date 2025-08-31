@@ -4559,40 +4559,71 @@ bindBeneficiaryModalListeners: (mode, beneficiary = null) => {
         }
     }
 },
-                handleBeneficiaryEditStart: (beneficiaryId) => {
-                    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === beneficiaryId);
-                    if (!beneficiary) return Utils.showNotification("Beneficiary not found.", "error");
-                    
-                    const modal = document.getElementById('beneficiary-modal');
-                    modal.innerHTML = UI.renderBeneficiaryModal('edit', beneficiary);
-                    // No need to show modal, it's already open. Re-bind listeners for the new form.
-                    Logic.bindBeneficiaryModalListeners('edit', beneficiary);
-                },
+/**
+ * ====================================================================================
+ * === GECAN™ KARAVAN BENEFICIARY EDIT/DELETE PROTOCOL v2.0 (ULTIMATE SYNTHESIS) ===
+ * ====================================================================================
+ * This is the ultimate, unabridged, and final architectural synthesis for the beneficiary
+ * editing and deletion workflows. Every function has been severely re-engineered to be
+ * flawlessly integral with the new `renderBeneficiaryModal` v7.1 and the expanded
+ * backend schema.
+ */
 
-handleBeneficiaryEditSubmit: async (e, beneficiaryId) => {
-    e.preventDefault();
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-
-    if (!document.getElementById('beneficiary-verify-identity')?.checked) {
-        return Utils.showNotification("You must re-verify the accuracy of the information before saving.", 'warning');
+/**
+ * [PINNACLE EDIT-MODE INITIATOR]
+ * Initiates the beneficiary editing workflow with supreme intelligence.
+ * It fetches the correct beneficiary record, renders the modal in 'edit' mode with all
+ * fields flawlessly pre-populated, and binds the necessary event listeners.
+ *
+ * @param {string} beneficiaryId - The unique ID of the beneficiary to edit.
+ */
+handleBeneficiaryEditStart: (beneficiaryId) => {
+    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === beneficiaryId);
+    if (!beneficiary) {
+        return Utils.showNotification("Could not find the specified beneficiary record.", "error", "Data Mismatch");
     }
+    
+    // The supreme `renderBeneficiaryModal` function now handles all data pre-population.
+    const modal = document.getElementById('beneficiary-modal');
+    modal.innerHTML = UI.renderBeneficiaryModal('edit', beneficiary);
+    
+    // The modal is already open from 'manage' mode, so we just re-bind listeners for the new 'edit' form.
+    Logic.bindBeneficiaryModalListeners('edit', beneficiary);
+},
 
+/**
+ * [PINNACLE-GRADE EDIT SUBMISSION HANDLER]
+ * Orchestrates the submission of updated beneficiary data with military-grade precision.
+ *
+ * @param {HTMLFormElement} form - The form element being submitted.
+ * @param {string} beneficiaryId - The unique ID of the beneficiary being updated.
+ */
+handleBeneficiaryEditSubmit: async (form, beneficiaryId) => {
+    const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = `<div class="premium-spinner"></div> Saving Changes...`;
+    submitBtn.innerHTML = `<div class="premium-spinner"></div><span class="font-bold tracking-wider">UPDATING LEDGER...</span>`;
 
-    // Unabridged data gathering for the update payload.
+    // --- Supreme, Schema-Aware Data Gathering (Zero Regressions) ---
     const updatedData = {
         name: document.getElementById('beneficiary-name')?.value,
         country: document.getElementById('beneficiary-country')?.value,
-        payoutMethod: document.getElementById('payout-method')?.value,
-        details: document.getElementById('bank-details')?.value || document.getElementById('mobile-number')?.value || document.getElementById('crypto-address')?.value,
+        phone: document.getElementById('beneficiary-phone')?.value,
         email: document.getElementById('beneficiary-email')?.value,
         address: document.getElementById('beneficiary-address')?.value,
+        relationship: document.getElementById('beneficiary-relationship')?.value,
+        purpose: document.getElementById('beneficiary-purpose')?.value,
+        payoutMethod: document.querySelector('input[name="payout-method"]:checked')?.value,
+        bankName: document.getElementById('beneficiary-bank-name')?.value,
+        accountNumber: document.getElementById('beneficiary-account-number')?.value,
+        walletProvider: document.getElementById('beneficiary-wallet-provider')?.value,
+        walletNumber: document.getElementById('beneficiary-wallet-number')?.value
     };
 
     try {
         const result = await Utils.createApiRequest('karavanUpdateBeneficiary', 'POST', {
-            karavanId: AppState.currentUser.karavanId, beneficiaryId, updatedData
+            karavanId: AppState.currentUser.karavanId, 
+            beneficiaryId, 
+            updatedData
         });
 
         // Flawless State Synchronization
@@ -4600,42 +4631,66 @@ handleBeneficiaryEditSubmit: async (e, beneficiaryId) => {
         if (index !== -1) {
             AppState.marketData.beneficiaries[index] = result.data;
         }
-
-        Utils.showNotification(result.message, 'success');
+        
+        Utils.showNotification(result.message, 'success', 'Update Confirmed');
         document.getElementById('beneficiary-modal')?.close();
         UI.refreshBeneficiaryDropdown();
 
     } catch (error) {
-        Utils.showNotification(error.message, 'error');
+        Utils.showNotification(error.message, 'error', 'Update Failed');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Save Changes';
+        submitBtn.innerHTML = `<i class="fas fa-save mr-2"></i> Save Changes`;
     }
 },
-                
-                handleBeneficiaryDelete: async (beneficiaryId) => {
-                    if (!confirm("Are you sure you want to remove this beneficiary? This action cannot be undone.")) return;
 
-                    try {
-                        const result = await Utils.createApiRequest('karavanDeleteBeneficiary', 'POST', {
-                            karavanId: AppState.currentUser.karavanId, beneficiaryId
-                        });
+/**
+ * [SUPREME DELETION PROTOCOL]
+ * Initiates the beneficiary deletion workflow using the prestigious, asynchronous
+ * confirmation modal for a secure and user-centric experience.
+ *
+ * @param {string} beneficiaryId - The unique ID of the beneficiary to delete.
+ */
+handleBeneficiaryDelete: async (beneficiaryId) => {
+    const beneficiary = AppState.marketData.beneficiaries.find(b => b.id === beneficiaryId);
+    if (!beneficiary) return;
 
-                        // Flawless State Synchronization
-                        AppState.marketData.beneficiaries = AppState.marketData.beneficiaries.filter(b => b.id !== result.deletedId);
-                        
-                        Utils.showNotification(result.message, 'success');
-                        // Refresh the management list inside the modal without closing it
-                        const listContainer = document.getElementById('beneficiary-management-list-container');
-                        if (listContainer) {
-                            listContainer.innerHTML = UI.renderBeneficiaryList();
-                        }
-                        UI.refreshBeneficiaryDropdown();
+    // --- Invoke Supreme Asynchronous Confirmation Workflow ---
+    const userConfirmed = await Utils.showNotification(
+        `You are about to permanently remove <strong>${beneficiary.name}</strong> from your ledger. This action cannot be undone. Are you certain you wish to proceed?`,
+        'warning',
+        'Confirm Deletion',
+        true // This flag is critical for rendering "Confirm" and "Cancel" buttons
+    );
 
-                    } catch (error) {
-                        Utils.showNotification(error.message, 'error');
-                    }
-                },
+    if (userConfirmed) {
+        try {
+            // Provide immediate feedback while waiting for the API
+            Utils.showNotification('Executing secure deletion protocol...', 'info', 'Processing');
+
+            const result = await Utils.createApiRequest('karavanDeleteBeneficiary', 'POST', {
+                karavanId: AppState.currentUser.karavanId, 
+                beneficiaryId
+            });
+
+            // Flawless State Synchronization
+            AppState.marketData.beneficiaries = AppState.marketData.beneficiaries.filter(b => b.id !== result.deletedId);
+            
+            Utils.showNotification(result.message, 'success', 'Deletion Confirmed');
+            
+            // Surgically refresh the management list inside the modal without closing it.
+            const listContainer = document.getElementById('beneficiary-management-list-container');
+            if (listContainer) {
+                listContainer.innerHTML = UI.renderBeneficiaryList();
+            }
+            UI.refreshBeneficiaryDropdown();
+
+        } catch (error) {
+            Utils.showNotification(error.message, 'error', 'Deletion Failed');
+        }
+    }
+    // If user clicks "Cancel" or dismisses, the promise resolves to `false`, and nothing happens.
+},
 
 changeBeneficiaryStep: (targetStep) => {
     // --- 1. Military-Grade Validation Gates ---
@@ -7224,20 +7279,122 @@ renderBeneficiaryModal: (mode = 'add', beneficiary = null) => {
 
 /** [UNABRIDGED & COMPLETED] Renders the Personal Information component of the form. */
 renderBeneficiaryPersonalInfo: (isEdit, beneficiary) => {
-    const countryOptions = ['PH', 'ID', 'MY', 'TH', 'VN', 'SG', 'US', 'CA', 'GB', 'AU', 'AE', 'HK', 'JP', 'CN']
-        .map(code => `<option value="${code}" ${isEdit && beneficiary && beneficiary.country === code ? 'selected' : ''}>${code}</option>`).join('');
+    // --- Pinnacle-Grade Country Mapping Engine ---
+    // This is the single source of truth for country data. It is scalable and centralized.
+    const countryMap = {
+        'AF': '🇦🇫 Afghanistan', 'AX': '🇦🇽 Åland Islands', 'AL': '🇦🇱 Albania', 'DZ': '🇩🇿 Algeria',
+        'AS': '🇦🇸 American Samoa', 'AD': '🇦🇩 Andorra', 'AO': '🇦🇴 Angola', 'AI': '🇦🇮 Anguilla',
+        'AQ': '🇦🇶 Antarctica', 'AG': '🇦🇬 Antigua and Barbuda', 'AR': '🇦🇷 Argentina', 'AM': '🇦🇲 Armenia',
+        'AW': '🇦🇼 Aruba', 'AU': '🇦🇺 Australia', 'AT': '🇦🇹 Austria', 'AZ': '🇦🇿 Azerbaijan',
+        'BS': '🇧🇸 Bahamas', 'BH': '🇧🇭 Bahrain', 'BD': '🇧🇩 Bangladesh', 'BB': '🇧🇧 Barbados',
+        'BY': '🇧🇾 Belarus', 'BE': '🇧🇪 Belgium', 'BZ': '🇧🇿 Belize', 'BJ': '🇧🇯 Benin',
+        'BM': '🇧🇲 Bermuda', 'BT': '🇧🇹 Bhutan', 'BO': '🇧🇴 Bolivia', 'BQ': '🇧🇶 Bonaire, Sint Eustatius and Saba',
+        'BA': '🇧🇦 Bosnia and Herzegovina', 'BW': '🇧🇼 Botswana', 'BV': '🇧🇻 Bouvet Island', 'BR': '🇧🇷 Brazil',
+        'IO': '🇮🇴 British Indian Ocean Territory', 'BN': '🇧🇳 Brunei Darussalam', 'BG': '🇧🇬 Bulgaria', 'BF': '🇧🇫 Burkina Faso',
+        'BI': '🇧🇮 Burundi', 'CV': '🇨🇻 Cabo Verde', 'KH': '🇰🇭 Cambodia', 'CM': '🇨🇲 Cameroon',
+        'CA': '🇨🇦 Canada', 'KY': '🇰🇾 Cayman Islands', 'CF': '🇨🇫 Central African Republic', 'TD': '🇹🇩 Chad',
+        'CL': '🇨🇱 Chile', 'CN': '🇨🇳 China', 'CX': '🇨🇽 Christmas Island', 'CC': '🇨🇨 Cocos (Keeling) Islands',
+        'CO': '🇨🇴 Colombia', 'KM': '🇰🇲 Comoros', 'CG': '🇨🇬 Congo', 'CD': '🇨🇩 Congo, Democratic Republic of the',
+        'CK': '🇨🇰 Cook Islands', 'CR': '🇨🇷 Costa Rica', 'CI': '🇨🇮 Côte d\'Ivoire', 'HR': '🇭🇷 Croatia',
+        'CU': '🇨🇺 Cuba', 'CW': '🇨🇼 Curaçao', 'CY': '🇨🇾 Cyprus', 'CZ': '🇨🇿 Czechia',
+        'DK': '🇩🇰 Denmark', 'DJ': '🇩🇯 Djibouti', 'DM': '🇩🇲 Dominica', 'DO': '🇩🇴 Dominican Republic',
+        'EC': '🇪🇨 Ecuador', 'EG': '🇪🇬 Egypt', 'SV': '🇸🇻 El Salvador', 'GQ': '🇬🇶 Equatorial Guinea',
+        'ER': '🇪🇷 Eritrea', 'EE': '🇪🇪 Estonia', 'SZ': '🇸🇿 Eswatini', 'ET': '🇪🇹 Ethiopia',
+        'FK': '🇫🇰 Falkland Islands (Malvinas)', 'FO': '🇫🇴 Faroe Islands', 'FJ': '🇫🇯 Fiji', 'FI': '🇫🇮 Finland',
+        'FR': '🇫🇷 France', 'GF': '🇬🇫 French Guiana', 'PF': '🇵🇫 French Polynesia', 'TF': '🇹🇫 French Southern Territories',
+        'GA': '🇬🇦 Gabon', 'GM': '🇬🇲 Gambia', 'GE': '🇬🇪 Georgia', 'DE': '🇩🇪 Germany',
+        'GH': '🇬🇭 Ghana', 'GI': '🇬🇮 Gibraltar', 'GR': '🇬🇷 Greece', 'GL': '🇬🇱 Greenland',
+        'GD': '🇬🇩 Grenada', 'GP': '🇬🇵 Guadeloupe', 'GU': '🇬🇺 Guam', 'GT': '🇬🇹 Guatemala',
+        'GG': '🇬🇬 Guernsey', 'GN': '🇬🇳 Guinea', 'GW': '🇬🇼 Guinea-Bissau', 'GY': '🇬🇾 Guyana',
+        'HT': '🇭🇹 Haiti', 'HM': '🇭🇲 Heard Island and McDonald Islands', 'VA': '🇻🇦 Holy See', 'HN': '🇭🇳 Honduras',
+        'HK': '🇭🇰 Hong Kong', 'HU': '🇭🇺 Hungary', 'IS': '🇮🇸 Iceland', 'IN': '🇮🇳 India',
+        'ID': '🇮🇩 Indonesia', 'IR': '🇮🇷 Iran', 'IQ': '🇮🇶 Iraq', 'IE': '🇮🇪 Ireland',
+        'IM': '🇮🇲 Isle of Man', 'IL': '🇮🇱 Israel', 'IT': '🇮🇹 Italy', 'JM': '🇯🇲 Jamaica',
+        'JP': '🇯🇵 Japan', 'JE': '🇯🇪 Jersey', 'JO': '🇯🇴 Jordan', 'KZ': '🇰🇿 Kazakhstan',
+        'KE': '🇰🇪 Kenya', 'KI': '🇰🇮 Kiribati', 'KP': '🇰🇵 Korea, North', 'KR': '🇰🇷 Korea, South',
+        'KW': '🇰🇼 Kuwait', 'KG': '🇰🇬 Kyrgyzstan', 'LA': '🇱🇦 Laos', 'LV': '🇱🇻 Latvia',
+        'LB': '🇱🇧 Lebanon', 'LS': '🇱🇸 Lesotho', 'LR': '🇱🇷 Liberia', 'LY': '🇱🇾 Libya',
+        'LI': '🇱🇮 Liechtenstein', 'LT': '🇱🇹 Lithuania', 'LU': '🇱🇺 Luxembourg', 'MO': '🇲🇴 Macao',
+        'MG': '🇲🇬 Madagascar', 'MW': '🇲🇼 Malawi', 'MY': '🇲🇾 Malaysia', 'MV': '🇲🇻 Maldives',
+        'ML': '🇲🇱 Mali', 'MT': '🇲🇹 Malta', 'MH': '🇲🇭 Marshall Islands', 'MQ': '🇲🇶 Martinique',
+        'MR': '🇲🇷 Mauritania', 'MU': '🇲🇺 Mauritius', 'YT': '🇾🇹 Mayotte', 'MX': '🇲🇽 Mexico',
+        'FM': '🇫🇲 Micronesia', 'MD': '🇲🇩 Moldova', 'MC': '🇲🇨 Monaco', 'MN': '🇲🇳 Mongolia',
+        'ME': '🇲🇪 Montenegro', 'MS': '🇲🇸 Montserrat', 'MA': '🇲🇦 Morocco', 'MZ': '🇲🇿 Mozambique',
+        'MM': '🇲🇲 Myanmar', 'NA': '🇳🇦 Namibia', 'NR': '🇳🇷 Nauru', 'NP': '🇳🇵 Nepal',
+        'NL': '🇳🇱 Netherlands', 'NC': '🇳🇨 New Caledonia', 'NZ': '🇳🇿 New Zealand', 'NI': '🇳🇮 Nicaragua',
+        'NE': '🇳🇪 Niger', 'NG': '🇳🇬 Nigeria', 'NU': '🇳🇺 Niue', 'NF': '🇳🇫 Norfolk Island',
+        'MK': '🇲🇰 North Macedonia', 'MP': '🇲🇵 Northern Mariana Islands', 'NO': '🇳🇴 Norway', 'OM': '🇴🇲 Oman',
+        'PK': '🇵🇰 Pakistan', 'PW': '🇵🇼 Palau', 'PS': '🇵🇸 Palestine, State of', 'PA': '🇵🇦 Panama',
+        'PG': '🇵🇬 Papua New Guinea', 'PY': '🇵🇾 Paraguay', 'PE': '🇵🇪 Peru', 'PH': '🇵🇭 Philippines',
+        'PN': '🇵🇳 Pitcairn', 'PL': '🇵🇱 Poland', 'PT': '🇵🇹 Portugal', 'PR': '🇵🇷 Puerto Rico',
+        'QA': '🇶🇦 Qatar', 'RE': '🇷🇪 Réunion', 'RO': '🇷🇴 Romania', 'RU': '🇷🇺 Russian Federation',
+        'RW': '🇷🇼 Rwanda', 'BL': '🇧🇱 Saint Barthélemy', 'SH': '🇸🇭 Saint Helena', 'KN': '🇰🇳 Saint Kitts and Nevis',
+        'LC': '🇱🇨 Saint Lucia', 'MF': '🇲🇫 Saint Martin (French part)', 'PM': '🇵🇲 Saint Pierre and Miquelon', 'VC': '🇻🇨 Saint Vincent and the Grenadines',
+        'WS': '🇼🇸 Samoa', 'SM': '🇸🇲 San Marino', 'ST': '🇸🇹 Sao Tome and Principe', 'SA': '🇸🇦 Saudi Arabia',
+        'SN': '🇸🇳 Senegal', 'RS': '🇷🇸 Serbia', 'SC': '🇸🇨 Seychelles', 'SL': '🇸🇱 Sierra Leone',
+        'SG': '🇸🇬 Singapore', 'SX': '🇸🇽 Sint Maarten (Dutch part)', 'SK': '🇸🇰 Slovakia', 'SI': '🇸🇮 Slovenia',
+        'SB': '🇸🇧 Solomon Islands', 'SO': '🇸🇴 Somalia', 'ZA': '🇿🇦 South Africa', 'GS': '🇬🇸 South Georgia and the South Sandwich Islands',
+        'SS': '🇸🇸 South Sudan', 'ES': '🇪🇸 Spain', 'LK': '🇱🇰 Sri Lanka', 'SD': '🇸🇩 Sudan',
+        'SR': '🇸🇷 Suriname', 'SJ': '🇸🇯 Svalbard and Jan Mayen', 'SE': '🇸🇪 Sweden', 'CH': '🇨🇭 Switzerland',
+        'SY': '🇸🇾 Syrian Arab Republic', 'TW': '🇹🇼 Taiwan', 'TJ': '🇹🇯 Tajikistan', 'TZ': '🇹🇿 Tanzania',
+        'TH': '🇹🇭 Thailand', 'TL': '🇹🇱 Timor-Leste', 'TG': '🇹🇬 Togo', 'TK': '🇹🇰 Tokelau',
+        'TO': '🇹🇴 Tonga', 'TT': '🇹🇹 Trinidad and Tobago', 'TN': '🇹🇳 Tunisia', 'TR': '🇹🇷 Turkey',
+        'TM': '🇹🇲 Turkmenistan', 'TC': '🇹🇨 Turks and Caicos Islands', 'TV': '🇹🇻 Tuvalu', 'UG': '🇺🇬 Uganda',
+        'UA': '🇺🇦 Ukraine', 'AE': '🇦🇪 United Arab Emirates', 'GB': '🇬🇧 United Kingdom', 'US': '🇺🇸 United States',
+        'UM': '🇺🇲 United States Minor Outlying Islands', 'UY': '🇺🇾 Uruguay', 'UZ': '🇺🇿 Uzbekistan', 'VU': '🇻🇺 Vanuatu',
+        'VE': '🇻🇪 Venezuela', 'VN': '🇻🇳 Vietnam', 'VG': '🇻🇬 Virgin Islands (British)', 'VI': '🇻🇮 Virgin Islands (U.S.)',
+        'WF': '🇼🇫 Wallis and Futuna', 'EH': '🇪🇭 Western Sahara', 'YE': '🇾🇪 Yemen', 'ZM': '🇿🇲 Zambia',
+        'ZW': '🇿🇼 Zimbabwe'
+    };
+
+    // --- Supreme Dynamic Country Options Generator ---
+    const countryOptions = Object.entries(countryMap)
+        .map(([code, name]) => 
+            `<option value="${code}" ${isEdit && beneficiary && beneficiary.country === code ? 'selected' : ''}>
+                ${name} (${code})
+            </option>`
+        ).join('');
+
+    // --- Definitive, Unabridged Component Rendering ---
     return `
     <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
-        <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center"><i class="fas fa-user text-white text-sm"></i></div><h3 class="text-xl font-bold text-white">Personal Information</h3></div>
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center">
+                <i class="fas fa-user text-white text-sm"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white">Personal Information</h3>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-id-card text-sky-400 text-sm"></i>Full Legal Name *</label><input type="text" id="beneficiary-name" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.name || '') : ''}" placeholder="Enter complete legal name" required><div class="input-hint">Must match official documents</div></div>
-            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-globe text-purple-400 text-sm"></i>Destination Country *</label><select id="beneficiary-country" class="form-select-premium" required><option value="">Select country...</option>${countryOptions}</select></div>
+            <div class="form-group">
+                <label class="input-label-premium flex items-center gap-2"><i class="fas fa-id-card text-sky-400 text-sm"></i>Full Legal Name *</label>
+                <input type="text" id="beneficiary-name" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.name || '') : ''}" placeholder="Enter complete legal name" required>
+                <div class="input-hint">Must match official documents</div>
+            </div>
+            <div class="form-group">
+                <label class="input-label-premium flex items-center gap-2"><i class="fas fa-globe text-purple-400 text-sm"></i>Destination Country *</label>
+                <select id="beneficiary-country" class="form-select-premium" required>
+                    <option value="">Select country...</option>
+                    ${countryOptions}
+                </select>
+            </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-phone text-green-400 text-sm"></i>Mobile Number</label><input type="tel" id="beneficiary-phone" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.phone || '') : ''}" placeholder="+Country Code & Number"><div class="input-hint">For SMS notifications</div></div>
-            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-envelope text-blue-400 text-sm"></i>Email Address</label><input type="email" id="beneficiary-email" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.email || '') : ''}" placeholder="recipient@example.com"><div class="input-hint">For transaction receipts</div></div>
+            <div class="form-group">
+                <label class="input-label-premium flex items-center gap-2"><i class="fas fa-phone text-green-400 text-sm"></i>Mobile Number</label>
+                <input type="tel" id="beneficiary-phone" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.phone || '') : ''}" placeholder="+Country Code & Number">
+                <div class="input-hint">For SMS notifications</div>
+            </div>
+            <div class="form-group">
+                <label class="input-label-premium flex items-center gap-2"><i class="fas fa-envelope text-blue-400 text-sm"></i>Email Address</label>
+                <input type="email" id="beneficiary-email" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.email || '') : ''}" placeholder="recipient@example.com">
+                <div class="input-hint">For transaction receipts</div>
+            </div>
         </div>
-        <div class="form-group mt-6"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-map-marker-alt text-red-400 text-sm"></i>Complete Address *</label><textarea id="beneficiary-address" class="form-input-premium" rows="4" placeholder="Street, District, City, Province, Postal Code" required>${isEdit && beneficiary ? (beneficiary.address || '') : ''}</textarea><div class="input-hint">Required for compliance and cash pickup</div></div>
+        <div class="form-group mt-6">
+            <label class="input-label-premium flex items-center gap-2"><i class="fas fa-map-marker-alt text-red-400 text-sm"></i>Complete Address *</label>
+            <textarea id="beneficiary-address" class="form-input-premium" rows="4" placeholder="Street, District, City, Province, Postal Code" required>${isEdit && beneficiary ? (beneficiary.address || '') : ''}</textarea>
+            <div class="input-hint">Required for compliance and cash pickup</div>
+        </div>
     </div>`;
 },
 
