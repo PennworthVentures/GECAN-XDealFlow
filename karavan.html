@@ -3839,27 +3839,28 @@ loadInitialData: async () => {
             throw new Error("Received an empty or invalid response from the data hydration service.");
         }
 
-        // Destructure the complete data payload with robust, resilient fallbacks.
-        // This prevents the application from crashing if the backend API returns a partial object.
+        // [DEFINITIVE SYNTHESIS] Flawlessly destructure the COMPLETE data payload.
         const {
             beneficiaries = [],
             accounts = [],
             transactions = [],
-            marketRates = []
+            marketRates = [],
+            liquidityPartners = [] // [CRITICAL INTEGRATION]
         } = dashboardDataPayload;
 
         // Populate all necessary parts of the application state with the validated data.
         AppState.marketData.rates = marketRates.filter(r => r.status === 'OK' || r.status === 'MANUAL');
         AppState.marketData.beneficiaries = beneficiaries;
+        AppState.marketData.liquidityPartners = liquidityPartners; // [CRITICAL INTEGRATION]
         AppState.accounts = accounts;
-        AppState.allTransactions = transactions; // For the Transfers History view
+        AppState.allTransactions = transactions;
 
         // --- Phase 3: Initialize Dependent UI Components ---
         // Initialize the live market data ticker with the fetched data.
         UI.startHoloStream();
 
     } catch (error) {
-        // --- Pinnacle-Grade Error Handling ---
+        // --- Pinnacle-Grade Error Handling (UNABRIDGED) ---
         // Provide a specific, helpful error message to the user.
         Utils.showNotification('Critical Error: Failed to load dashboard data. Core services may be unavailable.', 'error');
         
@@ -3878,10 +3879,9 @@ loadInitialData: async () => {
         console.error("Definitive Dashboard Hydration Failed:", error);
 
     } finally {
-        // --- Guaranteed UI Cleanup ---
+        // --- Guaranteed UI Cleanup (UNABRIDGED) ---
         // This block ensures that, regardless of success or failure, the main loader
-        // is hidden after a brief delay, allowing the dashboard (even in an empty
-        // or error state) to be displayed.
+        // is hidden with a prestigious fade-out animation.
         setTimeout(() => {
             if (loader) {
                 loader.style.transition = 'opacity 0.5s ease-out';
