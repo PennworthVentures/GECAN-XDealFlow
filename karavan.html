@@ -7509,22 +7509,22 @@ refreshBeneficiaryDropdown: () => {
     const currentSelection = select.value;
     const beneficiaries = AppState.marketData?.beneficiaries || [];
     
-    // --- Pinnacle-Grade Icon Mapping Engine (Zero Regressions) ---
-    const payoutIconMap = {
-        'bank_transfer': '🏦', 'cash_pickup': '💵', 'mobile_wallet': '📱', 'default': '💳'
-    };
+    const payoutIconMap = { 'bank_transfer': '🏦', 'cash_pickup': '💵', 'mobile_wallet': '📱', 'default': '💳' };
 
-    // --- Enhanced dropdown with visual indicators and improved UX ---
     const options = ['<option value="" class="text-slate-400">Select recipient...</option>'];
     
     beneficiaries.forEach(ben => {
-        const payoutIcon = payoutIconMap[ben.payoutMethod] || payoutIconMap['default'];
+        // --- MILITARY-GRADE DEFENSIVE CODING ---
+        // These checks prevent the UI from crashing if a beneficiary object is incomplete.
+        const payoutMethod = ben.payoutMethod || 'default';
+        const countryCode = ben.country || 'default';
         
-        // --- SEVERE UPGRADE: Sourcing from the definitive Data.countryMap ---
-        const countryInfo = Data.countryMap[ben.country] || `🌍 ${ben.country}`; // Fallback for safety
-        const [countryFlag, countryName] = countryInfo.split(' ');
+        const payoutIcon = payoutIconMap[payoutMethod] || payoutIconMap['default'];
+        const countryInfo = Data.countryMap[countryCode] || `🌍 ${countryCode}`;
+        const [countryFlag, ...countryNameParts] = countryInfo.split(' ');
+        const countryName = countryNameParts.join(' ');
         
-        const payoutLabel = (ben.payoutMethod || 'Standard').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const payoutLabel = (payoutMethod === 'default' ? 'Unknown Method' : payoutMethod).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         const isSelected = ben.id === currentSelection;
 
         options.push(`
