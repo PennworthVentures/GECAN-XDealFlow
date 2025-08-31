@@ -3871,12 +3871,14 @@ selectPayoutMethod: (method) => {
  * [PINNACLE CANCELLATION PROTOCOL] Handles the logic for closing the beneficiary
  * modal, including a mandatory confirmation prompt if the form has been modified.
  */
-closeBeneficiaryModal: () => {
+closeBeneficiaryModal: async () => {
     const modal = document.getElementById('beneficiary-modal');
+    if (!modal) return;
+    
     const form = document.getElementById('beneficiary-form');
     let isDirty = false;
 
-    // Check if the form exists and has been modified by the user
+    // --- Military-Grade "Dirty Check" Protocol (Zero Regressions) ---
     if (form) {
         const inputs = form.querySelectorAll('input:not([type="radio"]), select, textarea');
         const radioInputs = form.querySelectorAll('input[type="radio"]');
@@ -3897,19 +3899,22 @@ closeBeneficiaryModal: () => {
         }
     }
 
+    // --- Supreme Asynchronous Confirmation Workflow ---
     if (isDirty) {
-        // Use the new pinnacle notification system for a prestigious confirmation
-        Utils.showNotification(
+        const userConfirmed = await Utils.showNotification(
             'You have unsaved changes. Are you sure you want to discard them?',
             'warning',
             'Confirm Cancellation',
-            true // This flag indicates it's a confirmation dialog
-        ).then(confirmed => {
-            if (confirmed) {
-                modal.close();
-            }
-        });
+            true // This flag now correctly renders "Confirm" and "Cancel" buttons.
+        );
+        
+        // Only close the modal if the Promise resolves to `true` (user clicked "Confirm").
+        if (userConfirmed) {
+            modal.close();
+        }
+        // If the user clicks "Cancel" or dismisses, the promise resolves to `false` and nothing happens.
     } else {
+        // If the form is not dirty, close the modal instantly without a prompt.
         modal.close();
     }
 },
@@ -7090,6 +7095,59 @@ renderStandardClientDashboard: () => {
         </div>
     </div>
     `;
+},
+
+updatePayoutMethodsForCountry: (countryCode) => {
+    const payoutSelector = document.getElementById('payout-method-selector');
+    if (!payoutSelector) return;
+
+    // --- 1. Intelligent, Live Capability Analysis (No Mock Data) ---
+    // Query the live liquidity partner data to determine available methods.
+    const partnersInCountry = (AppState.marketData.liquidityPartners || [])
+        .filter(partner => partner.operationalJurisdiction === countryCode && partner.status === 'ACTIVE');
+
+    // Synthesize a unique list of all settlement methods offered by active partners in that country.
+    const availableMethods = Array.from(
+        new Set(partnersInCountry.flatMap(partner => partner.settlementMethods))
+    );
+
+    // --- 2. Pinnacle-Grade UI Orchestration ---
+    let firstVisibleMethod = null;
+    payoutSelector.querySelectorAll('.delivery-method-card').forEach(card => {
+        const input = card.querySelector('input[type="radio"]');
+        const method = input.value;
+        const isAvailable = availableMethods.includes(method);
+        
+        // Elegantly hide or show the card based on live network capability.
+        card.style.display = isAvailable ? 'block' : 'none';
+
+        if (isAvailable && !firstVisibleMethod) {
+            firstVisibleMethod = method;
+        }
+    });
+
+    // --- 3. Flawless State Management & Reset Protocol ---
+    const currentSelectedMethodInput = document.querySelector('input[name="payout-method"]:checked');
+    const currentSelectedMethod = currentSelectedMethodInput?.value;
+
+    // If the currently selected method is no longer available in the new country, reset the selection.
+    if (currentSelectedMethod && !availableMethods.includes(currentSelectedMethod)) {
+        // Uncheck the invalid selection.
+        currentSelectedMethodInput.checked = false;
+        
+        // Deactivate the card visually.
+        const activeCard = document.querySelector('.delivery-method-card.active');
+        if (activeCard) activeCard.classList.remove('active');
+        
+        // Hide any open detail sections.
+        document.getElementById('bank-details-section')?.classList.add('hidden');
+        document.getElementById('mobile-wallet-section')?.classList.add('hidden');
+        
+        // Optionally, you could auto-select the first available method for a smoother UX.
+        // if (firstVisibleMethod) {
+        //     Logic.selectPayoutMethod(firstVisibleMethod);
+        // }
+    }
 },
 
 /**
