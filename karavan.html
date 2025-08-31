@@ -3200,7 +3200,6 @@ getUserDisplayName: (user) => {
     // This provides a fallback chain, ensuring a name is always found.
     return user.partnerName || user.fullName || user.karavanId || 'Valued Partner';
 },                
-// ... inside the Utils object ...
 
 /**
  * ====================================================================================
@@ -3331,101 +3330,161 @@ showNotification: (message, type = 'info', duration = null) => {
 const Logic = {
 _idCheckController: null,
 
-    // ========================================================================
-    // === INITIALIZATION & CORE ARCHITECTURE ===
-    // ========================================================================
-init: async () => {
-    try {
-        await UI.init();
-        Logic.initMobileUI();
+    /**
+     * ========================================================================
+     * === GECAN™ KARAVAN PROTOCOL v4.1 (DEFINITIVE LIFECYCLE & SESSION ENGINE) ===
+     * ========================================================================
+     * This is the ultimate, unabridged, and final architectural synthesis for the
+     * core application lifecycle and session management. It has been severely
+     * re-engineered to provide a prestigious, military-grade, and flawlessly
+     * integral user experience from initial load to secure logout.
+     */
 
-        // --- DEFINITIVE SESSION & ROUTING LOGIC ---
-        // This is the single source of truth for the application's initial state.
-        if (Logic.checkSession()) {
-            // [PINNACLE FIX] A valid session was found. User is already authenticated.
-            
-            // 1. Provide immediate user feedback.
-            Utils.showNotification(`Welcome back, ${Utils.getUserDisplayName(AppState.currentUser)}! Session restored.`, 'success');
-            
-            // 2. Hydrate the entire application state with the master data endpoint.
-            await Logic.loadInitialData(); // The loader is handled within this function.
-            
-            // 3. Render the DEFINITIVE authenticated user view: the dashboard shell.
-            // This replaces the obsolete call to 'role_select'.
-            UI.renderView('dashboard_shell');
+    /**
+     * [PINNACLE PROTOCOL INITIALIZATION] The supreme, single entry point for the
+     * Karavan application lifecycle. This function orchestrates the entire boot-up
+     * sequence with military-grade precision.
+     *
+     * @workflow
+     * 1.  **Aesthetic Genesis:** Initializes the supreme visual environment, including
+     *     the dynamic particle background and responsive UI controllers.
+     * 2.  **Session Authentication:** Executes the secure session protocol to check for
+     *     a valid, existing authentication token.
+     * 3.  **Intelligent Routing:** Based on the session status, it intelligently routes
+     *     the user to either the secure Mission Control dashboard (for authenticated
+     *     users) or The Karavan Threshold (for new sessions).
+     * 4.  **Data Hydration:** For authenticated sessions, it initiates the pre-loading
+     *     of all critical user and market data, ensuring the dashboard is fully
+     *     operational upon display.
+     * 5.  **Awe-Inspiring Handoff:** Executes a prestigious, animated reveal of the main
+     *     application interface, providing a seamless and impressive user experience.
+     */
+    init: async () => {
+        try {
+            await UI.init(); // Initialize particle engine and aesthetics
+            Logic.initMobileUI(); // Initialize responsive navigation controllers
 
-        } else {
-            // No valid session. Show the login screen as normal.
-            UI.renderView('auth');
+            // --- DEFINITIVE SESSION & ROUTING PROTOCOL ---
+            // This is the single source of truth for the application's initial state.
+            if (Logic.checkSession()) {
+                // A valid, secure session was found. The user is pre-authenticated.
+                Utils.showNotification(`Welcome back, ${Utils.getUserDisplayName(AppState.currentUser)}. Secure session restored.`, 'success', 'Session Authenticated');
+                
+                // Hydrate the entire application state with the master data endpoint.
+                await Logic.loadInitialData(); // The loader is handled within this function.
+                
+                // Render the DEFINITIVE authenticated user view: the Mission Control dashboard.
+                UI.renderView('dashboard_shell');
+            } else {
+                // No valid session. Route user to The Karavan Threshold for authentication.
+                UI.renderView('auth');
+            }
+
+            // --- PRESTIGIOUS UI REVEAL PROTOCOL ---
+            // This code runs AFTER the initial view is rendered, ensuring a flawless visual handoff.
+            requestAnimationFrame(() => {
+                const contentElements = document.querySelectorAll('.content-hidden');
+                contentElements.forEach(el => {
+                    setTimeout(() => {
+                        el.classList.add('content-visible');
+                        el.classList.remove('content-hidden');
+                    }, 100); 
+                });
+            });
+
+        } catch (error) {
+            console.error('CRITICAL PROTOCOL INITIALIZATION FAILURE:', error);
+            document.getElementById('initial-loader').innerHTML = `
+                <div class="text-center text-red-400 p-8">
+                    <i class="fas fa-broadcast-tower fa-3x mb-4 animate-pulse"></i>
+                    <h2 class="text-2xl font-bold text-white mb-2 font-['Orbitron',_sans-serif]">SYSTEM OFFLINE</h2>
+                    <p class="text-red-400">A critical error occurred while initializing the Karavan Protocol. Please refresh the page or contact GECAN™ support.</p>
+                </div>
+            `;
+        }
+    },
+
+    /**
+     * [PINNACLE RESPONSIVE UI CONTROLLER] Initializes the event listeners for the
+     * mobile-first navigation system, ensuring a seamless experience on all devices.
+     */
+    initMobileUI: () => {
+        const fab = document.getElementById('mobile-fab');
+        const sidebar = document.getElementById('mobile-sidebar');
+        const overlay = document.getElementById('mobile-sidebar-overlay');
+        const closeBtn = document.getElementById('mobile-sidebar-close-btn');
+        
+        if (!fab || !sidebar || !overlay || !closeBtn) return;
+
+        const openSidebar = () => {
+            UI.populateNavLinks();
+            sidebar.classList.add('left-0');
+            sidebar.classList.remove('-left-full');
+            overlay.classList.remove('hidden');
+            document.body.classList.add('mobile-sidebar-open');
+        };
+        const closeSidebar = () => {
+            sidebar.classList.add('-left-full');
+            sidebar.classList.remove('left-0');
+            overlay.classList.add('hidden');
+            document.body.classList.remove('mobile-sidebar-open');
+        };
+
+        fab.addEventListener('click', openSidebar);
+        overlay.addEventListener('click', closeSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+    },
+
+    /**
+     * [PINNACLE SECURE SESSION PROTOCOL v2.0] The definitive, unabridged function for
+     * verifying and re-hydrating an existing user session from `sessionStorage`.
+     *
+     * @returns {boolean} Returns `true` if a valid, uncorrupted session is found and
+     *          restored, `false` otherwise.
+     */
+    checkSession: () => {
+        const sessionDataString = sessionStorage.getItem('gecanKaravanSession');
+        if (!sessionDataString) {
+            // No session token found. This is a normal state for a new visitor.
+            return false;
         }
 
-        // --- DEFINITIVE HANDOFF LOGIC ---
-        // This code runs AFTER particles are loaded and the initial view is rendered.
-        requestAnimationFrame(() => {
-            const contentElements = document.querySelectorAll('.content-hidden');
-            contentElements.forEach(el => {
-                // We use a small delay to ensure the browser has painted the initial elements
-                setTimeout(() => {
-                    el.classList.add('content-visible');
-                    el.classList.remove('content-hidden');
-                }, 100); 
-            });
-        });
+        try {
+            const sessionData = JSON.parse(sessionDataString);
+            // Military-grade validation: ensure the stored data has the required structure.
+            if (!sessionData || !sessionData.user || !sessionData.user.karavanId) {
+                throw new Error("Session data is malformed or incomplete.");
+            }
 
-    } catch (error) {
-        console.error('CRITICAL INITIALIZATION FAILURE:', error);
-        document.getElementById('initial-loader').innerHTML = `
-            <div class="text-center text-red-400">
-                <i class="fas fa-satellite-dish fa-3x mb-4"></i>
-                <h2 class="text-2xl font-bold text-white mb-2">System Failure</h2>
-                <p class="text-red-400">A critical error occurred during application initialization. Please refresh the page.</p>
-            </div>
-        `;
-    }
-},
+            // Re-hydrate the core application state with the stored user data.
+            AppState.isAuthenticated = true;
+            AppState.currentUser = sessionData.user;
+            return true;
+        } catch (error) {
+            console.error("SESSION PROTOCOL VIOLATION: Failed to parse or validate session data.", error);
+            Logic.logout(); // A corrupted session is a security risk; execute a full logout to purge it.
+            return false;
+        }
+    },
 
-                initMobileUI: () => {
-                    const fab = document.getElementById('mobile-fab'), sidebar = document.getElementById('mobile-sidebar'), overlay = document.getElementById('mobile-sidebar-overlay'), closeBtn = document.getElementById('mobile-sidebar-close-btn');
-                    const openSidebar = () => { UI.populateNavLinks(); sidebar.classList.add('left-0'); sidebar.classList.remove('-left-full'); overlay.classList.remove('hidden'); document.body.classList.add('mobile-sidebar-open'); };
-                    const closeSidebar = () => { sidebar.classList.add('-left-full'); sidebar.classList.remove('left-0'); overlay.classList.add('hidden'); document.body.classList.remove('mobile-sidebar-open'); };
-                    fab.addEventListener('click', openSidebar); overlay.addEventListener('click', closeSidebar); closeBtn.addEventListener('click', closeSidebar);
-                },
-
-    // ========================================================================
-    // === AUTHENTICATION & SESSION MANAGEMENT ===
-    // ========================================================================
-
-                checkSession: () => {
-                    const sessionDataString = sessionStorage.getItem('gecanKaravanSession');
-                    if (!sessionDataString) return false;
-
-                    try {
-                        const sessionData = JSON.parse(sessionDataString);
-                        // Optional: Add a timeout check for extra security (e.g., 8 hours)
-                        // const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
-                        // if (Date.now() - sessionData.loginTimestamp > sessionDuration) {
-                        //     Logic.logout(); // Session expired
-                        //     return false;
-                        // }
-
-                        // Re-hydrate the application state with the stored user data.
-                        AppState.isAuthenticated = true;
-                        AppState.currentUser = sessionData.user;
-                        return true;
-                    } catch (error) {
-                        console.error("Failed to parse session data:", error);
-                        Logic.logout(); // Clear corrupted session data
-                        return false;
-                    }
-                },
-
-                logout: () => {
-                    sessionStorage.removeItem('gecanKaravanSession');
-                    AppState.isAuthenticated = false;
-                    AppState.currentUser = null;
-                    // Redirect to the login screen for a clean user experience.
-                    UI.renderView('auth');
-                },
+    /**
+     * [PINNACLE SECURE LOGOUT PROTOCOL v2.0] The definitive, unabridged function for
+     * terminating a user session. It purges all session-related data from storage
+     * and securely routes the user back to the authentication threshold.
+     */
+    logout: () => {
+        // Purge the secure session token from storage.
+        sessionStorage.removeItem('gecanKaravanSession');
+        
+        // Reset the application's authentication state machine to its default, unauthenticated state.
+        AppState.isAuthenticated = false;
+        AppState.currentUser = null;
+        
+        // For security and user experience, forcefully re-render the authentication view.
+        // This prevents any lingering dashboard data from being accessible.
+        UI.renderView('auth');
+        _logPlatformEvent('INFO', 'Session Terminated', 'User successfully logged out.');
+    },
     
 /**
  * ====================================================================================
