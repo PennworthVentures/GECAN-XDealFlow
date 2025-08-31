@@ -3293,93 +3293,118 @@ getUserDisplayName: (user) => {
  *     original function signature (`message`, `type`, `duration`) for zero-regression
  *     compatibility with the entire application.
  */
-showNotification: (message, type = 'info', duration = null) => {
-    const modal = document.getElementById('notification-modal');
-    if (!modal) return;
-    
-    // --- Pinnacle Theming Engine ---
-    const themes = {
-        success: { icon: 'fa-check-circle', color: 'emerald', title: 'Success' },
-        error: { icon: 'fa-times-circle', color: 'red', title: 'Error' },
-        info: { icon: 'fa-info-circle', color: 'sky', title: 'Information' },
-        warning: { icon: 'fa-exclamation-triangle', color: 'amber', title: 'Warning' }
-    };
-    const config = themes[type] || themes.info;
-    const rgbColor = {
-        emerald: '34, 197, 94', red: '239, 68, 68',
-        sky: '14, 165, 233', amber: '245, 158, 11'
-    }[config.color];
+showNotification: (message, type = 'info', title = null, isConfirm = false, duration = null) => {
+    // Return a Promise to enable asynchronous confirmation logic (.then() or await).
+    return new Promise(resolve => {
+        const modal = document.getElementById('notification-modal');
+        if (!modal) {
+            // Provide a robust fallback for critical UI failures.
+            if (isConfirm) {
+                resolve(confirm(message));
+            } else {
+                alert(message);
+                resolve(true); // Standard alerts only have one action.
+            }
+            return;
+        }
 
-    // --- Dynamic, Unabridged HTML Synthesis ---
-    modal.innerHTML = `
-    <div class="dialog-content-wrapper">
-        <div class="notification-core-panel">
-            <!-- 3D Icon & Plinth -->
-            <div class="notification-icon-plinth">
-                <div class="notification-icon-base"></div>
-                <div class="notification-icon-hologram text-${config.color}-400">
-                    <i class="fas ${config.icon}"></i>
-                </div>
-            </div>
-            
-            <!-- Prestigious Typography -->
-            <div class="text-center">
-                <h2 class="notification-title">${config.title}</h2>
-                <p class="notification-message">${message}</p>
-            </div>
-            
-            <!-- Supreme Action Button -->
+        // --- Pinnacle Theming Engine ---
+        const themes = {
+            success: { icon: 'fa-check-circle', color: 'emerald', title: 'Success' },
+            error: { icon: 'fa-times-circle', color: 'red', title: 'Error' },
+            info: { icon: 'fa-info-circle', color: 'sky', title: 'Information' },
+            warning: { icon: 'fa-exclamation-triangle', color: 'amber', title: 'Warning' }
+        };
+        const config = themes[type] || themes.info;
+        const rgbColor = {
+            emerald: '34, 197, 94', red: '239, 68, 68',
+            sky: '14, 165, 233', amber: '245, 158, 11'
+        }[config.color];
+
+        // --- Intelligent, State-Aware Button Synthesis ---
+        let buttonsHTML = `
             <button id="notification-ok-btn" 
-                    class="notification-action-button"
+                    class="notification-action-button flex-1"
                     style="--rgb-color: ${rgbColor}; border-color: rgba(${rgbColor}, 0.5); box-shadow: 0 0 25px rgba(${rgbColor}, 0.15);">
                 OK
                 <div id="implosion-container" class="absolute inset-0 pointer-events-none"></div>
             </button>
-        </div>
-    </div>`;
-    modal.showModal();
-    
-    const okBtn = document.getElementById('notification-ok-btn');
-    let timeoutId = null;
-
-    const closeModal = () => {
-        if (timeoutId) clearTimeout(timeoutId);
-        modal.close();
-    };
-
-    // --- Awe-Inspiring Click Animation Orchestrator ---
-    okBtn.onclick = () => {
-        // 1. Prevent further clicks
-        okBtn.disabled = true;
-
-        // 2. Generate implosion particles
-        const implosionContainer = document.getElementById('implosion-container');
-        if (implosionContainer) {
-            let particlesHTML = '';
-            for (let i = 0; i < 30; i++) {
-                // Randomize particle properties for a natural effect
-                const size = Math.random() * 3 + 1;
-                const startX = (Math.random() - 0.5) * 2 * (okBtn.offsetWidth / 2);
-                const startY = (Math.random() - 0.5) * 2 * (okBtn.offsetHeight / 2);
-                const duration = Math.random() * 0.4 + 0.4;
-                
-                particlesHTML += `<div class="notification-implosion-particle absolute w-[${size}px] h-[${size}px] bg-gradient-to-br from-white to-${config.color}-300 rounded-full" 
-                                       style="--x: ${startX}px; --y: ${startY}px; animation-duration: ${duration}s;"></div>`;
-            }
-            implosionContainer.innerHTML = particlesHTML;
+        `;
+        if (isConfirm) {
+            buttonsHTML = `
+                <button id="notification-cancel-btn" class="btn-secondary flex-1 py-3 rounded-lg font-semibold">Cancel</button>
+                <button id="notification-ok-btn" 
+                        class="notification-action-button flex-1"
+                        style="--rgb-color: ${rgbColor}; border-color: rgba(${rgbColor}, 0.5); box-shadow: 0 0 25px rgba(${rgbColor}, 0.15);">
+                    Confirm
+                    <div id="implosion-container" class="absolute inset-0 pointer-events-none"></div>
+                </button>
+            `;
         }
-
-        // 3. Add the 'clicked' class to trigger the animation
-        okBtn.classList.add('clicked');
         
-        // 4. Close the modal after the animation completes
-        setTimeout(closeModal, 800);
-    };
+        // --- Dynamic, Unabridged HTML Synthesis ---
+        modal.innerHTML = `
+        <div class="dialog-content-wrapper">
+            <div class="notification-core-panel">
+                <div class="notification-icon-plinth">
+                    <div class="notification-icon-base"></div>
+                    <div class="notification-icon-hologram text-${config.color}-400"><i class="fas ${config.icon}"></i></div>
+                </div>
+                <div class="text-center">
+                    <h2 class="notification-title">${title || config.title}</h2>
+                    <p class="notification-message">${message}</p>
+                </div>
+                <div class="flex gap-4 mt-10">
+                    ${buttonsHTML}
+                </div>
+            </div>
+        </div>`;
+        modal.showModal();
+        
+        const okBtn = document.getElementById('notification-ok-btn');
+        const cancelBtn = document.getElementById('notification-cancel-btn');
+        let timeoutId = null;
 
-    // Auto-close functionality (Zero Regressions)
-    if (duration && typeof duration === 'number') {
-        timeoutId = setTimeout(okBtn.onclick, duration); // Trigger the click animation on timeout
-    }
+        const closeModalAndResolve = (resolution) => {
+            if (timeoutId) clearTimeout(timeoutId);
+            modal.close();
+            resolve(resolution);
+        };
+        
+        // --- Awe-Inspiring Click Animation Orchestrator ---
+        const handleConfirmClick = () => {
+            okBtn.disabled = true;
+            if (cancelBtn) cancelBtn.disabled = true;
+
+            const implosionContainer = document.getElementById('implosion-container');
+            if (implosionContainer) {
+                let particlesHTML = '';
+                for (let i = 0; i < 30; i++) {
+                    const size = Math.random() * 3 + 1;
+                    const startX = (Math.random() - 0.5) * 2 * (okBtn.offsetWidth / 2);
+                    const startY = (Math.random() - 0.5) * 2 * (okBtn.offsetHeight / 2);
+                    const duration = Math.random() * 0.4 + 0.4;
+                    particlesHTML += `<div class="notification-implosion-particle absolute w-[${size}px] h-[${size}px] bg-gradient-to-br from-white to-${config.color}-300 rounded-full" 
+                                           style="--x: ${startX}px; --y: ${startY}px; animation-duration: ${duration}s;"></div>`;
+                }
+                implosionContainer.innerHTML = particlesHTML;
+            }
+            okBtn.classList.add('clicked');
+            
+            setTimeout(() => closeModalAndResolve(true), 800);
+        };
+
+        if (okBtn) okBtn.onclick = handleConfirmClick;
+        if (cancelBtn) cancelBtn.onclick = () => closeModalAndResolve(false);
+        
+        // Ensure the promise resolves if the user dismisses the modal.
+        modal.onclose = () => resolve(false);
+
+        // Auto-close/confirm functionality (Zero Regressions)
+        if (duration && typeof duration === 'number' && !isConfirm) {
+            timeoutId = setTimeout(handleConfirmClick, duration);
+        }
+    });
 },
                 formatCurrency: (amount, currency = 'USD', decimals = 2) => {
                     if (isNaN(parseFloat(amount)) || amount === null) return '0.00';
