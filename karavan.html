@@ -3879,11 +3879,13 @@ closeBeneficiaryModal: async () => {
     let isDirty = false;
 
     // --- Military-Grade "Dirty Check" Protocol (Zero Regressions) ---
+    // This protocol forensically determines if the form state has been mutated.
     if (form) {
         const inputs = form.querySelectorAll('input:not([type="radio"]), select, textarea');
         const radioInputs = form.querySelectorAll('input[type="radio"]');
         
         for (const input of inputs) {
+            // Compare current value against the original default value.
             if (input.value !== (input.defaultValue || '')) {
                 isDirty = true;
                 break;
@@ -3900,21 +3902,24 @@ closeBeneficiaryModal: async () => {
     }
 
     // --- Supreme Asynchronous Confirmation Workflow ---
+    // If the form has been modified, invoke the confirmation protocol.
     if (isDirty) {
         const userConfirmed = await Utils.showNotification(
-            'You have unsaved changes. Are you sure you want to discard them?',
+            'You have unsaved changes to this beneficiary record. Are you certain you wish to proceed? All modifications will be permanently lost.',
             'warning',
-            'Confirm Cancellation',
-            true // This flag now correctly renders "Confirm" and "Cancel" buttons.
+            'Discard Unsaved Changes?',
+            true // This flag is critical: it renders "Confirm" and "Cancel" buttons.
         );
         
-        // Only close the modal if the Promise resolves to `true` (user clicked "Confirm").
+        // Only if the user explicitly clicks "Confirm" (resolving the Promise to `true`)
+        // will the modal be dismissed.
         if (userConfirmed) {
             modal.close();
         }
-        // If the user clicks "Cancel" or dismisses, the promise resolves to `false` and nothing happens.
+        // If the user clicks "Cancel" or dismisses the dialog with the ESC key,
+        // the Promise resolves to `false`, and the modal remains open, preserving their work.
     } else {
-        // If the form is not dirty, close the modal instantly without a prompt.
+        // If the form is pristine (not dirty), dismiss the modal instantly for a seamless UX.
         modal.close();
     }
 },
@@ -4475,7 +4480,7 @@ bindBeneficiaryModalListeners: (mode, beneficiary = null) => {
         const list = document.getElementById('beneficiary-management-list');
         const addBtn = document.getElementById('add-new-from-manage-btn');
         if (list) {
-            // Use highly performant event delegation for all button clicks.
+            // Use highly performant event delegation for all button clicks within the list.
             list.addEventListener('click', e => {
                 const editBtn = e.target.closest('.edit-beneficiary-btn');
                 const deleteBtn = e.target.closest('.delete-beneficiary-btn');
@@ -4490,26 +4495,20 @@ bindBeneficiaryModalListeners: (mode, beneficiary = null) => {
         const form = document.getElementById('beneficiary-form');
         if (!form) return;
 
-        // 1. [DEFINITIVE] Programmatically capture the form's submit event to prevent page refresh.
+        // 1. [DEFINITIVE] Programmatically capture the form's submit event.
         form.addEventListener('submit', Logic.submitBeneficiaryForm);
         
-        // 2. [ZERO REGRESSION] Bind accordion headers for guided navigation.
-        document.querySelectorAll('.premium-accordion-header').forEach((header) => {
-            header.addEventListener('click', () => {
-                const step = header.closest('.premium-accordion-step').id.slice(-1);
-                Logic.changeBeneficiaryStep(parseInt(step, 10));
-            });
-        });
-        
-        // 3. [PINNACLE UPGRADE] Bind listeners for the interactive delivery method cards.
+        // 2. [PINNACLE UPGRADE] Bind listeners for all dynamic UI triggers.
         const countrySelect = document.getElementById('beneficiary-country');
         const payoutSelector = document.getElementById('payout-method-selector');
 
+        // This is the CRITICAL listener that makes the payout options dynamic.
         if (countrySelect) {
             countrySelect.addEventListener('change', (e) => UI.updatePayoutMethodsForCountry(e.target.value));
         }
+
+        // This is the listener for the interactive payout selection cards.
         if (payoutSelector) {
-            // Use event delegation for the interactive cards.
             payoutSelector.addEventListener('click', (e) => {
                 const card = e.target.closest('.delivery-method-card');
                 if (card) {
@@ -4519,14 +4518,19 @@ bindBeneficiaryModalListeners: (mode, beneficiary = null) => {
             });
         }
 
-        // 4. [FLAWLESS INTEGRATION] Intelligently initialize the UI state when in 'edit' mode.
+        // 3. [FLAWLESS INTEGRATION] Intelligently initialize the UI state when in 'edit' mode.
         if (mode === 'edit' && beneficiary) {
-            // First, set the country to ensure the correct payout methods are available.
+            // First, immediately trigger the country filter to ensure the correct
+            // set of payout methods is visible from the start.
             UI.updatePayoutMethodsForCountry(beneficiary.country);
-            // Then, use a short timeout to ensure the DOM has updated before selecting the saved method.
+            
+            // Then, use a short timeout to ensure the DOM has updated before programmatically
+            // selecting the beneficiary's saved payout method.
             setTimeout(() => {
-                Logic.selectPayoutMethod(beneficiary.payoutMethod);
-            }, 50); // 50ms is sufficient for the DOM to update.
+                if (beneficiary.payoutMethod) {
+                    Logic.selectPayoutMethod(beneficiary.payoutMethod);
+                }
+            }, 50); // 50ms is sufficient for the DOM update.
         }
     }
 },
@@ -7165,60 +7169,26 @@ renderBeneficiaryModal: (mode = 'add', beneficiary = null) => {
     let contentHTML = '';
     
     if (isManage) {
-        contentHTML = `<div id="beneficiary-management-list-container">${UI.renderBeneficiaryList()}</div>`;
+        contentHTML = `<div id="beneficiary-management-list-container" class="overflow-y-auto max-h-[60vh]">${UI.renderBeneficiaryList()}</div>`;
     } else {
-        const countryOptions = ['PH', 'ID', 'MY', 'TH', 'VN', 'SG', 'US', 'CA', 'GB', 'AU', 'AE', 'HK', 'JP', 'CN']
-            .map(code => `<option value="${code}" ${isEdit && beneficiary && beneficiary.country === code ? 'selected' : ''}>${code}</option>`).join('');
-        const relationshipOptions = ['spouse', 'parent', 'child', 'sibling', 'relative', 'friend', 'business_partner', 'employee', 'service_provider', 'other']
-            .map(r => `<option value="${r}" ${isEdit && beneficiary && beneficiary.relationship === r ? 'selected' : ''}>${r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`).join('');
-        const purposeOptions = ['family_support', 'living_expenses', 'education', 'medical_expenses', 'business_investment', 'service_payment', 'property_purchase', 'gift', 'loan_repayment', 'other']
-            .map(p => `<option value="${p}" ${isEdit && beneficiary && beneficiary.purpose === p ? 'selected' : ''}>${p.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`).join('');
-
+        // --- ARCHITECTURAL UPGRADE: The form is now built from modular components ---
         contentHTML = `
-        <form id="beneficiary-form" data-mode="${mode}" data-beneficiary-id="${isEdit ? beneficiary.id : ''}" class="space-y-8">
-            <!-- Personal Information Section -->
-            <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
-                <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center"><i class="fas fa-user text-white text-sm"></i></div><h3 class="text-xl font-bold text-white">Personal Information</h3></div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-id-card text-sky-400 text-sm"></i>Full Legal Name *</label><input type="text" id="beneficiary-name" class="form-input-premium" value="${isEdit && beneficiary ? beneficiary.name : ''}" required></div>
-                    <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-globe text-purple-400 text-sm"></i>Destination Country *</label><select id="beneficiary-country" class="form-select-premium" required><option value="">Select country...</option>${countryOptions}</select></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-phone text-green-400 text-sm"></i>Mobile Number</label><input type="tel" id="beneficiary-phone" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.phone || '') : ''}" placeholder="+Country Code & Number"></div>
-                    <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-envelope text-blue-400 text-sm"></i>Email Address</label><input type="email" id="beneficiary-email" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.email || '') : ''}"></div>
-                </div>
-                <div class="form-group mt-6"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-map-marker-alt text-red-400 text-sm"></i>Complete Address *</label><textarea id="beneficiary-address" class="form-input-premium" rows="4" required>${isEdit && beneficiary ? (beneficiary.address || '') : ''}</textarea></div>
+        <form id="beneficiary-form" data-mode="${mode}" data-beneficiary-id="${isEdit ? (beneficiary.id || '') : ''}" class="space-y-8">
+            ${UI.renderBeneficiaryPersonalInfo(isEdit, beneficiary)}
+            ${UI.renderBeneficiaryComplianceInfo(isEdit, beneficiary)}
+            ${UI.renderBeneficiaryPayoutSection(isEdit, beneficiary)}
+            <!-- Action Buttons -->
+            <div class="flex gap-4 pt-8 border-t border-slate-700">
+                <button type="button" onclick="Logic.closeBeneficiaryModal()" class="btn-secondary flex-1 py-4 rounded-lg font-semibold text-lg">Cancel</button>
+                <button type="submit" class="btn-primary flex-1 py-4 rounded-lg font-bold text-lg"><i class="fas ${isEdit ? 'fa-save' : 'fa-plus'} mr-2"></i>${isEdit ? 'Save Changes' : 'Add Beneficiary'}</button>
             </div>
-
-            <!-- Compliance Information Section -->
-            <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
-                <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center"><i class="fas fa-handshake text-white text-sm"></i></div><h3 class="text-xl font-bold text-white">Compliance Information</h3></div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div><label class="input-label-premium flex items-center gap-2"><i class="fas fa-heart text-pink-400 text-sm"></i>Relationship to You *</label><select id="beneficiary-relationship" class="form-select-premium" required><option value="">Select relationship...</option>${relationshipOptions}</select></div>
-                    <div><label class="input-label-premium flex items-center gap-2"><i class="fas fa-bullseye text-yellow-400 text-sm"></i>Purpose of Transfer *</label><select id="beneficiary-purpose" class="form-select-premium" required><option value="">Select purpose...</option>${purposeOptions}</select></div>
-                </div>
-            </div>
-
-            <!-- Delivery Method Section -->
-            <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
-                <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center"><i class="fas fa-credit-card text-white text-sm"></i></div><h3 class="text-xl font-bold text-white">Delivery Method</h3></div>
-                <div><label class="input-label-premium flex items-center gap-2"><i class="fas fa-shipping-fast text-cyan-400 text-sm"></i>How should the recipient receive funds? *</label><div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4" id="payout-method-selector">
-                    <div class="delivery-method-card" onclick="Logic.selectPayoutMethod('bank_transfer')" style="--rgb-color: 59, 130, 246;"><input type="radio" name="payout-method" value="bank_transfer" class="hidden"><label class="delivery-method-label"><div class="delivery-method-icon bg-blue-500/20 text-blue-400"><i class="fas fa-university text-2xl"></i></div><h4 class="font-semibold text-white mb-1">Bank Transfer</h4><p class="text-sm text-slate-400">Direct to bank</p></label></div>
-                    <div class="delivery-method-card" onclick="Logic.selectPayoutMethod('cash_pickup')" style="--rgb-color: 34, 197, 94;"><input type="radio" name="payout-method" value="cash_pickup" class="hidden"><label class="delivery-method-label"><div class="delivery-method-icon bg-green-500/20 text-green-400"><i class="fas fa-money-bill-wave text-2xl"></i></div><h4 class="font-semibold text-white mb-1">Cash Pickup</h4><p class="text-sm text-slate-400">Collect at partners</p></label></div>
-                    <div class="delivery-method-card" onclick="Logic.selectPayoutMethod('mobile_wallet')" style="--rgb-color: 139, 92, 246;"><input type="radio" name="payout-method" value="mobile_wallet" class="hidden"><label class="delivery-method-label"><div class="delivery-method-icon bg-purple-500/20 text-purple-400"><i class="fas fa-mobile-alt text-2xl"></i></div><h4 class="font-semibold text-white mb-1">Mobile Wallet</h4><p class="text-sm text-slate-400">e.g., GCash, PayMaya</p></label></div>
-                </div></div>
-                <div id="bank-details-section" class="mt-8 hidden"><div class="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-lg p-6"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center"><i class="fas fa-university text-blue-400 text-sm"></i></div><h4 class="text-lg font-semibold text-white">Bank Account Information</h4></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label class="input-label-premium">Bank Name *</label><input type="text" id="beneficiary-bank-name" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutBankName || '') : ''}"></div><div><label class="input-label-premium">Account Number *</label><input type="text" id="beneficiary-account-number" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutAccountNum || '') : ''}"></div></div></div></div>
-                <div id="mobile-wallet-section" class="mt-8 hidden"><div class="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/30 rounded-lg p-6"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center"><i class="fas fa-mobile-alt text-purple-400 text-sm"></i></div><h4 class="text-lg font-semibold text-white">Mobile Wallet Information</h4></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label class="input-label-premium">Wallet Provider *</label><input type="text" id="beneficiary-wallet-provider" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutMobileProvider || '') : ''}" placeholder="e.g., GCash, PayMaya"></div><div><label class="input-label-premium">Wallet Number *</label><input type="tel" id="beneficiary-wallet-number" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutMobileNum || '') : ''}" placeholder="Mobile number linked to wallet"></div></div></div></div>
-            </div>
-
-            <div class="flex gap-4 pt-8 border-t border-slate-700"><button type="button" onclick="Logic.closeBeneficiaryModal()" class="btn-secondary flex-1 py-4 rounded-lg font-semibold text-lg">Cancel</button><button type="submit" class="btn-primary flex-1 py-4 rounded-lg font-bold text-lg"><i class="fas ${isEdit ? 'fa-save' : 'fa-plus'} mr-2"></i>${isEdit ? 'Save Changes' : 'Add Beneficiary'}</button></div>
         </form>`;
     }
 
     return `
     <div class="dialog-content-wrapper animate-step-fade-in" style="max-width: 64rem;">
         <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 rounded-t-2xl">
-            <h2 class="text-2xl font-bold text-white flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br ${iconColor} flex items-center justify-center shadow-lg"><i class="fas ${titleIcon} text-white text-lg"></i></div><div><div class="text-2xl">${title}</div><div class="text-sm text-slate-400 font-normal mt-1">${isManage ? 'Manage your saved recipients' : isEdit ? 'Update beneficiary information' : 'Add a new money transfer recipient'}</div></div></h2>
+            <h2 class="text-2xl font-bold text-white flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-gradient-to-br ${iconColor} flex items-center justify-center shadow-lg"><i class="fas ${titleIcon} text-white text-lg"></i></div><div><div class="text-2xl">${title}</div><div class="text-sm text-slate-400 font-normal mt-1">${isManage ? 'Manage saved recipients' : isEdit ? 'Update beneficiary information' : 'Add a new recipient'}</div></div></h2>
             <button onclick="Logic.closeBeneficiaryModal()" class="text-3xl text-slate-400 hover:text-white transition-all w-12 h-12 flex items-center justify-center rounded-full hover:bg-slate-700/50">&times;</button>
         </div>
         <div class="p-6 overflow-y-auto max-h-[75vh] bg-gradient-to-br from-slate-900 to-slate-800 rounded-b-2xl">
@@ -7227,6 +7197,53 @@ renderBeneficiaryModal: (mode = 'add', beneficiary = null) => {
     </div>`;
 },
 
+/** [UNABRIDGED & COMPLETED] Renders the Personal Information component of the form. */
+renderBeneficiaryPersonalInfo: (isEdit, beneficiary) => {
+    const countryOptions = ['PH', 'ID', 'MY', 'TH', 'VN', 'SG', 'US', 'CA', 'GB', 'AU', 'AE', 'HK', 'JP', 'CN']
+        .map(code => `<option value="${code}" ${isEdit && beneficiary && beneficiary.country === code ? 'selected' : ''}>${code}</option>`).join('');
+    return `
+    <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
+        <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center"><i class="fas fa-user text-white text-sm"></i></div><h3 class="text-xl font-bold text-white">Personal Information</h3></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-id-card text-sky-400 text-sm"></i>Full Legal Name *</label><input type="text" id="beneficiary-name" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.name || '') : ''}" placeholder="Enter complete legal name" required><div class="input-hint">Must match official documents</div></div>
+            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-globe text-purple-400 text-sm"></i>Destination Country *</label><select id="beneficiary-country" class="form-select-premium" required><option value="">Select country...</option>${countryOptions}</select></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-phone text-green-400 text-sm"></i>Mobile Number</label><input type="tel" id="beneficiary-phone" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.phone || '') : ''}" placeholder="+Country Code & Number"><div class="input-hint">For SMS notifications</div></div>
+            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-envelope text-blue-400 text-sm"></i>Email Address</label><input type="email" id="beneficiary-email" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.email || '') : ''}" placeholder="recipient@example.com"><div class="input-hint">For transaction receipts</div></div>
+        </div>
+        <div class="form-group mt-6"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-map-marker-alt text-red-400 text-sm"></i>Complete Address *</label><textarea id="beneficiary-address" class="form-input-premium" rows="4" placeholder="Street, District, City, Province, Postal Code" required>${isEdit && beneficiary ? (beneficiary.address || '') : ''}</textarea><div class="input-hint">Required for compliance and cash pickup</div></div>
+    </div>`;
+},
+
+/** [UNABRIDGED & COMPLETED] Renders the Compliance Information component of the form. */
+renderBeneficiaryComplianceInfo: (isEdit, beneficiary) => {
+    const relationshipOptions = ['spouse', 'parent', 'child', 'sibling', 'relative', 'friend', 'business_partner', 'employee', 'service_provider', 'other'].map(r => `<option value="${r}" ${isEdit && beneficiary && beneficiary.relationship === r ? 'selected' : ''}>${r.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`).join('');
+    const purposeOptions = ['family_support', 'living_expenses', 'education', 'medical_expenses', 'business_investment', 'service_payment', 'property_purchase', 'gift', 'loan_repayment', 'other'].map(p => `<option value="${p}" ${isEdit && beneficiary && beneficiary.purpose === p ? 'selected' : ''}>${p.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`).join('');
+    return `
+    <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
+        <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center"><i class="fas fa-handshake text-white text-sm"></i></div><h3 class="text-xl font-bold text-white">Compliance Information</h3></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-heart text-pink-400 text-sm"></i>Relationship to You *</label><select id="beneficiary-relationship" class="form-select-premium" required><option value="">Select relationship...</option>${relationshipOptions}</select></div>
+            <div class="form-group"><label class="input-label-premium flex items-center gap-2"><i class="fas fa-bullseye text-yellow-400 text-sm"></i>Purpose of Transfer *</label><select id="beneficiary-purpose" class="form-select-premium" required><option value="">Select purpose...</option>${purposeOptions}</select></div>
+        </div>
+    </div>`;
+},
+
+/** [UNABRIDGED & COMPLETED] Renders the Payout Method component and its conditional sub-forms. */
+renderBeneficiaryPayoutSection: (isEdit, beneficiary) => {
+    return `
+    <div class="bg-gradient-to-r from-slate-800/60 to-slate-900/60 rounded-xl p-6 border border-slate-700/50 backdrop-blur-sm">
+        <div class="flex items-center gap-3 mb-6"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center"><i class="fas fa-credit-card text-white text-sm"></i></div><h3 class="text-xl font-bold text-white">Delivery Method</h3></div>
+        <div><label class="input-label-premium flex items-center gap-2"><i class="fas fa-shipping-fast text-cyan-400 text-sm"></i>How should the recipient receive funds? *</label><div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4" id="payout-method-selector">
+            <div class="delivery-method-card" style="--rgb-color: 59, 130, 246;"><input type="radio" name="payout-method" value="bank_transfer" class="hidden"><label class="delivery-method-label"><div class="delivery-method-icon bg-blue-500/20 text-blue-400"><i class="fas fa-university text-2xl"></i></div><h4 class="font-semibold text-white mb-1">Bank Transfer</h4></label></div>
+            <div class="delivery-method-card" style="--rgb-color: 34, 197, 94;"><input type="radio" name="payout-method" value="cash_pickup" class="hidden"><label class="delivery-method-label"><div class="delivery-method-icon bg-green-500/20 text-green-400"><i class="fas fa-money-bill-wave text-2xl"></i></div><h4 class="font-semibold text-white mb-1">Cash Pickup</h4></label></div>
+            <div class="delivery-method-card" style="--rgb-color: 139, 92, 246;"><input type="radio" name="payout-method" value="mobile_wallet" class="hidden"><label class="delivery-method-label"><div class="delivery-method-icon bg-purple-500/20 text-purple-400"><i class="fas fa-mobile-alt text-2xl"></i></div><h4 class="font-semibold text-white mb-1">Mobile Wallet</h4></label></div>
+        </div></div>
+        <div id="bank-details-section" class="mt-8 hidden"><div class="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-lg p-6"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center"><i class="fas fa-university text-blue-400 text-sm"></i></div><h4 class="text-lg font-semibold text-white">Bank Information</h4></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="form-group"><label class="input-label-premium">Bank Name *</label><input type="text" id="beneficiary-bank-name" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutBankName || '') : ''}"></div><div class="form-group"><label class="input-label-premium">Account Number *</label><input type="text" id="beneficiary-account-number" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutAccountNum || '') : ''}"></div></div></div></div>
+        <div id="mobile-wallet-section" class="mt-8 hidden"><div class="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/30 rounded-lg p-6"><div class="flex items-center gap-3 mb-4"><div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center"><i class="fas fa-mobile-alt text-purple-400 text-sm"></i></div><h4 class="text-lg font-semibold text-white">Mobile Wallet Information</h4></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="form-group"><label class="input-label-premium">Wallet Provider *</label><input type="text" id="beneficiary-wallet-provider" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutMobileProvider || '') : ''}"></div><div class="form-group"><label class="input-label-premium">Wallet Number *</label><input type="tel" id="beneficiary-wallet-number" class="form-input-premium" value="${isEdit && beneficiary ? (beneficiary.payoutMobileNum || '') : ''}"></div></div></div></div>
+    </div>`;
+},
     
 refreshBeneficiaryDropdown: () => {
     const select = document.getElementById('beneficiary-select');
