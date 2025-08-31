@@ -44,6 +44,127 @@
     <style>
 
         /* ========================================================================= */
+        /* === PINNACLE MISSION CONTROL WORKFLOW ENGINE v2.0 (DEFINITIVE STYLES) === */
+        /* ========================================================================= */
+
+        /* --- A. SUPREME GUIDED MISSION STAGE CARD --- */
+        .guided-step-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7));
+            border: 1px solid var(--border-secondary);
+            border-radius: 1.25rem;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            overflow: hidden;
+        }
+        .guided-step-card.locked {
+            filter: grayscale(80%) brightness(0.7);
+        }
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            transition: background-color 0.3s ease;
+        }
+        .step-header.cursor-pointer:hover {
+            background: rgba(14, 165, 233, 0.05);
+        }
+        .step-number {
+            width: 3rem; height: 3rem; /* 48px */
+            flex-shrink: 0;
+            border-radius: 9999px;
+            display: grid;
+            place-items: center;
+            font-size: 1.25rem; /* text-xl */
+            border: 2px solid var(--border-premium);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            transform-style: preserve-3d;
+        }
+        .step-number.completed {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+        .step-header.cursor-pointer:hover .step-number {
+            transform: scale(1.1) rotate(-10deg);
+        }
+        .step-title {
+            font-size: 1.125rem; /* text-lg */
+        }
+
+        /* --- B. INTERACTIVE FUNDING & SETTLEMENT CARDS --- */
+        .funding-option {
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+        }
+        .funding-option::before { /* Holographic particle effect */
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(139, 92, 246, 0.25), transparent 30%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        .funding-option:hover::before {
+            opacity: 1;
+        }
+
+        /* --- C. PRESTIGIOUS SETTLEMENT PARTNER CARD --- */
+        .settlement-partner-card {
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.05), rgba(15, 23, 42, 0.5));
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .settlement-partner-card::after { /* Scanline effect */
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.5), transparent);
+            animation: scanline-vertical 5s linear infinite;
+            opacity: 0;
+        }
+        @keyframes scanline-vertical {
+            from { transform: translateY(-20%); opacity: 0; }
+            50% { opacity: 1; }
+            to { transform: translateY(120%); opacity: 0; }
+        }
+        .settlement-partner-card:hover::after {
+            animation-play-state: running;
+        }
+        .partner-map-link {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa; /* blue-400 */
+            font-weight: 600;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .partner-map-link:hover {
+            background: rgba(59, 130, 246, 0.25);
+            color: #93c5fd; /* blue-300 */
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        /* --- D. FINAL AUTHORIZATION & DISPATCH PANEL --- */
+        #dispatch-btn.ready-to-launch {
+            background: var(--gradient-gold);
+            color: var(--background-dark);
+            animation: pulse-gold 2s infinite;
+        }
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        /* ========================================================================= */
         /* === PINNACLE MISSION CONTROL ACCORDION ENGINE v1.0 === */
         /* ========================================================================= */
         .mission-stage {
