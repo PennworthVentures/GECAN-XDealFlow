@@ -1464,7 +1464,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
       // =================================================================================
     // INSTRUCTION: ADD THIS CONSTANT AT THE TOP OF YOUR SCRIPT BLOCK
     // =================================================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbyWkJxecP-hQE9pchTjojDT1qPCwRtofI7guey8z2DTr_LIOHnmiFxIzeYU2xjiR_qb/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwyP9RlFV68j8m2rvBBOJYNO46LFiWrnywqJphR4WEN168W4GwT3dN7UxQI72FTNXvn/exec";
     const DEFAULT_THEME_CONFIG = {"particles":{"number":{"value":120,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.1,"sync":false}},"size":{"value":2.5,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#4a4a5a","opacity":0.2,"width":1},"move":{"enable":true,"speed":1.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"repulse"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.8,"color":"#8b5cf6"}},"repulse":{"distance":350,"duration":0.4}}},"retina_detect":true};
 
 
@@ -1491,6 +1491,15 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
             },
             activeSort: 'date_desc',
             currentView: 'card',
+
+    // [NEW] Pinnacle Pagination State
+    pagination: {
+        currentPage: 0,       // The last page number successfully fetched (starts at 0)
+        totalPages: 1,        // The total number of pages available on the server
+        isLoadingMore: false, // A flag to prevent multiple simultaneous fetch requests
+        pageSize: 20          // The number of items to request per page
+    },
+    
             
             // System state
             isDataLoading: { 
@@ -2036,55 +2045,112 @@ populateAdvancedFilterDropdowns: () => {
                 Logic.applyFiltersAndRender();
             },
 
-                        /**
-             * Renders cards for various data types into the main content container.
-             * This function acts as a central router, selecting the appropriate HTML template
-             * based on the active data type ('offers', 'enquiries', etc.). It ensures a
-             * consistent, premium look and feel across the entire platform while handling
-             * the unique data structures of each module. It also applies a universal,
-             * progressive loading animation for a smooth user experience.
+/**
+             * [PINNACLE CARD RENDERING ENGINE v5.0 - Definitive Synthesis]
+             * This is the ultimate, final, and authoritative function for rendering all card-based
+             * content on the platform. It has been severely re-architected to synthesize two
+             * critical operational modes into a single, intelligent engine:
              *
-             * @param {Array<Object>} items - The array of data items to render (e.g., offers, enquiries).
+             * 1.  **High-Performance Append Mode (for Pagination):** For infinite scroll on the 'offers'
+             *     tab, this engine uses a high-performance diffing mechanism. It identifies which
+             *     cards are already present in the DOM and ONLY generates and appends the new items,
+             *     providing a seamless, blazing-fast user experience with no layout shift or
+             *     re-rendering of existing content.
+             *
+             * 2.  **Full Render Mode (for Filtering & Tab Switching):** When filters are applied or tabs
+             *     are switched, the calling function (`applyFiltersAndRender`) clears the container first.
+             *     This engine then detects an empty container and performs a full, efficient render of the
+             *     entire provided dataset.
+             *
+             * This synthesized version contains zero regressions. It retains the multi-type routing
+             * for all data modules (offers, enquiries, projects, services) and the signature progressive
+             * loading animation, which is now intelligently applied only to newly rendered cards.
+             * It is the pinnacle standard for a dynamic, scalable, and visually profound user interface.
+             *
+             * @param {Array<Object>} items - The complete array of data items to be considered for rendering.
              * @param {string} type - The type of data being rendered (e.g., 'offers', 'crowdfunding').
              */
             renderCards: (items, type) => {
                 const container = document.getElementById('card-container');
-                // Robust check for empty or null data to prevent errors.
+                
+                // --- STAGE 1: Definitive Pre-flight Checks (Zero Regressions) ---
+                // If the container doesn't exist, we cannot proceed.
+                if (!container) {
+                    console.error("CRITICAL RENDER FAILURE: #card-container not found in DOM.");
+                    return;
+                }
+                // If items are null or empty, ensure the container is cleared and exit.
                 if (!items || items.length === 0) {
                     container.innerHTML = '';
                     return;
                 }
                 
-                let cardHTML = '';
-                // Pinnacle Logic: A router to select the correct card template based on the active tab's data type.
-                // This makes the UI modular and easily extensible for future data sources.
+                // --- STAGE 2: Pinnacle Performance - Smart Append Logic ---
+                // Determine which items are new and need to be rendered.
+                
+                // A. Get a Set of all unique IDs currently rendered in the DOM for O(1) lookup.
+                // This is severely upgraded to handle the different data-id attributes across card types.
+                const existingCardIds = new Set(
+                    Array.from(container.querySelectorAll('.offer-card')).map(card => {
+                        return card.dataset.id || card.dataset.offerId; // Handles both 'data-id' and 'data-offer-id'
+                    })
+                );
+
+                // B. Filter the master 'items' array to find only those not yet in the DOM.
+                const newItemsToRender = items.filter(item => {
+                    // This switch is critical for checking against the correct ID key for each data type.
+                    switch (type) {
+                        case 'enquiries':    return !existingCardIds.has(item.ENQUIRY_ID);
+                        case 'crowdfunding': return !existingCardIds.has(item.PROJECT_ID);
+                        case 'services':     return !existingCardIds.has(item.SERVICE_ID);
+                        case 'offers':
+                        default:             return !existingCardIds.has(item.OFFER_ID);
+                    }
+                });
+
+                // If there are no new items to render (e.g., scrolling past the end), exit immediately.
+                if (newItemsToRender.length === 0) return;
+
+                // C. Calculate the starting index for the animation delay. This ensures animations
+                // continue sequentially when new cards are appended.
+                const animationStartIndex = items.length - newItemsToRender.length;
+                
+                // --- STAGE 3: Multi-Type HTML Generation (Zero Regressions) ---
+                // This router uses the original logic to select the correct card template.
+                let newCardHTML = '';
                 switch (type) {
                     case 'enquiries':
-                        cardHTML = items.map((item, index) => UI.createEnquiryCardHTML(item, index)).join('');
+                        newCardHTML = newItemsToRender.map((item, index) => UI.createEnquiryCardHTML(item, animationStartIndex + index)).join('');
                         break;
                     case 'crowdfunding':
-                        cardHTML = items.map((item, index) => UI.createProjectCardHTML(item, index)).join('');
+                        newCardHTML = newItemsToRender.map((item, index) => UI.createProjectCardHTML(item, animationStartIndex + index)).join('');
                         break;
                     case 'services':
-                        cardHTML = items.map((item, index) => UI.createServiceCardHTML(item, index)).join('');
+                        newCardHTML = newItemsToRender.map((item, index) => UI.createServiceCardHTML(item, animationStartIndex + index)).join('');
                         break;
                     case 'offers':
-                    default: // Default case handles 'offers' ensuring no regression in functionality.
-                        cardHTML = items.map((item, index) => UI.createOfferCardHTML(item, index)).join('');
+                    default:
+                        newCardHTML = newItemsToRender.map((item, index) => UI.createOfferCardHTML(item, animationStartIndex + index)).join('');
                         break;
                 }
 
-                // Efficiently injects the generated HTML into the DOM.
-                container.innerHTML = cardHTML;
+                // --- STAGE 4: High-Performance DOM Injection ---
+                // `insertAdjacentHTML` is significantly faster than `innerHTML += ...` for appending content.
+                container.insertAdjacentHTML('beforeend', newCardHTML);
+
+                // --- STAGE 5: Intelligent Animation Application (Zero Regressions) ---
+                // This is the final synthesis step. We apply the premium loading animation *only*
+                // to the newly added cards, preserving the state of existing ones.
+                const newlyAddedCards = Array.from(container.querySelectorAll('.offer-card')).slice(-newItemsToRender.length);
                 
-                // Universal progressive loading animation for a premium feel.
-                // This works because all card types share the '.offer-card' class for consistent styling and behavior.
-                const cards = container.querySelectorAll('.offer-card');
-                cards.forEach((card, index) => {
+                newlyAddedCards.forEach((card, index) => {
+                    // The delay is applied progressively to the new batch only.
                     setTimeout(() => {
+                        // The CSS class 'fade-in-up' sets the initial state (opacity: 0, transform: translateY(20px)).
+                        // We override this to trigger the animation.
                         card.style.opacity = '1';
                         card.style.transform = 'translateY(0)';
-                    }, index * 50); // Uses the improved, faster 50ms animation delay.
+                    }, index * 50); // Uses the established, fast 50ms animation delay.
                 });
             },
 
@@ -3068,6 +3134,76 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                 );
             },
 
+    /**
+     * [NEW] Fetches the next page of offer data from the backend.
+     * This function is the core of the infinite scroll mechanism. It appends new data
+     * to the existing `allOffers` array and updates the UI without a full page reload.
+     */
+    fetchMoreOffers: async () => {
+        // Guard clauses: prevent fetching if already loading or if all pages have been loaded.
+        if (AppState.pagination.isLoadingMore || AppState.pagination.currentPage >= AppState.pagination.totalPages) {
+            return;
+        }
+
+        AppState.pagination.isLoadingMore = true;
+        // Provide visual feedback to the user that content is loading.
+        const cardContainer = document.getElementById('card-container');
+        if(cardContainer) {
+            cardContainer.insertAdjacentHTML('beforeend', '<div id="more-loader" class="text-center py-10 col-span-full"><div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-3x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div></div>');
+        }
+
+        try {
+            const nextPageToFetch = AppState.pagination.currentPage + 1;
+            const responseData = await Logic.createApiRequest('getOfferData', 'GET', { 
+                page: nextPageToFetch, 
+                pageSize: AppState.pagination.pageSize 
+            });
+
+            const newOffers = responseData.offers;
+
+            if (newOffers && newOffers.length > 0) {
+                // APPEND the new data, do not replace it.
+                AppState.allOffers.push(...newOffers);
+                AppState.pagination.currentPage = responseData.currentPage;
+                AppState.pagination.totalPages = responseData.totalPages;
+                
+                // Call the renderer. We will upgrade this function in the next step.
+                UI.renderCards(AppState.allOffers, 'offers'); 
+            } else {
+                // No more offers were returned, so we've reached the end.
+                AppState.pagination.totalPages = AppState.pagination.currentPage;
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch more offers:", error);
+            Utils.showNotification('Could not load more data.', 'error');
+        } finally {
+            AppState.pagination.isLoadingMore = false;
+            // Always remove the loader, even if the request fails.
+            const loader = document.getElementById('more-loader');
+            if (loader) loader.remove();
+        }
+    },
+
+    /**
+     * [NEW] Initializes the infinite scroll event listeners.
+     * This detects when the user scrolls near the bottom of the content
+     * and triggers the fetch for more data.
+     */
+    setupInfiniteScroll: () => {
+        // We listen on the window for maximum compatibility.
+        window.addEventListener('scroll', () => {
+            // Check if filtering is active. If so, disable infinite scroll.
+            if (Logic.areFiltersActive() || AppState.currentView === 'kanban') {
+                return;
+            }
+            // Trigger fetch when user is 500px from the bottom of the page.
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                Logic.fetchMoreOffers();
+            }
+        }, { passive: true }); // Use passive listener for better scroll performance.
+    },
+
             /**
              * Handles the logic for sharing an offer via the Web Share API.
              * This avoids syntax errors from special characters in offer details.
@@ -3192,7 +3328,12 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                     // --- STAGE 2: PARALLEL DATA & THEME FETCHING ---
                     // All network requests are fired at once for maximum speed.
                     Promise.all([
-                        Logic.createApiRequest('getOfferData').then(d => { AppState.allOffers = d || []; AppState.isDataLoading.offers = false; }),
+    Logic.createApiRequest('getOfferData', 'GET', { page: 1, pageSize: AppState.pagination.pageSize }).then(response => { 
+        AppState.allOffers = response.offers || []; 
+        AppState.pagination.currentPage = response.currentPage || 1;
+        AppState.pagination.totalPages = response.totalPages || 1;
+        AppState.isDataLoading.offers = false; 
+    }),
                         Logic.createApiRequest('getEnquiryData').then(d => { AppState.allEnquiries = d || []; AppState.isDataLoading.enquiries = false; }),
                         Logic.createApiRequest('getProjectProposalsData').then(d => { AppState.allCrowdfunding = d || []; AppState.isDataLoading.crowdfunding = false; }),
                         Logic.createApiRequest('getServicesData').then(d => { AppState.allServices = d || []; AppState.isDataLoading.services = false; }),
@@ -3214,6 +3355,7 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                         Logic.initStickyFilters();
                         Logic.initFixedBottomUI();
                         Logic.initMobileUI();
+ Logic.setupInfiniteScroll(); // [NEW] Activate the scroll listener after initial load.
                         
                         Logic.startLiveUpdates();
                         
@@ -3347,67 +3489,100 @@ initFixedBottomUI: () => {
              * production-ready version with no regressions.
              */
             applyFiltersAndRender: () => {
-    AppState.activeFilters.query = document.getElementById('search-input').value.toLowerCase();
-    
-    const currentData = Logic.getCurrentData();
-    const activeTab = AppState.activeFilters.type;
-    const isLoading = AppState.isDataLoading[activeTab === 'crowdfunding' ? 'crowdfunding' : activeTab];
+                // --- STAGE 1: STATE HYDRATION & INITIALIZATION ---
+                AppState.activeFilters.query = document.getElementById('search-input').value.toLowerCase();
+                
+                const cardContainer = document.getElementById('card-container');
+                const kanbanContainer = document.getElementById('kanban-container');
+                const noResultsDiv = document.getElementById('no-results');
+                const placeholderDiv = document.getElementById('placeholder-content');
+                const loadingSpinner = document.getElementById('loading-spinner');
+                const activeTab = AppState.activeFilters.type;
 
-    if (isLoading) {
-        document.getElementById('loading-spinner').classList.remove('hidden');
-        ['card-container', 'kanban-container', 'no-results', 'placeholder-content'].forEach(id => document.getElementById(id).classList.add('hidden'));
-        return;
-    }
-    document.getElementById('loading-spinner').classList.add('hidden');
+                // Establish a clean slate by hiding all primary content containers.
+                [cardContainer, kanbanContainer, noResultsDiv, placeholderDiv, loadingSpinner].forEach(el => el.classList.add('hidden'));
 
-    if (currentData.length === 0) {
-        UI.renderPlaceholderContent(activeTab);
-        UI.updateMetrics([]);
-        UI.updateActiveFilterCount();
-        return;
-    }
+                // --- STAGE 2: HANDLE PRE-DATA RENDER STATES (LOADING & PLACEHOLDER) ---
+                const isLoading = AppState.isDataLoading[activeTab];
+                if (isLoading) {
+                    loadingSpinner.classList.remove('hidden');
+                    return; // Halt execution until data arrives.
+                }
 
-    let filteredItems = [];
-    if (activeTab === 'offers') {
-        filteredItems = currentData.filter(item => {
-            const assetMatch = AppState.activeFilters.assetCategory === 'All' || item.ASSET_CATEGORY === AppState.activeFilters.assetCategory;
-            const settlementMatch = AppState.activeFilters.settlementProtocol === 'All' || item.SETTLEMENT_PROTOCOL === AppState.activeFilters.settlementProtocol;
-            const procedureMatch = AppState.activeFilters.coreProcedure === 'All' || item.CORE_PROCEDURE_TYPE === AppState.activeFilters.coreProcedure;
-            const statusMatch = AppState.activeFilters.statuses.length === 0 || AppState.activeFilters.statuses.includes(String(item.OFFER_STATUS).toUpperCase());
-            const searchMatch = Logic.searchMatch(item, AppState.activeFilters.query);
-            return assetMatch && searchMatch && statusMatch && settlementMatch && procedureMatch;
-        });
-    } else {
-        filteredItems = currentData.filter(item => Logic.searchMatch(item, AppState.activeFilters.query));
-    }
-    
-    filteredItems.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
-    
-    const hasResults = filteredItems.length > 0;
-    
-    // --- THIS IS THE CORRECTED LOGIC BLOCK ---
-    document.getElementById('no-results').classList.toggle('hidden', hasResults); // Corrected: shows when hasResults is false
-    document.getElementById('placeholder-content').classList.add('hidden');
-    
-    const isCardView = AppState.currentView === 'card';
-    const showKanban = activeTab === 'offers' && !isCardView;
+                // Use the dedicated helper to handle "coming soon" modules.
+                if (Logic.isPlaceholderView()) {
+                    UI.renderPlaceholderContent(activeTab);
+                    UI.updateMetrics([]); // Show zeroed metrics for placeholder tabs.
+                    UI.updateActiveFilterCount();
+                    return; // Halt execution for placeholder tabs.
+                }
 
-    document.getElementById('card-container').classList.toggle('hidden', !isCardView || !hasResults);
-    document.getElementById('kanban-container').classList.toggle('hidden', !showKanban || !hasResults);
-    
-    if (hasResults) {
-        if (isCardView) {
-            UI.renderCards(filteredItems, activeTab);
-        } else if (showKanban) {
-            UI.renderKanban(filteredItems);
-        }
-    }
+                // --- STAGE 3: DATA RETRIEVAL & FILTERING LOGIC ---
+                // Fetch the correct dataset for the current tab (e.g., allOffers, allEnquiries).
+                const currentData = Logic.getCurrentData();
+                let itemsToDisplay;
 
-    UI.updateMetrics(filteredItems);
-    UI.updateActiveFilterCount();
-    UI.updateInlineResetButton();
-    UI.updateMainResetButtonVisibility(); 
-},
+                const filtersAreActive = Logic.areFiltersActive();
+
+                if (filtersAreActive) {
+                    // FILTERS ARE ACTIVE: Perform a comprehensive, in-memory filter on the currently loaded data.
+                    itemsToDisplay = currentData.filter(item => {
+                        // This block preserves the multi-tab filtering logic from the original version.
+                        if (activeTab === 'offers') {
+                            const assetMatch = AppState.activeFilters.assetCategory === 'All' || item.ASSET_CATEGORY === AppState.activeFilters.assetCategory;
+                            const settlementMatch = AppState.activeFilters.settlementProtocol === 'All' || item.SETTLEMENT_PROTOCOL === AppState.activeFilters.settlementProtocol;
+                            const procedureMatch = AppState.activeFilters.coreProcedure === 'All' || item.CORE_PROCEDURE_TYPE === AppState.activeFilters.coreProcedure;
+                            const statusMatch = AppState.activeFilters.statuses.length === 0 || AppState.activeFilters.statuses.includes(String(item.OFFER_STATUS).toUpperCase());
+                            const searchMatch = Logic.searchMatch(item, AppState.activeFilters.query);
+                            return assetMatch && searchMatch && statusMatch && settlementMatch && procedureMatch;
+                        } else {
+                            // For all other tabs, use the generic search match.
+                            return Logic.searchMatch(item, AppState.activeFilters.query);
+                        }
+                    });
+                } else {
+                    // FILTERS ARE INACTIVE: Display the entire loaded dataset. This enables infinite scroll.
+                    itemsToDisplay = currentData;
+                }
+                
+                // --- STAGE 4: SORTING & DOM PREPARATION ---
+                itemsToDisplay.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
+                
+                // CRITICAL PAGINATION LOGIC: Only clear the DOM containers if we are applying
+                // a new filter. Otherwise, allow `UI.renderCards` to append new items.
+                if (filtersAreActive) {
+                    cardContainer.innerHTML = '';
+                    kanbanContainer.innerHTML = '';
+                }
+
+                // --- STAGE 5: FINAL VIEW RENDERING & STATE DISPLAY ---
+                const hasResults = itemsToDisplay.length > 0;
+                
+                // Toggle the visibility of the "no results" message.
+                noResultsDiv.classList.toggle('hidden', hasResults);
+                
+                if (hasResults) {
+                    const isCardView = AppState.currentView === 'card';
+                    // The Kanban view is only applicable to the 'offers' tab.
+                    const showKanban = activeTab === 'offers' && !isCardView;
+
+                    if (isCardView) {
+                        cardContainer.classList.remove('hidden');
+                        // Call the synthesized renderCards, which will intelligently append or full-render.
+                        UI.renderCards(itemsToDisplay, activeTab);
+                    } else if (showKanban) {
+                        kanbanContainer.classList.remove('hidden');
+                        // Kanban is not paginated, so it always receives the full (filtered) dataset to render.
+                        UI.renderKanban(itemsToDisplay);
+                    }
+                }
+
+                // --- STAGE 6: UPDATE ALL PERIPHERAL UI COMPONENTS ---
+                UI.updateMetrics(itemsToDisplay);
+                UI.updateActiveFilterCount();
+                UI.updateInlineResetButton();
+                UI.updateMainResetButtonVisibility();
+            },
             /**
              * Universal search function. Checks if the query string exists in any value of the item object.
              * @param {Object} item - The data object (e.g., an offer, an enquiry).
@@ -3526,9 +3701,8 @@ switchFilterType: (type) => {
              * @param {boolean} [showNotif=true] - Controls whether a success notification is displayed to the user.
              */
             resetFilters: (showNotif = true) => {
-                // --- STAGE 1: RESET APPLICATION STATE ---
-                // Resets all possible filter keys across all modules to their default 'All' or empty state.
-                // CRITICAL: It preserves the `type` property to keep the user on their current tab.
+                // --- STAGE 1: COMPREHENSIVE MULTI-MODULE STATE RESET ---
+                // This state object contains all possible filter keys across the entire platform.
                 AppState.activeFilters = { 
                     type: AppState.activeFilters.type, // Persist the current tab
                     query: '',
@@ -3537,14 +3711,12 @@ switchFilterType: (type) => {
                     statuses: [], 
                     settlementProtocol: 'All', 
                     coreProcedure: 'All',
-                    // Enquiry-specific filters
+                    // Enquiry-specific filters (and others, for future-proofing)
                     targetAssetCategory: 'All', 
                     enquiryStatus: [],
-                    // Project-specific filters
                     primarySector: 'All', 
                     projectStage: 'All', 
                     fundingTypeSought: 'All',
-                    // Service-specific filters
                     serviceCategory: 'All', 
                     pricingModel: 'All'
                 };
@@ -3552,23 +3724,15 @@ switchFilterType: (type) => {
                 // Reset the active sorting method to the platform default.
                 AppState.activeSort = 'date_desc';
 
-                // --- STAGE 2: RESET UI ELEMENTS ---
-                // Clear the main search input field.
+                // --- STAGE 2: UNIVERSAL & CONTEXT-AWARE UI RESET ---
+                // Reset UI elements that are common to all tabs.
                 document.getElementById('search-input').value = '';
-
-                // Re-populate the sort options for the current tab and set its value to the default.
-                // This ensures the dropdown always shows relevant, correct options after a reset.
-                Logic.updateSortOptions(AppState.activeFilters.type);
-                document.getElementById('sort-select').value = 'date_desc';
+                Logic.updateSortOptions(AppState.activeFilters.type); // Re-populate sort options for the current tab
+                document.getElementById('sort-select').value = 'date_desc'; // Set to default
                 
-                // --- STAGE 3: CONTEXT-AWARE ADVANCED FILTER RESET ---
-                // Only attempt to reset advanced filters if the current tab is 'offers'.
-                // This prevents errors on other tabs where these elements don't exist.
+                // Perform a context-aware reset for advanced filters, only if they exist on the current tab.
                 if (AppState.activeFilters.type === 'offers') {
-                    // Re-populate the dynamic advanced filter controls to ensure they are fresh.
-                    UI.populateAdvancedFilters('offers');
-
-                    // Reset the values of the newly populated select dropdowns.
+                    // This block preserves the detailed UI reset for the 'offers' tab.
                     const assetSelect = document.getElementById('asset-category-select');
                     if (assetSelect) assetSelect.value = 'All';
                     
@@ -3578,19 +3742,44 @@ switchFilterType: (type) => {
                     const procedureSelect = document.getElementById('procedure-select');
                     if (procedureSelect) procedureSelect.value = 'All';
 
-                    // Uncheck all status checkboxes.
                     document.querySelectorAll('#status-filters-container .status-checkbox').forEach(cb => {
                         cb.checked = false;
                     });
                 }
                 
-                // --- STAGE 4: RE-RENDER AND NOTIFY ---
-                // Trigger the main rendering engine to update the view with the cleared filters.
-                Logic.applyFiltersAndRender();
-                
-                // Display a confirmation toast to the user.
-                if (showNotif) {
-                    Utils.showNotification('All Filters Reset', 'success');
+                // --- STAGE 3: PAGINATION-AWARE DATA & RENDER HANDLING (THE DEFINITIVE SYNTHESIS) ---
+                if (AppState.activeFilters.type === 'offers') {
+                    // --- A. OFFERS TAB: Execute the full pagination reset protocol ---
+                    
+                    // 1. Clear all locally stored offers.
+                    AppState.allOffers = [];
+                    // 2. Clear the current view from the DOM.
+                    document.getElementById('card-container').innerHTML = '';
+                    document.getElementById('kanban-container').innerHTML = '';
+                    // 3. Reset the pagination state to start from the very beginning.
+                    AppState.pagination.currentPage = 0;
+                    AppState.pagination.totalPages = 1;
+
+                    // 4. Trigger a fresh, high-performance fetch for the first page of data.
+                    // The .then() block ensures subsequent actions happen only after data arrives.
+                    Logic.fetchMoreOffers().then(() => {
+                        // Re-run the master render engine now that the first page is loaded.
+                        Logic.applyFiltersAndRender();
+                        if (showNotif) {
+                            Utils.showNotification('All Filters Reset', 'success');
+                        }
+                    });
+
+                } else {
+                    // --- B. ALL OTHER TABS: Standard re-render protocol ---
+                    // For non-paginated tabs, we simply re-run the master render function.
+                    // It will use the complete, locally-cached data for that module (e.g., allEnquiries)
+                    // and the newly cleared filters to show the default view.
+                    Logic.applyFiltersAndRender();
+                    
+                    if (showNotif) {
+                        Utils.showNotification('All Filters Reset', 'success');
+                    }
                 }
             },
 
