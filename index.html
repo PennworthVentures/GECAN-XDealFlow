@@ -1693,7 +1693,14 @@ init: () => {
     // --- STAGE 2: PARALLEL DATA & THEME FETCHING via API_URL ---
     // All API calls are dispatched concurrently for maximum loading speed.
     Promise.all([
-        Logic.createApiRequest('getOfferData', 'GET').then(data => { AppState.allOffers = data || []; AppState.isDataLoading.offers = false; }),
+    Logic.createApiRequest('getOfferData', 'GET', { page: 1, pageSize: AppState.pagination.pageSize }).then(response => { 
+        // CRITICAL: We assign `response.offers` (the Array) to AppState.allOffers, not the entire `response` object.
+        AppState.allOffers = response.offers || []; 
+        AppState.pagination.currentPage = response.currentPage || 1;
+        AppState.pagination.totalPages = response.totalPages || 1;
+        AppState.isDataLoading.offers = false; 
+    }),
+    
         Logic.createApiRequest('getEnquiryData', 'GET').then(data => { AppState.allEnquiries = data || []; AppState.isDataLoading.enquiries = false; }),
         Logic.createApiRequest('getProjectProposalsData', 'GET').then(data => { AppState.allCrowdfunding = data || []; AppState.isDataLoading.crowdfunding = false; }),
         Logic.createApiRequest('getServicesData', 'GET').then(data => { AppState.allServices = data || []; AppState.isDataLoading.services = false; }),
@@ -1732,6 +1739,7 @@ init: () => {
         Logic.initStickyFilters();
         Logic.initFixedFooter();
         Logic.initMobileUI();
+        Logic.setupInfiniteScroll();
         
         Logic.startLiveUpdates(); // Start polling for live data changes
         
@@ -3146,7 +3154,6 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
         }
 
         AppState.pagination.isLoadingMore = true;
-        // Provide visual feedback to the user that content is loading.
         const cardContainer = document.getElementById('card-container');
         if(cardContainer) {
             cardContainer.insertAdjacentHTML('beforeend', '<div id="more-loader" class="text-center py-10 col-span-full"><div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-3x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div></div>');
@@ -3159,18 +3166,24 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                 pageSize: AppState.pagination.pageSize 
             });
 
+            // --- MILITARY-GRADE SAFEGUARD ---
+            // This is the definitive fix. We ensure AppState.allOffers is an array before pushing.
+            // This protects against any state corruption that might have occurred.
+            if (!Array.isArray(AppState.allOffers)) {
+                _logPlatformEvent('CRITICAL', 'State Corruption Detected', 'AppState.allOffers was not an array. Resetting.');
+                AppState.allOffers = []; 
+            }
+
             const newOffers = responseData.offers;
 
             if (newOffers && newOffers.length > 0) {
-                // APPEND the new data, do not replace it.
+                // Now, this .push() operation is guaranteed to succeed.
                 AppState.allOffers.push(...newOffers);
                 AppState.pagination.currentPage = responseData.currentPage;
                 AppState.pagination.totalPages = responseData.totalPages;
                 
-                // Call the renderer. We will upgrade this function in the next step.
                 UI.renderCards(AppState.allOffers, 'offers'); 
             } else {
-                // No more offers were returned, so we've reached the end.
                 AppState.pagination.totalPages = AppState.pagination.currentPage;
             }
 
@@ -3179,7 +3192,6 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
             Utils.showNotification('Could not load more data.', 'error');
         } finally {
             AppState.pagination.isLoadingMore = false;
-            // Always remove the loader, even if the request fails.
             const loader = document.getElementById('more-loader');
             if (loader) loader.remove();
         }
@@ -3952,14 +3964,25 @@ switchFilterType: (type) => {
             },
 
             onOfferDataLoaded: (data) => {
-                if (!data) return;
+                if (!data || !data.offers) return; // Guard against empty or invalid responses.
+                
                 const isFirstLoad = AppState.isDataLoading.offers;
                 AppState.isDataLoading.offers = false;
-                if (!isFirstLoad && JSON.stringify(AppState.allOffers) !== JSON.stringify(data)) {
-                    Utils.showNotification('Live offers have been updated!', 'info');
-                    AppState.allOffers = data;
-                    Logic.applyFiltersAndRender();
+
+                // Create a simple representation of current and new offer IDs for comparison.
+                const currentOfferIds = JSON.stringify(AppState.allOffers.map(o => o.OFFER_ID));
+                const newOfferIds = JSON.stringify((data.offers || []).map(o => o.OFFER_ID));
+
+                // On subsequent loads (not the first one), if the first page of data has changed, show the toast.
+                if (!isFirstLoad && currentOfferIds !== newOfferIds) {
+                    const toast = document.getElementById('live-update-toast');
+                    if (toast) toast.classList.remove('hidden'); // Use classList.remove instead of style.display
+                    Utils.showNotification('New offer data is available!', 'info');
                 }
+                
+                // CRITICAL: We DO NOT update AppState.allOffers here to avoid corrupting the
+                // user's currently scrolled list. The user decides when to refresh.
+                
                 AppState.lastUpdateTimes.offers = new Date();
             },
 
