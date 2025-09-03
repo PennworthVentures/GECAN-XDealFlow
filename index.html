@@ -1494,10 +1494,11 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
 
     // [NEW] Pinnacle Pagination State
     pagination: {
-        currentPage: 0,       // The last page number successfully fetched (starts at 0)
-        totalPages: 1,        // The total number of pages available on the server
-        isLoadingMore: false, // A flag to prevent multiple simultaneous fetch requests
-        pageSize: 20          // The number of items to request per page
+        currentPage: 0,
+        totalPages: 1,
+        isLoadingMore: false,
+        pageSize: 20,
+        totalItems: 0 // [NEW] This will store the true total count from the server.
     },
     
             
@@ -1694,10 +1695,10 @@ init: () => {
     // All API calls are dispatched concurrently for maximum loading speed.
     Promise.all([
     Logic.createApiRequest('getOfferData', 'GET', { page: 1, pageSize: AppState.pagination.pageSize }).then(response => { 
-        // CRITICAL: We assign `response.offers` (the Array) to AppState.allOffers, not the entire `response` object.
         AppState.allOffers = response.offers || []; 
         AppState.pagination.currentPage = response.currentPage || 1;
         AppState.pagination.totalPages = response.totalPages || 1;
+        AppState.pagination.totalItems = response.totalOffers || 0; // [CRITICAL] Capture the total count.
         AppState.isDataLoading.offers = false; 
     }),
     
@@ -2210,17 +2211,37 @@ populateAdvancedFilterDropdowns: () => {
             
                         // === REPLACE THIS ENTIRE FUNCTION IN YOUR SCRIPT ===
             updateMetrics: (offers) => {
-                const metrics = Logic.calculateMetrics(offers);
+                const activeTab = AppState.activeFilters.type;
+                let totalItemsOverride = null;
+
+                // --- STAGE 1: INTELLIGENT DATA SOURCE SELECTION ---
+                // This is the core of the synthesis. We determine if we need to use the
+                // server-side total count based on the active tab.
+                if (activeTab === 'offers') {
+                    // For the paginated 'offers' tab, we use the true total count from the server.
+                    totalItemsOverride = AppState.pagination.totalItems;
+                }
+                // For all other non-paginated tabs, totalItemsOverride remains null, and the
+                // calculateMetrics function will correctly use the length of the `offers` array.
+
+                // --- STAGE 2: CALL THE MASTER CALCULATION ENGINE ---
+                // The `calculateMetrics` function is designed to handle this override gracefully.
+                const metrics = Logic.calculateMetrics(offers, totalItemsOverride);
                 const container = document.getElementById('metrics-bar');
                 
-                // Enhanced data with specific color variables for the new CSS
+                // --- STAGE 3: DATA PREPARATION WITH PINNACLE FORMATTING ---
+                // This `metricsData` array incorporates the superior toLocaleString() formatting
+                // for enhanced readability, which is a key feature of the upgraded version.
                 const metricsData = [
-                    { label: 'Total Items', value: metrics.totalItems, icon: 'fa-chart-bar', theme: '--primary-azure' },
-                    { label: 'Active Items', value: metrics.activeItems, icon: 'fa-check-circle', theme: '--status-active' },
+                    { label: 'Total Items', value: metrics.totalItems.toLocaleString('en-US'), icon: 'fa-chart-bar', theme: '--primary-azure' },
+                    { label: 'Active Items', value: metrics.activeItems.toLocaleString('en-US'), icon: 'fa-check-circle', theme: '--status-active' },
                     { label: 'Total Volume', value: Utils.formatNumber(metrics.totalVolume), icon: 'fa-cubes', theme: '--primary-amethyst' },
                     { label: 'Avg. Confidence', value: metrics.avgConfidence.toFixed(1), icon: 'fa-star', theme: '--status-pending' }
                 ];
                 
+                // --- STAGE 4: HIGH-FIDELITY TEMPLATE RENDERING (ZERO REGRESSIONS) ---
+                // The HTML structure is preserved from the original, proven version, ensuring
+                // visual consistency and flawless rendering of the 3D metrics items.
                 container.innerHTML = metricsData.map(m => `
                     <div class="metrics-item" style="--metrics-color: var(${m.theme}); --metrics-glow: var(${m.theme.replace('primary', 'glow').replace('status', 'glow')});">
                         <div class="flex items-center justify-between w-full">
@@ -3147,55 +3168,74 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
      * This function is the core of the infinite scroll mechanism. It appends new data
      * to the existing `allOffers` array and updates the UI without a full page reload.
      */
-    fetchMoreOffers: async () => {
-        // Guard clauses: prevent fetching if already loading or if all pages have been loaded.
-        if (AppState.pagination.isLoadingMore || AppState.pagination.currentPage >= AppState.pagination.totalPages) {
-            return;
-        }
+            fetchMoreOffers: async () => {
+                // --- STAGE 1: STATE-AWARE GUARD CLAUSES (Zero Regressions) ---
+                // Prevent fetching if already loading or if all pages have been loaded.
+                if (AppState.pagination.isLoadingMore || AppState.pagination.currentPage >= AppState.pagination.totalPages) {
+                    return;
+                }
 
-        AppState.pagination.isLoadingMore = true;
-        const cardContainer = document.getElementById('card-container');
-        if(cardContainer) {
-            cardContainer.insertAdjacentHTML('beforeend', '<div id="more-loader" class="text-center py-10 col-span-full"><div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-3x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div></div>');
-        }
+                AppState.pagination.isLoadingMore = true;
+                const cardContainer = document.getElementById('card-container');
+                // Provide immediate visual feedback to the user.
+                if(cardContainer) {
+                    cardContainer.insertAdjacentHTML('beforeend', '<div id="more-loader" class="text-center py-10 col-span-full"><div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-3x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div></div>');
+                }
 
-        try {
-            const nextPageToFetch = AppState.pagination.currentPage + 1;
-            const responseData = await Logic.createApiRequest('getOfferData', 'GET', { 
-                page: nextPageToFetch, 
-                pageSize: AppState.pagination.pageSize 
-            });
+                try {
+                    // --- STAGE 2: HIGH-PERFORMANCE DATA FETCH (Zero Regressions) ---
+                    const nextPageToFetch = AppState.pagination.currentPage + 1;
+                    const responseData = await Logic.createApiRequest('getOfferData', 'GET', { 
+                        page: nextPageToFetch, 
+                        pageSize: AppState.pagination.pageSize 
+                    });
 
-            // --- MILITARY-GRADE SAFEGUARD ---
-            // This is the definitive fix. We ensure AppState.allOffers is an array before pushing.
-            // This protects against any state corruption that might have occurred.
-            if (!Array.isArray(AppState.allOffers)) {
-                _logPlatformEvent('CRITICAL', 'State Corruption Detected', 'AppState.allOffers was not an array. Resetting.');
-                AppState.allOffers = []; 
-            }
+                    // --- STAGE 3: DATA HYDRATION & STATE MANAGEMENT (Synthesized) ---
+                    
+                    // A. Update the true total item count for metrics accuracy (from Version B).
+                    AppState.pagination.totalItems = responseData.totalOffers || AppState.pagination.totalItems;
 
-            const newOffers = responseData.offers;
+                    // B. Employ the military-grade state safeguard (from Version A).
+                    if (!Array.isArray(AppState.allOffers)) {
+                        _logPlatformEvent('CRITICAL', 'State Corruption Detected', 'AppState.allOffers was not an array. Resetting.');
+                        AppState.allOffers = []; 
+                    }
 
-            if (newOffers && newOffers.length > 0) {
-                // Now, this .push() operation is guaranteed to succeed.
-                AppState.allOffers.push(...newOffers);
-                AppState.pagination.currentPage = responseData.currentPage;
-                AppState.pagination.totalPages = responseData.totalPages;
-                
-                UI.renderCards(AppState.allOffers, 'offers'); 
-            } else {
-                AppState.pagination.totalPages = AppState.pagination.currentPage;
-            }
+                    const newOffers = responseData.offers;
 
-        } catch (error) {
-            console.error("Failed to fetch more offers:", error);
-            Utils.showNotification('Could not load more data.', 'error');
-        } finally {
-            AppState.pagination.isLoadingMore = false;
-            const loader = document.getElementById('more-loader');
-            if (loader) loader.remove();
-        }
-    },
+                    if (newOffers && newOffers.length > 0) {
+                        // C. Append new data and update pagination state (common to both versions).
+                        AppState.allOffers.push(...newOffers);
+                        AppState.pagination.currentPage = responseData.currentPage;
+                        AppState.pagination.totalPages = responseData.totalPages;
+                        
+                        // --- STAGE 4: DEFINITIVE SORT & RE-RENDER PROTOCOL (from Version B) ---
+                        // This is the critical fix to ensure visual order is always correct.
+                        
+                        // 1. Re-sort the entire array after appending new data.
+                        AppState.allOffers.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
+                        
+                        // 2. Clear the container DOM to prepare for the freshly sorted list.
+                        if(cardContainer) cardContainer.innerHTML = '';
+
+                        // 3. Re-render the entire, now perfectly sorted list. `UI.renderCards` is
+                        // optimized to handle this full render operation efficiently.
+                        UI.renderCards(AppState.allOffers, 'offers'); 
+                    } else {
+                        // No more offers were returned, so we've reached the end.
+                        AppState.pagination.totalPages = AppState.pagination.currentPage;
+                    }
+
+                } catch (error) {
+                    console.error("Failed to fetch more offers:", error);
+                    Utils.showNotification('Could not load more data.', 'error');
+                } finally {
+                    // --- STAGE 5: CLEANUP (Zero Regressions) ---
+                    AppState.pagination.isLoadingMore = false;
+                    const loader = document.getElementById('more-loader');
+                    if (loader) loader.remove();
+                }
+            },
 
     /**
      * [NEW] Initializes the infinite scroll event listeners.
@@ -3344,6 +3384,7 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
         AppState.allOffers = response.offers || []; 
         AppState.pagination.currentPage = response.currentPage || 1;
         AppState.pagination.totalPages = response.totalPages || 1;
+        AppState.pagination.totalItems = response.totalOffers || 0; // [CRITICAL] Capture the total count.
         AppState.isDataLoading.offers = false; 
     }),
                         Logic.createApiRequest('getEnquiryData').then(d => { AppState.allEnquiries = d || []; AppState.isDataLoading.enquiries = false; }),
@@ -4156,30 +4197,34 @@ switchView: (view) => {
             },
 
 // INSTRUCTION: REPLACE the entire calculateMetrics function with this robust version.
-calculateMetrics: (items) => {
-    if (!items || items.length === 0) {
-        return { totalItems: 0, activeItems: 0, totalVolume: 0, avgConfidence: 0 };
-    }
-    
-    const totalItems = items.length;
-    
-    const activeItems = items.filter(i => 
-        String(i.OFFER_STATUS || '').toLowerCase().includes('active')
-    ).length;
-    
-    const totalVolume = items.reduce((acc, i) => {
-        // Safe check for volume key before attempting to parse
-        const volume = i.TOTAL_VOLUME_AVAILABLE ? parseFloat(String(i.TOTAL_VOLUME_AVAILABLE).replace(/,/g, '')) || 0 : 0;
-        return acc + volume;
-    }, 0);
-    
-    const avgConfidence = items.length > 0 
-        ? items.reduce((acc, i) => acc + (i.GECAN_CONFIDENCE || 0), 0) / items.length
-        : 0;
-    
-    return { totalItems, activeItems, totalVolume, avgConfidence };
-},
-
+            calculateMetrics: (items, totalItemsOverride) => {
+                // This function is now severely upgraded to handle an override for the total count.
+                if (!items) {
+                    return { totalItems: totalItemsOverride || 0, activeItems: 0, totalVolume: 0, avgConfidence: 0 };
+                }
+                
+                // [DEFINITIVE FIX] The 'Total Items' metric now uses the true server count when available.
+                // If an override is not provided (e.g., for non-paginated tabs), it falls back to the length of the provided array.
+                const totalItems = totalItemsOverride ?? items.length;
+                
+                // All other calculations are performed on the provided 'items' array, which represents
+                // the currently visible or filtered dataset. This is the correct, honest behavior.
+                const activeItems = items.filter(i => 
+                    String(i.OFFER_STATUS || '').toLowerCase().includes('active')
+                ).length;
+                
+                const totalVolume = items.reduce((acc, i) => {
+                    const volume = i.TOTAL_VOLUME_AVAILABLE ? parseFloat(String(i.TOTAL_VOLUME_AVAILABLE).replace(/,/g, '')) || 0 : 0;
+                    return acc + volume;
+                }, 0);
+                
+                const avgConfidence = items.length > 0 
+                    ? items.reduce((acc, i) => acc + (i.GECAN_CONFIDENCE || 0), 0) / items.length
+                    : 0;
+                
+                return { totalItems, activeItems, totalVolume, avgConfidence };
+            },
+            
             /**
              * Resets all filters to their default state while preserving the currently active tab type.
              * This function is aware of the different filter sets and resets them appropriately.
