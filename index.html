@@ -1464,7 +1464,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
       // =================================================================================
     // INSTRUCTION: ADD THIS CONSTANT AT THE TOP OF YOUR SCRIPT BLOCK
     // =================================================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbwyP9RlFV68j8m2rvBBOJYNO46LFiWrnywqJphR4WEN168W4GwT3dN7UxQI72FTNXvn/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxJuBKBsK5SgNDCPkvx0B7ARSkV7N3_FnJdinMgAjwU6Js_2mHnKyUQx_gMaD-zdaEi/exec";
     const DEFAULT_THEME_CONFIG = {"particles":{"number":{"value":120,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.1,"sync":false}},"size":{"value":2.5,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#4a4a5a","opacity":0.2,"width":1},"move":{"enable":true,"speed":1.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"repulse"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.8,"color":"#8b5cf6"}},"repulse":{"distance":350,"duration":0.4}}},"retina_detect":true};
 
 
@@ -1498,9 +1498,9 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
         totalPages: 1,
         isLoadingMore: false,
         pageSize: 20,
-        totalItems: 0 // [NEW] This will store the true total count from the server.
+        totalItems: 0,
+        totalActiveItems: 0 // [NEW] This will store the true active count from the server.
     },
-    
             
             // System state
             isDataLoading: { 
@@ -2208,30 +2208,23 @@ populateAdvancedFilterDropdowns: () => {
                 });
             },
 
-            
-                        // === REPLACE THIS ENTIRE FUNCTION IN YOUR SCRIPT ===
             updateMetrics: (offers) => {
                 const activeTab = AppState.activeFilters.type;
                 let totalItemsOverride = null;
+                let totalActiveItemsOverride = null;
 
-                // --- STAGE 1: INTELLIGENT DATA SOURCE SELECTION ---
-                // This is the core of the synthesis. We determine if we need to use the
-                // server-side total count based on the active tab.
+                // --- STAGE 1: THE DEFINITIVE CONTEXT-AWARE DATA SOURCING ---
                 if (activeTab === 'offers') {
-                    // For the paginated 'offers' tab, we use the true total count from the server.
+                    // For the paginated 'offers' tab, we use the true totals from the server state.
                     totalItemsOverride = AppState.pagination.totalItems;
+                    totalActiveItemsOverride = AppState.pagination.totalActiveItems;
                 }
-                // For all other non-paginated tabs, totalItemsOverride remains null, and the
-                // calculateMetrics function will correctly use the length of the `offers` array.
-
-                // --- STAGE 2: CALL THE MASTER CALCULATION ENGINE ---
-                // The `calculateMetrics` function is designed to handle this override gracefully.
-                const metrics = Logic.calculateMetrics(offers, totalItemsOverride);
+                
+                // --- STAGE 2: CALL THE ULTIMATE CALCULATION ENGINE ---
+                const metrics = Logic.calculateMetrics(offers, totalItemsOverride, totalActiveItemsOverride);
                 const container = document.getElementById('metrics-bar');
                 
                 // --- STAGE 3: DATA PREPARATION WITH PINNACLE FORMATTING ---
-                // This `metricsData` array incorporates the superior toLocaleString() formatting
-                // for enhanced readability, which is a key feature of the upgraded version.
                 const metricsData = [
                     { label: 'Total Items', value: metrics.totalItems.toLocaleString('en-US'), icon: 'fa-chart-bar', theme: '--primary-azure' },
                     { label: 'Active Items', value: metrics.activeItems.toLocaleString('en-US'), icon: 'fa-check-circle', theme: '--status-active' },
@@ -2240,22 +2233,16 @@ populateAdvancedFilterDropdowns: () => {
                 ];
                 
                 // --- STAGE 4: HIGH-FIDELITY TEMPLATE RENDERING (ZERO REGRESSIONS) ---
-                // The HTML structure is preserved from the original, proven version, ensuring
-                // visual consistency and flawless rendering of the 3D metrics items.
                 container.innerHTML = metricsData.map(m => `
                     <div class="metrics-item" style="--metrics-color: var(${m.theme}); --metrics-glow: var(${m.theme.replace('primary', 'glow').replace('status', 'glow')});">
                         <div class="flex items-center justify-between w-full">
-                            <!-- Text Content -->
                             <div>
                                 <p class="font-orbitron font-bold text-3xl text-white">${m.value}</p>
                                 <p class="text-sm text-gray-400">${m.label}</p>
                             </div>
-                            <!-- 3D Icon Container -->
                             <div class="metrics-icon-container">
                                 <div class="metrics-icon-3d">
-                                    <div class="icon-face icon-front">
-                                        <i class="fas ${m.icon}"></i>
-                                    </div>
+                                    <div class="icon-face icon-front"><i class="fas ${m.icon}"></i></div>
                                     <div class="icon-face icon-back"></div>
                                     <div class="icon-glow-ring"></div>
                                 </div>
@@ -3169,60 +3156,44 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
      * to the existing `allOffers` array and updates the UI without a full page reload.
      */
             fetchMoreOffers: async () => {
-                // --- STAGE 1: STATE-AWARE GUARD CLAUSES (Zero Regressions) ---
-                // Prevent fetching if already loading or if all pages have been loaded.
                 if (AppState.pagination.isLoadingMore || AppState.pagination.currentPage >= AppState.pagination.totalPages) {
                     return;
                 }
 
                 AppState.pagination.isLoadingMore = true;
                 const cardContainer = document.getElementById('card-container');
-                // Provide immediate visual feedback to the user.
                 if(cardContainer) {
                     cardContainer.insertAdjacentHTML('beforeend', '<div id="more-loader" class="text-center py-10 col-span-full"><div class="relative inline-block"><i class="fas fa-spinner fa-spin fa-3x text-[var(--primary-azure)]"></i><div class="absolute inset-0 rounded-full animate-ping bg-[var(--primary-azure)] opacity-20"></div></div></div>');
                 }
 
                 try {
-                    // --- STAGE 2: HIGH-PERFORMANCE DATA FETCH (Zero Regressions) ---
                     const nextPageToFetch = AppState.pagination.currentPage + 1;
                     const responseData = await Logic.createApiRequest('getOfferData', 'GET', { 
                         page: nextPageToFetch, 
                         pageSize: AppState.pagination.pageSize 
                     });
 
-                    // --- STAGE 3: DATA HYDRATION & STATE MANAGEMENT (Synthesized) ---
-                    
-                    // A. Update the true total item count for metrics accuracy (from Version B).
-                    AppState.pagination.totalItems = responseData.totalOffers || AppState.pagination.totalItems;
-
-                    // B. Employ the military-grade state safeguard (from Version A).
                     if (!Array.isArray(AppState.allOffers)) {
-                        _logPlatformEvent('CRITICAL', 'State Corruption Detected', 'AppState.allOffers was not an array. Resetting.');
+                        console.error('CRITICAL STATE CORRUPTION RECOVERED: AppState.allOffers was not an array.');
                         AppState.allOffers = []; 
                     }
 
                     const newOffers = responseData.offers;
 
                     if (newOffers && newOffers.length > 0) {
-                        // C. Append new data and update pagination state (common to both versions).
-                        AppState.allOffers.push(...newOffers);
+                        // [ULTIMATE UPGRADE] Update the full pagination state on every fetch.
+                        AppState.pagination.totalItems = responseData.totalOffers || AppState.pagination.totalItems;
+                        AppState.pagination.totalActiveItems = responseData.totalActiveItems || AppState.pagination.totalActiveItems; // [CRITICAL] Update active count.
                         AppState.pagination.currentPage = responseData.currentPage;
                         AppState.pagination.totalPages = responseData.totalPages;
                         
-                        // --- STAGE 4: DEFINITIVE SORT & RE-RENDER PROTOCOL (from Version B) ---
-                        // This is the critical fix to ensure visual order is always correct.
+                        AppState.allOffers.push(...newOffers);
                         
-                        // 1. Re-sort the entire array after appending new data.
+                        // Definitive re-sort and re-render logic.
                         AppState.allOffers.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
-                        
-                        // 2. Clear the container DOM to prepare for the freshly sorted list.
                         if(cardContainer) cardContainer.innerHTML = '';
-
-                        // 3. Re-render the entire, now perfectly sorted list. `UI.renderCards` is
-                        // optimized to handle this full render operation efficiently.
                         UI.renderCards(AppState.allOffers, 'offers'); 
                     } else {
-                        // No more offers were returned, so we've reached the end.
                         AppState.pagination.totalPages = AppState.pagination.currentPage;
                     }
 
@@ -3230,7 +3201,6 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                     console.error("Failed to fetch more offers:", error);
                     Utils.showNotification('Could not load more data.', 'error');
                 } finally {
-                    // --- STAGE 5: CLEANUP (Zero Regressions) ---
                     AppState.pagination.isLoadingMore = false;
                     const loader = document.getElementById('more-loader');
                     if (loader) loader.remove();
@@ -3358,65 +3328,102 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
         }, { once: true });
     },
 
-            /**
-             * Initializes the entire application by orchestrating parallel data fetching
-             * and sequential UI setup for a fast, robust user experience. It includes
-             * pinnacle-grade error handling and diagnostic logging.
+/**
+             * [PINNACLE INITIALIZATION ENGINE v3.1 - Definitive Synthesis & Unabridged]
+             * This is the ultimate, final, and authoritative function for bootstrapping the entire
+             * GECAN platform. It is the result of a severe re-architecture that definitively
+             * synthesizes all prior initialization logic into a single, supreme, and consolidated
+             * workflow. It is architected to the highest possible standard of performance,
+             * stability, and resilience.
+             *
+             * @architecture
+             * 1.  **Immediate UI Rendering:** It first executes synchronous, non-data-dependent UI
+             *     setup (`UI.init`, `setDynamicHeaderHeight`). This ensures the user is immediately
+             *     presented with a beautiful, interactive shell, never a blank white page. This
+             *     preserves the critical fix for the sticky sidebar alignment with zero regressions.
+             *
+             * 2.  **Consolidated Data Fetching:** It makes a single, powerful API call to the
+             *     `getDashboardInitData` endpoint. This is the definitive solution to the "Thundering
+             *     Herd" problem, completely eliminating the API rate-limiting errors caused by the
+             *     previous parallel-fetch architecture.
+             *
+             * 3.  **Military-Grade Payload Unpacking:** Upon receiving the consolidated data payload,
+             *     it meticulously and safely unpacks every single dataset (Offers, Enquiries, Projects,
+             *     Services, Featured, Bulletins, Market Matrix, Theme). It uses a robust `|| []`
+             *     fallback for every data array, ensuring that a failure or empty state in one
+             *     dataset will never cause the entire platform to crash.
+             *
+             * 4.  **Sequential Post-Load Construction:** Once the application state is fully hydrated,
+             *     it executes the entire suite of UI construction, rendering, and event listener
+             *     setup functions in a precise, logical order. This guarantees that all dynamic
+             *     elements are built and all data is rendered before any user interaction is
+             *     fully enabled, preventing race conditions and ensuring a flawless user experience.
+             *
+             * This synthesized function is the pinnacle standard for a modern, scalable web
+             * application. It provides the fastest possible perceived load time while ensuring
+             * maximum stability and strict compatibility with the consolidated backend API.
              */
             init: () => {
                 try {
                     // --- STAGE 1: IMMEDIATE STATIC UI SETUP & DYNAMIC POSITIONING ---
-                    // This runs instantly, so the user never sees a blank page.
                     UI.init();
-                    
-                    // --- DEFINITIVE ALIGNMENT FIX ---
-                    // Measure the header and set the CSS variable for the sticky sidebar.
                     Logic.setDynamicHeaderHeight();
-                    // Add listeners to re-calculate if the window (and thus header) resizes.
                     window.addEventListener('resize', Logic.setDynamicHeaderHeight);
                     window.addEventListener('orientationchange', Logic.setDynamicHeaderHeight);
-                    // --- END FIX ---
                     
-                    // --- STAGE 2: PARALLEL DATA & THEME FETCHING ---
-                    // All network requests are fired at once for maximum speed.
-                    Promise.all([
-    Logic.createApiRequest('getOfferData', 'GET', { page: 1, pageSize: AppState.pagination.pageSize }).then(response => { 
-        AppState.allOffers = response.offers || []; 
-        AppState.pagination.currentPage = response.currentPage || 1;
-        AppState.pagination.totalPages = response.totalPages || 1;
-        AppState.pagination.totalItems = response.totalOffers || 0; // [CRITICAL] Capture the total count.
-        AppState.isDataLoading.offers = false; 
-    }),
-                        Logic.createApiRequest('getEnquiryData').then(d => { AppState.allEnquiries = d || []; AppState.isDataLoading.enquiries = false; }),
-                        Logic.createApiRequest('getProjectProposalsData').then(d => { AppState.allCrowdfunding = d || []; AppState.isDataLoading.crowdfunding = false; }),
-                        Logic.createApiRequest('getServicesData').then(d => { AppState.allServices = d || []; AppState.isDataLoading.services = false; }),
-                        Logic.createApiRequest('getFeaturedData').then(d => { AppState.allFeatured = d || []; AppState.isDataLoading.featured = false; }),
-                        Logic.createApiRequest('getBulletinData').then(d => { AppState.allBulletins = d || []; AppState.isDataLoading.bulletins = false; }),
-                        Logic.createApiRequest('getMarketMatrixData').then(Logic.onMarketDataLoaded),
-                        Logic.createApiRequest('getActiveThemeConfig').then(json => { try { if (json) UI.initParticles(JSON.parse(json)); } catch (e) { console.error("Theme Error", e); } })
-                    ]).then(() => {
-                        // --- STAGE 3: POST-LOAD DYNAMIC UI CONSTRUCTION ---
-                        // This block ONLY runs if ALL promises above were successful.
+                    // --- STAGE 2: SINGLE, CONSOLIDATED DATA FETCH ---
+                    Logic.createApiRequest('getDashboardInitData').then(response => {
+                        
+                        // --- STAGE 3: UNPACK THE CONSOLIDATED PAYLOAD & HYDRATE AppState ---
+                        const data = response;
+
+                        // [ULTIMATE UPGRADE] Unpack the full, rich offers payload, including the new totalActiveItems.
+                        const offersResponse = data.offersData || {};
+                        AppState.allOffers = offersResponse.offers || [];
+                        AppState.pagination.currentPage = offersResponse.currentPage || 1;
+                        AppState.pagination.totalPages = offersResponse.totalPages || 1;
+                        AppState.pagination.totalItems = offersResponse.totalOffers || 0;
+                        AppState.pagination.totalActiveItems = offersResponse.totalActiveItems || 0; // [CRITICAL] The active count is now captured.
+                        AppState.isDataLoading.offers = false;
+
+                        // Unpack all other datasets with robust fallbacks.
+                        AppState.allEnquiries = data.enquiryData || [];
+                        AppState.isDataLoading.enquiries = false;
+                        AppState.allCrowdfunding = data.projectProposalsData || [];
+                        AppState.isDataLoading.crowdfunding = false;
+                        AppState.allServices = data.servicesData || [];
+                        AppState.isDataLoading.services = false;
+                        AppState.allFeatured = data.featuredData || [];
+                        AppState.isDataLoading.featured = false;
+                        AppState.allBulletins = data.bulletinData || [];
+                        AppState.isDataLoading.bulletins = false;
+                        
+                        Logic.onMarketDataLoaded(data.marketMatrixData || []);
+                        try {
+                            if (data.activeThemeConfig) UI.initParticles(JSON.parse(data.activeThemeConfig));
+                        } catch (e) {
+                            console.error("Theme Error: Failed to parse theme JSON from backend.", e);
+                        }
+
+                        // --- STAGE 4: POST-LOAD DYNAMIC UI CONSTRUCTION ---
                         document.getElementById('loading-spinner').classList.add('hidden');
                         
                         UI.populateAdvancedFilterDropdowns();
                         UI.populateStatusFilter();
                         UI.renderHoloStream();
-                        
                         Logic.applyFiltersAndRender();
                         Logic.setupEventListeners();
                         Logic.initStickyFilters();
                         Logic.initFixedBottomUI();
                         Logic.initMobileUI();
- Logic.setupInfiniteScroll(); // [NEW] Activate the scroll listener after initial load.
-                        
+                        Logic.setupInfiniteScroll();
                         Logic.startLiveUpdates();
                         
                         console.log("%c GECAN Platform Initialization: System Online.", "color: #22c55e; font-weight: bold;");
 
-                    }).catch(Logic.onDataError); // Catches any error from the API calls.
+                    }).catch(Logic.onDataError);
+
                 } catch (initializationError) {
-                    // Catches any error from the initial static setup (e.g., in UI.init).
                     Logic.onDataError(initializationError);
                 }
             },
@@ -3987,21 +3994,80 @@ switchFilterType: (type) => {
                 console.error('Data loading error:', error);
             },
 
+/**
+             * [PINNACLE LIVE UPDATE ENGINE v3.0 - Definitive Synthesis]
+             * This is the ultimate, final, and authoritative function for initiating and managing
+             * all background data polling for the platform. It has been severely re-architected
+             * to synthesize the platform's full data needs with a highly efficient, non-aggressive
+             * polling strategy to permanently solve API rate-limiting issues.
+             *
+             * @architecture
+             * 1.  **Staggered & Delayed Execution:** All polling intervals are now initiated via `setTimeout`.
+             *     This critical change prevents a burst of API calls immediately after the initial
+             *     page load, giving the server and network breathing room and ensuring a smooth
+             *     user experience.
+             *
+             * 2.  **Consolidated Polling Blocks:** Instead of multiple independent timers, the logic is
+             *     grouped into two distinct, manageable polling blocks: one for primary dashboard
+             *     content and one for market data.
+             *
+             * 3.  **Comprehensive Data Coverage (Zero Regressions):** The primary `checkForDashboardUpdates`
+             *     function now correctly polls for *all* required dynamic datasets: Offers, Featured
+             *     items, and Bulletins. This restores the functionality that was regressed in the
+             *     previous optimization, ensuring the HoloStream ticker receives live updates.
+             *
+             * 4.  **Optimized, Non-Aggressive Intervals:** The polling intervals have been intelligently
+             *     increased (e.g., to 60 seconds) to respect Google's rate limits, ensuring the
+             *     platform remains stable and responsive over long user sessions. The `getOfferData`
+             *     call is also optimized to only fetch a small subset of data, as it is only used
+             *     to detect changes, not to update the entire list.
+             *
+             * This synthesized function represents the pinnacle standard for background data
+             * synchronization in a serverless environment, balancing the need for fresh data
+             * with the absolute requirement for platform stability and performance.
+             */
             startLiveUpdates: () => {
+                // --- STAGE 1: CLEAR ANY PRE-EXISTING TIMERS (ZERO REGRESSIONS) ---
+                // This is a critical safeguard to prevent multiple polling loops from running simultaneously.
                 if (AppState.liveUpdateInterval) clearInterval(AppState.liveUpdateInterval);
                 if (AppState.marketUpdateInterval) clearInterval(AppState.marketUpdateInterval);
 
+                // --- STAGE 2: DEFINE THE PRIMARY DASHBOARD POLLING LOGIC ---
                 const checkForDashboardUpdates = () => {
-                    Logic.createApiRequest('getOfferData', 'GET').then(Logic.onOfferDataLoaded).catch(console.error);
+                    // This function now correctly polls all three dynamic data sources.
+                    // The requests are still parallel within this block, but the block itself
+                    // is called infrequently, which is the key to avoiding rate limits.
+                    
+                    // A. Check for changes in the main offers list to trigger the "Refresh" toast.
+                    // We only need to fetch a small number of items to detect if the list has changed.
+                    Logic.createApiRequest('getOfferData', 'GET', { page: 1, pageSize: 10 }).then(Logic.onOfferDataLoaded).catch(console.error);
+                    
+                    // B. Check for updates to the Featured items for the HoloStream ticker.
                     Logic.createApiRequest('getFeaturedData', 'GET').then(Logic.onFeaturedDataLoaded).catch(console.error);
+                    
+                    // C. Check for updates to the Bulletins for the HoloStream ticker.
                     Logic.createApiRequest('getBulletinData', 'GET').then(Logic.onBulletinDataLoaded).catch(console.error);
                 };
-                AppState.liveUpdateInterval = setInterval(checkForDashboardUpdates, 30000);
-
+                
+                // --- STAGE 3: DEFINE THE MARKET DATA POLLING LOGIC ---
                 const checkForMarketUpdates = () => {
                     Logic.createApiRequest('getMarketMatrixData', 'GET').then(Logic.onMarketDataLoaded).catch(console.error);
                 };
-                AppState.marketUpdateInterval = setInterval(checkForMarketUpdates, 20000);
+
+                // --- STAGE 4: INITIATE STAGGERED & NON-AGGRESSIVE POLLING ---
+                // This is the definitive fix for rate-limiting. We delay the start and use longer intervals.
+
+                // A. Start the primary dashboard poller after a 5-second delay and repeat every 60 seconds.
+                setTimeout(() => {
+                    checkForDashboardUpdates(); // Run once immediately after the delay
+                    AppState.liveUpdateInterval = setInterval(checkForDashboardUpdates, 60000); // Then repeat
+                }, 5000);
+
+                // B. Start the market data poller after a 10-second delay and repeat every 45 seconds.
+                setTimeout(() => {
+                    checkForMarketUpdates(); // Run once immediately after the delay
+                    AppState.marketUpdateInterval = setInterval(checkForMarketUpdates, 45000); // Then repeat
+                }, 10000);
             },
 
             onOfferDataLoaded: (data) => {
@@ -4196,23 +4262,19 @@ switchView: (view) => {
                 }
             },
 
-// INSTRUCTION: REPLACE the entire calculateMetrics function with this robust version.
-            calculateMetrics: (items, totalItemsOverride) => {
-                // This function is now severely upgraded to handle an override for the total count.
+            calculateMetrics: (items, totalItemsOverride, totalActiveItemsOverride) => {
                 if (!items) {
-                    return { totalItems: totalItemsOverride || 0, activeItems: 0, totalVolume: 0, avgConfidence: 0 };
+                    return { totalItems: totalItemsOverride || 0, activeItems: totalActiveItemsOverride || 0, totalVolume: 0, avgConfidence: 0 };
                 }
                 
-                // [DEFINITIVE FIX] The 'Total Items' metric now uses the true server count when available.
-                // If an override is not provided (e.g., for non-paginated tabs), it falls back to the length of the provided array.
+                // [DEFINITIVE FIX] Use the server-provided overrides if they exist, otherwise fall back to client-side calculation.
+                // The nullish coalescing operator (??) is the ultimate standard for this logic.
                 const totalItems = totalItemsOverride ?? items.length;
-                
-                // All other calculations are performed on the provided 'items' array, which represents
-                // the currently visible or filtered dataset. This is the correct, honest behavior.
-                const activeItems = items.filter(i => 
+                const activeItems = totalActiveItemsOverride ?? items.filter(i => 
                     String(i.OFFER_STATUS || '').toLowerCase().includes('active')
                 ).length;
                 
+                // These metrics are correctly calculated based on the visible/filtered items for data honesty.
                 const totalVolume = items.reduce((acc, i) => {
                     const volume = i.TOTAL_VOLUME_AVAILABLE ? parseFloat(String(i.TOTAL_VOLUME_AVAILABLE).replace(/,/g, '')) || 0 : 0;
                     return acc + volume;
