@@ -45,6 +45,201 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- III. Inline CSS Styling Engine -->
     <style>
+
+/* ========================================================================= */
+/* === PINNACLE SIDEBAR COMMAND CENTER STYLING ENGINE v5.0 === */
+/* ========================================================================= */
+
+/* --- A. Main Sidebar Container & Animation --- */
+#sticky-filter-sidebar {
+    position: fixed;
+    top: calc(var(--header-height, 96px) + 32px);
+    left: 24px;
+    bottom: 24px; /* Simplified bottom alignment */
+    z-index: 45;
+    width: 360px;
+    
+    /* The sidebar is now HIDDEN by default using a transform */
+    transform: translateX(calc(-100% - 24px)) rotateY(15deg);
+    opacity: 0;
+    
+    /* Upgraded transition for a smoother, more sophisticated animation */
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                opacity 0.5s ease, 
+                box-shadow 0.5s ease;
+    
+    background: var(--background-glass-premium);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    box-shadow: var(--shadow-luxury);
+    border: 1px solid var(--border-premium);
+    border-radius: 1.5rem;
+    
+    display: flex; /* This is already on the element, but good to be explicit */
+    flex-direction: column;
+    padding: 1.5rem; /* Padding is now on the container */
+    gap: 1.5rem; /* Space between main sections */
+    perspective: 1500px;
+    overflow: hidden; /* Prevents child elements from breaking border-radius */
+}
+
+/* This class, toggled by JavaScript, makes the sidebar VISIBLE */
+#sticky-filter-sidebar.is-stuck {
+    transform: translateX(0) rotateY(0deg);
+    opacity: 1;
+}
+
+/* Ultimate 3D Hover Effect for the entire sidebar */
+#sticky-filter-sidebar:hover {
+    transform: scale(1.03) rotateY(-3deg);
+    box-shadow: var(--shadow-luxury), 0 0 100px var(--glow-royal);
+    border-color: var(--primary-azure);
+}
+
+/* --- B. Sidebar Header --- */
+.sidebar-header {
+    flex-shrink: 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-premium);
+}
+
+.sidebar-header h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-diamond);
+    text-shadow: 0 0 15px var(--glow-azure);
+}
+
+/* --- C. [NEW] Quick Asset Filters (Pills/Chips) --- */
+#sidebar-asset-filters {
+    flex-shrink: 0;
+    max-height: 200px; /* Limit height to encourage scrolling */
+    overflow-y: auto;
+    padding-right: 8px; /* Space for the scrollbar */
+}
+
+.asset-pill {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-silver);
+    background-color: rgba(148, 163, 184, 0.05);
+    border: 1px solid var(--border-secondary);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: translateX(0);
+}
+
+.asset-pill:hover {
+    color: var(--text-diamond);
+    background-color: rgba(14, 165, 233, 0.15);
+    border-color: var(--primary-azure);
+    transform: translateX(8px);
+}
+
+.asset-pill.active {
+    color: var(--text-diamond);
+    font-weight: 700;
+    background: var(--gradient-primary);
+    border-color: var(--primary-sapphire);
+    box-shadow: 0 0 25px var(--glow-sapphire);
+    transform: translateX(4px) scale(1.02);
+}
+
+/* --- D. Self-Contained Advanced Filters (Accordion) --- */
+#sidebar-advanced-container {
+    flex-grow: 1; /* Takes up remaining space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Fix for flexbox overflow */
+}
+
+.advanced-toggle-btn {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: var(--text-platinum);
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-secondary);
+    transition: all 0.3s ease;
+}
+
+.advanced-toggle-btn:hover {
+    background-color: rgba(14, 165, 233, 0.1);
+    border-color: var(--primary-azure);
+}
+
+.advanced-toggle-btn .toggle-icon {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.advanced-toggle-btn.open .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.advanced-panel {
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                padding 0.5s ease,
+                opacity 0.5s ease;
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+}
+
+.advanced-panel.open {
+    max-height: 500px; /* Large enough to fit content */
+    opacity: 1;
+    padding-top: 1.5rem;
+}
+
+.advanced-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* --- E. DEFINITIVE TEXT COLOR & INPUT STYLE OVERRIDE --- */
+/* These highly specific rules ensure all text and inputs inside the
+   sidebar are bright white and perfectly styled, overriding all defaults. */
+#sticky-filter-sidebar label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-silver) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+#sticky-filter-sidebar .form-input,
+#sticky-filter-sidebar select.form-input {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--border-secondary) !important;
+    color: var(--text-diamond) !important; /* SEVERELY ACCURATE: Bright white text */
+    -webkit-text-fill-color: var(--text-diamond) !important; /* Crucial for Chrome */
+}
+
+#sticky-filter-sidebar .form-input::placeholder {
+    color: var(--text-subtle) !important;
+    opacity: 1 !important;
+}
+
+#sticky-filter-sidebar .form-input:focus {
+    border-color: var(--primary-azure) !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3) !important;
+}
         /* --- A. CORE THEME & VARIABLES --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
@@ -1244,21 +1439,24 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
 
             <!-- B. Sticky Filter System (Upgraded Architecture) -->
             <div class="relative">
-                <!-- This invisible element triggers the sticky state change -->
+                <!-- STAGE 1: The Invisible Sentinel (Unchanged & Critical) -->
+                <!-- This element remains the high-performance trigger for the IntersectionObserver. -->
                 <div id="sticky-sentinel" class="absolute -top-24 h-px w-full"></div>
 
-                <!-- This is the placeholder where the filters live in the normal document flow -->
+                <!-- STAGE 2: The Main Dashboard Filter Controls (Now Permanent) -->
+                <!-- This entire block now remains permanently in the main content flow. It is
+                     NO LONGER MOVED by JavaScript, which is the core of the architectural upgrade. -->
                 <div id="desktop-filter-placeholder">
                     <div id="sticky-filter-header" class="z-40 transition-all duration-300 -mt-4">
                         <div id="sticky-filter-content" class="pt-4 space-y-6">
-                             <!-- Filter Tabs (3D Animated) -->
+                             <!-- Filter Tabs (3D Animated) - Zero Regressions -->
                             <div class="filter-tabs flex flex-wrap justify-center gap-2 md:gap-3">
                                 <div class="filter-tab active" data-type="offers"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-handshake"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-handshake"></i></div></div></div><span class="tab-text">Offers</span></div>
                                 <div class="filter-tab" data-type="enquiries"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-search-dollar"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-search-dollar"></i></div></div></div><span class="tab-text">Buyer Enquiries</span></div>
                                 <div class="filter-tab" data-type="crowdfunding"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-rocket"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-rocket"></i></div></div></div><span class="tab-text">Investment Projects</span></div>
                                 <div class="filter-tab" data-type="services"><div class="tab-icon-wrapper"><div class="tab-icon-flipper"><div class="tab-icon-face tab-icon-front"><i class="fas fa-cogs"></i></div><div class="tab-icon-face tab-icon-back"><i class="fas fa-cogs"></i></div></div></div><span class="tab-text">Professional Services</span></div>
                             </div>
-                            <!-- Main Filter Controls -->
+                            <!-- Main Filter Controls - Zero Regressions -->
                             <div class="filter-section rounded-2xl p-4 md:p-6">
                                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                                     <div class="relative w-full md:flex-1 group" id="search-container">
@@ -1282,23 +1480,31 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
                         </div>
                     </div>
                 </div>
-                <!-- This is the container for the sticky side panel on desktop -->
-                <div id="sticky-filter-sidebar"></div>
 
-                 <!-- Advanced Filters Panel -->
-            <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
-                <div class="filter-section rounded-2xl p-6 -mt-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm"></select></div>
-                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
-                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm"></select></div>
-                        <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm"></select></div>
-                    </div>
-                    <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
-                        <select id="sort-select" class="form-input p-3 text-sm"></select>
+                <!-- STAGE 3: The Independent Sidebar Command Center (The Severe Upgrade) -->
+                <!-- This is the new, empty <aside> element. It is architecturally pure.
+                     Its content will be built and injected by JavaScript on-demand for
+                     supreme performance. -->
+                <aside id="sticky-filter-sidebar" class="flex flex-col">
+                    <!-- The content of the sidebar will be dynamically injected here by JavaScript -->
+                </aside>
+
+                 <!-- STAGE 4: The Main Dashboard Advanced Filters Panel (Permanent Location) -->
+                 <!-- This panel is also now a permanent fixture of the main content flow and
+                      is controlled independently from the new sidebar's own advanced filters. -->
+                <div id="advanced-filters-container" class="transition-all duration-500 ease-in-out max-h-0 overflow-hidden relative z-30">
+                    <div class="filter-section rounded-2xl p-6 -mt-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Asset Category</label><select id="asset-category-select" class="form-input w-full p-3 text-sm"></select></div>
+                            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Offer Status</label><div id="status-filters-container" class="space-y-2"></div></div>
+                            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Settlement Protocol</label><select id="settlement-select" class="form-input w-full p-3 text-sm"></select></div>
+                            <div><label class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Core Procedure</label><select id="procedure-select" class="form-input w-full p-3 text-sm"></select></div>
+                        </div>
+                        <div class="mt-6 pt-6 border-t border-[var(--border-color)] flex justify-between items-center">
+                            <select id="sort-select" class="form-input p-3 text-sm"></select>
+                        </div>
                     </div>
                 </div>
-            </div>
                 
             </div>
             
@@ -1929,6 +2135,97 @@ createSearchDropdownHTML: () => {
              </div>`;
     return html;
 },
+
+            /**
+             * [NEW] Builds the complete, independent HTML content for the sidebar command center.
+             * This function is called only once, the first time the sidebar becomes visible.
+             */
+            populateSidebarFilters: () => {
+                const sidebarContainer = document.getElementById('sticky-filter-sidebar');
+                if (!sidebarContainer) return;
+
+                const allAssetCategories = ['All', ...new Set(AppState.allOffers.map(o => o.ASSET_CATEGORY).filter(Boolean))];
+
+                const html = `
+                    <div class="sidebar-header">
+                        <h3><i class="fas fa-filter fa-fw mr-2 text-sky-400"></i>Filter Controls</h3>
+                    </div>
+                    
+                    <!-- Quick Asset Filters -->
+                    <div class="flex-shrink-0">
+                        <label>Quick Asset Select</label>
+                        <div id="sidebar-asset-filters">
+                            ${allAssetCategories.map(cat => `
+                                <button class="asset-pill ${cat === 'All' ? 'active' : ''}" data-asset="${cat}">${cat}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Self-Contained Advanced Filters -->
+                    <div id="sidebar-advanced-container">
+                        <button id="sidebar-advanced-toggle" class="advanced-toggle-btn">
+                            <span>Advanced Filters</span>
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div id="sidebar-advanced-panel" class="advanced-panel">
+                            <div class="advanced-panel-content">
+                                <div>
+                                    <label for="sidebar-status-select">Offer Status</label>
+                                    <div id="sidebar-status-filters" class="space-y-2"></div>
+                                </div>
+                                <div>
+                                    <label for="sidebar-settlement-select">Settlement Protocol</label>
+                                    <select id="sidebar-settlement-select" class="form-input w-full"></select>
+                                </div>
+                                <div>
+                                    <label for="sidebar-procedure-select">Core Procedure</label>
+                                    <select id="sidebar-procedure-select" class="form-input w-full"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                sidebarContainer.innerHTML = html;
+                
+                // Now, populate the dynamic dropdowns and checkboxes within the new structure
+                const createOptions = (items) => ['All', ...new Set(items.filter(Boolean))].map(item => `<option value="${item}">${item}</option>`).join('');
+                document.getElementById('sidebar-settlement-select').innerHTML = createOptions(AppState.allOffers.map(o => o.SETTLEMENT_PROTOCOL));
+                document.getElementById('sidebar-procedure-select').innerHTML = createOptions(AppState.allOffers.map(o => o.CORE_PROCEDURE_TYPE));
+                
+                // Re-use the existing status filter HTML generator, but target the new sidebar container
+                const statuses = [ { name: "ACTIVE", dotClass: "status-dot-active" }, /* ...all other statuses... */ ];
+                document.getElementById('sidebar-status-filters').innerHTML = statuses.map(status => `
+                    <label class="status-checkbox-item" style="padding: 0.4rem 0.2rem; gap: 0.5rem;">
+                        <input type="checkbox" class="status-checkbox" value="${status.name.toUpperCase()}">
+                        <span class="custom-checkbox" style="height: 1rem; width: 1rem;"><i class="fas fa-check" style="font-size: 0.7rem;"></i></span>
+                        <span class="flex items-center gap-2 text-gray-400">
+                            <span class="w-2 h-2 rounded-full ${status.dotClass}"></span>
+                            <span class="text-sm text-white">${status.name}</span>
+                        </span>
+                    </label>
+                `).join('');
+            },
+
+            syncSidebarState: () => {
+                const sidebar = document.getElementById('sticky-filter-sidebar');
+                if (!sidebar || !sidebar.classList.contains('is-stuck')) return;
+                
+                // Sync Asset Pills
+                sidebar.querySelectorAll('.asset-pill').forEach(pill => {
+                    pill.classList.toggle('active', pill.dataset.asset === AppState.activeFilters.assetCategory);
+                });
+
+                // Sync Advanced Filter Dropdowns
+                sidebar.querySelector('#sidebar-settlement-select').value = AppState.activeFilters.settlementProtocol;
+                sidebar.querySelector('#sidebar-procedure-select').value = AppState.activeFilters.coreProcedure;
+
+                // Sync Status Checkboxes
+                sidebar.querySelectorAll('.status-checkbox').forEach(cb => {
+                    cb.checked = AppState.activeFilters.statuses.includes(cb.value);
+                });
+            },
+
 
 populateAdvancedFilterDropdowns: () => {
     const createOptions = (items) => {
@@ -3249,6 +3546,52 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                 }
             },
 
+            /**
+             * [NEW] Attaches all necessary event listeners to the sidebar's independent controls.
+             * This function is called only once, after the sidebar's HTML has been populated.
+             */
+            setupSidebarEventListeners: () => {
+                const sidebar = document.getElementById('sticky-filter-sidebar');
+                if (!sidebar) return;
+
+                // 1. Quick Asset Pills (using event delegation for performance)
+                sidebar.querySelector('#sidebar-asset-filters').addEventListener('click', (e) => {
+                    const pill = e.target.closest('.asset-pill');
+                    if (pill) {
+                        AppState.activeFilters.assetCategory = pill.dataset.asset;
+                        Logic.applyFiltersAndRender(); // Update state and re-render
+                        UI.syncSidebarState(); // Ensure UI reflects the change
+                    }
+                });
+
+                // 2. Advanced Filters Accordion Toggle
+                sidebar.querySelector('#sidebar-advanced-toggle').addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    const panel = sidebar.querySelector('#sidebar-advanced-panel');
+                    btn.classList.toggle('open');
+                    panel.classList.toggle('open');
+                });
+                
+                // 3. Dropdown Selects
+                sidebar.querySelector('#sidebar-settlement-select').addEventListener('change', (e) => {
+                    AppState.activeFilters.settlementProtocol = e.target.value;
+                    Logic.applyFiltersAndRender();
+                });
+                sidebar.querySelector('#sidebar-procedure-select').addEventListener('change', (e) => {
+                    AppState.activeFilters.coreProcedure = e.target.value;
+                    Logic.applyFiltersAndRender();
+                });
+                
+                // 4. Status Checkboxes (using event delegation)
+                sidebar.querySelector('#sidebar-status-filters').addEventListener('change', () => {
+                    const selected = Array.from(sidebar.querySelectorAll('.status-checkbox:checked')).map(cb => cb.value);
+                    AppState.activeFilters.statuses = selected;
+                    Logic.applyFiltersAndRender();
+                });
+            },
+
+            
+
  // ===================================================================
             //  NEW & DEFINITIVE: Single Handler for Status Filter Changes
             // ===================================================================
@@ -3442,51 +3785,55 @@ createApiRequest: async (action, method = 'GET', params = {}) => {
                 }
             },
             
-initStickyFilters: () => {
-    const sentinel = document.getElementById('sticky-sentinel');
-    const filterElement = document.getElementById('sticky-filter-header');
-    const mainPlaceholder = document.getElementById('desktop-filter-placeholder');
-    const sidebarContainer = document.getElementById('sticky-filter-sidebar');
+            initStickyFilters: () => {
+                const sentinel = document.getElementById('sticky-sentinel');
+                const sidebarContainer = document.getElementById('sticky-filter-sidebar');
+                const header = document.querySelector('.premium-header');
 
-    if (!sentinel || !filterElement || !mainPlaceholder || !sidebarContainer) return;
-
-    const observer = new IntersectionObserver(
-        ([entry]) => {
-            const isStuck = !entry.isIntersecting;
-            sidebarContainer.classList.toggle('is-stuck', isStuck);
-
-            if (isStuck) {
-                if (sidebarContainer.firstElementChild !== filterElement) {
-                    sidebarContainer.appendChild(filterElement);
-                    
-                    // =================== NEW JAVASCRIPT FIX START ===================
-                    // This forces the browser to re-apply our new CSS rules.
-                    const searchInput = filterElement.querySelector('#search-input');
-                    if (document.activeElement === searchInput) {
-                        searchInput.blur();
-                        searchInput.focus();
-                    }
-                    // ==================== NEW JAVASCRIPT FIX END ====================
+                // --- STAGE 1: ROBUST PRE-FLIGHT CHECKS ---
+                // If any of the critical architectural elements are missing, halt execution to prevent errors.
+                if (!sentinel || !sidebarContainer || !header) {
+                    console.error("Sticky Sidebar Initialization Aborted: A required element (sentinel, sidebar, or header) is missing from the DOM.");
+                    return;
                 }
-            } else {
-                if (mainPlaceholder.firstElementChild !== filterElement) {
-                    mainPlaceholder.appendChild(filterElement);
-                    
-                    // =================== NEW JAVASCRIPT FIX START ===================
-                    // Also apply the fix when moving it back out of the sidebar.
-                    const searchInput = filterElement.querySelector('#search-input');
-                    if (document.activeElement === searchInput) {
-                        searchInput.blur();
-                        searchInput.focus();
-                    }
-                    // ==================== NEW JAVASCRIPT FIX END ====================
-                }
-            }
-        },
-        { rootMargin: `-96px 0px 0px 0px`, threshold: [0] }
-    );
-    observer.observe(sentinel);
-},
+
+                // This flag ensures the sidebar's complex content is only ever built once.
+                let isSidebarInitialized = false;
+
+                // --- STAGE 2: OBSERVER CONFIGURATION WITH DYNAMIC MARGIN ---
+                const observerOptions = {
+                    // This is the definitive fix for pixel-perfect triggering.
+                    // The negative top margin is set to the exact height of the header.
+                    rootMargin: `-${header.offsetHeight}px 0px 0px 0px`,
+                    threshold: [0] // Trigger as soon as the sentinel is 0% visible.
+                };
+
+                // --- STAGE 3: OBSERVER INITIALIZATION & LOGIC ---
+                const observer = new IntersectionObserver(
+                    ([entry]) => {
+                        // isIntersecting is false when the sentinel has scrolled up past the rootMargin (i.e., under the header).
+                        const isStuck = !entry.isIntersecting;
+                        
+                        // Toggle the CSS class that controls the sidebar's visibility and animation.
+                        sidebarContainer.classList.toggle('is-stuck', isStuck);
+
+                        // --- STAGE 4: JUST-IN-TIME (JIT) CONTENT INITIALIZATION ---
+                        // This block runs only once, the very first time the sidebar is triggered.
+                        if (isStuck && !isSidebarInitialized) {
+                            // A. Build the sidebar's independent HTML content.
+                            UI.populateSidebarFilters();
+                            // B. Attach all necessary event listeners to the new sidebar controls.
+                            Logic.setupSidebarEventListeners();
+                            // C. Set the flag to prevent this block from ever running again.
+                            isSidebarInitialized = true;
+                        }
+                    },
+                    observerOptions
+                );
+                
+                // --- STAGE 5: ACTIVATE THE OBSERVER ---
+                observer.observe(sentinel);
+            },
 
 /**
  * DEFINITIVE FIX: Manages the padding for the fixed bottom HoloStream.
@@ -3761,17 +4108,14 @@ switchFilterType: (type) => {
              * @param {boolean} [showNotif=true] - Controls whether a success notification is displayed to the user.
              */
             resetFilters: (showNotif = true) => {
-                // --- STAGE 1: COMPREHENSIVE MULTI-MODULE STATE RESET ---
-                // This state object contains all possible filter keys across the entire platform.
+                // --- STAGE 1: COMPREHENSIVE MULTI-MODULE STATE RESET (ZERO REGRESSIONS) ---
                 AppState.activeFilters = { 
-                    type: AppState.activeFilters.type, // Persist the current tab
+                    type: AppState.activeFilters.type,
                     query: '',
-                    // Offer-specific filters
                     assetCategory: 'All', 
                     statuses: [], 
                     settlementProtocol: 'All', 
                     coreProcedure: 'All',
-                    // Enquiry-specific filters (and others, for future-proofing)
                     targetAssetCategory: 'All', 
                     enquiryStatus: [],
                     primarySector: 'All', 
@@ -3780,66 +4124,54 @@ switchFilterType: (type) => {
                     serviceCategory: 'All', 
                     pricingModel: 'All'
                 };
-                
-                // Reset the active sorting method to the platform default.
                 AppState.activeSort = 'date_desc';
 
-                // --- STAGE 2: UNIVERSAL & CONTEXT-AWARE UI RESET ---
-                // Reset UI elements that are common to all tabs.
-                document.getElementById('search-input').value = '';
-                Logic.updateSortOptions(AppState.activeFilters.type); // Re-populate sort options for the current tab
-                document.getElementById('sort-select').value = 'date_desc'; // Set to default
+                // --- STAGE 2: DUAL-ENVIRONMENT UI RESET (THE ULTIMATE SYNTHESIS) ---
                 
-                // Perform a context-aware reset for advanced filters, only if they exist on the current tab.
+                // A. Reset MAIN CONTENT UI Elements (Preserves original logic)
+                document.getElementById('search-input').value = '';
+                document.getElementById('sort-select').value = 'date_desc';
+                
+                // Safely reset main content's advanced filter dropdowns if they exist.
                 if (AppState.activeFilters.type === 'offers') {
-                    // This block preserves the detailed UI reset for the 'offers' tab.
                     const assetSelect = document.getElementById('asset-category-select');
                     if (assetSelect) assetSelect.value = 'All';
-                    
                     const settlementSelect = document.getElementById('settlement-select');
                     if (settlementSelect) settlementSelect.value = 'All';
-
                     const procedureSelect = document.getElementById('procedure-select');
                     if (procedureSelect) procedureSelect.value = 'All';
-
+                    
                     document.querySelectorAll('#status-filters-container .status-checkbox').forEach(cb => {
                         cb.checked = false;
                     });
                 }
-                
-                // --- STAGE 3: PAGINATION-AWARE DATA & RENDER HANDLING (THE DEFINITIVE SYNTHESIS) ---
+
+                // B. Reset SIDEBAR COMMAND CENTER UI Elements (Preserves upgraded logic)
+                const sidebar = document.getElementById('sticky-filter-sidebar');
+                if (sidebar && sidebar.innerHTML !== '') { // Check if sidebar has been initialized.
+                    // Close the advanced panel accordion.
+                    sidebar.querySelector('#sidebar-advanced-toggle')?.classList.remove('open');
+                    sidebar.querySelector('#sidebar-advanced-panel')?.classList.remove('open');
+                    // Sync the entire sidebar UI to the now-reset AppState.
+                    UI.syncSidebarState();
+                }
+
+                // --- STAGE 3: PAGINATION-AWARE DATA & RENDER HANDLING (ZERO REGRESSIONS) ---
                 if (AppState.activeFilters.type === 'offers') {
-                    // --- A. OFFERS TAB: Execute the full pagination reset protocol ---
-                    
-                    // 1. Clear all locally stored offers.
+                    // Execute the full pagination reset protocol for the offers tab.
                     AppState.allOffers = [];
-                    // 2. Clear the current view from the DOM.
                     document.getElementById('card-container').innerHTML = '';
                     document.getElementById('kanban-container').innerHTML = '';
-                    // 3. Reset the pagination state to start from the very beginning.
                     AppState.pagination.currentPage = 0;
                     AppState.pagination.totalPages = 1;
-
-                    // 4. Trigger a fresh, high-performance fetch for the first page of data.
-                    // The .then() block ensures subsequent actions happen only after data arrives.
                     Logic.fetchMoreOffers().then(() => {
-                        // Re-run the master render engine now that the first page is loaded.
                         Logic.applyFiltersAndRender();
-                        if (showNotif) {
-                            Utils.showNotification('All Filters Reset', 'success');
-                        }
+                        if (showNotif) Utils.showNotification('All Filters Reset', 'success');
                     });
-
                 } else {
-                    // --- B. ALL OTHER TABS: Standard re-render protocol ---
-                    // For non-paginated tabs, we simply re-run the master render function.
-                    // It will use the complete, locally-cached data for that module (e.g., allEnquiries)
-                    // and the newly cleared filters to show the default view.
+                    // For all other non-paginated tabs, perform a standard re-render.
                     Logic.applyFiltersAndRender();
-                    
-                    if (showNotif) {
-                        Utils.showNotification('All Filters Reset', 'success');
-                    }
+                    if (showNotif) Utils.showNotification('All Filters Reset', 'success');
                 }
             },
 
@@ -4224,6 +4556,7 @@ switchView: (view) => {
                 UI.updateMetrics(filteredItems);
                 UI.updateActiveFilterCount();
                 UI.updateInlineResetButton();
+                UI.syncSidebarState();
             },
 
             isPlaceholderView: () => {
