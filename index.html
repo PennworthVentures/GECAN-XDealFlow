@@ -2134,36 +2134,30 @@ init: () => {
                 const btn = document.getElementById('toggle-advanced-filters-btn');
                 const content = container ? container.querySelector('.filter-section') : null;
 
-                // --- STAGE 1: SUPREME PRE-FLIGHT CHECKS ---
-                if (!container || !btn || !content) {
-                    console.error("Advanced filter components not found. Cannot toggle.");
-                    return;
-                }
+                if (!container || !btn || !content) return;
                 
                 const isOpen = container.classList.contains('open');
 
                 if (isOpen) {
-                    // --- STAGE 2A: CLOSE THE PANEL ---
                     container.style.maxHeight = '0px';
                     container.classList.remove('open');
                     btn.classList.remove('active');
                 } else {
-                    // --- STAGE 2B: OPEN THE PANEL WITH JIT INITIALIZATION & GUARANTEED ANIMATION ---
-                    
-                    // 1. [JIT INITIALIZATION] Ensure the content is fresh and the listeners are correct.
+                    // JIT Initialization
                     UI.populateAdvancedFilterDropdowns();
                     UI.populateStatusFilter();
                     Logic.setupAdvancedFilterListeners();
                     
-                    // 2. [THE ULTIMATE ANIMATION FIX] Execute the high-fidelity opening sequence.
-                    // Reading the scrollHeight property here forces the browser to calculate the layout
-                    // of the content we just added, guaranteeing the height is accurate.
+                    // --- THE ULTIMATE, FINAL, UNBREAKABLE ANIMATION SEQUENCE ---
+                    // Force the browser to calculate the layout of the newly added content.
                     const scrollHeight = content.scrollHeight;
                     
-                    // Set the max-height to trigger the CSS transition for a smooth opening.
-                    container.style.maxHeight = scrollHeight + 'px';
-                    container.classList.add('open');
-                    btn.classList.add('active');
+                    // Set the max-height to trigger the CSS transition inside a guaranteed render frame.
+                    requestAnimationFrame(() => {
+                        container.style.maxHeight = scrollHeight + 'px';
+                        container.classList.add('open');
+                        btn.classList.add('active');
+                    });
                 }
             },
 /**
@@ -5334,7 +5328,7 @@ submitEngagementForm: async (offerId) => {
                     }
 
                     // --- Target: Main Filter Navigation Tabs ---
-                    const filterTab = target.closest('.filter-tab:not(#sidebar-nav-tabs .filter-tab)'); // Ensure this doesn't conflict with sidebar
+                    const filterTab = target.closest('.filter-tab:not(#sidebar-nav-tabs .filter-tab)');
                     if (filterTab) {
                         Logic.switchFilterType(filterTab.dataset.type);
                         return;
@@ -5354,6 +5348,7 @@ submitEngagementForm: async (offerId) => {
                 const searchInput = document.getElementById('search-input');
                 const searchSuggestions = document.getElementById('search-suggestions');
                 if (searchInput && searchSuggestions) {
+                    // Unabridged focus/blur logic for showing/hiding suggestions.
                     searchInput.addEventListener('focus', () => {
                         searchSuggestions.innerHTML = UI.createSearchDropdownHTML();
                         searchSuggestions.classList.add('show');
@@ -5362,14 +5357,13 @@ submitEngagementForm: async (offerId) => {
                         setTimeout(() => searchSuggestions.classList.remove('show'), 200);
                     });
                     
-                    // [ULTIMATE SYNTHESIS] The keyup listener now correctly updates the AppState
-                    // and calls the new, supreme `handleFilterChange` master trigger.
+                    // The keyup listener now correctly calls the supreme `handleFilterChange` master trigger.
                     searchInput.addEventListener('keyup', Utils.debounce(() => {
                         AppState.activeFilters.query = searchInput.value.toLowerCase();
                         Logic.handleFilterChange();
                     }, 300));
                     
-                    // The mousedown listener is preserved with zero regressions.
+                    // The mousedown listener for suggestions now also correctly uses the master trigger.
                     searchSuggestions.addEventListener('mousedown', (e) => {
                         const item = e.target.closest('.suggestion-item');
                         if (!item) return;
@@ -5378,9 +5372,9 @@ submitEngagementForm: async (offerId) => {
                             Logic.resetFilters();
                         } else if (item.dataset.asset) {
                             AppState.activeFilters.assetCategory = item.dataset.asset;
-                            Logic.handleFilterChange(); // Use the master trigger here too!
+                            Logic.handleFilterChange(); // Use the supreme master trigger
                         }
-                        searchInput.value = ''; // Clear search input after selection
+                        searchInput.value = '';
                         searchSuggestions.classList.remove('show');
                     });
                 }
