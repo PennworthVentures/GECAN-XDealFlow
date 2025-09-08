@@ -4572,7 +4572,7 @@ switchView: (view) => {
                 const placeholderDiv = document.getElementById('placeholder-content');
                 const loadingSpinner = document.getElementById('loading-spinner');
 
-                // A. Handle Loading State: If data for this tab hasn't arrived yet, show spinner.
+                // A. Handle Loading State
                 const isLoading = AppState.isDataLoading[activeTab];
                 if (isLoading) {
                     loadingSpinner.classList.remove('hidden');
@@ -4582,7 +4582,7 @@ switchView: (view) => {
                     loadingSpinner.classList.add('hidden');
                 }
 
-                // B. Handle Placeholder "Coming Soon" State:
+                // B. Handle Placeholder "Coming Soon" State
                 if (Logic.isPlaceholderView()) {
                     UI.renderPlaceholderContent(activeTab);
                     UI.updateMetrics([]);
@@ -4594,39 +4594,39 @@ switchView: (view) => {
                     return;
                 }
 
-                // --- STAGE 2: THE ULTIMATE DELEGATION LOGIC ---
-                if (activeTab === 'offers') {
-                    // For the 'offers' tab, delegate EVERYTHING to the server-aware fetch engine.
-                    // This one line is the pinnacle of the new architecture for this module.
-                    Logic.fetchMoreOffers(true);
+                // --- STAGE 2: THE ULTIMATE DATA PROCESSING & RENDERING LOGIC ---
+                // This block now contains the complete, self-contained rendering logic.
+                const currentData = Logic.getCurrentData();
+                
+                // This is now exclusively for client-side filtering on non-offer tabs.
+                const itemsToDisplay = (activeTab !== 'offers') 
+                    ? currentData.filter(item => Logic.searchMatch(item, AppState.activeFilters.query)) 
+                    : currentData; // For 'offers', we display the data as-is (already filtered by server).
 
-                } else {
-                    // For ALL other tabs, perform a high-performance, client-side filter and render.
-                    const currentData = Logic.getCurrentData();
-                    const itemsToDisplay = currentData.filter(item => Logic.searchMatch(item, AppState.activeFilters.query));
-                    itemsToDisplay.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
+                itemsToDisplay.sort((a, b) => Logic.sortItems(a, b, AppState.activeSort));
 
-                    const hasResults = itemsToDisplay.length > 0;
-                    
-                    // Clear and render the results for these non-paginated tabs.
-                    cardContainer.innerHTML = '';
-                    kanbanContainer.innerHTML = ''; // Ensure kanban is also always cleared.
-                    noResultsDiv.classList.toggle('hidden', hasResults);
-                    
-                    // Unabridged View Control for non-paginated tabs (Card View only).
-                    cardContainer.classList.toggle('hidden', !hasResults);
-                    kanbanContainer.classList.add('hidden'); // Kanban is only for offers.
+                const hasResults = itemsToDisplay.length > 0;
+                
+                // Unconditionally hide all containers to start fresh for rendering.
+                [cardContainer, kanbanContainer, noResultsDiv].forEach(el => el.classList.add('hidden'));
 
-                    if (hasResults) {
+                if (hasResults) {
+                    if (AppState.currentView === 'card') {
+                        cardContainer.classList.remove('hidden');
+                        // For non-offer tabs, this clears and renders. For offers, this correctly renders the initial page.
+                        if (activeTab !== 'offers') cardContainer.innerHTML = '';
                         UI.renderCards(itemsToDisplay, activeTab);
+                    } else if (activeTab === 'offers') { // Kanban is only for offers.
+                        kanbanContainer.classList.remove('hidden');
+                        // Kanban is not paginated and always requires a full render.
+                        UI.renderKanban(itemsToDisplay);
                     }
-                    
-                    // Update metrics based on the filtered client-side data.
-                    UI.updateMetrics(itemsToDisplay);
+                } else {
+                    noResultsDiv.classList.remove('hidden');
                 }
 
                 // --- STAGE 3: UPDATE PERIPHERAL UI (ZERO REGRESSIONS) ---
-                // This block runs for ALL tabs after the primary data operation has been triggered.
+                UI.updateMetrics(itemsToDisplay);
                 UI.updateActiveFilterCount();
                 UI.updateInlineResetButton();
                 UI.updateMainResetButtonVisibility();
