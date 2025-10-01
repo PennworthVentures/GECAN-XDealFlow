@@ -90,7 +90,6 @@
         ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--brand-gold-light), var(--brand-gold-medium)); }
         ::selection { background: var(--brand-gold-medium); color: var(--background-primary); }
 
-        /* --- PRELOADER --- */
         #preloader {
             position: fixed; inset: 0; z-index: 9999;
             background: var(--background-primary);
@@ -206,11 +205,11 @@
             content: ''; position: absolute; inset: 0;
             border-radius: inherit; transition: opacity 0.6s ease; pointer-events: none;
         }
-        .quantum-card::before { /* Mouse-tracking glow */
+        .quantum-card::before { 
             background: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.2), transparent 40%);
             opacity: 0;
         }
-        .quantum-card::after { /* Shimmer effect */
+        .quantum-card::after { 
             background: linear-gradient(135deg, transparent 30%, rgba(212, 175, 55, 0.1) 50%, transparent 70%);
             background-size: 200% 200%;
             animation: shimmer 10s linear infinite; opacity: 0;
@@ -224,10 +223,7 @@
         }
         .quantum-card:hover::before, .quantum-card:hover::after { opacity: 1; }
 
-        /* --- HOLOGRAPHIC 3D PHOTO --- */
-        #holographic-chamber {
-            perspective: 2000px;
-        }
+        #holographic-chamber { perspective: 2000px; }
         .profile-photo-chamber {
             transform-style: preserve-3d;
             transition: transform 1s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -388,68 +384,108 @@
             .photo-frame { width: 220px; height: 220px; }
         }
         
-        /* --- PDF Rendering Styles (Hidden by default) --- */
+        /* --- NEW: Pinnacle-Grade PDF Rendering Styles --- */
         #pdf-render-target {
             display: none;
             width: 210mm;
-            min-height: 297mm;
-            font-family: 'Inter', sans-serif;
-            color: #333;
-            background: #ffffff;
+            height: 297mm;
             position: absolute;
-            left: -9999px;
-            top: 0;
-            padding: 20mm;
+            left: -9999px; top: 0;
+            background: #ffffff;
+            font-family: 'Inter', sans-serif;
+            color: #4A4A4A;
         }
-        #pdf-render-target .pdf-header {
+        .pdf-container {
+            display: flex;
+            width: 100%; height: 100%;
+        }
+        .pdf-sidebar {
+            width: 35%;
+            background: var(--background-secondary);
+            color: var(--text-platinum);
+            padding: 25mm 10mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .pdf-photo {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--brand-gold-medium);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            margin-bottom: 15mm;
+        }
+        .pdf-sidebar-section { width: 100%; margin-bottom: 12mm; }
+        .pdf-sidebar-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--brand-gold-medium);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding-bottom: 2mm;
+            border-bottom: 1.5px solid var(--border-premium);
+            margin-bottom: 5mm;
+        }
+        .pdf-contact-item { display: flex; align-items: center; margin-bottom: 4mm; font-size: 10px; }
+        .pdf-contact-item i { color: var(--brand-gold-medium); width: 20px; text-align: center; font-size: 12px; margin-right: 5px; }
+        .pdf-contact-item span { line-height: 1.4; }
+        .pdf-skill-item { font-size: 10px; margin-bottom: 3mm; list-style: none; position: relative; padding-left: 15px; }
+        .pdf-skill-item::before { content: '◆'; position: absolute; left: 0; color: var(--brand-gold-medium); font-size: 9px; top: 3px; }
+        .pdf-education-item h4 { font-family: 'Orbitron', sans-serif; font-weight: 600; font-size: 11px; margin-bottom: 1mm; color: #fff; }
+        .pdf-education-item p { font-size: 10px; font-style: italic; color: var(--text-silver); }
+
+        .pdf-main-content {
+            width: 65%;
+            padding: 20mm 15mm;
+        }
+        .pdf-main-header h1 { font-family: 'Cinzel', serif; font-size: 36px; font-weight: 700; color: #111; margin: 0; line-height: 1.1; }
+        .pdf-main-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--brand-gold-medium); margin-top: 2mm; letter-spacing: 0.5px; }
+        .pdf-main-section { margin-top: 10mm; }
+        .pdf-main-title {
+            font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 800; color: #222;
+            text-transform: uppercase; letter-spacing: 1px;
+            padding-bottom: 2mm; margin-bottom: 5mm;
+            border-bottom: 2px solid var(--brand-gold-medium);
+        }
+        .pdf-summary { font-size: 11px; line-height: 1.6; color: #333; }
+        .pdf-job { margin-bottom: 8mm; }
+        .pdf-job-title { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; color: #111; margin-bottom: 1mm; }
+        .pdf-job-company { font-family: 'Cormorant Garamond', serif; font-size: 12px; font-style: italic; color: #555; margin-bottom: 4mm; }
+        .pdf-job-details { padding-left: 0; }
+        .pdf-job-details li { font-size: 10.5px; line-height: 1.6; list-style: none; position: relative; padding-left: 15px; margin-bottom: 2mm; }
+        .pdf-job-details li::before { content: '›'; font-weight: bold; position: absolute; left: 0; color: var(--brand-gold-medium); font-size: 14px; top: -1px; }
+
+        .pdf-footer {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 5mm;
             text-align: center;
-            border-bottom: 3px solid #D4AF37;
-            padding-bottom: 10px;
+            font-size: 8px;
+            color: #999;
+            border-top: 1px solid #eee;
         }
-        #pdf-render-target h1 { font-family: 'Cinzel', serif; font-size: 28px; color: #111; margin-bottom: 5px; }
-        #pdf-render-target h2 { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: #D4AF37; font-style: italic; margin-bottom: 15px;}
-        #pdf-render-target .pdf-contact-bar {
-            background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 15px;
-            display: flex; justify-content: space-around; font-size: 10px;
-        }
-        #pdf-render-target .pdf-section-title {
-            font-family: 'Orbitron', monospace; font-size: 16px; color: #111; margin: 20px 0 10px;
-            border-bottom: 1.5px solid #D4AF37; padding-bottom: 5px; text-transform: uppercase;
-        }
-        #pdf-render-target p { font-size: 11px; line-height: 1.6; }
-        #pdf-render-target ul { list-style: none; padding-left: 0; }
-        #pdf-render-target li { position: relative; padding-left: 15px; margin-bottom: 5px; font-size: 11px; }
-        #pdf-render-target li::before { content: '◆'; position: absolute; left: 0; color: #D4AF37; }
-        #pdf-render-target .pdf-job-title { font-size: 13px; font-weight: bold; color: #222; }
-        #pdf-render-target .pdf-job-company { font-size: 11px; font-style: italic; color: #888; margin-bottom: 8px; }
 
     </style>
 </head>
 <body>
 
-    <div id="preloader">
-        <div class="preloader-diamond"></div>
-    </div>
-
+    <div id="preloader"><div class="preloader-diamond"></div></div>
     <div id="particles-js"></div>
-
     <header class="supreme-header">
         <div class="container mx-auto px-6 py-4 flex items-center justify-between">
             <div class="logo-container">
                 <div class="gecan-seal">G</div>
                 <p class="logo-text">Quantum Dossier</p>
             </div>
-            <div class="endorsement-badge">
-                GECAN™ Endorsed
-            </div>
+            <div class="endorsement-badge">GECAN™ Endorsed</div>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-12 md:py-20" id="main-content">
         <div class="grid lg:grid-cols-3 gap-8 lg:gap-12">
-            
             <div class="lg:col-span-1 space-y-8">
-                
                 <div id="holographic-chamber" class="quantum-card rounded-3xl p-8 fade-in-up">
                     <div class="profile-photo-chamber py-8">
                         <div class="photo-frame">
@@ -505,7 +541,6 @@
             </div>
 
             <div class="lg:col-span-2 space-y-8">
-                
                 <div class="quantum-card rounded-3xl p-8 md:p-10 fade-in-up">
                     <h2 class="section-title text-3xl md:text-4xl mb-8">Executive Summary</h2>
                     <p class="text-lg md:text-xl leading-relaxed text-text-platinum">
@@ -517,7 +552,6 @@
                     <h2 class="section-title text-3xl md:text-4xl mb-10">Career Trajectory</h2>
                     <div class="relative">
                         <div class="timeline-line"></div>
-                        
                         <div class="timeline-item">
                             <h3 class="timeline-title">Senior Brand Ambassador & Experiential Marketing Specialist</h3>
                             <p class="timeline-company">AirAsia / CZ Partnership | Caticlan International Airport (Boracay Gateway)</p>
@@ -530,7 +564,6 @@
                                 </ul>
                             </div>
                         </div>
-
                         <div class="timeline-item">
                             <h3 class="timeline-title">Senior Customer Experience & Sales Consultant</h3>
                             <p class="timeline-company">JCM Premium Fruitstand | Boracay Island Resort District</p>
@@ -543,7 +576,6 @@
                                 </ul>
                             </div>
                         </div>
-
                         <div class="timeline-item">
                             <h3 class="timeline-title">Professional Talent & Creative Performer</h3>
                             <p class="timeline-company">TBON Production Studios | Bacolod Creative District</p>
@@ -604,66 +636,85 @@
         </div>
     </footer>
 
-    <!-- Hidden element for high-fidelity PDF rendering -->
+    <!-- NEW: Severely Upgraded Pinnacle-Grade PDF Dossier Template -->
     <div id="pdf-render-target">
-        <div class="pdf-header">
-            <h1>JESSA MARIE MAQUILING</h1>
-            <h2>Luxury Hospitality & Brand Experience Architect</h2>
-            <div class="pdf-contact-bar">
-                <span><i class="fas fa-envelope"></i> Zaydendwayne@gmail.com</span>
-                <span><i class="fab fa-whatsapp"></i> +63 915 730 9160</span>
-                <span><i class="fas fa-map-marker-alt"></i> Malay, Aklan, Philippines</span>
+        <div class="pdf-container">
+            <div class="pdf-sidebar">
+                <img id="pdf-profile-image" src="" alt="Profile Photo" class="pdf-photo">
+                
+                <div class="pdf-sidebar-section">
+                    <h3 class="pdf-sidebar-title">Contact</h3>
+                    <div class="pdf-contact-item"><i class="fas fa-envelope"></i><span>Zaydendwayne@gmail.com</span></div>
+                    <div class="pdf-contact-item"><i class="fab fa-whatsapp"></i><span>+63 915 730 9160</span></div>
+                    <div class="pdf-contact-item"><i class="fas fa-map-marker-alt"></i><span>Malay, Aklan, Philippines</span></div>
+                </div>
+
+                <div class="pdf-sidebar-section">
+                    <h3 class="pdf-sidebar-title">Core Competencies</h3>
+                    <ul>
+                        <li class="pdf-skill-item">Luxury Client Relations</li>
+                        <li class="pdf-skill-item">Brand Storytelling & Activation</li>
+                        <li class="pdf-skill-item">Strategic Upselling</li>
+                        <li class="pdf-skill-item">Experiential Marketing</li>
+                        <li class="pdf-skill-item">Multilingual Communication</li>
+                        <li class="pdf-skill-item">Creative Performance Arts</li>
+                    </ul>
+                </div>
+
+                <div class="pdf-sidebar-section">
+                    <h3 class="pdf-sidebar-title">Education</h3>
+                    <div class="pdf-education-item" style="margin-bottom: 5mm;">
+                        <h4>BS in Tourism Management</h4>
+                        <p>Arellano University – Plaridel</p>
+                    </div>
+                    <div class="pdf-education-item">
+                        <h4>Health Care Provider Cert.</h4>
+                        <p>Our Lady of Mercy College</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pdf-main-content">
+                <div class="pdf-main-header">
+                    <h1>Jessa Marie Maquiling</h1>
+                    <h2>Luxury Hospitality & Brand Experience Architect</h2>
+                </div>
+
+                <div class="pdf-main-section">
+                    <h3 class="pdf-main-title">Executive Summary</h3>
+                    <p class="pdf-summary">An exceptionally versatile hospitality professional with a distinguished Bachelor's degree in Tourism Management, commanding over five years of progressive experience. Demonstrates an unparalleled ability to orchestrate elevated guest experiences and cultivate brand loyalty through the strategic fusion of world-class service with innovative artistic vision.</p>
+                </div>
+
+                <div class="pdf-main-section">
+                    <h3 class="pdf-main-title">Career Trajectory</h3>
+                    <div class="pdf-job">
+                        <h4 class="pdf-job-title">Senior Brand Ambassador & Experiential Marketing Specialist</h4>
+                        <p class="pdf-job-company">AirAsia / CZ Partnership | Caticlan International Airport</p>
+                        <ul class="pdf-job-details">
+                            <li>Spearheaded high-impact brand activations engaging 10,000+ monthly travelers, driving loyalty enrollment by 35%.</li>
+                            <li>Architected experiential marketing strategies achieving a 42% increase in mobile app downloads.</li>
+                        </ul>
+                    </div>
+                    <div class="pdf-job">
+                        <h4 class="pdf-job-title">Senior Customer Experience & Sales Consultant</h4>
+                        <p class="pdf-job-company">JCM Premium Fruitstand | Boracay Island Resort District</p>
+                        <ul class="pdf-job-details">
+                            <li>Cultivated HNW tourist relationships, driving a 32% increase in repeat patronage and a 15% uplift in transaction values.</li>
+                            <li>Pioneered visual merchandising concepts contributing to a 22% year-over-year revenue increase.</li>
+                        </ul>
+                    </div>
+                    <div class="pdf-job">
+                        <h4 class="pdf-job-title">Professional Talent & Creative Performer</h4>
+                        <p class="pdf-job-company">TBON Production Studios | Bacolod Creative District</p>
+                        <ul class="pdf-job-details">
+                            <li>Delivered captivating performances across multiple media, receiving consistent director commendations for versatility.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <h3 class="pdf-section-title">Executive Summary</h3>
-        <p>An exceptionally versatile hospitality professional with a distinguished Bachelor's degree in Tourism Management, commanding over five years of progressive experience across luxury brand representation, sophisticated client relations, and creative performance arts. Demonstrates an unparalleled ability to orchestrate elevated guest experiences, catalyze revenue growth, and cultivate lasting brand loyalty through the strategic fusion of world-class service protocols with innovative artistic vision.</p>
-        
-        <h3 class="pdf-section-title">Career Trajectory</h3>
-        <div>
-            <p class="pdf-job-title">Senior Brand Ambassador & Experiential Marketing Specialist</p>
-            <p class="pdf-job-company">AirAsia / CZ Partnership | Caticlan International Airport (Boracay Gateway)</p>
-            <ul>
-                <li>Spearheaded high-impact brand activation campaigns, engaging 10,000+ travelers monthly to drive loyalty program enrollment by 35%.</li>
-                <li>Architected experiential marketing strategies resulting in a 42% increase in mobile app downloads and a 28% uplift in service inquiries.</li>
-                <li>Delivered concierge-level service to international clientele, enhancing the premium traveler journey.</li>
-            </ul>
-        </div>
-        <div style="margin-top: 15px;">
-            <p class="pdf-job-title">Senior Customer Experience & Sales Consultant</p>
-            <p class="pdf-job-company">JCM Premium Fruitstand | Boracay Island Resort District</p>
-            <ul>
-                <li>Orchestrated daily sales operations with 100% transaction accuracy, processing revenues exceeding ₱50,000 daily.</li>
-                <li>Cultivated HNW tourist relationships, driving a 32% increase in repeat patronage and a 15% uplift in transaction values.</li>
-                <li>Pioneered visual merchandising concepts contributing to a 22% year-over-year revenue increase.</li>
-            </ul>
-        </div>
-        <div style="margin-top: 15px;">
-            <p class="pdf-job-title">Professional Talent & Creative Performer</p>
-            <p class="pdf-job-company">TBON Production Studios | Bacolod Creative District</p>
-            <ul>
-                <li>Delivered captivating performances across multiple media, demonstrating exceptional interpretive skills and audience engagement.</li>
-                <li>Collaborated within high-performance production teams, adapting dynamically to evolving creative requirements.</li>
-            </ul>
-        </div>
-
-        <h3 class="pdf-section-title">Core Competencies</h3>
-        <ul>
-            <li>Luxury Client Relations & High-Net-Worth Clienteling</li>
-            <li>Brand Storytelling & Experiential Marketing Activation</li>
-            <li>Strategic Upselling & Consultative Sales Techniques</li>
-            <li>Multilingual Communication (English, Filipino, Asian Dialects)</li>
-            <li>Creative Performance Arts & On-Camera Talent</li>
-        </ul>
-        
-        <h3 class="pdf-section-title">Academic Excellence</h3>
-        <div>
-            <p class="pdf-job-title">Bachelor of Science in Tourism Management</p>
-            <p class="pdf-job-company">Arellano University – Plaridel Campus</p>
-        </div>
-        <div style="margin-top: 15px;">
-            <p class="pdf-job-title">Professional Certificate: Health Care Provider</p>
-            <p class="pdf-job-company">Our Lady of Mercy College | Bacolod City</p>
+        <div class="pdf-footer">
+            This document is confidential and the intellectual property of Jessa Marie Maquiling. It is intended solely for the recipient for recruitment and professional consideration purposes.
+            Any distribution, copying, or disclosure is strictly prohibited. © 2025 GECAN™ Alliance Endorsement.
         </div>
     </div>
 
@@ -692,7 +743,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('load', () => {
                 const preloader = document.getElementById('preloader');
                 preloader.classList.add('loaded');
-                // Animate skill bars once content is visible
                 setTimeout(UI.animateSkillBars, 500); 
             });
         },
@@ -702,7 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
         initializeAnimations: () => {
-            // Quantum card mouse tracking for glow
             document.querySelectorAll('.quantum-card').forEach(card => {
                 card.addEventListener('mousemove', e => {
                     const rect = card.getBoundingClientRect();
@@ -711,18 +760,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
-            // Holographic 3D photo effect
             const chamber = document.getElementById('holographic-chamber');
             chamber.addEventListener('mousemove', e => {
                 const rect = chamber.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 const { width, height } = rect;
-
-                const rotateY = (x - width / 2) / width * -20; // Max rotation 10deg
-                const rotateX = (y - height / 2) / height * 20; // Max rotation 10deg
+                const rotateY = (x - width / 2) / width * -20;
+                const rotateX = (y - height / 2) / height * 20;
                 const angle = Math.atan2(y - height / 2, x - width / 2) * 180 / Math.PI - 90;
-
                 chamber.style.setProperty('--rotateX', `${rotateX}deg`);
                 chamber.style.setProperty('--rotateY', `${rotateY}deg`);
                 chamber.style.setProperty('--angle', `${angle}deg`);
@@ -732,8 +778,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  chamber.style.setProperty('--rotateY', `0deg`);
             });
 
-
-            // Header scroll effect
             window.addEventListener('scroll', () => {
                 document.querySelector('.supreme-header').classList.toggle('scrolled', window.pageYOffset > 50);
             }, { passive: true });
@@ -751,7 +795,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-
             document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
         },
         animateSkillBars: () => {
@@ -766,7 +809,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }, { threshold: 0.5 });
-
             const skillsSection = document.querySelector('.skill-item');
             if (skillsSection) observer.observe(skillsSection.closest('.quantum-card'));
         },
@@ -784,52 +826,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         },
+        
+        // --- NEW: Severely Upgraded PDF Generation Function ---
         generatePremiumPdf: async () => {
             const btn = document.getElementById('download-pdf-btn');
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i>Architecting PDF...';
+            btn.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i>Forging Quantum Dossier...';
             btn.disabled = true;
 
             const { jsPDF } = window.jspdf;
             const pdfElement = document.getElementById('pdf-render-target');
-            
-            // Temporarily display the element off-screen to ensure it's rendered correctly
-            pdfElement.style.display = 'block';
+            const mainImageSrc = document.querySelector('.vectorized-photo img').src;
+            const pdfImage = document.getElementById('pdf-profile-image');
+
+            // This function ensures the image is fully loaded before we attempt to render the canvas
+            const loadImage = src => new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous"; // Important for images from other domains
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
 
             try {
-                const canvas = await html2canvas(pdfElement, {
-                    scale: 3, // Higher scale for better quality
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false
-                });
+                // Wait for the high-resolution image to load
+                await loadImage(mainImageSrc);
+                pdfImage.src = mainImageSrc;
 
+                pdfElement.style.display = 'block';
+
+                const canvas = await html2canvas(pdfElement, {
+                    scale: 3, // Increased scale for supreme quality
+                    useCORS: true,
+                    backgroundColor: null, // Transparent background
+                    logging: false,
+                    width: pdfElement.offsetWidth,
+                    height: pdfElement.offsetHeight,
+                });
+                
                 pdfElement.style.display = 'none';
 
-                const imgData = canvas.toDataURL('image/png');
+                const imgData = canvas.toDataURL('image/jpeg', 0.95); // Use JPEG for better compression
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
                 
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const ratio = canvasHeight / canvasWidth;
-                
-                const imgWidth = pdfWidth;
-                const imgHeight = imgWidth * ratio;
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-                // Add clickable links
-                // These coordinates are estimations for A4 paper. Fine-tune if needed.
-                pdf.link(30, 31, 55, 5, { url: 'mailto:Zaydendwayne@gmail.com' }); // Email
-                pdf.link(95, 31, 35, 5, { url: 'https://wa.me/639157309160' }); // WhatsApp
-
-                pdf.save('Jessa-Marie-Maquiling-Premium-Dossier.pdf');
+                pdf.save('Jessa-Marie-Maquiling-Pinnacle-Dossier.pdf');
 
             } catch (error) {
-                console.error("PDF Generation Failed:", error);
-                alert("An error occurred while generating the PDF. Please try again.");
+                console.error("Pinnacle PDF Generation Failed:", error);
+                alert("An error occurred while forging the dossier. Please try again.");
             } finally {
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
