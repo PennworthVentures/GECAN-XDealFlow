@@ -6,7 +6,7 @@
     <base target="_top">
     
     <title>Jessa Marie Maquiling | Quantum Dossier | GECAN™ Endorsed Talent</title>
-    <meta name="description" content="The official Digital Dossier for Jessa Marie Maquiling, a dynamic, GECAN™ endorsed professional specializing in luxury hospitality, brand experience, and creative service excellence.">
+    <meta name="description" content="The official Quantum Digital Dossier for Jessa Marie Maquiling, a dynamic, GECAN™ endorsed professional specializing in luxury hospitality, brand experience, and creative service excellence.">
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
 
@@ -29,13 +29,13 @@
             --brand-gold-dark: #92400E;
             --brand-platinum: #E5E4E2;
             --background-primary: #0A0908;
-            --background-secondary: #1A1816;
-            --background-tertiary: #2A2520;
-            --background-glass: rgba(26, 24, 22, 0.65);
-            --background-glass-premium: rgba(26, 24, 22, 0.85);
+            --background-secondary: #12100E;
+            --background-tertiary: #1A1816;
+            --background-glass: rgba(18, 16, 14, 0.6);
+            --background-glass-premium: rgba(18, 16, 14, 0.8);
             --border-color: rgba(212, 175, 55, 0.15);
-            --border-premium: rgba(212, 175, 55, 0.3);
-            --border-quantum: rgba(212, 175, 55, 0.6);
+            --border-premium: rgba(212, 175, 55, 0.4);
+            --border-quantum: rgba(212, 175, 55, 0.7);
             --text-diamond: #FAFAFA;
             --text-gold: #FDE68A;
             --text-platinum: #E5E4E2;
@@ -54,7 +54,7 @@
             font-family: 'Inter', sans-serif; 
             line-height: 1.8; 
             color: var(--text-silver); 
-            background: linear-gradient(135deg, var(--background-primary) 0%, #0D0B0A 50%, var(--background-primary) 100%);
+            background: var(--background-primary);
             min-height: 100vh; 
             overflow-x: hidden;
             position: relative;
@@ -63,663 +63,373 @@
         body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.02) 0%, transparent 50%);
-            animation: ambient-shift 20s ease-in-out infinite;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(212, 175, 55, 0.05), transparent 70%),
+                radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.05), transparent 70%);
+            background-size: 200% 200%;
+            animation: background-pan 25s ease-in-out infinite;
             pointer-events: none;
-            z-index: -1;
+            z-index: -2;
         }
 
-        @keyframes ambient-shift {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            50% { transform: translate(-5%, -5%) rotate(180deg); }
+        @keyframes background-pan {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
-        #particles-js { 
-            position: fixed; 
-            inset: 0; 
-            z-index: 0; 
-            pointer-events: none;
-            opacity: 0;
-            animation: particles-fade-in 2s ease-out forwards;
-        }
-
-        @keyframes particles-fade-in {
-            to { opacity: 1; }
-        }
+        #particles-js { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: var(--background-secondary); }
         ::-webkit-scrollbar-thumb { 
             background: linear-gradient(180deg, var(--brand-gold-medium), var(--brand-gold-rich));
-            border-radius: 5px;
-            border: 2px solid var(--background-secondary);
+            border-radius: 5px; border: 2px solid var(--background-secondary);
         }
         ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--brand-gold-light), var(--brand-gold-medium)); }
         ::selection { background: var(--brand-gold-medium); color: var(--background-primary); }
 
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--background-primary);
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+        }
+        #preloader.loaded { opacity: 0; visibility: hidden; }
+        .preloader-diamond {
+            width: 80px; height: 80px;
+            transform: rotate(45deg);
+            border: 4px solid var(--border-premium);
+            animation: pulse-border 2s infinite ease-in-out;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .preloader-diamond::before {
+            content: 'G'; font-family: 'Orbitron', monospace;
+            transform: rotate(-45deg); font-size: 32px; font-weight: 900;
+            background: linear-gradient(135deg, var(--brand-gold-light), var(--brand-gold-medium));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: text-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: var(--border-premium); box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+            50% { border-color: var(--border-quantum); box-shadow: 0 0 50px var(--glow-gold); }
+        }
+        @keyframes text-glow {
+            0%, 100% { text-shadow: 0 0 10px var(--glow-gold); }
+            50% { text-shadow: 0 0 25px var(--glow-gold-intense); }
+        }
+
         .supreme-header {
-            position: sticky; 
-            top: 0; 
-            z-index: 1000;
-            background: rgba(10, 9, 8, 0.75);
-            backdrop-filter: blur(40px) saturate(200%);
-            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(10, 9, 8, 0.7);
+            backdrop-filter: blur(40px) saturate(200%); -webkit-backdrop-filter: blur(40px) saturate(200%);
             border-bottom: 1px solid var(--border-premium);
             transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
-        
         .supreme-header.scrolled {
-            background: rgba(10, 9, 8, 0.95);
+            background: rgba(10, 9, 8, 0.9);
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), 0 0 100px rgba(212, 175, 55, 0.2);
             border-bottom-color: var(--border-quantum);
         }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: transform 0.4s ease;
-        }
-
-        .logo-container:hover {
-            transform: scale(1.05);
-        }
-
+        .logo-container { display: flex; align-items: center; gap: 1rem; transition: transform 0.4s ease; }
+        .logo-container:hover { transform: scale(1.05); }
         .gecan-seal {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--brand-gold-medium), var(--brand-gold-rich));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            color: var(--background-primary);
-            font-family: 'Orbitron', monospace;
-            font-size: 18px;
+            width: 48px; height: 48px; background: linear-gradient(135deg, var(--brand-gold-medium), var(--brand-gold-rich));
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; color: var(--background-primary); font-family: 'Orbitron', monospace; font-size: 18px;
             box-shadow: 0 0 30px var(--glow-gold), inset 0 2px 4px rgba(255, 255, 255, 0.3);
-            position: relative;
-            animation: seal-pulse 3s ease-in-out infinite;
+            position: relative; animation: seal-pulse 3s ease-in-out infinite;
         }
-
         @keyframes seal-pulse {
             0%, 100% { box-shadow: 0 0 30px var(--glow-gold), inset 0 2px 4px rgba(255, 255, 255, 0.3); }
             50% { box-shadow: 0 0 50px var(--glow-gold-intense), inset 0 2px 4px rgba(255, 255, 255, 0.5); }
         }
-
         .logo-text { 
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
-            font-size: 1.5rem;
+            font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.5rem;
             background: linear-gradient(135deg, var(--text-diamond), var(--text-platinum));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             letter-spacing: 0.05em;
         }
-
         .endorsement-badge { 
-            font-family: 'Orbitron', monospace;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--brand-gold-medium);
-            border: 2px solid var(--brand-gold-medium);
-            padding: 6px 16px;
-            border-radius: 999px;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            background: rgba(212, 175, 55, 0.08);
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
+            font-family: 'Orbitron', monospace; font-size: 0.75rem; font-weight: 600;
+            color: var(--brand-gold-medium); border: 2px solid var(--brand-gold-medium);
+            padding: 6px 16px; border-radius: 999px; letter-spacing: 0.15em; text-transform: uppercase;
+            background: rgba(212, 175, 55, 0.08); transition: all 0.4s ease;
+            position: relative; overflow: hidden;
         }
-
         .endorsement-badge::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
             transition: left 0.6s ease;
         }
+        .endorsement-badge:hover { transform: scale(1.05); background: rgba(212, 175, 55, 0.2); box-shadow: 0 0 25px var(--glow-gold); border-color: var(--brand-gold-light); }
+        .endorsement-badge:hover::before { left: 100%; }
 
-        .endorsement-badge:hover::before {
-            left: 100%;
-        }
-
-        .endorsement-badge:hover {
-            background: rgba(212, 175, 55, 0.2);
-            box-shadow: 0 0 25px var(--glow-gold);
-            transform: scale(1.05);
-            border-color: var(--brand-gold-light);
-        }
-
-        main {
-            position: relative;
-            z-index: 1;
-            animation: content-fade-in 1s ease-out 0.3s both;
-        }
-
-        @keyframes content-fade-in {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        main { position: relative; z-index: 1; }
 
         .hero-title { 
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
+            font-family: 'Cinzel', serif; font-weight: 700;
             background: linear-gradient(135deg, var(--text-diamond) 0%, var(--brand-gold-light) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 100px var(--glow-gold);
-            letter-spacing: 0.02em;
-            position: relative;
-            display: inline-block;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 100px var(--glow-gold); letter-spacing: 0.02em;
         }
-
         .hero-subtitle {
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic;
-            font-weight: 600;
-            color: var(--brand-gold-medium);
-            text-shadow: 0 0 40px var(--glow-gold);
+            font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600;
+            color: var(--brand-gold-medium); text-shadow: 0 0 40px var(--glow-gold);
         }
-
         .section-title { 
-            font-family: 'Orbitron', monospace;
-            font-weight: 800;
+            font-family: 'Orbitron', monospace; font-weight: 800;
             background: linear-gradient(135deg, var(--brand-gold-light) 0%, var(--brand-gold-medium) 50%, var(--brand-gold-rich) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 80px var(--glow-gold);
-            letter-spacing: 0.05em;
-            position: relative;
-            display: inline-block;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 80px var(--glow-gold); letter-spacing: 0.05em;
+            position: relative; display: inline-block; padding-bottom: 12px;
         }
-
         .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            width: 60px;
-            height: 3px;
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 60px; height: 3px;
             background: linear-gradient(90deg, var(--brand-gold-medium), transparent);
             border-radius: 2px;
+            transition: width 0.6s ease;
         }
+        *:hover > .section-title::after { width: 100%; }
 
         .quantum-card {
-            background: var(--background-glass);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid var(--border-color);
-            transform-style: preserve-3d;
-            transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
-            perspective: 2000px;
-            position: relative;
-            overflow: hidden;
+            background: var(--background-glass); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid var(--border-color); transform-style: preserve-3d;
+            transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative; overflow: hidden; will-change: transform, box-shadow;
         }
-
-        .quantum-card::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: inherit;
-            background: radial-gradient(circle 600px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.15), transparent 40%);
+        .quantum-card::before, .quantum-card::after {
+            content: ''; position: absolute; inset: 0;
+            border-radius: inherit; transition: opacity 0.6s ease; pointer-events: none;
+        }
+        .quantum-card::before { /* Mouse-tracking glow */
+            background: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.2), transparent 40%);
             opacity: 0;
-            transition: opacity 0.6s ease;
-            z-index: -1;
         }
-
-        .quantum-card:hover::before {
-            opacity: 1;
-        }
-
-        .quantum-card::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: linear-gradient(135deg, transparent 0%, rgba(212, 175, 55, 0.05) 50%, transparent 100%);
+        .quantum-card::after { /* Shimmer effect */
+            background: linear-gradient(135deg, transparent 30%, rgba(212, 175, 55, 0.1) 50%, transparent 70%);
             background-size: 200% 200%;
-            animation: shimmer 8s linear infinite;
-            opacity: 0;
-            transition: opacity 0.6s ease;
+            animation: shimmer 10s linear infinite; opacity: 0;
         }
-
-        .quantum-card:hover::after {
-            opacity: 1;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
+        @keyframes shimmer { 100% { background-position: -200% 0; } }
         .quantum-card:hover {
             transform: translateY(-12px) scale(1.02);
             background: var(--background-glass-premium);
             border-color: var(--border-quantum);
             box-shadow: var(--shadow-supreme);
         }
+        .quantum-card:hover::before, .quantum-card:hover::after { opacity: 1; }
 
+        /* --- HOLOGRAPHIC 3D PHOTO --- */
+        #holographic-chamber {
+            perspective: 2000px;
+        }
         .profile-photo-chamber {
             transform-style: preserve-3d;
-            transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+            transition: transform 1s cubic-bezier(0.165, 0.84, 0.44, 1);
             position: relative;
+            transform: rotateY(var(--rotateY)) rotateX(var(--rotateX));
+            will-change: transform;
         }
-
-        .photo-frame {
-            position: relative;
-            width: 280px;
-            height: 280px;
-            margin: 0 auto;
-        }
-
+        .photo-frame { position: relative; width: 280px; height: 280px; margin: 0 auto; transform: translateZ(20px); }
         .photo-rings {
-            position: absolute;
-            inset: -20px;
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
-            animation: orbit 20s linear infinite;
+            position: absolute; inset: -20px;
+            border: 2px solid var(--border-premium);
+            border-radius: 50%; animation: orbit 25s linear infinite;
+            transition: all 0.8s ease;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+            transform: translateZ(-20px);
         }
-
         .photo-rings::before {
-            content: '';
-            position: absolute;
-            inset: -15px;
-            border: 1px solid var(--border-premium);
-            border-radius: 50%;
+            content: ''; position: absolute; inset: 15px;
+            border: 1px solid var(--border-color); border-radius: 50%;
+            animation: orbit 18s linear infinite reverse;
         }
-
-        @keyframes orbit {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .quantum-card:hover .photo-rings {
-            border-color: var(--border-quantum);
-            box-shadow: 0 0 40px var(--glow-gold);
-        }
-
+        @keyframes orbit { from { transform: rotate(0deg) translateZ(-20px); } to { transform: rotate(360deg) translateZ(-20px); } }
+        #holographic-chamber:hover .photo-rings { box-shadow: 0 0 60px var(--glow-gold); border-color: var(--border-quantum); }
         .vectorized-photo {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 4px solid var(--border-premium);
+            width: 100%; height: 100%; border-radius: 50%;
+            overflow: hidden; border: 4px solid var(--border-premium);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(212, 175, 55, 0.1);
             transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
             position: relative;
             background: linear-gradient(135deg, var(--background-secondary), var(--background-tertiary));
+            transform: translateZ(40px);
         }
-
-        .vectorized-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(1.05) contrast(1.1) saturate(1.1);
-            transition: all 1s ease;
-        }
-
-        .quantum-card:hover .vectorized-photo {
-            transform: scale(1.08);
+        #holographic-chamber:hover .vectorized-photo {
+            transform: translateZ(60px) scale(1.05);
             border-color: var(--border-quantum);
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 60px var(--glow-gold), inset 0 0 40px rgba(212, 175, 55, 0.2);
         }
-
-        .quantum-card:hover .vectorized-photo img {
-            filter: brightness(1.1) contrast(1.15) saturate(1.2);
+        .vectorized-photo img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: brightness(1.05) contrast(1.1) saturate(0.8) grayscale(0.2);
+            transition: all 1s ease; opacity: 0.9;
         }
-
+        #holographic-chamber:hover .vectorized-photo img { filter: brightness(1.1) contrast(1.15) saturate(1.1) grayscale(0); opacity: 1; }
+        .holographic-glare {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: conic-gradient(from var(--angle), transparent 0%, rgba(255,253,240,0.4) 10%, transparent 35%);
+            mix-blend-mode: screen; opacity: 0; transition: opacity 0.8s ease;
+        }
+        #holographic-chamber:hover .holographic-glare { opacity: 0.7; }
+        
         .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            border-radius: 12px;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
+            display: flex; align-items: center; gap: 1rem; padding: 1rem;
+            border-radius: 12px; transition: all 0.4s ease;
+            position: relative; overflow: hidden; border: 1px solid transparent;
         }
-
         .contact-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 0;
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 0;
             background: linear-gradient(180deg, var(--brand-gold-medium), var(--brand-gold-rich));
             transition: height 0.4s ease;
         }
-
-        .contact-item:hover {
-            background: rgba(212, 175, 55, 0.08);
-            transform: translateX(8px);
-        }
-
-        .contact-item:hover::before {
-            height: 60%;
-        }
-
+        .contact-item:hover { background: rgba(212, 175, 55, 0.08); transform: translateX(8px); border-color: var(--border-color); }
+        .contact-item:hover::before { height: 60%; }
         .contact-icon {
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
             background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.2));
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--brand-gold-medium);
-            font-size: 1.25rem;
-            transition: all 0.4s ease;
+            border: 1px solid var(--border-color); border-radius: 12px;
+            color: var(--brand-gold-medium); font-size: 1.25rem; transition: all 0.4s ease;
         }
-
         .contact-item:hover .contact-icon {
             background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.3));
-            border-color: var(--border-quantum);
-            transform: rotate(10deg) scale(1.1);
+            border-color: var(--border-quantum); transform: rotate(10deg) scale(1.1);
             box-shadow: 0 0 30px var(--glow-gold);
         }
 
         .action-button {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 1rem;
+            font-family: 'Orbitron', monospace; font-weight: 700; font-size: 1rem;
             color: var(--background-primary);
             background: linear-gradient(135deg, var(--brand-gold-medium) 0%, var(--brand-gold-rich) 100%);
-            border: 2px solid var(--brand-gold-dark);
-            padding: 1rem 2rem;
-            border-radius: 12px;
+            border: 2px solid var(--brand-gold-dark); padding: 1rem 2rem; border-radius: 12px;
             box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.3);
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+            cursor: pointer; position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: 0.1em;
         }
-
         .action-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.6s ease;
+            transition: left 0.8s cubic-bezier(0.23, 1, 0.32, 1);
         }
-
-        .action-button:hover::before {
-            left: 100%;
-        }
-
+        .action-button:hover::before { left: 100%; }
         .action-button:hover {
             transform: translateY(-6px) scale(1.05);
             box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.4);
             background: linear-gradient(135deg, var(--brand-gold-light) 0%, var(--brand-gold-medium) 100%);
         }
-
-        .action-button:active {
-            transform: translateY(-2px) scale(1.02);
-        }
-
-        .action-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .timeline-line {
-            position: absolute;
-            left: 1.5rem;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: linear-gradient(180deg, var(--border-color) 0%, var(--border-premium) 50%, var(--border-color) 100%);
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-left: 4rem;
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
-            padding-right: 1rem;
-            border-radius: 16px;
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            margin-bottom: 1rem;
-        }
-
+        .action-button:active { transform: translateY(-2px) scale(1.02); }
+        .action-button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; background: var(--text-muted); box-shadow: none; }
+        
+        .timeline-line { position: absolute; left: 1.5rem; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--border-color) 0%, var(--border-premium) 50%, var(--border-color) 100%); }
+        .timeline-item { position: relative; padding: 1.5rem 1rem 1.5rem 4rem; border-radius: 16px; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); margin-bottom: 1rem; }
         .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: 0.875rem;
-            top: 2rem;
-            width: 20px;
-            height: 20px;
-            background: linear-gradient(135deg, var(--brand-gold-medium), var(--brand-gold-rich));
-            border: 3px solid var(--background-primary);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--glow-gold);
-            transition: all 0.5s ease;
-            z-index: 2;
+            content: ''; position: absolute; left: 0.875rem; top: 2rem;
+            width: 20px; height: 20px; background: linear-gradient(135deg, var(--brand-gold-medium), var(--brand-gold-rich));
+            border: 3px solid var(--background-primary); border-radius: 50%;
+            box-shadow: 0 0 20px var(--glow-gold); transition: all 0.5s ease; z-index: 2;
         }
-
-        .timeline-item:hover {
-            background: rgba(212, 175, 55, 0.05);
-            transform: translateX(8px);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .timeline-item:hover::before {
-            transform: scale(1.5) rotate(180deg);
-            box-shadow: 0 0 40px var(--glow-gold-intense);
-        }
-
-        .timeline-title {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--text-diamond);
-            margin-bottom: 0.5rem;
-            transition: color 0.4s ease;
-        }
-
-        .timeline-item:hover .timeline-title {
-            color: var(--brand-gold-light);
-        }
-
-        .timeline-company {
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic;
-            font-size: 1.1rem;
-            color: var(--brand-gold-medium);
-            margin-bottom: 1rem;
-        }
-
-        .timeline-details {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-height 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease, margin-top 0.8s ease;
-        }
-
-        .timeline-item:hover .timeline-details {
-            max-height: 500px;
-            opacity: 1;
-            margin-top: 1rem;
-        }
-
-        .timeline-details ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .timeline-details li {
-            position: relative;
-            padding-left: 2rem;
-            margin-bottom: 1rem;
-            line-height: 1.8;
-            color: var(--text-silver);
-        }
-
-        .timeline-details li::before {
-            content: '◆';
-            position: absolute;
-            left: 0.5rem;
-            color: var(--brand-gold-medium);
-            font-size: 0.8rem;
-        }
-
-        .skill-item {
-            margin-bottom: 2rem;
-        }
-
-        .skill-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-        }
-
-        .skill-name {
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 1.05rem;
-            color: var(--text-diamond);
-        }
-
-        .skill-percentage {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--brand-gold-medium);
-        }
-
-        .skill-bar-container {
-            width: 100%;
-            height: 12px;
-            background: var(--background-secondary);
-            border-radius: 999px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
+        .timeline-item:hover { background: rgba(212, 175, 55, 0.05); transform: translateX(8px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
+        .timeline-item:hover::before { transform: scale(1.5); box-shadow: 0 0 40px var(--glow-gold-intense); }
+        .timeline-title { font-family: 'Orbitron', monospace; font-weight: 700; font-size: 1.25rem; color: var(--text-diamond); margin-bottom: 0.5rem; transition: color 0.4s ease; }
+        .timeline-item:hover .timeline-title { color: var(--brand-gold-light); }
+        .timeline-company { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.1rem; color: var(--brand-gold-medium); margin-bottom: 1rem; }
+        .timeline-details { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s ease, margin-top 0.8s ease; }
+        .timeline-item:hover .timeline-details { max-height: 500px; opacity: 1; margin-top: 1rem; }
+        .timeline-details ul { list-style: none; padding-left: 0; }
+        .timeline-details li { position: relative; padding-left: 2rem; margin-bottom: 1rem; line-height: 1.8; color: var(--text-silver); }
+        .timeline-details li::before { content: '◆'; position: absolute; left: 0.5rem; color: var(--brand-gold-medium); font-size: 0.8rem; }
+        
+        .skill-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .skill-name { font-weight: 600; font-size: 1.05rem; color: var(--text-diamond); }
+        .skill-percentage { font-family: 'Orbitron', monospace; font-weight: 700; font-size: 1.1rem; color: var(--brand-gold-medium); }
+        .skill-bar-container { width: 100%; height: 12px; background: var(--background-secondary); border-radius: 999px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5); }
         .skill-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--brand-gold-medium) 0%, var(--brand-gold-light) 100%);
-            border-radius: 999px;
-            width: 0;
-            transition: width 1.5s cubic-bezier(0.19, 1, 0.22, 1);
-            position: relative;
-            box-shadow: 0 0 20px var(--glow-gold);
+            height: 100%; background: linear-gradient(90deg, var(--brand-gold-medium) 0%, var(--brand-gold-light) 100%);
+            border-radius: 999px; width: 0; transition: width 2s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative; box-shadow: 0 0 20px var(--glow-gold);
         }
-
         .skill-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent);
-            border-radius: 999px;
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: skill-shine 3s infinite;
         }
+        @keyframes skill-shine { 100% { transform: translateX(100%); } }
 
-        .education-item {
-            padding: 1.5rem;
-            border-left: 3px solid var(--border-color);
-            border-radius: 8px;
-            transition: all 0.5s ease;
-            background: rgba(212, 175, 55, 0.02);
-        }
-
-        .education-item:hover {
-            border-left-color: var(--brand-gold-medium);
-            background: rgba(212, 175, 55, 0.08);
-            transform: translateX(8px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .education-title {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 1.15rem;
-            color: var(--text-diamond);
-            margin-bottom: 0.5rem;
-        }
-
-        .education-institution {
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic;
-            color: var(--brand-gold-medium);
-            font-size: 1.05rem;
-        }
+        .education-item { padding: 1.5rem; border-left: 3px solid var(--border-color); border-radius: 8px; transition: all 0.5s ease; background: rgba(212, 175, 55, 0.02); }
+        .education-item:hover { border-left-color: var(--brand-gold-medium); background: rgba(212, 175, 55, 0.08); transform: translateX(8px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
+        .education-title { font-family: 'Orbitron', monospace; font-weight: 700; font-size: 1.15rem; color: var(--text-diamond); margin-bottom: 0.5rem; }
+        .education-institution { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--brand-gold-medium); font-size: 1.05rem; }
 
         .supreme-footer {
-            margin-top: 8rem;
-            background: var(--background-secondary);
-            border-top: 2px solid var(--border-premium);
-            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-            position: relative;
-            overflow: hidden;
+            margin-top: 8rem; background: var(--background-secondary); border-top: 2px solid var(--border-premium);
+            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); position: relative; overflow: hidden;
         }
-
         .supreme-footer::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
+            content: ''; position: absolute; top: -2px; left: 0; right: 0; height: 4px;
             background: linear-gradient(90deg, transparent, var(--brand-gold-medium), transparent);
-            animation: footer-glow 3s ease-in-out infinite;
+            filter: blur(4px); animation: footer-glow 4s ease-in-out infinite;
         }
-
-        @keyframes footer-glow {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        .supreme-footer:hover {
-            box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.8), 0 0 100px var(--glow-gold);
-            transform: translateY(-6px);
-        }
-
+        @keyframes footer-glow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        
+        .fade-in-up { opacity: 0; transform: translateY(40px); transition: opacity 1s ease, transform 1s ease; }
+        .fade-in-up.visible { opacity: 1; transform: translateY(0); }
+        
         @media (max-width: 768px) {
             .logo-text { font-size: 1.2rem; }
             .endorsement-badge { font-size: 0.65rem; padding: 4px 12px; }
             .hero-title { font-size: 2.5rem !important; }
             .section-title { font-size: 1.75rem !important; }
             .photo-frame { width: 220px; height: 220px; }
-            .timeline-item { padding-left: 3rem; }
         }
+        
+        /* --- PDF Rendering Styles (Hidden by default) --- */
+        #pdf-render-target {
+            display: none;
+            width: 210mm;
+            min-height: 297mm;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+            background: #ffffff;
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            padding: 20mm;
+        }
+        #pdf-render-target .pdf-header {
+            text-align: center;
+            border-bottom: 3px solid #D4AF37;
+            padding-bottom: 10px;
+        }
+        #pdf-render-target h1 { font-family: 'Cinzel', serif; font-size: 28px; color: #111; margin-bottom: 5px; }
+        #pdf-render-target h2 { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: #D4AF37; font-style: italic; margin-bottom: 15px;}
+        #pdf-render-target .pdf-contact-bar {
+            background-color: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 15px;
+            display: flex; justify-content: space-around; font-size: 10px;
+        }
+        #pdf-render-target .pdf-section-title {
+            font-family: 'Orbitron', monospace; font-size: 16px; color: #111; margin: 20px 0 10px;
+            border-bottom: 1.5px solid #D4AF37; padding-bottom: 5px; text-transform: uppercase;
+        }
+        #pdf-render-target p { font-size: 11px; line-height: 1.6; }
+        #pdf-render-target ul { list-style: none; padding-left: 0; }
+        #pdf-render-target li { position: relative; padding-left: 15px; margin-bottom: 5px; font-size: 11px; }
+        #pdf-render-target li::before { content: '◆'; position: absolute; left: 0; color: #D4AF37; }
+        #pdf-render-target .pdf-job-title { font-size: 13px; font-weight: bold; color: #222; }
+        #pdf-render-target .pdf-job-company { font-size: 11px; font-style: italic; color: #888; margin-bottom: 8px; }
 
-        .fade-in-up {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-
-        .fade-in-up.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
     </style>
 </head>
 <body>
+
+    <div id="preloader">
+        <div class="preloader-diamond"></div>
+    </div>
 
     <div id="particles-js"></div>
 
@@ -738,16 +448,15 @@
     <main class="container mx-auto px-6 py-12 md:py-20" id="main-content">
         <div class="grid lg:grid-cols-3 gap-8 lg:gap-12">
             
-            <!-- LEFT COLUMN: PHOTO & CORE DETAILS -->
             <div class="lg:col-span-1 space-y-8">
                 
-                <!-- PHOTO CARD -->
-                <div class="quantum-card rounded-3xl p-8 fade-in-up">
+                <div id="holographic-chamber" class="quantum-card rounded-3xl p-8 fade-in-up">
                     <div class="profile-photo-chamber py-8">
                         <div class="photo-frame">
                             <div class="photo-rings"></div>
                             <div class="vectorized-photo">
-                                <img src="https://via.placeholder.com/280?text=JMM" alt="Jessa Marie Maquiling - Professional Portrait">
+                                <img src="https://images.pexels.com/photos/3775164/pexels-photo-3775164.jpeg?auto=compress&cs=tinysrgb&w=600" alt="Jessa Marie Maquiling - Professional Portrait">
+                                <div class="holographic-glare"></div>
                             </div>
                         </div>
                     </div>
@@ -757,33 +466,26 @@
                     </div>
                 </div>
 
-                <!-- CONTACT & ACTIONS CARD -->
                 <div class="quantum-card rounded-3xl p-8 fade-in-up">
                     <h2 class="section-title text-2xl mb-8">Connect & Engage</h2>
                     <div class="space-y-3">
                         <a href="mailto:Zaydendwayne@gmail.com" class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                            <div class="flex-1">
+                            <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                            <div>
                                 <p class="text-xs text-text-muted uppercase tracking-wider">Email</p>
                                 <p class="text-text-platinum font-medium">Zaydendwayne@gmail.com</p>
                             </div>
                         </a>
                         <a href="https://wa.me/639157309160" target="_blank" class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </div>
-                            <div class="flex-1">
+                            <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+                            <div>
                                 <p class="text-xs text-text-muted uppercase tracking-wider">WhatsApp</p>
                                 <p class="text-text-platinum font-medium">+63 915 730 9160</p>
                             </div>
                         </a>
                         <div class="contact-item">
-                            <div class="contact-icon">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </div>
-                            <div class="flex-1">
+                            <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div>
                                 <p class="text-xs text-text-muted uppercase tracking-wider">Location</p>
                                 <p class="text-text-platinum font-medium">Malay, Aklan, Philippines</p>
                             </div>
@@ -802,10 +504,8 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: PROFESSIONAL NARRATIVE -->
             <div class="lg:col-span-2 space-y-8">
                 
-                <!-- EXECUTIVE SUMMARY CARD -->
                 <div class="quantum-card rounded-3xl p-8 md:p-10 fade-in-up">
                     <h2 class="section-title text-3xl md:text-4xl mb-8">Executive Summary</h2>
                     <p class="text-lg md:text-xl leading-relaxed text-text-platinum">
@@ -813,7 +513,6 @@
                     </p>
                 </div>
 
-                <!-- CAREER TRAJECTORY CARD -->
                 <div class="quantum-card rounded-3xl p-8 md:p-10 fade-in-up">
                     <h2 class="section-title text-3xl md:text-4xl mb-10">Career Trajectory</h2>
                     <div class="relative">
@@ -859,102 +558,35 @@
                     </div>
                 </div>
 
-                <!-- CORE COMPETENCIES & EDUCATION CARD -->
                 <div class="quantum-card rounded-3xl p-8 md:p-10 fade-in-up">
                     <div class="grid md:grid-cols-2 gap-12">
-                        
-                        <!-- SKILLS SECTION -->
                         <div>
                             <h2 class="section-title text-3xl mb-8">Core Competencies</h2>
                             <div class="space-y-6">
-                                <div class="skill-item">
-                                    <div class="skill-header">
-                                        <span class="skill-name">Luxury Client Relations</span>
-                                        <span class="skill-percentage">96%</span>
-                                    </div>
-                                    <div class="skill-bar-container">
-                                        <div class="skill-bar" data-width="96%"></div>
-                                    </div>
-                                </div>
-                                <div class="skill-item">
-                                    <div class="skill-header">
-                                        <span class="skill-name">Brand Storytelling & Activation</span>
-                                        <span class="skill-percentage">94%</span>
-                                    </div>
-                                    <div class="skill-bar-container">
-                                        <div class="skill-bar" data-width="94%"></div>
-                                    </div>
-                                </div>
-                                <div class="skill-item">
-                                    <div class="skill-header">
-                                        <span class="skill-name">Strategic Upselling & Revenue Growth</span>
-                                        <span class="skill-percentage">92%</span>
-                                    </div>
-                                    <div class="skill-bar-container">
-                                        <div class="skill-bar" data-width="92%"></div>
-                                    </div>
-                                </div>
-                                <div class="skill-item">
-                                    <div class="skill-header">
-                                        <span class="skill-name">Multilingual Communication</span>
-                                        <span class="skill-percentage">90%</span>
-                                    </div>
-                                    <div class="skill-bar-container">
-                                        <div class="skill-bar" data-width="90%"></div>
-                                    </div>
-                                </div>
-                                <div class="skill-item">
-                                    <div class="skill-header">
-                                        <span class="skill-name">Creative Performance Arts</span>
-                                        <span class="skill-percentage">93%</span>
-                                    </div>
-                                    <div class="skill-bar-container">
-                                        <div class="skill-bar" data-width="93%"></div>
-                                    </div>
-                                </div>
+                                <div class="skill-item"><div class="skill-header"><span class="skill-name">Luxury Client Relations</span><span class="skill-percentage">96%</span></div><div class="skill-bar-container"><div class="skill-bar" data-width="96%"></div></div></div>
+                                <div class="skill-item"><div class="skill-header"><span class="skill-name">Brand Storytelling & Activation</span><span class="skill-percentage">94%</span></div><div class="skill-bar-container"><div class="skill-bar" data-width="94%"></div></div></div>
+                                <div class="skill-item"><div class="skill-header"><span class="skill-name">Strategic Upselling & Revenue Growth</span><span class="skill-percentage">92%</span></div><div class="skill-bar-container"><div class="skill-bar" data-width="92%"></div></div></div>
+                                <div class="skill-item"><div class="skill-header"><span class="skill-name">Multilingual Communication</span><span class="skill-percentage">90%</span></div><div class="skill-bar-container"><div class="skill-bar" data-width="90%"></div></div></div>
+                                <div class="skill-item"><div class="skill-header"><span class="skill-name">Creative Performance Arts</span><span class="skill-percentage">93%</span></div><div class="skill-bar-container"><div class="skill-bar" data-width="93%"></div></div></div>
                             </div>
                         </div>
-
-                        <!-- EDUCATION SECTION -->
                         <div>
                             <h2 class="section-title text-3xl mb-8">Academic Excellence</h2>
                             <div class="space-y-6">
-                                <div class="education-item">
-                                    <h3 class="education-title">Bachelor of Science in Tourism Management</h3>
-                                    <p class="education-institution">Arellano University – Plaridel Campus</p>
-                                    <p class="text-text-muted text-sm mt-2">Comprehensive curriculum encompassing hospitality operations, destination management, customer experience design, and strategic tourism marketing.</p>
-                                </div>
-                                <div class="education-item">
-                                    <h3 class="education-title">Professional Certificate: Health Care Provider</h3>
-                                    <p class="education-institution">Our Lady of Mercy College | Bacolod City</p>
-                                    <p class="text-text-muted text-sm mt-2">Advanced training in emergency response, first aid administration, and guest safety protocols—essential for luxury hospitality environments.</p>
-                                </div>
+                                <div class="education-item"><h3 class="education-title">Bachelor of Science in Tourism Management</h3><p class="education-institution">Arellano University – Plaridel Campus</p><p class="text-text-muted text-sm mt-2">Comprehensive curriculum encompassing hospitality operations, destination management, customer experience design, and strategic tourism marketing.</p></div>
+                                <div class="education-item"><h3 class="education-title">Professional Certificate: Health Care Provider</h3><p class="education-institution">Our Lady of Mercy College | Bacolod City</p><p class="text-text-muted text-sm mt-2">Advanced training in emergency response, first aid administration, and guest safety protocols—essential for luxury hospitality environments.</p></div>
                             </div>
-
                             <div class="mt-8 p-6 rounded-2xl" style="background: rgba(212, 175, 55, 0.05); border-left: 4px solid var(--brand-gold-medium);">
-                                <h4 class="font-bold text-text-diamond mb-3 flex items-center">
-                                    <i class="fas fa-star text-brand-gold-medium mr-3"></i>
-                                    Distinguished Attributes
-                                </h4>
+                                <h4 class="font-bold text-text-diamond mb-3 flex items-center"><i class="fas fa-star text-brand-gold-medium mr-3"></i>Distinguished Attributes</h4>
                                 <ul class="space-y-2 text-text-silver">
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle text-brand-gold-medium mr-2 mt-1"></i>
-                                        <span>Fluent in English & Filipino with conversational competency in multiple Asian dialects</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle text-brand-gold-medium mr-2 mt-1"></i>
-                                        <span>Proven adaptability across luxury retail, aviation, and creative industries</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle text-brand-gold-medium mr-2 mt-1"></i>
-                                        <span>Exceptional poise under pressure in high-volume, multicultural environments</span>
-                                    </li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-2 mt-1"></i><span>Fluent in English & Filipino with conversational competency in multiple Asian dialects</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-2 mt-1"></i><span>Proven adaptability across luxury retail, aviation, and creative industries</span></li>
+                                    <li class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-2 mt-1"></i><span>Exceptional poise under pressure in high-volume, multicultural environments</span></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
@@ -966,181 +598,169 @@
                     <div class="gecan-seal" style="width: 32px; height: 32px; font-size: 14px;">G</div>
                     <p class="text-text-platinum font-semibold">GECAN™ Alliance</p>
                 </div>
-                <p class="text-sm text-text-muted max-w-2xl mx-auto">
-                    This Quantum Digital Dossier represents the professional portfolio of Jessa Marie Maquiling, 
-                    meticulously architected and endorsed by the GECAN™ Alliance. All information is presented 
-                    with utmost accuracy for professional review and recruitment consideration.
-                </p>
+                <p class="text-sm text-text-muted max-w-2xl mx-auto">This Quantum Digital Dossier represents the professional portfolio of Jessa Marie Maquiling, meticulously architected and endorsed by the GECAN™ Alliance. All information is presented with utmost accuracy for professional review and recruitment consideration.</p>
                 <p class="text-xs text-text-muted mt-4">© 2025 GECAN™. All Rights Reserved. | Confidential Professional Document</p>
             </div>
         </div>
     </footer>
 
+    <!-- Hidden element for high-fidelity PDF rendering -->
+    <div id="pdf-render-target">
+        <div class="pdf-header">
+            <h1>JESSA MARIE MAQUILING</h1>
+            <h2>Luxury Hospitality & Brand Experience Architect</h2>
+            <div class="pdf-contact-bar">
+                <span><i class="fas fa-envelope"></i> Zaydendwayne@gmail.com</span>
+                <span><i class="fab fa-whatsapp"></i> +63 915 730 9160</span>
+                <span><i class="fas fa-map-marker-alt"></i> Malay, Aklan, Philippines</span>
+            </div>
+        </div>
+        
+        <h3 class="pdf-section-title">Executive Summary</h3>
+        <p>An exceptionally versatile hospitality professional with a distinguished Bachelor's degree in Tourism Management, commanding over five years of progressive experience across luxury brand representation, sophisticated client relations, and creative performance arts. Demonstrates an unparalleled ability to orchestrate elevated guest experiences, catalyze revenue growth, and cultivate lasting brand loyalty through the strategic fusion of world-class service protocols with innovative artistic vision.</p>
+        
+        <h3 class="pdf-section-title">Career Trajectory</h3>
+        <div>
+            <p class="pdf-job-title">Senior Brand Ambassador & Experiential Marketing Specialist</p>
+            <p class="pdf-job-company">AirAsia / CZ Partnership | Caticlan International Airport (Boracay Gateway)</p>
+            <ul>
+                <li>Spearheaded high-impact brand activation campaigns, engaging 10,000+ travelers monthly to drive loyalty program enrollment by 35%.</li>
+                <li>Architected experiential marketing strategies resulting in a 42% increase in mobile app downloads and a 28% uplift in service inquiries.</li>
+                <li>Delivered concierge-level service to international clientele, enhancing the premium traveler journey.</li>
+            </ul>
+        </div>
+        <div style="margin-top: 15px;">
+            <p class="pdf-job-title">Senior Customer Experience & Sales Consultant</p>
+            <p class="pdf-job-company">JCM Premium Fruitstand | Boracay Island Resort District</p>
+            <ul>
+                <li>Orchestrated daily sales operations with 100% transaction accuracy, processing revenues exceeding ₱50,000 daily.</li>
+                <li>Cultivated HNW tourist relationships, driving a 32% increase in repeat patronage and a 15% uplift in transaction values.</li>
+                <li>Pioneered visual merchandising concepts contributing to a 22% year-over-year revenue increase.</li>
+            </ul>
+        </div>
+        <div style="margin-top: 15px;">
+            <p class="pdf-job-title">Professional Talent & Creative Performer</p>
+            <p class="pdf-job-company">TBON Production Studios | Bacolod Creative District</p>
+            <ul>
+                <li>Delivered captivating performances across multiple media, demonstrating exceptional interpretive skills and audience engagement.</li>
+                <li>Collaborated within high-performance production teams, adapting dynamically to evolving creative requirements.</li>
+            </ul>
+        </div>
+
+        <h3 class="pdf-section-title">Core Competencies</h3>
+        <ul>
+            <li>Luxury Client Relations & High-Net-Worth Clienteling</li>
+            <li>Brand Storytelling & Experiential Marketing Activation</li>
+            <li>Strategic Upselling & Consultative Sales Techniques</li>
+            <li>Multilingual Communication (English, Filipino, Asian Dialects)</li>
+            <li>Creative Performance Arts & On-Camera Talent</li>
+        </ul>
+        
+        <h3 class="pdf-section-title">Academic Excellence</h3>
+        <div>
+            <p class="pdf-job-title">Bachelor of Science in Tourism Management</p>
+            <p class="pdf-job-company">Arellano University – Plaridel Campus</p>
+        </div>
+        <div style="margin-top: 15px;">
+            <p class="pdf-job-title">Professional Certificate: Health Care Provider</p>
+            <p class="pdf-job-company">Our Lady of Mercy College | Bacolod City</p>
+        </div>
+    </div>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const API_URL = "https://script.google.com/macros/s/AKfycbwrrMjSFDAwywkZ5stFEOiX8_58qm8CZVw5-m0OOQenJPK4ez41mfqfX5bLcQupY-nu/exec";
-    
+
     const PINNACLE_THEME = {
-        "particles": {
-            "number": {
-                "value": 80,
-                "density": {
-                    "enable": true,
-                    "value_area": 800
-                }
-            },
-            "color": {
-                "value": "#d4af37"
-            },
-            "shape": {
-                "type": "circle"
-            },
-            "opacity": {
-                "value": 0.2,
-                "random": true,
-                "anim": {
-                    "enable": true,
-                    "speed": 0.5,
-                    "opacity_min": 0.05,
-                    "sync": false
-                }
-            },
-            "size": {
-                "value": 3,
-                "random": true,
-                "anim": {
-                    "enable": true,
-                    "speed": 2,
-                    "size_min": 0.3,
-                    "sync": false
-                }
-            },
-            "line_linked": {
-                "enable": true,
-                "distance": 150,
-                "color": "#c9a961",
-                "opacity": 0.15,
-                "width": 1
-            },
-            "move": {
-                "enable": true,
-                "speed": 1,
-                "direction": "none",
-                "random": true,
-                "straight": false,
-                "out_mode": "out",
-                "bounce": false
-            }
-        },
-        "interactivity": {
-            "detect_on": "window",
-            "events": {
-                "onhover": {
-                    "enable": true,
-                    "mode": "grab"
-                },
-                "resize": true
-            },
-            "modes": {
-                "grab": {
-                    "distance": 300,
-                    "line_linked": {
-                        "opacity": 0.3
-                    }
-                }
-            }
-        },
-        "retina_detect": true
+        "particles": {"number":{"value":60,"density":{"enable":true,"value_area":800}},"color":{"value":"#d4af37"},"shape":{"type":"circle"},"opacity":{"value":0.3,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.05,"sync":false}},"size":{"value":2.5,"random":true,"anim":{"enable":true,"speed":2,"size_min":0.3,"sync":false}},"line_linked":{"enable":true,"distance":150,"color":"#c9a961","opacity":0.15,"width":1},"move":{"enable":true,"speed":1,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},
+        "interactivity": {"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.3}}}},
+        "retina_detect":true
     };
 
     const Engine = {
         init: () => {
-            Engine.fetchTheme();
+            UI.initPreloader();
+            UI.renderParticles(PINNACLE_THEME);
             UI.initializeAnimations();
             UI.setupEventListeners();
             UI.initScrollEffects();
-            UI.animateSkillBars();
         },
-
-        fetchTheme: async () => {
-            try {
-                const response = await fetch(`${API_URL}?action=getActiveThemeConfig`);
-                const result = await response.json();
-                const themeConfig = result.success && result.data ? JSON.parse(result.data) : PINNACLE_THEME;
-                UI.renderParticles(themeConfig);
-            } catch (error) {
-                console.log('Using default theme configuration');
-                UI.renderParticles(PINNACLE_THEME);
-            }
-        }
     };
 
     const UI = {
+        initPreloader: () => {
+            window.addEventListener('load', () => {
+                const preloader = document.getElementById('preloader');
+                preloader.classList.add('loaded');
+                // Animate skill bars once content is visible
+                setTimeout(UI.animateSkillBars, 500); 
+            });
+        },
         renderParticles: (config) => {
             if (typeof particlesJS !== 'undefined') {
                 particlesJS('particles-js', config);
             }
         },
-
         initializeAnimations: () => {
-            // Quantum card mouse tracking
+            // Quantum card mouse tracking for glow
             document.querySelectorAll('.quantum-card').forEach(card => {
-                card.addEventListener('mousemove', (e) => {
+                card.addEventListener('mousemove', e => {
                     const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    card.style.setProperty('--mouse-x', `${x}px`);
-                    card.style.setProperty('--mouse-y', `${y}px`);
+                    card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                    card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
                 });
             });
 
-            // Header scroll effect
-            let lastScroll = 0;
-            window.addEventListener('scroll', () => {
-                const currentScroll = window.pageYOffset;
-                const header = document.querySelector('.supreme-header');
-                
-                if (currentScroll > 100) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-                
-                lastScroll = currentScroll;
-            });
-        },
+            // Holographic 3D photo effect
+            const chamber = document.getElementById('holographic-chamber');
+            chamber.addEventListener('mousemove', e => {
+                const rect = chamber.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const { width, height } = rect;
 
+                const rotateY = (x - width / 2) / width * -20; // Max rotation 10deg
+                const rotateX = (y - height / 2) / height * 20; // Max rotation 10deg
+                const angle = Math.atan2(y - height / 2, x - width / 2) * 180 / Math.PI - 90;
+
+                chamber.style.setProperty('--rotateX', `${rotateX}deg`);
+                chamber.style.setProperty('--rotateY', `${rotateY}deg`);
+                chamber.style.setProperty('--angle', `${angle}deg`);
+            });
+            chamber.addEventListener('mouseleave', () => {
+                 chamber.style.setProperty('--rotateX', `0deg`);
+                 chamber.style.setProperty('--rotateY', `0deg`);
+            });
+
+
+            // Header scroll effect
+            window.addEventListener('scroll', () => {
+                document.querySelector('.supreme-header').classList.toggle('scrolled', window.pageYOffset > 50);
+            }, { passive: true });
+        },
         setupEventListeners: () => {
             document.getElementById('download-pdf-btn').addEventListener('click', UI.generatePremiumPdf);
             document.getElementById('share-btn').addEventListener('click', UI.shareProfile);
         },
-
         initScrollEffects: () => {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
                     }
                 });
-            }, {
-                threshold: 0.1,
-                rootMargin: '0px 0px -100px 0px'
-            });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-            document.querySelectorAll('.fade-in-up').forEach(el => {
-                observer.observe(el);
-            });
+            document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
         },
-
         animateSkillBars: () => {
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const skillBars = entry.target.querySelectorAll('.skill-bar');
                         skillBars.forEach((bar, index) => {
-                            setTimeout(() => {
-                                bar.style.width = bar.dataset.width;
-                            }, index * 150);
+                            setTimeout(() => bar.style.width = bar.dataset.width, index * 150);
                         });
                         observer.unobserve(entry.target);
                     }
@@ -1148,351 +768,72 @@ document.addEventListener('DOMContentLoaded', () => {
             }, { threshold: 0.5 });
 
             const skillsSection = document.querySelector('.skill-item');
-            if (skillsSection && skillsSection.closest('.quantum-card')) {
-                observer.observe(skillsSection.closest('.quantum-card'));
-            }
+            if (skillsSection) observer.observe(skillsSection.closest('.quantum-card'));
         },
-
         shareProfile: async () => {
             const shareData = {
-                title: 'Jessa Marie Maquiling | Professional Dossier',
+                title: 'Jessa Marie Maquiling | Quantum Dossier',
                 text: 'Explore the professional portfolio of Jessa Marie Maquiling, a distinguished talent in luxury hospitality and brand experience, endorsed by GECAN™.',
                 url: window.location.href
             };
-
             if (navigator.share && navigator.canShare(shareData)) {
-                try {
-                    await navigator.share(shareData);
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        UI.fallbackShare();
-                    }
-                }
+                await navigator.share(shareData).catch(err => { if(err.name !== 'AbortError') console.error('Share failed:', err) });
             } else {
-                UI.fallbackShare();
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('✓ Profile URL Copied to Clipboard!');
+                });
             }
         },
-
-        fallbackShare: () => {
-            navigator.clipboard.writeText(window.location.href)
-                .then(() => {
-                    alert('✓ Profile URL copied to clipboard!\n\nShare this premium dossier with potential employers.');
-                })
-                .catch(() => {
-                    alert('Please copy the URL manually: ' + window.location.href);
-                });
-        },
-
-        generatePremiumPdf: () => {
+        generatePremiumPdf: async () => {
             const btn = document.getElementById('download-pdf-btn');
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating Premium PDF...';
+            btn.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i>Architecting PDF...';
             btn.disabled = true;
 
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-                compress: true
-            });
-
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 20;
-            const contentWidth = pageWidth - 2 * margin;
-            let yPosition = margin;
-
-            // Gold accent color
-            const goldColor = [212, 175, 55];
-            const darkColor = [26, 24, 22];
-            const textColor = [80, 80, 80];
-
-            // Header with gold accent
-            doc.setFillColor(...goldColor);
-            doc.rect(0, 0, pageWidth, 25, 'F');
+            const pdfElement = document.getElementById('pdf-render-target');
             
-            doc.setTextColor(26, 24, 22);
-            doc.setFontSize(24);
-            doc.setFont('helvetica', 'bold');
-            doc.text('JESSA MARIE MAQUILING', pageWidth / 2, 12, { align: 'center' });
-            
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'italic');
-            doc.text('Luxury Hospitality & Brand Experience Architect', pageWidth / 2, 19, { align: 'center' });
+            // Temporarily display the element off-screen to ensure it's rendered correctly
+            pdfElement.style.display = 'block';
 
-            yPosition = 35;
+            try {
+                const canvas = await html2canvas(pdfElement, {
+                    scale: 3, // Higher scale for better quality
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                });
 
-            // Contact Information Bar
-            doc.setFillColor(245, 245, 245);
-            doc.rect(margin, yPosition, contentWidth, 20, 'F');
-            
-            doc.setTextColor(...textColor);
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.text('📧 Zaydendwayne@gmail.com', margin + 5, yPosition + 7);
-            doc.text('📱 +63 915 730 9160', margin + 5, yPosition + 13);
-            doc.text('📍 Malay, Aklan, Philippines', margin + 5, yPosition + 19);
+                pdfElement.style.display = 'none';
 
-            yPosition += 30;
-
-            // Executive Summary
-            doc.setDrawColor(...goldColor);
-            doc.setLineWidth(0.5);
-            doc.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 5;
-
-            doc.setTextColor(...darkColor);
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('EXECUTIVE SUMMARY', margin, yPosition);
-            yPosition += 8;
-
-            doc.setTextColor(...textColor);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            const summaryText = 'An exceptionally versatile hospitality professional with a distinguished Bachelor\'s degree in Tourism Management, commanding over five years of progressive experience across luxury brand representation, sophisticated client relations, and creative performance arts. Demonstrates an unparalleled ability to orchestrate elevated guest experiences, catalyze revenue growth, and cultivate lasting brand loyalty through the strategic fusion of world-class service protocols with innovative artistic vision.';
-            const splitSummary = doc.splitTextToSize(summaryText, contentWidth);
-            doc.text(splitSummary, margin, yPosition);
-            yPosition += splitSummary.length * 5 + 10;
-
-            // Professional Experience
-            doc.setDrawColor(...goldColor);
-            doc.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 5;
-
-            doc.setTextColor(...darkColor);
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('PROFESSIONAL EXPERIENCE', margin, yPosition);
-            yPosition += 10;
-
-            // Experience 1
-            doc.setFontSize(11);
-            doc.setTextColor(...darkColor);
-            doc.text('Senior Brand Ambassador & Experiential Marketing Specialist', margin, yPosition);
-            yPosition += 5;
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            doc.setTextColor(...goldColor);
-            doc.text('AirAsia / CZ Partnership | Caticlan International Airport', margin, yPosition);
-            yPosition += 6;
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(...textColor);
-            const exp1Points = [
-                '• Spearheaded high-impact brand activation campaigns engaging 10,000+ travelers monthly, driving 35% loyalty enrollment growth',
-                '• Executed experiential marketing strategies achieving 42% increase in app downloads and 28% uplift in service inquiries',
-                '• Delivered concierge-level service to international clientele while maintaining exceptional brand standards'
-            ];
-            exp1Points.forEach(point => {
-                const lines = doc.splitTextToSize(point, contentWidth - 5);
-                doc.text(lines, margin + 2, yPosition);
-                yPosition += lines.length * 4.5;
-            });
-            yPosition += 5;
-
-            // Experience 2
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...darkColor);
-            doc.text('Senior Customer Experience & Sales Consultant', margin, yPosition);
-            yPosition += 5;
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            doc.setTextColor(...goldColor);
-            doc.text('JCM Premium Fruitstand | Boracay Island Resort District', margin, yPosition);
-            yPosition += 6;
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(...textColor);
-            const exp2Points = [
-                '• Orchestrated daily sales operations maintaining 100% transaction accuracy across ₱50,000+ daily revenue streams',
-                '• Cultivated HNW client relationships driving 32% increase in repeat patronage and 15% uplift in transaction values',
-                '• Pioneered visual merchandising concepts contributing to 22% year-over-year revenue increase'
-            ];
-            exp2Points.forEach(point => {
-                const lines = doc.splitTextToSize(point, contentWidth - 5);
-                doc.text(lines, margin + 2, yPosition);
-                yPosition += lines.length * 4.5;
-            });
-            yPosition += 5;
-
-            // Experience 3
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...darkColor);
-            doc.text('Professional Talent & Creative Performer', margin, yPosition);
-            yPosition += 5;
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            doc.setTextColor(...goldColor);
-            doc.text('TBON Production Studios | Bacolod Creative District', margin, yPosition);
-            yPosition += 6;
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(...textColor);
-            const exp3Points = [
-                '• Delivered captivating performances demonstrating exceptional interpretive skills and authentic audience engagement',
-                '• Collaborated within high-performance production teams with unwavering professionalism and creative adaptability'
-            ];
-            exp3Points.forEach(point => {
-                const lines = doc.splitTextToSize(point, contentWidth - 5);
-                doc.text(lines, margin + 2, yPosition);
-                yPosition += lines.length * 4.5;
-            });
-
-            // New page for Skills and Education
-            doc.addPage();
-            yPosition = margin;
-
-            // Core Competencies
-            doc.setDrawColor(...goldColor);
-            doc.setLineWidth(0.5);
-            doc.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 5;
-
-            doc.setTextColor(...darkColor);
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('CORE COMPETENCIES', margin, yPosition);
-            yPosition += 10;
-
-            const skills = [
-                { name: 'Luxury Client Relations', level: 96 },
-                { name: 'Brand Storytelling & Activation', level: 94 },
-                { name: 'Strategic Upselling & Revenue Growth', level: 92 },
-                { name: 'Multilingual Communication', level: 90 },
-                { name: 'Creative Performance Arts', level: 93 }
-            ];
-
-            skills.forEach(skill => {
-                doc.setFontSize(10);
-                doc.setTextColor(...textColor);
-                doc.text(skill.name, margin, yPosition);
-                doc.text(`${skill.level}%`, pageWidth - margin - 10, yPosition);
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
                 
-                yPosition += 3;
-                doc.setFillColor(230, 230, 230);
-                doc.rect(margin, yPosition, contentWidth - 15, 3, 'F');
-                doc.setFillColor(...goldColor);
-                doc.rect(margin, yPosition, (contentWidth - 15) * (skill.level / 100), 3, 'F');
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasHeight / canvasWidth;
                 
-                yPosition += 8;
-            });
+                const imgWidth = pdfWidth;
+                const imgHeight = imgWidth * ratio;
 
-            yPosition += 5;
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
-            // Academic Excellence
-            doc.setDrawColor(...goldColor);
-            doc.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 5;
+                // Add clickable links
+                // These coordinates are estimations for A4 paper. Fine-tune if needed.
+                pdf.link(30, 31, 55, 5, { url: 'mailto:Zaydendwayne@gmail.com' }); // Email
+                pdf.link(95, 31, 35, 5, { url: 'https://wa.me/639157309160' }); // WhatsApp
 
-            doc.setTextColor(...darkColor);
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('ACADEMIC EXCELLENCE', margin, yPosition);
-            yPosition += 10;
+                pdf.save('Jessa-Marie-Maquiling-Premium-Dossier.pdf');
 
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...darkColor);
-            doc.text('Bachelor of Science in Tourism Management', margin, yPosition);
-            yPosition += 5;
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            doc.setTextColor(...goldColor);
-            doc.text('Arellano University – Plaridel Campus', margin, yPosition);
-            yPosition += 5;
-            
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...textColor);
-            const degree1Text = 'Comprehensive curriculum encompassing hospitality operations, destination management, customer experience design, and strategic tourism marketing.';
-            const splitDegree1 = doc.splitTextToSize(degree1Text, contentWidth);
-            doc.text(splitDegree1, margin, yPosition);
-            yPosition += splitDegree1.length * 4.5 + 8;
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...darkColor);
-            doc.text('Professional Certificate: Health Care Provider', margin, yPosition);
-            yPosition += 5;
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'italic');
-            doc.setTextColor(...goldColor);
-            doc.text('Our Lady of Mercy College | Bacolod City', margin, yPosition);
-            yPosition += 5;
-            
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...textColor);
-            const degree2Text = 'Advanced training in emergency response, first aid administration, and guest safety protocols—essential for luxury hospitality environments.';
-            const splitDegree2 = doc.splitTextToSize(degree2Text, contentWidth);
-            doc.text(splitDegree2, margin, yPosition);
-            yPosition += splitDegree2.length * 4.5 + 10;
-
-            // Distinguished Attributes
-            doc.setDrawColor(...goldColor);
-            doc.line(margin, yPosition, pageWidth - margin, yPosition);
-            yPosition += 5;
-
-            doc.setTextColor(...darkColor);
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text('DISTINGUISHED ATTRIBUTES', margin, yPosition);
-            yPosition += 8;
-
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...textColor);
-            const attributes = [
-                '✓ Fluent in English & Filipino with conversational competency in multiple Asian dialects',
-                '✓ Proven adaptability across luxury retail, aviation, and creative industries',
-                '✓ Exceptional poise under pressure in high-volume, multicultural environments',
-                '✓ Certified in emergency response and guest safety protocols',
-                '✓ Track record of exceeding performance benchmarks and revenue targets'
-            ];
-            
-            attributes.forEach(attr => {
-                const lines = doc.splitTextToSize(attr, contentWidth);
-                doc.text(lines, margin, yPosition);
-                yPosition += lines.length * 5;
-            });
-
-            // Footer
-            yPosition = pageHeight - 25;
-            doc.setFillColor(...goldColor);
-            doc.rect(0, yPosition, pageWidth, 25, 'F');
-            
-            doc.setTextColor(...darkColor);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.text('GECAN™ ENDORSED PROFESSIONAL DOSSIER', pageWidth / 2, yPosition + 8, { align: 'center' });
-            
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'normal');
-            doc.text('This document is a confidential professional portfolio. © 2025 GECAN™ Alliance. All Rights Reserved.', pageWidth / 2, yPosition + 14, { align: 'center' });
-            doc.text('For recruitment inquiries: Zaydendwayne@gmail.com | +63 915 730 9160', pageWidth / 2, yPosition + 19, { align: 'center' });
-
-            // Save the PDF
-            doc.save('Jessa-Marie-Maquiling-Premium-Dossier.pdf');
-            
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-            
-            // Success notification
-            setTimeout(() => {
-                alert('✓ Premium PDF Dossier Generated Successfully!\n\nYour professional document is ready for distribution to potential employers.');
-            }, 500);
+            } catch (error) {
+                console.error("PDF Generation Failed:", error);
+                alert("An error occurred while generating the PDF. Please try again.");
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
         }
     };
 
