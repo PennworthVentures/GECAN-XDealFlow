@@ -761,27 +761,24 @@
                 <div class="quantum-card rounded-3xl p-8 fade-in-up">
                     <h2 class="section-title text-2xl mb-8">Connect & Engage</h2>
                     <div class="space-y-3">
-                        
-                        <!-- SEVERELY UPGRADED: These are now functional <a> tags -->
-                        <a href="mailto:Zaydendwayne@gmail.com" class="contact-item group">
-                            <div class="contact-icon group-hover:bg-red-500/20 group-hover:border-red-500/50 group-hover:text-red-400 group-hover:rotate-0 group-hover:scale-110">
+                        <a href="mailto:Zaydendwayne@gmail.com" class="contact-item">
+                            <div class="contact-icon">
                                 <i class="fas fa-envelope"></i>
                             </div>
                             <div class="flex-1">
                                 <p class="text-xs text-text-muted uppercase tracking-wider">Email</p>
-                                <p class="text-text-platinum font-medium group-hover:text-text-gold transition-colors">Zaydendwayne@gmail.com</p>
+                                <p class="text-text-platinum font-medium">Zaydendwayne@gmail.com</p>
                             </div>
                         </a>
-                        <a href="https://wa.me/639157309160" target="_blank" class="contact-item group">
-                            <div class="contact-icon group-hover:bg-green-500/20 group-hover:border-green-500/50 group-hover:text-green-400 group-hover:rotate-0 group-hover:scale-110">
+                        <a href="https://wa.me/639157309160" target="_blank" class="contact-item">
+                            <div class="contact-icon">
                                 <i class="fab fa-whatsapp"></i>
                             </div>
                             <div class="flex-1">
                                 <p class="text-xs text-text-muted uppercase tracking-wider">WhatsApp</p>
-                                <p class="text-text-platinum font-medium group-hover:text-text-gold transition-colors">+63 915 730 9160</p>
+                                <p class="text-text-platinum font-medium">+63 915 730 9160</p>
                             </div>
                         </a>
-                        
                         <div class="contact-item">
                             <div class="contact-icon">
                                 <i class="fas fa-map-marker-alt"></i>
@@ -792,8 +789,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-8 pt-8 border-t border-border-color space-y-4">
-                        <!-- SEVERELY UPGRADED: These are now functional <button> tags -->
+                    <div class="mt-8 space-y-4">
                         <button id="download-pdf-btn" class="action-button w-full">
                             <i class="fas fa-file-download mr-2"></i>
                             Secure PDF Dossier
@@ -804,6 +800,7 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
             <!-- RIGHT COLUMN: PROFESSIONAL NARRATIVE -->
             <div class="lg:col-span-2 space-y-8">
@@ -1078,141 +1075,119 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-   const UI = {
-    renderParticles: (config) => {
-        if (typeof particlesJS !== 'undefined') {
-            particlesJS('particles-js', config);
-        }
-    },
-
-    initializeAnimations: () => {
-        document.querySelectorAll('.quantum-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
-            });
-        });
-
-        let lastScroll = 0;
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset;
-            const header = document.querySelector('.supreme-header');
-            if (header) {
-                header.classList.toggle('scrolled', currentScroll > 100);
+    const UI = {
+        renderParticles: (config) => {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', config);
             }
-            lastScroll = currentScroll;
-        });
-    },
+        },
 
-    setupEventListeners: () => {
-        const pdfBtn = document.getElementById('download-pdf-btn');
-        const shareBtn = document.getElementById('share-btn');
-        
-        if (pdfBtn) {
-            pdfBtn.addEventListener('click', UI.generatePremiumPdf);
-        }
-        if (shareBtn) {
-            shareBtn.addEventListener('click', UI.shareProfile);
-        }
-    },
-
-    initScrollEffects: () => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
+        initializeAnimations: () => {
+            // Quantum card mouse tracking
+            document.querySelectorAll('.quantum-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
             });
-        }, {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        });
 
-        document.querySelectorAll('.fade-in-up').forEach(el => {
-            observer.observe(el);
-        });
-    },
-
-    animateSkillBars: () => {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const skillBars = entry.target.querySelectorAll('.skill-bar');
-                    skillBars.forEach((bar, index) => {
-                        setTimeout(() => {
-                            bar.style.width = bar.dataset.width;
-                        }, index * 150);
-                    });
-                    observer.unobserve(entry.target);
+            // Header scroll effect
+            let lastScroll = 0;
+            window.addEventListener('scroll', () => {
+                const currentScroll = window.pageYOffset;
+                const header = document.querySelector('.supreme-header');
+                
+                if (currentScroll > 100) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
                 }
+                
+                lastScroll = currentScroll;
             });
-        }, { threshold: 0.5 });
+        },
 
-        const skillsSection = document.querySelector('.skill-item');
-        if (skillsSection && skillsSection.closest('.quantum-card')) {
-            observer.observe(skillsSection.closest('.quantum-card'));
-        }
-    },
+        setupEventListeners: () => {
+            document.getElementById('download-pdf-btn').addEventListener('click', UI.generatePremiumPdf);
+            document.getElementById('share-btn').addEventListener('click', UI.shareProfile);
+        },
 
-    shareProfile: async () => {
-        const shareData = {
-            title: 'Jessa Marie Maquiling | Professional Dossier',
-            text: 'Explore the professional portfolio of Jessa Marie Maquiling, a distinguished talent in luxury hospitality and brand experience, endorsed by GECAN™.',
-            url: window.location.href
-        };
+        initScrollEffects: () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            });
 
-        if (navigator.share && navigator.canShare(shareData)) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error('Share API failed:', err);
-                    UI.fallbackShare();
-                }
+            document.querySelectorAll('.fade-in-up').forEach(el => {
+                observer.observe(el);
+            });
+        },
+
+        animateSkillBars: () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const skillBars = entry.target.querySelectorAll('.skill-bar');
+                        skillBars.forEach((bar, index) => {
+                            setTimeout(() => {
+                                bar.style.width = bar.dataset.width;
+                            }, index * 150);
+                        });
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            const skillsSection = document.querySelector('.skill-item');
+            if (skillsSection && skillsSection.closest('.quantum-card')) {
+                observer.observe(skillsSection.closest('.quantum-card'));
             }
-        } else {
-            UI.fallbackShare();
-        }
-    },
+        },
 
-    fallbackShare: () => {
-        navigator.clipboard.writeText(window.location.href)
-            .then(() => {
-                alert('✓ Profile URL Copied to Clipboard!\n\nThis premium dossier link is ready to be shared with potential employers and professional networks.');
-            })
-            .catch(() => {
-                const url = window.location.href;
-                const textArea = document.createElement('textarea');
-                textArea.value = url;
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-9999px';
-                document.body.appendChild(textArea);
-                textArea.select();
+        shareProfile: async () => {
+            const shareData = {
+                title: 'Jessa Marie Maquiling | Professional Dossier',
+                text: 'Explore the professional portfolio of Jessa Marie Maquiling, a distinguished talent in luxury hospitality and brand experience, endorsed by GECAN™.',
+                url: window.location.href
+            };
+
+            if (navigator.share && navigator.canShare(shareData)) {
                 try {
-                    document.execCommand('copy');
-                    alert('✓ Profile URL Copied to Clipboard!\n\nThis premium dossier link is ready to be shared.');
+                    await navigator.share(shareData);
                 } catch (err) {
-                    prompt('Please copy the URL manually:', url);
+                    if (err.name !== 'AbortError') {
+                        UI.fallbackShare();
+                    }
                 }
-                document.body.removeChild(textArea);
-            });
-    },
-
-    generatePremiumPdf: () => {
-        const btn = document.getElementById('download-pdf-btn');
-        if (!btn) return;
-
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Architecting Supreme Dossier...';
-        btn.disabled = true;
-
-        try {
-            if (typeof window.jspdf === 'undefined' || !window.jspdf.jsPDF) {
-                throw new Error('jsPDF library not loaded');
+            } else {
+                UI.fallbackShare();
             }
+        },
+
+        fallbackShare: () => {
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    alert('✓ Profile URL copied to clipboard!\n\nShare this premium dossier with potential employers.');
+                })
+                .catch(() => {
+                    alert('Please copy the URL manually: ' + window.location.href);
+                });
+        },
+
+        generatePremiumPdf: () => {
+            const btn = document.getElementById('download-pdf-btn');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating Premium PDF...';
+            btn.disabled = true;
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
@@ -1224,326 +1199,304 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 18;
+            const margin = 20;
             const contentWidth = pageWidth - 2 * margin;
-            let y = 0;
+            let yPosition = margin;
 
-            // Supreme Color Palette
-            const brandGold = [212, 175, 55];
-            const deepCharcoal = [20, 20, 20];
-            const richText = [45, 45, 45];
-            const subtleGray = [95, 95, 95];
-            const accentRose = [218, 165, 32];
-            const premiumCream = [252, 248, 240];
+            // Gold accent color
+            const goldColor = [212, 175, 55];
+            const darkColor = [26, 24, 22];
+            const textColor = [80, 80, 80];
 
-            // === HEADER: GRADIENT EFFECT WITH GOLD ACCENT ===
-            doc.setFillColor(12, 10, 9);
-            doc.rect(0, 0, pageWidth, 32, 'F');
+            // Header with gold accent
+            doc.setFillColor(...goldColor);
+            doc.rect(0, 0, pageWidth, 25, 'F');
             
-            doc.setFillColor(...brandGold);
-            doc.rect(0, 31, pageWidth, 1, 'F');
-            
-            doc.setTextColor(253, 230, 138);
-            doc.setFontSize(28);
-            doc.setFont('times', 'bold');
-            doc.text('JESSA MARIE MAQUILING', pageWidth / 2, 15, { align: 'center' });
+            doc.setTextColor(26, 24, 22);
+            doc.setFontSize(24);
+            doc.setFont('helvetica', 'bold');
+            doc.text('JESSA MARIE MAQUILING', pageWidth / 2, 12, { align: 'center' });
             
             doc.setFontSize(11);
-            doc.setFont('times', 'italic');
-            doc.text('Luxury Hospitality & Brand Experience Architect', pageWidth / 2, 23, { align: 'center' });
-            y = 42;
+            doc.setFont('helvetica', 'italic');
+            doc.text('Luxury Hospitality & Brand Experience Architect', pageWidth / 2, 19, { align: 'center' });
 
-            // === CONTACT INFORMATION BAR ===
-            doc.setFillColor(245, 243, 238);
-            doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'F');
+            yPosition = 35;
+
+            // Contact Information Bar
+            doc.setFillColor(245, 245, 245);
+            doc.rect(margin, yPosition, contentWidth, 20, 'F');
             
-            doc.setTextColor(...richText);
+            doc.setTextColor(...textColor);
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            doc.text('📧 Zaydendwayne@gmail.com', margin + 4, y + 6);
-            doc.text('📱 +63 915 730 9160', margin + 4, y + 11);
-            doc.text('📍 Malay, Aklan, Philippines', margin + 4, y + 16);
-            y += 26;
+            doc.text('📧 Zaydendwayne@gmail.com', margin + 5, yPosition + 7);
+            doc.text('📱 +63 915 730 9160', margin + 5, yPosition + 13);
+            doc.text('📍 Malay, Aklan, Philippines', margin + 5, yPosition + 19);
 
-            // === EXECUTIVE SUMMARY ===
-            doc.setDrawColor(...brandGold);
-            doc.setLineWidth(0.8);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            yPosition += 30;
 
-            doc.setTextColor(...deepCharcoal);
-            doc.setFontSize(13);
-            doc.setFont('times', 'bold');
-            doc.text('EXECUTIVE SUMMARY', margin, y);
-            y += 8;
+            // Executive Summary
+            doc.setDrawColor(...goldColor);
+            doc.setLineWidth(0.5);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 5;
 
-            doc.setTextColor(...richText);
+            doc.setTextColor(...darkColor);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('EXECUTIVE SUMMARY', margin, yPosition);
+            yPosition += 8;
+
+            doc.setTextColor(...textColor);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
             const summaryText = 'An exceptionally versatile hospitality professional with a distinguished Bachelor\'s degree in Tourism Management, commanding over five years of progressive experience across luxury brand representation, sophisticated client relations, and creative performance arts. Demonstrates an unparalleled ability to orchestrate elevated guest experiences, catalyze revenue growth, and cultivate lasting brand loyalty through the strategic fusion of world-class service protocols with innovative artistic vision.';
             const splitSummary = doc.splitTextToSize(summaryText, contentWidth);
-            doc.text(splitSummary, margin, y);
-            y += splitSummary.length * 5 + 10;
+            doc.text(splitSummary, margin, yPosition);
+            yPosition += splitSummary.length * 5 + 10;
 
-            // === PROFESSIONAL EXPERIENCE ===
-            doc.setDrawColor(...accentRose);
-            doc.setLineWidth(0.8);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            // Professional Experience
+            doc.setDrawColor(...goldColor);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 5;
 
-            doc.setTextColor(...deepCharcoal);
-            doc.setFontSize(13);
-            doc.setFont('times', 'bold');
-            doc.text('PROFESSIONAL EXPERIENCE', margin, y);
-            y += 10;
+            doc.setTextColor(...darkColor);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PROFESSIONAL EXPERIENCE', margin, yPosition);
+            yPosition += 10;
 
-            const experiences = [
-                {
-                    title: 'Senior Brand Ambassador & Experiential Marketing Specialist',
-                    company: 'AirAsia / CZ Partnership | Caticlan International Airport',
-                    period: '2022 - Present',
-                    points: [
-                        'Spearheaded high-impact brand activation campaigns engaging 10,000+ travelers monthly, driving 35% loyalty enrollment growth',
-                        'Executed experiential marketing strategies achieving 42% increase in app downloads and 28% uplift in service inquiries',
-                        'Delivered concierge-level service to international clientele while maintaining exceptional brand standards'
-                    ]
-                },
-                {
-                    title: 'Senior Customer Experience & Sales Consultant',
-                    company: 'JCM Premium Fruitstand | Boracay Island Resort District',
-                    period: '2020 - 2022',
-                    points: [
-                        'Orchestrated daily sales operations maintaining 100% transaction accuracy across ₱50,000+ daily revenue streams',
-                        'Cultivated HNW client relationships driving 32% increase in repeat patronage and 15% uplift in transaction values',
-                        'Pioneered visual merchandising concepts contributing to 22% year-over-year revenue increase'
-                    ]
-                },
-                {
-                    title: 'Professional Talent & Creative Performer',
-                    company: 'TBON Production Studios | Bacolod Creative District',
-                    period: '2018 - 2020',
-                    points: [
-                        'Delivered captivating performances demonstrating exceptional interpretive skills and authentic audience engagement',
-                        'Collaborated within high-performance production teams with unwavering professionalism and creative adaptability'
-                    ]
-                }
+            // Experience 1
+            doc.setFontSize(11);
+            doc.setTextColor(...darkColor);
+            doc.text('Senior Brand Ambassador & Experiential Marketing Specialist', margin, yPosition);
+            yPosition += 5;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(...goldColor);
+            doc.text('AirAsia / CZ Partnership | Caticlan International Airport', margin, yPosition);
+            yPosition += 6;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(...textColor);
+            const exp1Points = [
+                '• Spearheaded high-impact brand activation campaigns engaging 10,000+ travelers monthly, driving 35% loyalty enrollment growth',
+                '• Executed experiential marketing strategies achieving 42% increase in app downloads and 28% uplift in service inquiries',
+                '• Delivered concierge-level service to international clientele while maintaining exceptional brand standards'
             ];
+            exp1Points.forEach(point => {
+                const lines = doc.splitTextToSize(point, contentWidth - 5);
+                doc.text(lines, margin + 2, yPosition);
+                yPosition += lines.length * 4.5;
+            });
+            yPosition += 5;
 
-            experiences.forEach((exp, idx) => {
-                if (y > 250) {
-                    doc.addPage();
-                    y = margin;
-                }
+            // Experience 2
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...darkColor);
+            doc.text('Senior Customer Experience & Sales Consultant', margin, yPosition);
+            yPosition += 5;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(...goldColor);
+            doc.text('JCM Premium Fruitstand | Boracay Island Resort District', margin, yPosition);
+            yPosition += 6;
 
-                doc.setFillColor(...premiumCream);
-                doc.roundedRect(margin, y - 2, contentWidth, 4, 1, 1, 'F');
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(...textColor);
+            const exp2Points = [
+                '• Orchestrated daily sales operations maintaining 100% transaction accuracy across ₱50,000+ daily revenue streams',
+                '• Cultivated HNW client relationships driving 32% increase in repeat patronage and 15% uplift in transaction values',
+                '• Pioneered visual merchandising concepts contributing to 22% year-over-year revenue increase'
+            ];
+            exp2Points.forEach(point => {
+                const lines = doc.splitTextToSize(point, contentWidth - 5);
+                doc.text(lines, margin + 2, yPosition);
+                yPosition += lines.length * 4.5;
+            });
+            yPosition += 5;
 
-                doc.setFontSize(11);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...deepCharcoal);
-                doc.text(exp.title, margin + 2, y + 1.5);
-                y += 6;
-                
-                doc.setFontSize(9.5);
-                doc.setFont('helvetica', 'italic');
-                doc.setTextColor(...brandGold);
-                doc.text(exp.company, margin + 2, y);
-                y += 5;
+            // Experience 3
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...darkColor);
+            doc.text('Professional Talent & Creative Performer', margin, yPosition);
+            yPosition += 5;
+            
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(...goldColor);
+            doc.text('TBON Production Studios | Bacolod Creative District', margin, yPosition);
+            yPosition += 6;
 
-                doc.setFontSize(8.5);
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(...subtleGray);
-                doc.text(exp.period, margin + 2, y);
-                y += 6;
-
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(9);
-                doc.setTextColor(...richText);
-                exp.points.forEach(point => {
-                    const lines = doc.splitTextToSize(`• ${point}`, contentWidth - 5);
-                    doc.text(lines, margin + 3, y);
-                    y += lines.length * 4.5;
-                });
-                y += 6;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(...textColor);
+            const exp3Points = [
+                '• Delivered captivating performances demonstrating exceptional interpretive skills and authentic audience engagement',
+                '• Collaborated within high-performance production teams with unwavering professionalism and creative adaptability'
+            ];
+            exp3Points.forEach(point => {
+                const lines = doc.splitTextToSize(point, contentWidth - 5);
+                doc.text(lines, margin + 2, yPosition);
+                yPosition += lines.length * 4.5;
             });
 
-            // === NEW PAGE FOR SKILLS AND EDUCATION ===
+            // New page for Skills and Education
             doc.addPage();
-            y = margin;
+            yPosition = margin;
 
-            // === CORE COMPETENCIES ===
-            doc.setDrawColor(...brandGold);
-            doc.setLineWidth(0.8);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            // Core Competencies
+            doc.setDrawColor(...goldColor);
+            doc.setLineWidth(0.5);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 5;
 
-            doc.setTextColor(...deepCharcoal);
-            doc.setFontSize(13);
-            doc.setFont('times', 'bold');
-            doc.text('CORE COMPETENCIES', margin, y);
-            y += 10;
+            doc.setTextColor(...darkColor);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CORE COMPETENCIES', margin, yPosition);
+            yPosition += 10;
 
             const skills = [
-                { name: 'Luxury Client Relations & Concierge Excellence', level: 96 },
-                { name: 'Brand Storytelling & Experiential Activation', level: 94 },
-                { name: 'Strategic Upselling & Revenue Optimization', level: 92 },
-                { name: 'Multilingual Communication & Cultural Fluency', level: 90 },
-                { name: 'Creative Performance & Audience Engagement', level: 93 }
+                { name: 'Luxury Client Relations', level: 96 },
+                { name: 'Brand Storytelling & Activation', level: 94 },
+                { name: 'Strategic Upselling & Revenue Growth', level: 92 },
+                { name: 'Multilingual Communication', level: 90 },
+                { name: 'Creative Performance Arts', level: 93 }
             ];
 
             skills.forEach(skill => {
-                doc.setFontSize(9.5);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(...richText);
-                doc.text(skill.name, margin, y);
+                doc.setFontSize(10);
+                doc.setTextColor(...textColor);
+                doc.text(skill.name, margin, yPosition);
+                doc.text(`${skill.level}%`, pageWidth - margin - 10, yPosition);
                 
-                doc.setFont('helvetica', 'normal');
-                doc.setTextColor(...brandGold);
-                doc.text(`${skill.level}%`, pageWidth - margin - 12, y);
-                
-                y += 4;
-                
+                yPosition += 3;
                 doc.setFillColor(230, 230, 230);
-                doc.roundedRect(margin, y, contentWidth - 15, 3.5, 1, 1, 'F');
+                doc.rect(margin, yPosition, contentWidth - 15, 3, 'F');
+                doc.setFillColor(...goldColor);
+                doc.rect(margin, yPosition, (contentWidth - 15) * (skill.level / 100), 3, 'F');
                 
-                doc.setFillColor(...brandGold);
-                doc.roundedRect(margin, y, (contentWidth - 15) * (skill.level / 100), 3.5, 1, 1, 'F');
-                
-                y += 8;
+                yPosition += 8;
             });
 
-            y += 6;
+            yPosition += 5;
 
-            // === ACADEMIC EXCELLENCE ===
-            doc.setDrawColor(...accentRose);
-            doc.setLineWidth(0.8);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            // Academic Excellence
+            doc.setDrawColor(...goldColor);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 5;
 
-            doc.setTextColor(...deepCharcoal);
-            doc.setFontSize(13);
-            doc.setFont('times', 'bold');
-            doc.text('ACADEMIC EXCELLENCE', margin, y);
-            y += 10;
-
-            doc.setFillColor(...premiumCream);
-            doc.roundedRect(margin, y - 2, contentWidth, 28, 2, 2, 'F');
+            doc.setTextColor(...darkColor);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('ACADEMIC EXCELLENCE', margin, yPosition);
+            yPosition += 10;
 
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...deepCharcoal);
-            doc.text('Bachelor of Science in Tourism Management', margin + 3, y + 3);
-            y += 7;
+            doc.setTextColor(...darkColor);
+            doc.text('Bachelor of Science in Tourism Management', margin, yPosition);
+            yPosition += 5;
             
-            doc.setFontSize(9.5);
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'italic');
-            doc.setTextColor(...brandGold);
-            doc.text('Arellano University – Plaridel Campus', margin + 3, y);
-            y += 6;
+            doc.setTextColor(...goldColor);
+            doc.text('Arellano University – Plaridel Campus', margin, yPosition);
+            yPosition += 5;
             
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...richText);
+            doc.setTextColor(...textColor);
             const degree1Text = 'Comprehensive curriculum encompassing hospitality operations, destination management, customer experience design, and strategic tourism marketing.';
-            const splitDegree1 = doc.splitTextToSize(degree1Text, contentWidth - 6);
-            doc.text(splitDegree1, margin + 3, y);
-            y += splitDegree1.length * 4.5 + 8;
-
-            doc.setFillColor(...premiumCream);
-            doc.roundedRect(margin, y - 2, contentWidth, 26, 2, 2, 'F');
+            const splitDegree1 = doc.splitTextToSize(degree1Text, contentWidth);
+            doc.text(splitDegree1, margin, yPosition);
+            yPosition += splitDegree1.length * 4.5 + 8;
 
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...deepCharcoal);
-            doc.text('Professional Certificate: Health Care Provider', margin + 3, y + 3);
-            y += 7;
+            doc.setTextColor(...darkColor);
+            doc.text('Professional Certificate: Health Care Provider', margin, yPosition);
+            yPosition += 5;
             
-            doc.setFontSize(9.5);
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'italic');
-            doc.setTextColor(...brandGold);
-            doc.text('Our Lady of Mercy College | Bacolod City', margin + 3, y);
-            y += 6;
+            doc.setTextColor(...goldColor);
+            doc.text('Our Lady of Mercy College | Bacolod City', margin, yPosition);
+            yPosition += 5;
             
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...richText);
+            doc.setTextColor(...textColor);
             const degree2Text = 'Advanced training in emergency response, first aid administration, and guest safety protocols—essential for luxury hospitality environments.';
-            const splitDegree2 = doc.splitTextToSize(degree2Text, contentWidth - 6);
-            doc.text(splitDegree2, margin + 3, y);
-            y += splitDegree2.length * 4.5 + 10;
+            const splitDegree2 = doc.splitTextToSize(degree2Text, contentWidth);
+            doc.text(splitDegree2, margin, yPosition);
+            yPosition += splitDegree2.length * 4.5 + 10;
 
-            // === DISTINGUISHED ATTRIBUTES ===
-            doc.setDrawColor(...brandGold);
-            doc.setLineWidth(0.8);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            // Distinguished Attributes
+            doc.setDrawColor(...goldColor);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 5;
 
-            doc.setTextColor(...deepCharcoal);
-            doc.setFontSize(13);
-            doc.setFont('times', 'bold');
-            doc.text('DISTINGUISHED ATTRIBUTES', margin, y);
-            y += 9;
+            doc.setTextColor(...darkColor);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('DISTINGUISHED ATTRIBUTES', margin, yPosition);
+            yPosition += 8;
 
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...richText);
+            doc.setTextColor(...textColor);
             const attributes = [
-                '✦ Fluent in English & Filipino with conversational competency in multiple Asian dialects',
-                '✦ Proven adaptability across luxury retail, aviation, and creative industries',
-                '✦ Exceptional poise under pressure in high-volume, multicultural environments',
-                '✦ Certified in emergency response and guest safety protocols',
-                '✦ Track record of exceeding performance benchmarks and revenue targets'
+                '✓ Fluent in English & Filipino with conversational competency in multiple Asian dialects',
+                '✓ Proven adaptability across luxury retail, aviation, and creative industries',
+                '✓ Exceptional poise under pressure in high-volume, multicultural environments',
+                '✓ Certified in emergency response and guest safety protocols',
+                '✓ Track record of exceeding performance benchmarks and revenue targets'
             ];
             
             attributes.forEach(attr => {
-                const lines = doc.splitTextToSize(attr, contentWidth - 3);
-                doc.text(lines, margin + 2, y);
-                y += lines.length * 5;
+                const lines = doc.splitTextToSize(attr, contentWidth);
+                doc.text(lines, margin, yPosition);
+                yPosition += lines.length * 5;
             });
 
-            // === SUPREME FOOTER ===
-            const footerY = pageHeight - 22;
-            doc.setFillColor(12, 10, 9);
-            doc.rect(0, footerY, pageWidth, 22, 'F');
+            // Footer
+            yPosition = pageHeight - 25;
+            doc.setFillColor(...goldColor);
+            doc.rect(0, yPosition, pageWidth, 25, 'F');
             
-            doc.setFillColor(...brandGold);
-            doc.rect(0, footerY, pageWidth, 0.8, 'F');
-            
-            doc.setTextColor(...brandGold);
+            doc.setTextColor(...darkColor);
             doc.setFontSize(10);
-            doc.setFont('times', 'bold');
-            doc.text('GECAN™ ENDORSED PROFESSIONAL DOSSIER', pageWidth / 2, footerY + 7, { align: 'center' });
+            doc.setFont('helvetica', 'bold');
+            doc.text('GECAN™ ENDORSED PROFESSIONAL DOSSIER', pageWidth / 2, yPosition + 8, { align: 'center' });
             
             doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
-            doc.setTextColor(200, 200, 200);
-            doc.text('This document is a confidential professional portfolio. © 2025 GECAN™ Alliance. All Rights Reserved.', pageWidth / 2, footerY + 12, { align: 'center' });
-            doc.text('For recruitment inquiries: Zaydendwayne@gmail.com | +63 915 730 9160', pageWidth / 2, footerY + 17, { align: 'center' });
+            doc.text('This document is a confidential professional portfolio. © 2025 GECAN™ Alliance. All Rights Reserved.', pageWidth / 2, yPosition + 14, { align: 'center' });
+            doc.text('For recruitment inquiries: Zaydendwayne@gmail.com | +63 915 730 9160', pageWidth / 2, yPosition + 19, { align: 'center' });
 
-            // === SAVE PDF ===
-            const timestamp = new Date().toISOString().slice(0, 10);
-            doc.save(`Jessa-Marie-Maquiling-Premium-Dossier-${timestamp}.pdf`);
+            // Save the PDF
+            doc.save('Jessa-Marie-Maquiling-Premium-Dossier.pdf');
             
             btn.innerHTML = originalHTML;
             btn.disabled = false;
             
+            // Success notification
             setTimeout(() => {
-                alert('✓ Supreme PDF Dossier Generated Successfully!\n\nYour pinnacle-grade professional document is ready for distribution to elite employers and executive recruiters.');
-            }, 400);
-
-        } catch (error) {
-            console.error('PDF Generation Error:', error);
-            btn.innerHTML = originalHTML;
-            btn.disabled = false;
-            alert('⚠ PDF Generation Failed\n\nPlease ensure jsPDF library is properly loaded and try again.');
+                alert('✓ Premium PDF Dossier Generated Successfully!\n\nYour professional document is ready for distribution to potential employers.');
+            }, 500);
         }
-    }
-};
+    };
 
-// ============================================================
-// AUTO-INITIALIZE ON SCRIPT LOAD
-// ============================================================
-Engine.init();
+    Engine.init();
 });
 </script>
 </body>
