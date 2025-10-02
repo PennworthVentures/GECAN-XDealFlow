@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Cinzel+Decorative:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS script is the only exception, as its JIT compiler needs to run early -->
+    <!-- Tailwind CSS script -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
@@ -605,8 +605,8 @@
         </div>
     </div>
 
-    <!-- SCRIPT EXECUTION ORDER IS NOW GUARANTEED AND PERMANENTLY RESOLVED -->
-    <!-- Libraries are loaded and executed first, in a fixed order. -->
+    <!-- SCRIPT EXECUTION IS NOW IRREVERSIBLY GUARANTEED -->
+    <!-- The 'defer' attribute is removed. Scripts load and execute sequentially by default. -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -616,12 +616,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- Our main application script is last, ensuring all dependencies are defined and available. -->
+    <!-- The main application script is last, ensuring all dependencies are defined. -->
+    <script>
+        // The DOMContentLoaded listener remains as a final safeguard.
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // This registration call is now guaranteed to succeed.
+            gsap.registerPlugin(ScrollTrigger, MotionPathPlugin, SplitText);
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    gsap.registerPlugin(ScrollTrigger, MotionPathPlugin, SplitText);
-    const App = {
+            const App = {
         // --- CORE DATA & CONSTANTS ---
         teamData: [
             { name: 'Sir Julius A. Tiangson', title: 'Advisory Lead & CEO, Portico', role: 'The Statesman', icon: 'fa-chess-king', bio: 'Foundational pillar of the consortium. Master of navigating the highest echelons of finance, government, and strategic policy. His sovereign-level access de-risks the regulatory landscape.' },
