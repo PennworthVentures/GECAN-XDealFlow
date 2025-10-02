@@ -379,34 +379,44 @@
             </div>
         </section>
         
-        <!-- [SLIDE 12-13] Governance & Expansion -->
+<!-- [SLIDE 12-13] Governance & Expansion -->
         <section id="doctrine" class="py-20 md:py-32">
             <div class="text-center">
                  <p class="section-subtitle">VII. Governance & Expansion</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">The "Sovereign Respect" Doctrine</h2>
                 <p class="mt-4 max-w-4xl mx-auto text-lg">Our regulatory architecture is not ancillary; it is the operational bedrock. We do not circumvent jurisdictional authority; we amplify regulatory visibility, transforming GECAN™ into an indispensable partner in national security and sovereign oversight. This doctrine converts compliance from a procedural obligation into a strategic weapon.</p>
             </div>
-            <div class="mt-16 grid lg:grid-cols-2 gap-12 items-center">
-                <div class="quantum-card rounded-2xl p-8 h-full">
-                    <h3 class="text-2xl font-bold text-text-diamond mb-4">The Corridor-by-Corridor Doctrine</h3>
-                    <p class="mb-6">A meticulously sequenced, capital-efficient campaign of corridor activation. Each corridor functions as both a strategic foothold and a funding engine for subsequent expansion, ensuring measurable value capture and sustainable scalability.</p>
-                    <div class="space-y-4">
-                        <div class="p-4 rounded-lg border border-border-premium bg-background-primary/50"><strong>Phase I (0-18 Mo): ASEAN Hub Pilot.</strong> Corridors: SG→PH, UAE→PH. Objective: Establish operational credibility, regulatory trust, and proof-of-settlement protocols.</div>
-                        <div class="p-4 rounded-lg border border-border-color"><strong>Phase II (19-36 Mo): MENA-Asia Bridge.</strong> Corridors: UAE→IN, UAE→ID. Objective: Build institutional adoption and generate cross-corridor liquidity synergies.</div>
-                        <div class="p-4 rounded-lg border border-border-color"><strong>Phase III (37-60 Mo): Global Network Effect.</strong> Corridors: EU, LATAM, SSA. Objective: Achieve dominant market share and establish Karavan as the default global settlement utility.</div>
+            
+            <!-- Main Visualization Container -->
+            <div class="mt-16 grid lg:grid-cols-5 gap-12 items-center">
+                <!-- Left Panel: Corridor-by-Corridor Doctrine -->
+                <div class="lg:col-span-2">
+                    <div class="quantum-card rounded-2xl p-8 h-full">
+                        <h3 class="text-2xl font-bold text-text-diamond mb-4">The Corridor-by-Corridor Doctrine</h3>
+                        <p class="text-sm mb-6">A meticulously sequenced, capital-efficient campaign of corridor activation. Each corridor functions as a strategic foothold and a funding engine for subsequent expansion.</p>
+                        <div id="doctrine-phases" class="space-y-4">
+                            <!-- Phase descriptions will be dynamically highlighted by the animation -->
+                            <div id="phase-1" class="phase-card p-4 rounded-lg border border-border-color transition-all duration-500"><strong>Phase I (0-18 Mo): ASEAN Hub Pilot.</strong> Corridors: SG→PH, UAE→PH. Objective: Establish operational credibility and regulatory trust.</div>
+                            <div id="phase-2" class="phase-card p-4 rounded-lg border border-border-color transition-all duration-500"><strong>Phase II (19-36 Mo): MENA-Asia Bridge.</strong> Corridors: UAE→IN, UAE→ID. Objective: Build institutional adoption and liquidity synergies.</div>
+                            <div id="phase-3" class="phase-card p-4 rounded-lg border border-border-color transition-all duration-500"><strong>Phase III (37-60 Mo): Global Network Effect.</strong> Corridors: EU, LATAM, SSA. Objective: Achieve dominant market share.</div>
+                        </div>
                     </div>
                 </div>
-                <div class="quantum-card rounded-2xl p-8 bg-background-glass-premium border-border-quantum">
-                    <h3 class="text-2xl font-bold text-text-diamond mb-4">Conceptual Regulator's Dashboard</h3>
-                    <p class="text-sm text-text-muted mb-6">Delivering Unprecedented Sovereign Oversight and Auditable Transparency</p>
-                    <div class="bg-black/50 p-6 rounded-lg border border-border-color">
-                        <div class="grid grid-cols-2 gap-6">
-                            <div><p class="text-xs text-text-muted">24h GTV (Anonymized)</p><p class="stat-value text-2xl">$1.42B</p></div>
-                            <div><p class="text-xs text-text-muted">Avg. Tx Size</p><p class="stat-value text-2xl">$2,350</p></div>
-                            <div><p class="text-xs text-text-muted">AML/CTF Flags Triggered</p><p class="stat-value text-2xl text-green-400">0</p></div>
+
+                <!-- Center Panel: Interactive World Map -->
+                <div class="lg:col-span-3 h-[600px] relative">
+                    <svg id="world-map-svg" class="absolute inset-0 w-full h-full" viewBox="0 0 1000 500"></svg>
+
+                    <!-- Overlay for the Regulator's Dashboard -->
+                    <div id="regulator-dashboard-overlay" class="absolute bottom-4 left-4 right-4 quantum-card rounded-2xl p-6 bg-background-glass-premium border-border-quantum opacity-0">
+                        <h3 class="text-xl font-bold text-text-diamond mb-2">Conceptual Regulator's Dashboard</h3>
+                        <p class="text-xs text-text-muted mb-4">Delivering Unprecedented Sovereign Oversight</p>
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                            <div><p class="text-xs text-text-muted">24h GTV (Anonymized)</p><p class="stat-value text-2xl" data-value="1.42" data-suffix="B">$0</p></div>
                             <div><p class="text-xs text-text-muted">Avg. Settlement Finality</p><p class="stat-value text-2xl">&lt;180s</p></div>
+                            <div><p class="text-xs text-text-muted">Avg. Tx Size</p><p class="stat-value text-2xl" data-value="2350" data-prefix="$">$0</p></div>
+                            <div><p class="text-xs text-text-muted">AML/CTF Flags Triggered</p><p class="stat-value text-2xl text-green-400" data-value="0">0</p></div>
                         </div>
-                        <div class="mt-6"><canvas id="corridor-chart" class="h-32"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -785,7 +795,8 @@
             this.setupImperativeAnimations(); 
             this.setupThesisAnimations(); 
             this.setupMoatAnimations(); 
-            this.setupArchitectureAnimations(); // <-- ADD THIS NEW CALL
+            this.setupArchitectureAnimations();
+            this.setupDoctrineAnimations(); // <-- ADD THIS NEW CALL
             this.setupScrollAnimations(); 
             
             this.setupCharts();
@@ -1393,37 +1404,169 @@
                   ease: 'power3.inOut'
               }, 'assemble');
         },
+
+        setupDoctrineAnimations() {
+            const section = document.getElementById('doctrine');
+            const svg = document.getElementById('world-map-svg');
+            const dashboard = document.getElementById('regulator-dashboard-overlay');
+
+            if (!section || !svg) return;
+
+            // --- Define Map Data ---
+            const locations = {
+                SG: { x: 830, y: 270, name: "Singapore" },
+                PH: { x: 880, y: 230, name: "Philippines" },
+                UAE: { x: 650, y: 190, name: "UAE" },
+                IN: { x: 740, y: 210, name: "India" },
+                ID: { x: 850, y: 300, name: "Indonesia" },
+                EU: { x: 500, y: 120, name: "Europe" },
+                LATAM: { x: 250, y: 320, name: "LATAM" },
+                SSA: { x: 550, y: 320, name: "Sub-Saharan Africa" }
+            };
+
+            // --- Build the SVG Map ---
+            // Simplified world map path
+            const mapPath = "M500 5l-20 20-20-20-10 30-10-30-20 20-20-20... (a long SVG path for the world map)"; // This is a placeholder for a real map path
+            let mapHTML = `
+                <defs>
+                    <filter id="map-glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <path d="${mapPath_placeholder}" fill="var(--background-secondary)" stroke="var(--border-color)" stroke-width="0.5"/>
+            `;
+            Object.values(locations).forEach(loc => {
+                mapHTML += `<circle class="map-node" id="node-${loc.name}" cx="${loc.x}" cy="${loc.y}" r="5" fill="var(--border-premium)" />`;
+            });
+            svg.innerHTML = mapHTML;
+            
+            // --- Animation Timeline ---
+            const masterTimeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 30%',
+                    toggleActions: "play none reverse none"
+                },
+                defaults: { duration: 1, ease: 'power2.out' }
+            });
+
+            // Phase 1: ASEAN Hub Pilot
+            masterTimeline.addLabel('phase_1')
+              .call(() => document.getElementById('phase-1').classList.add('active-phase'))
+              .fromTo(`#node-Singapore, #node-Philippines, #node-UAE`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' })
+              .add(this.createCorridor(svg, locations.SG, locations.PH), '+=0.5')
+              .add(this.createCorridor(svg, locations.UAE, locations.PH));
+
+            // Phase 2: MENA-Asia Bridge
+            masterTimeline.addLabel('phase_2', '+=1.5')
+              .call(() => {
+                  document.getElementById('phase-1').classList.remove('active-phase');
+                  document.getElementById('phase-2').classList.add('active-phase');
+              })
+              .fromTo(`#node-India, #node-Indonesia`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' })
+              .add(this.createCorridor(svg, locations.UAE, locations.IN), '+=0.5')
+              .add(this.createCorridor(svg, locations.UAE, locations.ID));
+              
+            // Phase 3: Global Network Effect
+            masterTimeline.addLabel('phase_3', '+=1.5')
+              .call(() => {
+                  document.getElementById('phase-2').classList.remove('active-phase');
+                  document.getElementById('phase-3').classList.add('active-phase');
+              })
+              .fromTo(`#node-Europe, #node-LATAM, #node-Sub-Saharan`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' });
+              // Add more corridors for a "full network" effect
+              
+            // Final Step: Reveal Regulator Dashboard
+            masterTimeline.addLabel('dashboard', '+=1.5')
+              .to(dashboard, { opacity: 1, y: 0, duration: 1, ease: 'expo.out' })
+              .call(() => {
+                  dashboard.querySelectorAll('.stat-value[data-value]').forEach(el => {
+                      const endValue = parseFloat(el.getAttribute('data-value'));
+                      const prefix = el.getAttribute('data-prefix') || '';
+                      const suffix = el.getAttribute('data-suffix') || '';
+                      gsap.fromTo(el, { textContent: 0 }, {
+                          textContent: endValue,
+                          duration: 2,
+                          ease: 'power2.out',
+                          snap: { textContent: endValue % 1 !== 0 ? 0.01 : 1 },
+                          onUpdate: function() {
+                              let val = parseFloat(this.targets()[0].textContent);
+                              el.textContent = prefix + (endValue % 1 !== 0 ? val.toFixed(2) : val.toLocaleString()) + suffix;
+                          }
+                      });
+                  });
+              });
+
+            // Add some CSS for the active phase
+            const style = document.createElement('style');
+            style.innerHTML = `.phase-card.active-phase { border-color: var(--border-quantum); background: var(--background-primary); transform: scale(1.05); }`;
+            document.head.appendChild(style);
+        },
+
+        // Helper function to create animated corridor lines
+        createCorridor(svg, start, end) {
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const d = `M ${start.x} ${start.y} Q ${(start.x + end.x)/2} ${(start.y + end.y)/2 - 50} ${end.x} ${end.y}`;
+            path.setAttribute("d", d);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "var(--brand-gold-medium)");
+            path.setAttribute("stroke-width", "2");
+            path.style.strokeDasharray = "500";
+            path.style.strokeDashoffset = "500";
+            path.style.filter = "url(#map-glow)";
+            svg.appendChild(path);
+
+            return gsap.to(path, { strokeDashoffset: 0, duration: 1.5, ease: 'power2.inOut' });
+        },
+
+        // A placeholder for a long SVG path to avoid clutter
+        mapPath_placeholder: "M4,250 C150,100 350,100 500,250 C650,400 850,400 996,250 ... (and so on)",
                 
 setupScrollAnimations() {
-             // This function now handles only the GENERAL animations for all sections that do not have a custom cinematic sequence.
+            // This function's sole, definitive purpose is to handle the general "scrollytelling" animations
+            // for all standard sections that DO NOT have a custom, dedicated cinematic sequence.
+
+            // Define an explicit exclusion list of section IDs that are controlled by other animation functions.
+            // This is the most robust and scalable architecture, preventing future conflicts.
+            const excludedSections = [
+                'imperative',          // Controlled by setupImperativeAnimations
+                'thesis',              // Controlled by setupThesisAnimations
+                'moat',                // Controlled by setupMoatAnimations
+                'architecture',        // Controlled by setupArchitectureAnimations
+                'doctrine'             // Controlled by setupDoctrineAnimations
+            ];
+
              gsap.utils.toArray('section').forEach(section => {
-                // EXCLUDE sections that have their own dedicated, pinnacle-grade animation timelines to prevent conflicts.
-                if (section.id === 'imperative' || section.classList.contains('min-h-screen')) {
-                    return; // Skip the hero and imperative sections
+                // EXCLUSION LOGIC:
+                // This condition now definitively ignores the hero section AND any section
+                // with a dedicated cinematic timeline, ensuring zero animation conflicts.
+                if (section.classList.contains('min-h-screen') || excludedSections.includes(section.id)) {
+                    return; // Skip this section entirely.
                 }
                 
-                // Apply a standard, elegant fade-and-rise animation to all other sections as the user scrolls.
+                // Apply a standard, elegant fade-and-rise animation to all other, non-cinematic sections.
                 gsap.from(section.children, { 
                     scrollTrigger: { 
                         trigger: section, 
-                        start: 'top 85%', // Start animation when the section is 85% from the top
-                        end: 'top 50%',   // Fully animated by the time it's halfway up
-                        scrub: 1.2        // Smoothly ties the animation progress to the scrollbar
+                        start: 'top 85%',   // Start animation when the section is 85% from the top of the viewport
+                        end: 'top 50%',     // Animation is fully complete when the section is halfway up the screen
+                        scrub: 1.2          // Smoothly link the animation progress to the scrollbar movement
                     }, 
                     opacity: 0, 
-                    y: 75, // A slightly more pronounced rise for a premium feel
+                    y: 75, // A more pronounced vertical rise for a premium, weighty feel
                     stagger: {
-                        amount: 0.3, // Animate all children over 0.3 seconds
+                        amount: 0.4, // Animate all direct children of the section over 0.4 seconds
                         from: "start"
                     },
-                    ease: 'power2.out'
+                    ease: 'power3.out' // A professional and smooth easing function
                 });
             });
             
-            // NOTE: All number counter logic (`gsap.utils.toArray('.stat-value[data-value]')`) has been
-            // PERMANENTLY REMOVED from this function. That logic is now exclusively and correctly
-            // handled within the new 'setupImperativeAnimations' function to ensure proper timing
-            // within its cinematic sequence. This eliminates all conflicts.
+            // FINAL CONFIRMATION:
+            // All specific animation logic, such as number counters ('stat-value[data-value]'),
+            // has been PERMANENTLY and CORRECTLY REMOVED from this general function.
+            // That logic is now exclusively handled within their respective dedicated animation functions
+            // (e.g., setupImperativeAnimations, setupDoctrineAnimations) to ensure perfect timing
+            // and prevent any and all functional regressions or conflicts.
+            // This function is now clean, definitive, and serves its single architectural purpose.
         },
 
         // Add a utility function to update the UTC time
