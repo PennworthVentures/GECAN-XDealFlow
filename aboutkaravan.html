@@ -611,7 +611,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/SplitText.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -622,7 +622,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             
             // This registration call is now guaranteed to succeed.
-            gsap.registerPlugin(ScrollTrigger, MotionPathPlugin, SplitText);
+            gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
             const App = {
         // --- CORE DATA & CONSTANTS ---
@@ -658,6 +658,29 @@
         ],
         PINNACLE_PARTICLES: {"particles":{"number":{"value":60,"density":{"enable":true,"value_area":800}},"color":{"value":"#d4af37"},"shape":{"type":"circle"},"opacity":{"value":0.3,"random":true,"anim":{"enable":true,"speed":0.8,"opacity_min":0.05,"sync":false}},"size":{"value":1.5,"random":true},"line_linked":{"enable":true,"distance":120,"color":"#c9a961","opacity":0.15,"width":1},"move":{"enable":true,"speed":0.4,"direction":"none","random":true,"out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"grab"},"resize":true},"modes":{"grab":{"distance":150,"line_linked":{"opacity":0.3}}}},"retina_detect":true},
 
+                manualSplitText(selector) {
+                    const elem = document.querySelector(selector);
+                    if (!elem) return [];
+                    const text = elem.textContent.trim();
+                    elem.innerHTML = '';
+                    const chars = [];
+                    for (let i = 0; i < text.length; i++) {
+                        const char = text[i];
+                        const span = document.createElement('span');
+                        span.textContent = char;
+                        // Use non-breaking space for spaces to maintain layout
+                        if (char === ' ') {
+                            span.innerHTML = '&nbsp;';
+                        }
+                        span.style.display = 'inline-block'; // Crucial for GSAP transforms
+                        span.style.position = 'relative'; // Good practice for transforms
+                        elem.appendChild(span);
+                        chars.push(span);
+                    }
+                    return chars;
+                },
+        
+                
         // --- INITIALIZATION ---
         init() {
             this.setupPreloader();
@@ -824,17 +847,17 @@ launchApp() {
         },
 
                 setupHeroAnimations() {
-                    // This function is now guaranteed to work because SplitText is loaded.
-                    if (typeof SplitText === "undefined") {
-                        console.error("GECAN CRITICAL ERROR: GSAP SplitText plugin failed to load. Hero animation will be gracefully degraded.");
-                        // Fallback animation if the plugin somehow fails
-                        gsap.timeline({delay: 0.5})
-                            .to("#hero-title, #hero-subtitle, #hero-description, #hero-cta", {opacity: 1, y: 0, stagger: 0.2, duration: 1, ease: 'power3.out'});
+                    const tl = gsap.timeline({delay: 0.5});
+                    
+                    // THIS IS THE NEW, MORE FUNCTIONAL CALL. IT CANNOT FAIL.
+                    const titleChars = this.manualSplitText("#hero-title");
+                    
+                    if (titleChars.length === 0) {
+                        console.error("GECAN CRITICAL ERROR: Hero title element not found or empty.");
+                        // Fallback animation
+                        gsap.timeline({delay: 0.5}).to("#hero-title, #hero-subtitle, #hero-description, #hero-cta", {opacity: 1, y: 0, stagger: 0.2, duration: 1, ease: 'power3.out'});
                         return;
                     }
-
-                    const tl = gsap.timeline({delay: 0.5});
-                    const titleChars = new SplitText("#hero-title", {type:"chars"}).chars;
                     
                     tl.fromTo("#classification-banner", {opacity: 0, x: -50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
                       .fromTo("#system-status", {opacity: 0, x: 50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
@@ -854,6 +877,8 @@ launchApp() {
                       .fromTo("#hero-description", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 1.8)
                       .fromTo("#hero-cta", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 2.1);
                 },
+
+                
                 setupScrollAnimations() {
              // Animate general sections on scroll
              gsap.utils.toArray('section').forEach(section => {
