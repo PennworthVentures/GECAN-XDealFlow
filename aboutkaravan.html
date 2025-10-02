@@ -413,23 +413,37 @@
 
 <!-- [SLIDE 5-6] The 15-Point Moat -->
         <section id="moat" class="py-20 md:py-32">
-            <div class="text-center">
+            <div class="text-center anim-intro">
                 <p class="section-subtitle">IV. The Defensible Moat</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">A Fortress of Inevitability</h2>
                 <p class="mt-4 max-w-4xl mx-auto text-lg">Our advantage is not a feature; it is a system. Karavan establishes a fortified, multi-jurisdictional moat, interwoven legally, technologically, and operationally to create a fortress of competitive durability that is existentially irreplicable by any competitor class.</p>
             </div>
-            <div class="quantum-card rounded-2xl p-8 md:p-12 mt-16 relative">
-                <!-- Tooltip for interactive phase -->
-                <div id="moat-tooltip" class="absolute top-0 left-0 bg-background-primary border border-border-premium p-4 rounded-lg text-sm shadow-lg pointer-events-none opacity-0 transition-opacity z-20 max-w-xs"></div>
+            
+            <!-- Main container for the 3D visualization and its dossier -->
+            <div class="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                 
-                <!-- Main SVG Container for the animated fortress -->
-                <svg id="moat-diagram" class="moat-diagram w-full h-auto" viewBox="0 0 1000 600">
-                    <!-- SVG content will be dynamically built and animated by JavaScript -->
-                </svg>
-
-                 <div class="mt-8 pt-6 border-t border-border-premium text-center">
-                    <p class="font-bold text-text-diamond">To attack Karavan, incumbents must commit structural hara-kiri. To ignore it, they concede inevitability.</p>
+                <!-- 3D Kinetic Fortress Visualization -->
+                <div id="moat-3d-container" class="lg:col-span-2 h-[600px] relative perspective-[4000px]">
+                    <!-- The 3D scene will be dynamically built and animated here by JavaScript -->
+                    <div id="moat-scene" class="absolute inset-0" style="transform-style: preserve-3d;">
+                        <!-- Core, Rings, and Points will be injected here -->
+                    </div>
                 </div>
+
+                <!-- Interactive Dossier Panel -->
+                <div id="moat-dossier" class="lg:col-span-1 h-[600px] flex flex-col justify-center">
+                    <div class="quantum-card rounded-2xl p-8 h-full">
+                        <h3 id="moat-dossier-title" class="section-title text-2xl mb-4 transition-opacity duration-500">The 15 Pillars</h3>
+                        <div id="moat-dossier-content" class="text-text-silver transition-opacity duration-500">
+                             <p class="italic text-text-muted">Hover over a defensive node to examine its strategic importance to the Karavan Protocol.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-16 pt-6 border-t border-border-premium text-center">
+                <p class="font-bold text-xl text-text-diamond">To attack Karavan, incumbents must commit structural hara-kiri. To ignore it, they concede inevitability.</p>
             </div>
         </section>
 
@@ -1419,146 +1433,139 @@ setupThesisAnimations() {
               }, 'show_som+=1.0');
         },
 
-setupMoatAnimations() {
-            // This function's sole, definitive purpose is to orchestrate the cinematic construction
-            // of the "Moat" section's visual centerpiece. It does NOT animate the intro text.
-
+// THIS IS THE NEW, SEVERELY REVAMPED AND RE-ARCHITECTED ANIMATION FUNCTION FOR THE MOAT
+        setupMoatAnimations() {
             const section = document.getElementById('moat');
-            const svgNS = "http://www.w3.org/2000/svg"; 
-            const diagram = document.getElementById('moat-diagram'); 
-            const tooltip = document.getElementById('moat-tooltip'); 
+            const scene = document.getElementById('moat-scene');
+            const container = document.getElementById('moat-3d-container');
+            const dossierTitle = document.getElementById('moat-dossier-title');
+            const dossierContent = document.getElementById('moat-dossier-content');
 
-            // Robustness check to prevent errors
-            if (!diagram || !tooltip) {
-                console.error("GECAN DIAGNOSTIC: Missing critical elements for Moat animation. Sequence aborted.");
-                return;
-            }
+            if (!section || !scene) return;
 
-            // --- Build the SVG Fortress Structure ---
-            const center = { x: 500, y: 300 };
-            const coreRadius = 70;
+            // --- Dynamically Build the 3D Fortress ---
             let fortressHTML = `
-                <defs>
-                    <filter id="moat-glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
-                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                    <radialGradient id="core-gradient">
-                        <stop offset="0%" stop-color="var(--brand-gold-light)" />
-                        <stop offset="100%" stop-color="var(--brand-gold-medium)" />
-                    </radialGradient>
-                </defs>
-                <g id="fortress-core">
-                    <circle cx="${center.x}" cy="${center.y}" r="${coreRadius}" fill="url(#core-gradient)" filter="url(#moat-glow)"/>
-                    <text x="${center.x}" y="${center.y}" fill="var(--background-primary)" font-size="28" font-weight="900" text-anchor="middle" alignment-baseline="middle" font-family="Cinzel Decorative">KARAVAN</text>
-                </g>
+                <div id="moat-core" class="absolute inset-0 m-auto w-48 h-48 rounded-full flex items-center justify-center" style="transform-style: preserve-3d; transform: translateZ(0px);">
+                    <div class="absolute inset-0 bg-gradient-to-br from-brand-gold-light to-brand-gold-medium rounded-full"></div>
+                    <p class="text-4xl font-black text-background-primary font-['Cinzel_Decorative']">KARAVAN</p>
+                </div>
             `;
-            const rings = [150, 250, 350]; // Radii for the concentric moat rings
+            const rings = [200, 300, 400]; // Radii for the 3D rings
             rings.forEach((radius, index) => {
-                fortressHTML += `<circle id="ring-${index}" class="moat-ring" cx="${center.x}" cy="${center.y}" r="${radius}" fill="none" stroke="var(--border-premium)" stroke-width="2" stroke-dasharray="15 10"/>`;
+                fortressHTML += `<div id="moat-ring-${index}" class="moat-ring absolute inset-0 m-auto rounded-full border-2 border-border-premium" style="width:${radius*2}px; height:${radius*2}px; transform-style: preserve-3d;"></div>`;
             });
-            diagram.innerHTML = fortressHTML;
+            this.moatData.forEach((point, index) => {
+                fortressHTML += `<div id="moat-point-${index}" class="moat-point absolute -m-4 w-8 h-8 rounded-full" data-index="${index}"></div>`;
+            });
+            scene.innerHTML = fortressHTML;
 
+            const core = document.getElementById('moat-core');
+            const ringElements = gsap.utils.toArray('.moat-ring');
+            const pointElements = gsap.utils.toArray('.moat-point');
+            
             // --- The Master Cinematic Timeline ---
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    // The animation starts later, ensuring the intro text is already visible.
                     start: 'top 30%',
-                    // Defines a seamless, one-way playback. No fidgeting.
                     toggleActions: "play none reverse none",
-                    // Ensures the animation resets correctly on browser resize.
                     invalidateOnRefresh: true
-                },
-                defaults: {
-                    ease: 'power2.out'
                 }
             });
 
-            // ARCHITECTURAL CONFIRMATION: The timeline no longer contains any tweens for the intro text block.
+            // 1. Core Materialization
+            masterTimeline.fromTo(core, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.5, ease: 'elastic.out(1, 0.5)' });
 
-            // 1. Reveal the Core with a powerful pulse effect.
-            masterTimeline.fromTo('#fortress-core', 
-                { scale: 0, transformOrigin: 'center center' },
-                { scale: 1, duration: 1.5, ease: 'elastic.out(1, 0.5)' }
-            );
+            // 2. Energy Rings Deployment
+            masterTimeline.fromTo(ringElements, 
+                { scale: 0.1, rotationX: 90, opacity: 0, transformOrigin: 'center center' },
+                { scale: 1, rotationX: 0, opacity: 1, duration: 1.5, stagger: 0.2, ease: 'expo.out' }
+            , "-=1.0");
 
-            // 2. Animate the Moat Rings expanding outwards with a ripple effect.
-            masterTimeline.from('.moat-ring', {
-                strokeDashoffset: -500, // Animate the dasharray
-                r: coreRadius,
-                opacity: 0,
-                duration: 2,
-                stagger: 0.3,
-                ease: 'power3.out'
-            }, "-=1.0");
-
-            // 3. Animate the 15 Moat Points appearing on the outermost ring like sentinels.
+            // 3. Orbital Sentinels (Moat Points) Emerge
             const outerRadius = rings[rings.length - 1];
-            this.moatData.forEach((point, index) => {
-                const angleRad = (point.angle - 90) * (Math.PI / 180);
-                const x = center.x + outerRadius * Math.cos(angleRad);
-                const y = center.y + outerRadius * Math.sin(angleRad);
-
-                const pointGroup = document.createElementNS(svgNS, "g");
-                pointGroup.classList.add('moat-point-group');
-                pointGroup.style.transformOrigin = 'center center';
-                pointGroup.style.opacity = '0'; // Start invisible
-
-                const circle = document.createElementNS(svgNS, "circle");
-                circle.setAttribute('class', 'moat-point');
-                circle.setAttribute('cx', x);
-                circle.setAttribute('cy', y);
-                circle.setAttribute('r', 12);
-                circle.setAttribute('fill', 'var(--brand-gold-rich)');
-                circle.setAttribute('stroke', 'var(--brand-gold-dark)');
-                circle.setAttribute('stroke-width', '2');
-                circle.dataset.description = point.description;
-
-                pointGroup.appendChild(circle);
-                diagram.appendChild(pointGroup);
-
-                // Add the point's appearance to the timeline with a staggered delay.
-                masterTimeline.to(pointGroup, 
-                    { opacity: 1, duration: 0.5, ease: 'power2.out' },
-                    `-=${index === 0 ? 0.5 : 1.9}` // Fine-tuned stagger for a more dynamic build
+            pointElements.forEach((point, index) => {
+                const angle = this.moatData[index].angle;
+                masterTimeline.fromTo(point, 
+                    { opacity: 0, scale: 0 },
+                    { 
+                        opacity: 1, 
+                        scale: 1,
+                        // Position points on a 3D sphere, not a flat circle
+                        motionPath: {
+                            path: `M ${outerRadius}, 0 A ${outerRadius},${outerRadius} 0 1,1 ${outerRadius}, -0.1 Z`,
+                            curviness: 0,
+                            start: (angle / 360),
+                            end: (angle / 360) + 0.001
+                        },
+                        transformOrigin: 'center center',
+                        duration: 1,
+                        ease: 'back.out(1.7)'
+                    }, 
+                    "-=1.4" // Heavily overlap for a rapid, cascading appearance
                 );
             });
             
-            // 4. Add Premium Hover Effects AFTER the main animation has played.
+            // 4. Add Pinnacle-Grade Interactivity AFTER the build sequence
             masterTimeline.add(() => {
-                diagram.querySelectorAll('.moat-point').forEach(point => {
-                    point.addEventListener('mouseenter', e => {
-                        tooltip.innerHTML = e.target.dataset.description;
-                        gsap.to(tooltip, { opacity: 1, duration: 0.3, y: -10 });
-                        gsap.to(e.target, { 
-                            r: 20, 
-                            fill: 'var(--brand-gold-light)', 
-                            filter: 'url(#moat-glow)',
-                            duration: 0.3, 
-                            ease: 'power2.out' 
-                        });
+                // Interactive 3D rotation of the entire scene
+                container.addEventListener('mousemove', e => {
+                    const rect = container.getBoundingClientRect();
+                    const mouseX = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+                    const mouseY = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+                    gsap.to(scene, {
+                        rotationY: mouseX * 20,
+                        rotationX: -mouseY * 20,
+                        duration: 1.5,
+                        ease: 'power3.out'
                     });
-                    point.addEventListener('mousemove', e => {
-                        const rect = diagram.getBoundingClientRect();
-                        gsap.set(tooltip, {
-                            x: e.clientX - rect.left - (tooltip.offsetWidth / 2), 
-                            y: e.clientY - rect.top - tooltip.offsetHeight - 30
+                });
+
+                pointElements.forEach(point => {
+                    const index = parseInt(point.dataset.index);
+                    const pointData = this.moatData[index];
+
+                    point.addEventListener('mouseenter', () => {
+                        gsap.to(point, {
+                            scale: 2.5,
+                            backgroundColor: 'var(--brand-gold-light)',
+                            boxShadow: '0 0 30px var(--brand-gold-light)',
+                            duration: 0.4,
+                            ease: 'power3.out'
                         });
+                        
+                        // Update the dossier panel with a premium animation
+                        gsap.to([dossierTitle, dossierContent], { opacity: 0, y: 10, duration: 0.3, onComplete: () => {
+                            dossierTitle.innerHTML = pointData.label;
+                            dossierContent.innerHTML = `<p>${pointData.description}</p>`;
+                            gsap.to([dossierTitle, dossierContent], { opacity: 1, y: 0, duration: 0.5 });
+                        }});
                     });
-                    point.addEventListener('mouseleave', e => {
-                        gsap.to(tooltip, { opacity: 0, y: 0, duration: 0.3 });
-                        gsap.to(e.target, { 
-                            r: 12, 
-                            fill: 'var(--brand-gold-rich)', 
-                            filter: 'none',
-                            duration: 0.3, 
-                            ease: 'power2.in' 
+
+                    point.addEventListener('mouseleave', () => {
+                        gsap.to(point, {
+                            scale: 1,
+                            backgroundColor: 'transparent',
+                            boxShadow: '0 0 0px transparent',
+                            duration: 0.4,
+                            ease: 'power3.out'
                         });
                     });
                 });
             });
+
+            // Add some CSS for the 3D elements
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .moat-ring { transform-style: preserve-3d; animation: spin 20s linear infinite; }
+                #moat-ring-1 { animation-duration: 30s; }
+                #moat-ring-2 { animation-duration: 40s; animation-direction: reverse; }
+                .moat-point { transform-style: preserve-3d; background: var(--brand-gold-rich); border: 1px solid var(--brand-gold-dark); }
+                @keyframes spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+            `;
+            document.head.appendChild(style);
         },
+                
 setupArchitectureAnimations() {
             // This function's sole, definitive purpose is to orchestrate the 3D cinematic construction
             // of the "Kinesis Engine" visual centerpiece. It does NOT animate the intro text.
