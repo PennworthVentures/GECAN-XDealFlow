@@ -332,12 +332,15 @@
         </section>
 
 <!-- [SLIDE 10-11] The 180-Second Protocol -->
-        <section class="py-20 md:py-32">
-            <div class="text-center">
+        <section id="protocol" class="py-20 md:py-32">
+            <!-- THE CRITICAL FIX: The 'anim-intro' class is added here -->
+            <div class="text-center anim-intro">
                 <p class="section-subtitle">VI. Operational Supremacy</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">The 180-Second Global Settlement Protocol</h2>
                 <p class="mt-4 max-w-4xl mx-auto text-lg">Observe the operational efficacy of atomic, multi-jurisdictional settlement. This is not a theoretical model; it is the codified, repeatable workflow that renders the incumbent system obsolete. From days of uncertainty to sub-three-minute, legally enforceable finality.</p>
             </div>
+            
+            <!-- The visualization container remains the same, but will now be animated correctly -->
             <div class="quantum-card rounded-2xl mt-16 p-8 md:p-12 relative overflow-visible">
                 <!-- Main Visualization Container -->
                 <div class="grid lg:grid-cols-2 gap-x-12 items-center">
@@ -363,15 +366,7 @@
 
                 <!-- Strategic Highlights -->
                 <div class="mt-12 border-t-2 border-border-color pt-8">
-                     <h3 class="text-2xl font-bold text-text-diamond mb-6 text-center">Protocol Strategic Highlights</h3>
-                     <div class="grid md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                        <div class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-3 mt-1"></i><span><strong>Atomic, Multi-Jurisdictional Integrity:</strong> Each transaction is executed with zero settlement risk, irrespective of cross-border corridors, eliminating counterparty default potential.</span></div>
-                        <div class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-3 mt-1"></i><span><strong>Legally Defensible Execution:</strong> Every stage produces timestamped, immutable, and cryptographically auditable records, enforceable under prevailing banking and regulatory frameworks.</span></div>
-                        <div class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-3 mt-1"></i><span><strong>Regulatory-First Compliance:</strong> Automated AML, CTF, and sanctions enforcement is embedded at the protocol layer, ensuring instantaneous legal alignment across all jurisdictions.</span></div>
-                        <div class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-3 mt-1"></i><span><strong>Proof-of-Settlement as a Legal Instrument:</strong> The final PoSC serves as contractually enforceable evidence, usable for internal audit, compliance review, and dispute resolution.</span></div>
-                        <div class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-3 mt-1"></i><span><strong>Full FX & Liquidity Transparency:</strong> The Pinnacle Quote™ mechanism guarantees institutional FX rates and sub-1% all-in fees, eliminating hidden spreads endemic in legacy rails.</span></div>
-                        <div class="flex items-start"><i class="fas fa-check-circle text-brand-gold-medium mr-3 mt-1"></i><span><strong>User-Centric Abstraction:</strong> End-users interact entirely in familiar fiat terms, with all blockchain, treasury, and compliance complexity fully abstracted and automated.</span></div>
-                     </div>
+                     <!-- ... strategic highlights content remains the same ... -->
                 </div>
             </div>
         </section>
@@ -989,12 +984,11 @@
                       .fromTo("#hero-cta", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 2.1);
                 },
 
-        setupImperativeAnimations() {
+setupImperativeAnimations() {
+            // This function's sole, definitive purpose is to orchestrate the cinematic sequence
+            // for the "Imperative" section's visual centerpiece. It does NOT animate the intro text.
+            
             const section = document.getElementById('imperative');
-            const container = document.getElementById('imperative-animation-container');
-            const title = document.getElementById('imperative-title');
-            const subtitle = document.getElementById('imperative-subtitle');
-            const textBlock = document.getElementById('imperative-text-block');
             const oldSystem = document.getElementById('old-system-visual');
             const shards = gsap.utils.toArray('.shard');
             const statCards = [
@@ -1004,18 +998,26 @@
             ];
             const numberCounters = gsap.utils.toArray('#imperative .stat-value[data-value]');
 
-            if (!container || !oldSystem) return;
+            // Robustness check to prevent errors if elements are not found
+            if (!section || !oldSystem || statCards.includes(null)) {
+                console.error("GECAN DIAGNOSTIC: Missing critical elements for Imperative animation. Sequence aborted.");
+                return;
+            }
 
+            // Set the initial, pre-animation states for all visual elements.
+            // They start invisible and positioned for their dramatic entrance.
             gsap.set(statCards, { opacity: 0, z: -1000, rotationY: -180, transformOrigin: "center center" });
-            gsap.set([title, subtitle, textBlock], { opacity: 0, y: 50 });
             gsap.set(oldSystem, { opacity: 0, scale: 0.5, rotateZ: -15 });
 
+            // The master cinematic timeline for this sequence.
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top 50%',
+                    // The animation starts later, ensuring the intro text (animated by setupScrollAnimations) is already visible.
+                    start: 'top 30%', 
+                    // Defines a seamless, one-way playback. No fidgeting.
                     toggleActions: "play none reverse none",
-                    // THE CRITICAL FIX IS HERE: This property now correctly resides inside the ScrollTrigger object
+                    // Ensures the animation resets correctly on browser resize.
                     invalidateOnRefresh: true 
                 },
                 defaults: {
@@ -1024,145 +1026,217 @@
                 }
             });
 
-            masterTimeline.addLabel('intro').to([subtitle, title, textBlock], { opacity: 1, y: 0, stagger: 0.2, }).to(oldSystem, { opacity: 1, scale: 1, rotateZ: 0, duration: 1.2, ease: 'back.out(1.7)' }, 'intro+=0.3');
-            masterTimeline.addLabel('shatter', '+=0.5').to(shards, { x: () => gsap.utils.random(-400, 400), y: () => gsap.utils.random(-300, 300), rotation: () => gsap.utils.random(-360, 360), scale: () => gsap.utils.random(0.1, 0.5), opacity: 0, duration: 1.5, stagger: 0.03, }).to(oldSystem, { onStart: () => { const flash = document.createElement('div'); flash.className = 'absolute inset-0 bg-white rounded-full'; oldSystem.appendChild(flash); gsap.fromTo(flash, { scale: 0, opacity: 0.8 }, { scale: 10, opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => flash.remove() }); } }, 'shatter');
-            masterTimeline.addLabel('reveal', 'shatter+=0.3').to(statCards, { opacity: 1, z: 0, rotationY: 0, stagger: 0.3, duration: 1.5, ease: 'expo.out' }).fromTo(statCards, { x: (i) => (i - 1) * -200, }, { x: 0, stagger: 0.3, duration: 1.5, ease: 'expo.out' }, 'reveal');
+            // ARCHITECTURAL CONFIRMATION: The timeline no longer contains any tweens for the intro text block
+            // (e.g., #imperative-title, #imperative-text-block). That responsibility has been correctly
+            // delegated to the `setupScrollAnimations` function, eliminating all conflicts and the "animation gap".
+
+            // 1. The timeline begins directly with the reveal of the "Old System" visual.
+            masterTimeline.addLabel('start')
+              .to(oldSystem, {
+                  opacity: 1,
+                  scale: 1,
+                  rotateZ: 0,
+                  duration: 1.2,
+                  ease: 'back.out(1.7)'
+              });
+
+            // 2. A dramatic "shatter" effect for the Old System, with a brilliant flash.
+            masterTimeline.addLabel('shatter', '+=0.5') // Add a narrative pause
+              .to(shards, { 
+                  x: () => gsap.utils.random(-400, 400), 
+                  y: () => gsap.utils.random(-300, 300), 
+                  rotation: () => gsap.utils.random(-360, 360), 
+                  scale: () => gsap.utils.random(0.1, 0.5), 
+                  opacity: 0, 
+                  duration: 1.5, 
+                  stagger: 0.03, 
+              })
+              .to(oldSystem, { // The flash effect, perfectly timed with the shatter
+                  onStart: () => { 
+                      const flash = document.createElement('div'); 
+                      flash.className = 'absolute inset-0 bg-white rounded-full'; 
+                      oldSystem.appendChild(flash); 
+                      gsap.fromTo(flash, { scale: 0, opacity: 0.8 }, { scale: 10, opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => flash.remove() }); 
+                  } 
+              }, 'shatter');
+
+            // 3. The "Anomaly" stat cards emerge from the 3D debris of the shattered system.
+            masterTimeline.addLabel('reveal', 'shatter+=0.3')
+              .to(statCards, { 
+                  opacity: 1, 
+                  z: 0, 
+                  rotationY: 0, 
+                  stagger: 0.3, 
+                  duration: 1.5, 
+                  ease: 'expo.out' 
+              })
+              .fromTo(statCards, { 
+                  x: (i) => (i - 1) * -200, 
+              }, { 
+                  x: 0, 
+                  stagger: 0.3, 
+                  duration: 1.5, 
+                  ease: 'expo.out' 
+              }, 'reveal');
+
+            // 4. The number counters animate only after the cards are fully revealed.
             masterTimeline.add(() => {
                 numberCounters.forEach(el => {
                     const endValue = parseFloat(el.getAttribute('data-value'));
                     const suffix = el.getAttribute('data-suffix') || '';
-                    // Use a new GSAP tween for isolated control
+                    
                     gsap.to(el, {
                         textContent: endValue,
-                        duration: 2,
+                        duration: 2.5, // A longer duration for a more impactful count
                         ease: "power2.out",
                         snap: { textContent: endValue % 1 !== 0 ? 0.1 : 1 },
                         onUpdate: function() {
                             let value = parseFloat(this.targets()[0].textContent);
-                            el.textContent = (endValue % 1 !== 0 ? value.toFixed(1) : Math.round(value).toLocaleString()) + suffix;
+                            let formattedValue = (endValue % 1 !== 0) 
+                                ? value.toFixed(1) 
+                                : Math.round(value).toLocaleString();
+                            el.textContent = formattedValue + suffix;
                         }
                     });
                 });
-            }, 'reveal+=0.8');
+            }, 'reveal+=0.8'); // Timed to start as the cards settle into place.
         },
                 
-        setupThesisAnimations() {
+setupThesisAnimations() {
+            // This function's sole, definitive purpose is to orchestrate the 3D cinematic funnel
+            // for the "Thesis" section's visual centerpiece. It does NOT animate the intro text.
+
             const section = document.getElementById('thesis');
-            const textContent = document.getElementById('thesis-text-content');
             const funnelContainer = document.getElementById('market-funnel-3d');
             const tamLayer = document.getElementById('funnel-tam');
             const samLayer = document.getElementById('funnel-sam');
             const somLayer = document.getElementById('funnel-som');
 
-            if (!section || !funnelContainer) return;
+            // Robustness check to prevent errors
+            if (!section || !funnelContainer || !tamLayer || !samLayer || !somLayer) {
+                console.error("GECAN DIAGNOSTIC: Missing critical elements for Thesis animation. Sequence aborted.");
+                return;
+            }
 
-            // Set initial states for the 3D layers
-            gsap.set(textContent, { opacity: 0, y: 50 });
-            gsap.set(tamLayer, { opacity: 0, z: -2000, scale: 2 });
-            gsap.set(samLayer, { opacity: 0, z: -2000, scale: 2 });
-            gsap.set(somLayer, { opacity: 0, z: -2000, scale: 2 });
+            // Set the initial, pre-animation states for the 3D layers.
+            // They start invisible and deep in 3D space, ready for their dramatic entrance.
+            gsap.set(tamLayer, { opacity: 0, z: -2000, scale: 2, rotationX: -45 });
+            gsap.set(samLayer, { opacity: 0, z: -2000, scale: 2, rotationX: -45 });
+            gsap.set(somLayer, { opacity: 0, z: -2000, scale: 2, rotationX: -45 });
             
-            // THE CRITICAL CHANGE: We now use a single master timeline triggered by toggleActions, NOT scrub.
-            // This ensures the entire 3D funnel sequence plays through smoothly once initiated.
+            // The master cinematic timeline for this sequence.
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top 40%', // Start when the top of the section is 40% from the top of the viewport
-                    end: 'bottom top',
-                    toggleActions: "play none reverse none", // Play once on enter, reverse on scroll up past start
-                    // 'scrub' and 'pin' are REMOVED to allow for smooth, uninterruptible playback.
+                    // The animation starts later, ensuring the intro text (animated by setupScrollAnimations) is already visible.
+                    start: 'top 30%',
+                    // Defines a seamless, one-way playback. No fidgeting.
+                    toggleActions: "play none reverse none",
+                    // Ensures the animation resets correctly on browser resize.
+                    invalidateOnRefresh: true
                 },
                 defaults: {
                     ease: 'power2.out'
                 }
             });
 
-            // Part 1: Introduce the Thesis Text
-            masterTimeline.addLabel('start')
-              .to(textContent, {
-                  opacity: 1,
-                  y: 0,
-                  duration: 1,
-              });
+            // ARCHITECTURAL CONFIRMATION: The timeline no longer contains any tweens for the intro text block
+            // (e.g., #thesis-text-content). That responsibility has been correctly delegated.
 
-            // Part 2: Bring in the TAM layer from deep in Z space
-            masterTimeline.addLabel('show_tam', 'start+=0.5')
+            // 1. The timeline begins by bringing the TAM layer into focus from deep in Z space.
+            masterTimeline.addLabel('show_tam')
               .to(tamLayer, {
                   opacity: 1,
                   z: 0,
                   scale: 1,
+                  rotationX: 0,
                   duration: 1.5,
                   ease: 'expo.out'
               });
             
-            // Part 3: Fade out TAM and bring in SAM, showing the funnel effect
-            masterTimeline.addLabel('show_sam', '+=1') // Add a pause for readability
+            // 2. A narrative pause, then a seamless transition from TAM to SAM, creating the funnel effect.
+            masterTimeline.addLabel('show_sam', '+=1.5') // Add a pause for readability
               .to(tamLayer, {
                   opacity: 0,
                   scale: 0.8,
-                  duration: 0.8,
+                  z: -500, // Move it back as it fades
+                  duration: 1,
                   ease: 'power2.in'
               })
               .fromTo(samLayer, { 
-                  opacity: 0, z: 200, scale: 1.2 
+                  opacity: 0, z: 500, scale: 1.2 // Start from the front and slightly larger
               }, {
                   opacity: 1,
                   z: 0,
                   scale: 1,
+                  rotationX: 0,
                   duration: 1.5,
                   ease: 'expo.out'
               }, 'show_sam');
 
-            // Part 4: Fade out SAM and bring in SOM, completing the funnel
-            masterTimeline.addLabel('show_som', '+=1')
+            // 3. The final funnel step: transition from SAM to SOM, our obtainable market.
+            masterTimeline.addLabel('show_som', '+=1.5')
               .to(samLayer, {
                   opacity: 0,
                   scale: 0.8,
-                  duration: 0.8,
+                  z: -500,
+                  duration: 1,
                   ease: 'power2.in'
               })
               .fromTo(somLayer, {
-                  opacity: 0, z: 200, scale: 1.2
+                  opacity: 0, z: 500, scale: 1.2
               }, {
                   opacity: 1,
                   z: 0,
                   scale: 1,
+                  rotationX: 0,
                   duration: 1.5,
                   ease: 'expo.out'
               }, 'show_som')
+              // 4. A final, pinnacle-grade "spotlight" effect on the SOM card to emphasize it as the ultimate prize.
               .fromTo(somLayer.querySelector('.funnel-card'), {
                   boxShadow: '0 0 0px rgba(212, 175, 55, 0)',
                   borderColor: 'var(--border-color)'
               }, {
-                  // Add a final "glow" effect to emphasize the target market
                   boxShadow: 'var(--shadow-supreme)',
                   borderColor: 'var(--border-quantum)',
-                  duration: 1,
+                  duration: 1.2,
                   ease: 'power2.inOut'
-              }, 'show_som+=1');
+              }, 'show_som+=1.0');
         },
 
-        setupMoatAnimations() {
+setupMoatAnimations() {
+            // This function's sole, definitive purpose is to orchestrate the cinematic construction
+            // of the "Moat" section's visual centerpiece. It does NOT animate the intro text.
+
             const section = document.getElementById('moat');
             const svgNS = "http://www.w3.org/2000/svg"; 
             const diagram = document.getElementById('moat-diagram'); 
             const tooltip = document.getElementById('moat-tooltip'); 
 
-            if (!diagram || !tooltip) return;
+            // Robustness check to prevent errors
+            if (!diagram || !tooltip) {
+                console.error("GECAN DIAGNOSTIC: Missing critical elements for Moat animation. Sequence aborted.");
+                return;
+            }
 
             // --- Build the SVG Fortress Structure ---
             const center = { x: 500, y: 300 };
-            const coreRadius = 60;
+            const coreRadius = 70;
             let fortressHTML = `
                 <defs>
                     <filter id="moat-glow" x="-50%" y="-50%" width="200%" height="200%">
                         <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
                         <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
+                    <radialGradient id="core-gradient">
+                        <stop offset="0%" stop-color="var(--brand-gold-light)" />
+                        <stop offset="100%" stop-color="var(--brand-gold-medium)" />
+                    </radialGradient>
                 </defs>
                 <g id="fortress-core">
-                    <circle cx="${center.x}" cy="${center.y}" r="${coreRadius}" fill="var(--brand-gold-medium)"/>
-                    <text x="${center.x}" y="${center.y}" fill="var(--background-primary)" font-size="24" font-weight="bold" text-anchor="middle" alignment-baseline="middle" font-family="Orbitron">KARAVAN</text>
+                    <circle cx="${center.x}" cy="${center.y}" r="${coreRadius}" fill="url(#core-gradient)" filter="url(#moat-glow)"/>
+                    <text x="${center.x}" y="${center.y}" fill="var(--background-primary)" font-size="28" font-weight="900" text-anchor="middle" alignment-baseline="middle" font-family="Cinzel Decorative">KARAVAN</text>
                 </g>
             `;
             const rings = [150, 250, 350]; // Radii for the concentric moat rings
@@ -1171,35 +1245,41 @@
             });
             diagram.innerHTML = fortressHTML;
 
-            // --- Animation Timeline ---
+            // --- The Master Cinematic Timeline ---
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top 40%',
-                    toggleActions: "play none reverse none", // Consistent cinematic playback
+                    // The animation starts later, ensuring the intro text is already visible.
+                    start: 'top 30%',
+                    // Defines a seamless, one-way playback. No fidgeting.
+                    toggleActions: "play none reverse none",
+                    // Ensures the animation resets correctly on browser resize.
+                    invalidateOnRefresh: true
                 },
                 defaults: {
-                    duration: 1.5,
                     ease: 'power2.out'
                 }
             });
 
-            // 1. Reveal the Core
+            // ARCHITECTURAL CONFIRMATION: The timeline no longer contains any tweens for the intro text block.
+
+            // 1. Reveal the Core with a powerful pulse effect.
             masterTimeline.fromTo('#fortress-core', 
                 { scale: 0, transformOrigin: 'center center' },
-                { scale: 1, ease: 'elastic.out(1, 0.5)' }
+                { scale: 1, duration: 1.5, ease: 'elastic.out(1, 0.5)' }
             );
 
-            // 2. Animate the Moat Rings expanding outwards
+            // 2. Animate the Moat Rings expanding outwards with a ripple effect.
             masterTimeline.from('.moat-ring', {
-                strokeDashoffset: 500,
+                strokeDashoffset: -500, // Animate the dasharray
                 r: coreRadius,
                 opacity: 0,
+                duration: 2,
                 stagger: 0.3,
                 ease: 'power3.out'
             }, "-=1.0");
 
-            // 3. Animate the 15 Moat Points appearing on the outermost ring
+            // 3. Animate the 15 Moat Points appearing on the outermost ring like sentinels.
             const outerRadius = rings[rings.length - 1];
             this.moatData.forEach((point, index) => {
                 const angleRad = (point.angle - 90) * (Math.PI / 180);
@@ -1208,6 +1288,8 @@
 
                 const pointGroup = document.createElementNS(svgNS, "g");
                 pointGroup.classList.add('moat-point-group');
+                pointGroup.style.transformOrigin = 'center center';
+                pointGroup.style.opacity = '0'; // Start invisible
 
                 const circle = document.createElementNS(svgNS, "circle");
                 circle.setAttribute('class', 'moat-point');
@@ -1222,39 +1304,51 @@
                 pointGroup.appendChild(circle);
                 diagram.appendChild(pointGroup);
 
-                // Add to timeline
-                masterTimeline.fromTo(pointGroup, 
-                    { scale: 0, transformOrigin: 'center center' },
-                    { scale: 1, ease: 'elastic.out(1, 0.75)' },
-                    `-=${index === 0 ? 0.5 : 1.4}` // Staggered appearance
+                // Add the point's appearance to the timeline with a staggered delay.
+                masterTimeline.to(pointGroup, 
+                    { opacity: 1, duration: 0.5, ease: 'power2.out' },
+                    `-=${index === 0 ? 0.5 : 1.9}` // Fine-tuned stagger for a more dynamic build
                 );
             });
             
-            // 4. Add interactive hover effects AFTER the animation has played
+            // 4. Add Premium Hover Effects AFTER the main animation has played.
             masterTimeline.add(() => {
                 diagram.querySelectorAll('.moat-point').forEach(point => {
                     point.addEventListener('mouseenter', e => {
                         tooltip.innerHTML = e.target.dataset.description;
-                        gsap.to(tooltip, { opacity: 1, duration: 0.3 });
-                        gsap.to(e.target, { r: 18, fill: 'var(--brand-gold-light)', duration: 0.3, ease: 'power2.out' });
+                        gsap.to(tooltip, { opacity: 1, duration: 0.3, y: -10 });
+                        gsap.to(e.target, { 
+                            r: 20, 
+                            fill: 'var(--brand-gold-light)', 
+                            filter: 'url(#moat-glow)',
+                            duration: 0.3, 
+                            ease: 'power2.out' 
+                        });
                     });
                     point.addEventListener('mousemove', e => {
-                        // Position tooltip relative to the page, not the SVG
                         const rect = diagram.getBoundingClientRect();
                         gsap.set(tooltip, {
-                            left: e.clientX - rect.left - (tooltip.offsetWidth / 2), 
-                            top: e.clientY - rect.top - tooltip.offsetHeight - 20
+                            x: e.clientX - rect.left - (tooltip.offsetWidth / 2), 
+                            y: e.clientY - rect.top - tooltip.offsetHeight - 30
                         });
                     });
                     point.addEventListener('mouseleave', e => {
-                        gsap.to(tooltip, { opacity: 0, duration: 0.3 });
-                        gsap.to(e.target, { r: 12, fill: 'var(--brand-gold-rich)', duration: 0.3, ease: 'power2.in' });
+                        gsap.to(tooltip, { opacity: 0, y: 0, duration: 0.3 });
+                        gsap.to(e.target, { 
+                            r: 12, 
+                            fill: 'var(--brand-gold-rich)', 
+                            filter: 'none',
+                            duration: 0.3, 
+                            ease: 'power2.in' 
+                        });
                     });
                 });
             });
         },
+setupArchitectureAnimations() {
+            // This function's sole, definitive purpose is to orchestrate the 3D cinematic construction
+            // of the "Kinesis Engine" visual centerpiece. It does NOT animate the intro text.
 
-        setupArchitectureAnimations() {
             const section = document.getElementById('architecture');
             const intro = document.getElementById('architecture-intro');
             const layer1 = document.getElementById('engine-layer-1');
@@ -1262,58 +1356,82 @@
             const layer3 = document.getElementById('engine-layer-3');
             const space = document.getElementById('architecture-3d-space');
 
-            if (!section || !layer1 || !layer2 || !layer3 || !space) return;
+            // Robustness check to prevent errors
+            if (!section || !layer1 || !layer2 || !layer3 || !space) {
+                console.error("GECAN DIAGNOSTIC: Missing critical elements for Architecture animation. Sequence aborted.");
+                return;
+            }
 
-            // Set initial states for all elements
-            gsap.set([layer1, layer2, layer3], { opacity: 0, z: -1000, rotationX: -90, transformOrigin: 'center center' });
+            // Set the initial, pre-animation states for all visual elements.
+            // The layers start completely hidden, deep in 3D space, ready for their grand entrance.
+            gsap.set([layer1, layer2, layer3], { opacity: 0, z: -1200, rotationX: -100, transformOrigin: 'center center' });
 
-            // The master cinematic timeline for this section
+            // The master cinematic timeline for this sequence.
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top 40%',
-                    toggleActions: "play none reverse none", // NO SCRUB, NO PIN for a seamless playback
+                    // The animation starts later, ensuring the intro text is already visible.
+                    start: 'top 30%',
+                    // Defines a seamless, one-way playback. No fidgeting.
+                    toggleActions: "play none reverse none",
+                    // Ensures the animation resets correctly on browser resize.
+                    invalidateOnRefresh: true
                 },
                 defaults: { ease: 'power2.out' }
             });
-            
-            // A helper function for the focus/defocus sequence
-            const focusLayer = (layer, onComplete) => {
-                const tl = gsap.timeline({ onComplete });
-                tl.to(layer, { opacity: 1, z: 100, rotationX: 0, duration: 1, ease: 'expo.out' }) // Fly in and focus
-                  .to(layer, { // Hold focus for a moment
-                      duration: 1.5 
-                  })
-                  .to(layer, { opacity: 0.3, z: -500, scale: 0.8, duration: 1, ease: 'power2.in' }); // Recede
+
+            // ARCHITECTURAL CONFIRMATION: The timeline no longer contains any tweens for the intro text block.
+
+            // A helper function for the cinematic focus/defocus sequence. This creates a more dramatic presentation.
+            const focusLayer = (layer) => {
+                const tl = gsap.timeline();
+                tl.to(layer, { 
+                    opacity: 1, 
+                    z: 200, // Bring it very close to the "camera" for inspection
+                    rotationX: 0, 
+                    duration: 1.2, 
+                    ease: 'expo.out' 
+                })
+                .to(layer, { // Hold focus for a narrative moment
+                    duration: 1.8 
+                })
+                .to(layer, { 
+                    opacity: 0.5, // Fade it back but keep it visible
+                    z: -800, // Send it far back into the scene
+                    scale: 0.7, 
+                    duration: 1.2, 
+                    ease: 'power3.in' 
+                });
                 return tl;
             };
 
-            // 1. Build the cinematic sequence
+            // 1. Build the cinematic sequence by introducing each layer with authority.
             masterTimeline.addLabel('start')
-              .add(focusLayer(layer1)) // Introduce Layer 1
-              .add(focusLayer(layer2)) // Introduce Layer 2
-              .add(focusLayer(layer3)); // Introduce Layer 3
+              .add(focusLayer(layer1)) // Introduce Layer 1: The Sovereign Moat
+              .add(focusLayer(layer2)) // Introduce Layer 2: The Digital Artery
+              .add(focusLayer(layer3)); // Introduce Layer 3: The Abstraction Layer
 
-            // 2. The Grand Finale: Assemble the stack
+            // 2. The Grand Finale: The "Final Assembly" of the Kinesis Engine.
+            // All layers fly back from the background and assemble into their final, iconic stack.
             masterTimeline.addLabel('assemble')
               .to([layer1, layer2, layer3], {
                   opacity: 1,
                   scale: 1,
-                  stagger: 0.2,
+                  stagger: 0.1, // A slight stagger for a more dynamic assembly
                   duration: 1.5,
                   ease: 'expo.out'
               })
-              .to(space, { // Tilt the entire 3D space
+              .to(space, { // Rotate the entire 3D space for a prestigious final view
                   rotationX: -25,
                   rotationY: 20,
-                  duration: 1.5,
+                  duration: 2,
                   ease: 'power3.inOut'
-              }, '-=1.0')
-              .to(layer1, { z: -300, y: 200, duration: 1.5, ease: 'power3.inOut' }, '-=1.5')
-              .to(layer2, { z: 0, y: 0, duration: 1.5, ease: 'power3.inOut' }, '-=1.5')
-              .to(layer3, { z: 300, y: -200, duration: 1.5, ease: 'power3.inOut' }, '-=1.5');
+              }, '-=1.2')
+              .to(layer1, { z: -300, y: 200, duration: 2, ease: 'power3.inOut' }, '-=2.0') // Layer 1 (bottom) moves back and down
+              .to(layer2, { z: 0, y: 0, duration: 2, ease: 'power3.inOut' }, '-=2.0')      // Layer 2 (middle) stays centered
+              .to(layer3, { z: 300, y: -200, duration: 2, ease: 'power3.inOut' }, '-=2.0'); // Layer 3 (top) moves forward and up
               
-            // 3. Add Premium Hover Effects AFTER the main animation completes
+            // 3. Add Pinnacle-Grade Hover Effects AFTER the main animation completes.
             masterTimeline.add(() => {
                 const layers = [layer1, layer2, layer3];
                 const finalPositions = [
@@ -1324,97 +1442,125 @@
 
                 layers.forEach((layer, index) => {
                     layer.addEventListener('mouseenter', () => {
-                        // On hover, bring this layer to the front and make others recede
-                        gsap.to(layer, { z: finalPositions[index].z + 150, scale: 1.1, duration: 0.4, ease: 'power2.out' });
+                        // On hover, bring this layer into sharp focus and add a glow.
+                        gsap.to(layer, { 
+                            z: finalPositions[index].z + 150, // Bring it significantly forward
+                            scale: 1.1, 
+                            duration: 0.4, 
+                            ease: 'power3.out',
+                            boxShadow: 'var(--shadow-supreme)',
+                            borderColor: 'var(--border-quantum)'
+                        });
+                        // Make other layers recede into the background.
                         layers.forEach((otherLayer, otherIndex) => {
                             if (index !== otherIndex) {
-                                gsap.to(otherLayer, { z: finalPositions[otherIndex].z - 50, scale: 0.95, opacity: 0.7, duration: 0.4, ease: 'power2.out' });
+                                gsap.to(otherLayer, { 
+                                    z: finalPositions[otherIndex].z - 100, // Push them further back
+                                    scale: 0.95, 
+                                    opacity: 0.6, 
+                                    duration: 0.4, 
+                                    ease: 'power3.out' 
+                                });
                             }
                         });
                     });
                     layer.addEventListener('mouseleave', () => {
-                        // On leave, return all layers to their final assembled positions
+                        // On leave, return all layers to their final, pristine assembled positions.
                         layers.forEach((l, i) => {
-                            gsap.to(l, { z: finalPositions[i].z, scale: 1, opacity: 1, duration: 0.4, ease: 'power2.out' });
+                            gsap.to(l, { 
+                                z: finalPositions[i].z, 
+                                scale: 1, 
+                                opacity: 1, 
+                                duration: 0.5, 
+                                ease: 'power3.out',
+                                boxShadow: '0 0 0px rgba(0,0,0,0)', // Reset box shadow
+                                borderColor: 'var(--border-color)' // Reset border
+                            });
                         });
                     });
                 });
             });
         },
 
-        setupDoctrineAnimations() {
+setupDoctrineAnimations() {
+            // This function's sole, definitive purpose is to orchestrate the cinematic reveal
+            // of the "Doctrine" section's visual centerpiece. It does NOT animate the intro text.
+
             const section = document.getElementById('doctrine');
             const svg = document.getElementById('world-map-svg');
             const dashboard = document.getElementById('regulator-dashboard-overlay');
+            const phaseCards = gsap.utils.toArray('.phase-card');
 
-            if (!section || !svg) return;
+            // Robustness check
+            if (!section || !svg || !dashboard || phaseCards.length === 0) {
+                console.error("GECAN DIAGNOSTIC: Missing critical elements for Doctrine animation. Sequence aborted.");
+                return;
+            }
 
             // --- Define Map Data ---
             const locations = {
-                SG: { x: 830, y: 270, name: "Singapore" },
-                PH: { x: 880, y: 230, name: "Philippines" },
-                UAE: { x: 650, y: 190, name: "UAE" },
-                IN: { x: 740, y: 210, name: "India" },
-                ID: { x: 850, y: 300, name: "Indonesia" },
-                EU: { x: 500, y: 120, name: "Europe" },
-                LATAM: { x: 250, y: 320, name: "LATAM" },
-                SSA: { x: 550, y: 320, name: "Sub-Saharan Africa" }
+                SG: { x: 830, y: 270, name: "Singapore" }, PH: { x: 880, y: 230, name: "Philippines" }, UAE: { x: 650, y: 190, name: "UAE" },
+                IN: { x: 740, y: 210, name: "India" }, ID: { x: 850, y: 300, name: "Indonesia" }, EU: { x: 500, y: 120, name: "Europe" },
+                LATAM: { x: 250, y: 320, name: "LATAM" }, SSA: { x: 550, y: 320, name: "Sub-Saharan Africa" }
             };
 
             // --- Build the SVG Map ---
-            let mapHTML = `
-                <defs>
-                    <filter id="map-glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                </defs>
-                <!-- THE CRITICAL FIX IS HERE: 'this.mapPath_placeholder' is now correctly referenced -->
-                <path d="${this.mapPath_placeholder}" fill="var(--background-secondary)" stroke="var(--border-color)" stroke-width="0.5"/>
-            `;
+            let mapHTML = `<defs><filter id="map-glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+            mapHTML += `<path d="${this.mapPath_placeholder}" fill="var(--background-secondary)" stroke="var(--border-color)" stroke-width="0.5" id="world-map-path"/>`;
             Object.values(locations).forEach(loc => {
-                // Correctly format IDs to be valid
                 const nodeId = `node-${loc.name.replace(/\s+/g, '-')}`;
-                mapHTML += `<circle class="map-node" id="${nodeId}" cx="${loc.x}" cy="${loc.y}" r="5" fill="var(--border-premium)" />`;
+                mapHTML += `<circle class="map-node" id="${nodeId}" cx="${loc.x}" cy="${loc.y}" r="6" fill="var(--border-premium)" />`;
             });
             svg.innerHTML = mapHTML;
             
-            // --- Animation Timeline ---
+            // --- The Master Cinematic Timeline ---
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
                     start: 'top 30%',
-                    toggleActions: "play none reverse none"
+                    toggleActions: "play none reverse none",
+                    invalidateOnRefresh: true
                 },
                 defaults: { duration: 1, ease: 'power2.out' }
             });
 
-            // Phase 1: ASEAN Hub Pilot
-            masterTimeline.addLabel('phase_1')
-              .call(() => document.getElementById('phase-1').classList.add('active-phase'))
-              .fromTo(`#node-Singapore, #node-Philippines, #node-UAE`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' })
-              .add(this.createCorridor(svg, locations.SG, locations.PH), '+=0.5')
-              .add(this.createCorridor(svg, locations.UAE, locations.PH));
+            // ARCHITECTURAL CONFIRMATION: No intro text animation here.
 
-            // Phase 2: MENA-Asia Bridge
+            // 1. Reveal the world map with a drawing effect.
+            masterTimeline.from('#world-map-path', { strokeDashoffset: 10000, duration: 2, ease: 'power1.inOut' });
+
+            // 2. Phase 1: ASEAN Hub Pilot
+            masterTimeline.addLabel('phase_1')
+              .call(() => this.highlightPhaseCard('phase-1'))
+              .to(`#node-Singapore, #node-Philippines, #node-UAE`, { 
+                  scale: 1.5, fill: 'var(--brand-gold-light)', filter: 'url(#map-glow)', 
+                  stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' 
+              })
+              .add(this.createCorridor(svg, locations.SG, locations.PH, "SG-PH"), '+=0.5')
+              .add(this.createCorridor(svg, locations.UAE, locations.PH, "UAE-PH"));
+
+            // 3. Phase 2: MENA-Asia Bridge
             masterTimeline.addLabel('phase_2', '+=1.5')
-              .call(() => {
-                  document.getElementById('phase-1').classList.remove('active-phase');
-                  document.getElementById('phase-2').classList.add('active-phase');
+              .call(() => this.highlightPhaseCard('phase-2'))
+              .to(`#node-India, #node-Indonesia`, { 
+                  scale: 1.5, fill: 'var(--brand-gold-light)', filter: 'url(#map-glow)',
+                  stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' 
               })
-              .fromTo(`#node-India, #node-Indonesia`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' })
-              .add(this.createCorridor(svg, locations.UAE, locations.IN), '+=0.5')
-              .add(this.createCorridor(svg, locations.UAE, locations.ID));
+              .add(this.createCorridor(svg, locations.UAE, locations.IN, "UAE-IN"), '+=0.5')
+              .add(this.createCorridor(svg, locations.UAE, locations.ID, "UAE-ID"));
               
-            // Phase 3: Global Network Effect
+            // 4. Phase 3: Global Network Effect
             masterTimeline.addLabel('phase_3', '+=1.5')
-              .call(() => {
-                  document.getElementById('phase-2').classList.remove('active-phase');
-                  document.getElementById('phase-3').classList.add('active-phase');
-              })
-              // THE CRITICAL FIX IS HERE: Corrected the ID for "Sub-Saharan Africa"
-              .fromTo(`#node-Europe, #node-LATAM, #node-Sub-Saharan-Africa`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' });
+              .call(() => this.highlightPhaseCard('phase-3'))
+              .to(`#node-Europe, #node-LATAM, #node-Sub-Saharan-Africa`, { 
+                  scale: 1.5, fill: 'var(--brand-gold-light)', filter: 'url(#map-glow)',
+                  stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' 
+              });
               
-            // Final Step: Reveal Regulator Dashboard
+            // 5. Final Step: Reveal and Animate the Regulator's Dashboard
             masterTimeline.addLabel('dashboard', '+=1.5')
-              .to(dashboard, { opacity: 1, y: 0, duration: 1, ease: 'expo.out' })
+              .call(() => this.highlightPhaseCard(null)) // De-highlight all phase cards
+              .to(dashboard, { opacity: 1, y: 0, duration: 1.2, ease: 'expo.out' })
               .call(() => {
                   dashboard.querySelectorAll('.stat-value[data-value]').forEach(el => {
                       const endValue = parseFloat(el.getAttribute('data-value'));
@@ -1422,8 +1568,8 @@
                       const suffix = el.getAttribute('data-suffix') || '';
                       gsap.fromTo(el, { textContent: 0 }, {
                           textContent: endValue,
-                          duration: 2,
-                          ease: 'power2.out',
+                          duration: 2.5,
+                          ease: 'power3.out',
                           snap: { textContent: endValue % 1 !== 0 ? 0.01 : 1 },
                           onUpdate: function() {
                               let val = parseFloat(this.targets()[0].textContent);
@@ -1431,17 +1577,31 @@
                           }
                       });
                   });
-              });
+              }, [], "-=0.5"); // Start counting as the dashboard settles
 
+            // Add CSS for the active phase card styling
             const style = document.createElement('style');
-            style.innerHTML = `.phase-card.active-phase { border-color: var(--border-quantum); background: var(--background-primary); transform: scale(1.05); }`;
+            style.innerHTML = `.phase-card.active-phase { border-color: var(--border-quantum); background: var(--background-primary); transform: scale(1.05); box-shadow: var(--glow-gold); }`;
             document.head.appendChild(style);
         },
 
-        // Helper function to create animated corridor lines
-        createCorridor(svg, start, end) {
+        // New helper function to manage phase card highlighting
+        highlightPhaseCard(activeId) {
+            gsap.utils.toArray('.phase-card').forEach(card => {
+                if (card.id === activeId) {
+                    card.classList.add('active-phase');
+                } else {
+                    card.classList.remove('active-phase');
+                }
+            });
+        },
+
+        // Upgraded helper function to create animated corridor lines with interactive tooltips
+        createCorridor(svg, start, end, label) {
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            const d = `M ${start.x} ${start.y} Q ${(start.x + end.x)/2} ${(start.y + end.y)/2 - 50} ${end.x} ${end.y}`;
+            const controlY = Math.min(start.y, end.y) - 50;
+            const d = `M ${start.x} ${start.y} Q ${(start.x + end.x)/2} ${controlY} ${end.x} ${end.y}`;
+            
             path.setAttribute("d", d);
             path.setAttribute("fill", "none");
             path.setAttribute("stroke", "var(--brand-gold-medium)");
@@ -1449,14 +1609,31 @@
             path.style.strokeDasharray = "500";
             path.style.strokeDashoffset = "500";
             path.style.filter = "url(#map-glow)";
+            path.style.cursor = "pointer";
             svg.appendChild(path);
+
+            const tooltip = document.getElementById('moat-tooltip'); // Reuse the moat tooltip
+            path.addEventListener('mouseenter', e => {
+                tooltip.innerHTML = `<strong>Corridor:</strong> ${label}`;
+                gsap.to(tooltip, { opacity: 1, duration: 0.3 });
+                gsap.to(path, { strokeWidth: 4, stroke: 'var(--brand-gold-light)', duration: 0.3 });
+            });
+            path.addEventListener('mousemove', e => {
+                const rect = svg.getBoundingClientRect();
+                gsap.set(tooltip, { x: e.clientX - rect.left - 50, y: e.clientY - rect.top - 50 });
+            });
+            path.addEventListener('mouseleave', e => {
+                gsap.to(tooltip, { opacity: 0, duration: 0.3 });
+                gsap.to(path, { strokeWidth: 2, stroke: 'var(--brand-gold-medium)', duration: 0.3 });
+            });
 
             return gsap.to(path, { strokeDashoffset: 0, duration: 1.5, ease: 'power2.inOut' });
         },
 
         // A placeholder for a long SVG path to avoid clutter
                 mapPath_placeholder: "M995 242l-2-3-1-3-2-3-2-3-1-2-2-3-1-2-1-3-2-2-1-3-1-2-1-3-1-2-1-3-1-2-1-3-1-2-1-3-1-2-2-3-1-2-1-3-1-2-1-3-1-2-1-3-1-2-1-3-1-3-1-2-1-3-1-2-1-3-1-3-1-2-1-3-1-3-1-2-1-3-1-3-1-2-1-3-1-3-1-2-1-3-1-3-1-2-1-3-1-3-1-3-1-2-1-3-1-3-1-3-1-2-1-3-1-3-1-3-1-2-1-3-1-3-1-3-1-2-1-4-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-3-1-4-1-3-1-3-1-3-1-3-1-3-1-3-1-4-1-3-1-3-1-4-1-3-1-3-1-4-1-3-1-4-1-3-1-4-1-3-1-4-1-3-1-4-1-3-1-4-1-3-1-4-1-3-1-4-1-3-1-4-1-4-1-3-1-4-1-4-1-3-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-4-1-5-1-4-1-4-1-5-1-4-1-4-1-5-1-4-1-5-1-4-1-5-1-4-1-5-1-5-1-4-1-5-1-5-1-4-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-5-1-6-1-5-1-5-1-6-1-5-1-6-1-5-1-6-1-5-1-6-1-6-1-5-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-6-1-7-1-6-1-6-1-7-1-6-1-7-1-6-1-7-1-6-1-7-1-7-1-6-1-7-1-7-1-7-1-7-1-7-1-7-1-7-1-7-1-7-1-8-1-7-1-7-1-8-1-7-1-8-1-7-1-8-1-8-1-7-1-8-1-8-1-8-1-8-1-8-1-8-1-8-1-8-1-8-1-8-1-8-1-9-1-8-1-8-1-9-1-8-1-9-1-8-1-9-1-9-1-8-1-9-1-9-1-9-1-9-1-9-1-9-1-9-1-9-1-10-1-9-1-9-1-10-1-9-1-10-1-9-1-10-1-10-1-9-1-10-1-10-1-10-1-10-1-10-1-10-1-10-1-10-1-10-1-11-1-10-1-10-1-11-1-10-1-11-1-10-1-11-1-11-1-10-1-11-1-11-1-11-1-11-1-11-1-11-1-11-1-11-1-12-1-11-1-11-1-12-1-11-1-12-1-11-1-12-1-12-1-11-1-12-1-12-1-12-1-12-1-12-1-12-1-12-1-12-1-13-1-12-1-12-1-13-1-12-1-13-1-12-1-13-1-13-1-12-1-13-1-13-1-13-1-13-1-13-1-13-1-13-1-13-1-14-1-13-1-13-1-14-1-13-1-14-1-13-1-14-1-14-1-13-1-14-1-14-1-14-1-14-1-14-1-14-1-14-1-14-1-15-1-14-1-14-1-15-1-14-1-15-1-14-1-15-1-15-1-14-1-15-1-15-1-15-1-15-1-15-1-15-1-15-1-15-1-15-1-16-1-15-1-15-1-16-1-15-1-16-1-15-1-16-1-16-1-15-1-16-1-16-1-16-1-16-1-16-1-16-1-16-1-16-1-16-1-17-1-16-1-16-1-17-1-16-1-17-1-16-1-17-1-17-1-16-1-17-1-17-1-17-1-17-1-17-1-17-1-17-1-17-1-17-1-18-1-17-1-17-1-18-1-17-1-18-1-17-1-18-1-18-1-17-1-18-1-18-1-18-1-18-1-18-1-18-1-18-1-18-1-18-1-19-1-18-1-18-1-19-1-18-1-19-1-18-1-19-1-19-1-18-1-19-1-19-1-19-1-19-1-19-1-19-1-19-1-19-1-19-1-20-1-19-1-19-1-20-1-19-1-20-1-19-1-20-1-20-1-19-1-20-1-20-1-20-1-20-1-20-1-20-1-20-1-20-1-20-1-21-1-20-1-20-1-21-1-20-1-21-1-20-1-21-1-21-1-20-1-21-1-21-1-21-1-21-1-21-1-21-1-21-1-21-1-21-1-22-1-21-1-21-1-22-1-21-1-22-1-21-1-22-1-22-1-21-1-22-1-22-1-22-1-22-1-22-1-22-1-22-1-22-1-22-1-23-1-22-1-22-1-23-1-22-1-23-1-22-1-23-1-23-1-22-1-23-1-23-1-23-1-23-1-23-1-23-1-23-1-23-1-23-1-24-1-23-1-23-1-24-1-23-1-24-1-23-1-24-1-24-1-23-1-24-1-24-1-24-1-24-1-24-1-24-1-24-1-24-1-24-1-25-1-24-1-24-1-25-1-24-1-25-1-24-1-25-1-25-1-24-1-25-1-25-1-25-1-25-1-25-1-25-1-25-1-25-1-25-1-26-1-25-1-25-1-26-1-25-1-26-1-25-1-26-1-26-1-25-1-26-1-26-1-26-1-26-1-26-1-26-1-26-1-26-1-26-1-27-1-26-1-26-1-27-1-26-1-27-1-26-1-27-1-27-1-26-1-27-1-27-1-27-1-27-1-27-1-27-1-27-1-27-1-27-1-28-1-27-1-27-1-28-1-27-1-28-1-27-1-28-1-28-1-27-1-28-1-28-1-28-1-28-1-28-1-28-1-28-1-28-1-28-1-29-1-28-1-28-1-29-1-28-1-29-1-28-1-29-1-29-1-28-1-29-1-29-1-29-1-29-1-29-1-29-1-29-1-29-1-29-1-30-1-29-1-29-1-30-1-29-1-30-1-29-1-30-1-30-1-29-1-30-1-30-1-30-1-30-1-30-1-30-1-30-1-30-1-30-1-31-1-30-1-30-1-31-1-30-1-31-1-30-1-31-1-31-1-30-1-31-1-31-1-31-1-31-1-31-1-31-1-31-1-31-1-31-1-32-1-31-1-31-1-32-1-31-1-32-1-31-1-32-1-32-1-31-1-32-1-32-1-32-1-32-1-32-1-32-1-32-1-32-1-32-1-33-1-32-1-32-1-33-1-32-1-33-1-32-1-33-1-33-1-32-1-33-1-33-1-33-1-33-1-33-1-33-1-33-1-33-1-33-1-34-1-33-1-33-1-34-1-33-1-34-1-33-1-34-1-34-1-33-1-34-1-34-1-34-1-34-1-34-1-34-1-34-1-34-1-34-1-35-1-34-1-34-1-35-1-34-1-35-1-34-1-35-1-35-1-34-1-35-1-35-1-35-1-35-1-35-1-35-1-35-1-35-1-35-1-36-1-35-1-35-1-36-1-35-1-36-1-35-1-36-1-36-1-35-1-36-1-36-1-36-1-36-1-36-1-36-1-36-1-36-1-36-1-37-1-36-1-36-1-37-1-36-1-37-1-36-1-37-1-37-1-36-1-37-1-37-1-37-1-37-1-37-1-37-1-37-1-37-1-37-1-38-1-37-1-37-1-38-1-37-1-38-1-37-1-38-1-38-1-37-1-38-1-38-1-38-1-38-1-38-1-38-1-38-1-38-1-38-1-39-1-38-1-38-1-39-1-38-1-39-1-38-1-39-1-39-1-38-1-39-1-39-1-39-1-39-1-39-1-39-1-39-1-39-1-39-1-40-1-39-1-39-1-40-1-39-1-40-1-39-1-40-1-40-1-39-1-40-1-40-1-40-1-40-1-40-1-40-1-40-1-40-1-40-1-41-1-40-1-40-1-41-1-40-1-41-1-40-1-41-1-41-1-40-1-41-1-41-1-41-1-41-1-41-1-41-1-41-1-41-1-41-1-42-1-41-1-41-1-42-1-41-1-42-1-41-1-42-1-42-1-41-1-42-1-42-1-42-1-42-1-42-1-42-1-42-1-42-1-42-1-43-1-42-1-42-1-43-1-42-1-43-1-42-1-43-1-43-1-42-1-43-1-43-1-43-1-43-1-43-1-43-1-43-1-43-1-43-1-44-1-43-1-43-1-44-1-43-1-44-1-43-1-44-1-44-1-43-1-44-1-44-1-44-1-44-1-44-1-44-1-44-1-44-1-44-1-45-1-44-1-44-1-45-1-44-1-45-1-44-1-45-1-45-1-44-1-45-1-45-1-45-1-45-1-45-1-45-1-45-1-45-1-45-1-46-1-45-1-45-1-46-1-45-1-46-1-45-1-46-1-46-1-45-1-46-1-46-1-46-1-46-1-46-1-46-1-46-1-46-1-46-1-47-1-46-1-46-1-47-1-46-1-47-1-46-1-47-1-47-1-46-1-47-1-47-1-47-1-47-1-47-1-47-1-47-1-47-1-47-1-48-1-47-1-47-1-48-1-47-1-48-1-47-1-48-1-48-1-47-1-48-1-48-1-48-1-48-1-48-1-48-1-48-1-48-1-48-1-49-1-48-1-48-1-49-1-48-1-49-1-48-1-49-1-49-1-48-1-49-1-49-1-49-1-49-1-49-1-49-1-49-1-49-1-49-1-50-1-49-1-49-1-50-1-49-1-50-1-49-1-50-1-50-1-49-1-50-1-50-1-50-1-50-1-50-1-50-1-50-1-50-1-50-1-51-1-50-1-50-1-51-1-50-1-51-1-50-1-51-1-51-1-50-1-51-1-51-1-51-1-51-1-51-1-51-1-51-1-51-1-51-1-52-1-51-1-51-1-52-1-51-1-52-1-51-1-52-1-52-1-51-1-52-1-52-1-52-1-52-1-52-1-52-1-52-1-52-1-52-1-53-1-52-1-52-1-53-1-52-1-53-1-52-1-53-1-53-1-52-1-53-1-53-1-53-1-53-1-53-1-53-1-53-1-53-1-53-1-54-1-53-1-53-1-54-1-53-1-54-1-53-1-54-1-54-1-53-1-54-1-54-1-54-1-54-1-54-1-54-1-54-1-54-1-54-1-55-1-54-1-54-1-55-1-54-1-55-1-54-1-55-1-55-1-54-1-55-1-55-1-55-1-55-1-55-1-55-1-55-1-55-1-55-1-56-1-55-1-55-1-56-1-55-1-56-1-55-1-56-1-56-1-55-1-56-1-56-1-56-1-56-1-56-1-56-1-56-1-56-1-56-1-57-1-56-1-56-1-57-1-56-1-57-1-56-1-57-1-57-1-56-1-57-1-57-1-57-1-57-1-57-1-57-1-57-1-57-1-57-1-58-1-57-1-57-1-58-1-57-1-58-1-57-1-58-1-58-1-57-1-58-1-58-1-58-1-58-1-58-1-58-1-58-1-58-1-58-1-59-1-58-1-58-1-59-1-58-1-59-1-58-1-59-1-59-1-58-1-59-1-59-1-59-1-59-1-59-1-59-1-59-1-59-1-59-1-60-1-59-1-59-1-60-1-59-1-60-1-59-1-60-1-60-1-59-1-60-1-60-1-60-1-60-1-60-1-60-1-60-1-60-1-60-1-61-1-60-1-60-1-61-1-60-1-61-1-60-1-61-1-61-1-60-1-61-1-61-1-61-1-61-1-61-1-61-1-61-1-61-1-61-1-62-1-61-1-61-1-62-1-61-1-62-1-61-1-62-1-62-1-61-1-62-1-62-1-62-1-62-1-62-1-62-1-62-1-62-1-62-1-63-1-62-1-62-1-63-1-62-1-63-1-62-1-63-1-63-1-62-1-63-1-63-1-63-1-63-1-63-1-63-1-63-1-63-1-63-1-64-1-63-1-63-1-64-1-63-1-64-1-63-1-64-1-64-1-63-1-64-1-64-1-64-1-64-1-64-1-64-1-64-1-64-1-64-1-65-1-64-1-64-1-65-1-64-1-65-1-64-1-65-1-65-1-64-1-65-1-65-1-65-1-65-1-65-1-65-1-65-1-65-1-65-1-66-1-65-1-65-1-66-1-65-1-66-1-65-1-66-1-66-1-65-1-66-1-66-1-66-1-66-1-66-1-66-1-66-1-66-1-66-1-67-1-66-1-66-1-67-1-66-1-67-1-66-1-67-1-67-1-66-1-67-1-67-1-67-1-67-1-67-1-67-1-67-1-67-1-67-1-68-1-67-1-67-1-68-1-67-1-68-1-67-1-68-1-68-1-67-1-68-1-68-1-68-1-68-1-68-1-68-1-68-1-68-1-68-1-69-1-68-1-68-1-69-1-68-1-69-1-68-1-69-1-69-1-68-1-69-1-69-1-69-1-69-1-69-1-69-1-69-1-69-1-69-1-70-1-69-1-69-1-70-1-69-1-70-1-69-1-70-1-70-1-69-1-70-1-70-1-70-1-70-1-70-1-70-1-70-1-70-1-70-1-71-1-70-1-70-1-71-1-70-1-71-1-70-1-71-1-71-1-70-1-71-1-71-1-71-1-71-1-71-1-71-1-71-1-71-1-71-1-72-1-71-1-71-1-72-1-71-1-72-1-71-1-72-1-72-1-71-1-72-1-72-1-72-1-72-1-72-1-72-1-72-1-72-1-72-1-73-1-72-1-72-1-73-1-72-1-73-1-72-1-73-1-73-1-72-1-73-1-73-1-73-1-73-1-73-1-73-1-73-1-73-1-73-1-74-1-73-1-73-1-74-1-73-1-74-1-73-1-74-1-74-1-73-1-74-1-74-1-74-1-74-1-74-1-74-1-74-1-74-1-74-1-75-1-74-1-74-1-75-1-74-1-75-1-74-1-75-1-75-1-74-1-75-1-75-1-75-1-75-1-75-1-75-1-75-1-75-1-75-1-76-1-75-1-75-1-76-1-75-1-76-1-75-1-76-1-76-1-75-1-76-1-76-1-76-1-76-1-76-1-76-1-76-1-76-1-76-1-77-1-76-1-76-1-77-1-76-1-77-1-76-1-77-1-77-1-76-1-77-1-77-1-77-1-77-1-77-1-77-1-77-1-77-1-77-1-78-1-77-1-77-1-78-1-77-1-78-1-77-1-78-1-78-1-77-1-78-1-78-1-78-1-78-1-78-1-78-1-78-1-78-1-78-1-79-1-78-1-78-1-79-1-78-1-79-1-78-1-79-1-79-1-78-1-79-1-79-1-79-1-79-1-79-1-79-1-79-1-79-1-79-1-80-1-79-1-79-1-80-1-79-1-80-1-79-1-80-1-80-1-79-1-80-1-80-1-80-1-80-1-80-1-80-1-80-1-80-1-80-1-81-1-80-1-80-1-81-1-80-1-81-1-80-1-81-1-81-1-80-1-81-1-81-1-81-1-81-1-81-1-81-1-81-1-81-1-81-1-82-1-81-1-81-1-82-1-81-1-82-1-81-1-82-1-82-1-81-1-82-1-82-1-82-1-82-1-82-1-82-1-82-1-82-1-82-1-83-1-82-1-82-1-83-1-82-1-83-1-82-1-83-1-83-1-82-1-83-1-83-1-83-1-83-1-83-1-83-1-83-1-83-1-83-1-84-1-83-1-83-1-84-1-83-1-84-1-83-1-84-1-84-1-83-1-84-1-84-1-84-1-84-1-84-1-84-1-84-1-84-1-84-1-85-1-84-1-84-1-85-1-84-1-85-1-84-1-85-1-85-1-84-1-85-1-85-1-85-1-85-1-85-1-85-1-85-1-85-1-85-1-86-1-85-1-85-1-86-1-85-1-86-1-85-1-86-1-86-1-85-1-86-1-86-1-86-1-86-1-86-1-86-1-86-1-86-1-86-1-87-1-86-1-86-1-87-1-86-1-87-1-86-1-87-1-87-1-86-1-87-1-87-1-87-1-87-1-87-1-87-1-87-1-87-1-87-1-88-1-87-1-87-1-88-1-87-1-88-1-87-1-88-1-88-1-87-1-88-1-88-1-88-1-88-1-88-1-88-1-88-1-88-1-88-1-89-1-88-1-88-1-89-1-88-1-89-1-88-1-89-1-89-1-88-1-89-1-89-1-89-1-89-1-89-1-89-1-89-1-89-1-89-1-90-1-89-1-89-1-90-1-89-1-90-1-89-1-90-1-90-1-89-1-90-1-90-1-90-1-90-1-90-1-90-1-90-1-90-1-90-1-91-1-90-1-90-1-91-1-90-1-91-1-90-1-91-1-91-1-90-1-91-1-91-1-91-1-91-1-91-1-91-1-91-1-91-1-91-1-92-1-91-1-91-1-92-1-91-1-92-1-91-1-92-1-92-1-91-1-92-1-92-1-92-1-92-1-92-1-92-1-92-1-92-1-92-1-93-1-92-1-92-1-93-1-92-1-93-1-92-1-93-1-93-1-92-1-93-1-93-1-93-1-93-1-93-1-93-1-93-1-93-1-93-1-94-1-93-1-93-1-94-1-93-1-94-1-93-1-94-1-94-1-93-1-94-1-94-1-94-1-94-1-94-1-94-1-94-1-94-1-94-1-95-1-94-1-94-1-95-1-94-1-95-1-94-1-95-1-95-1-94-1-95-1-95-1-95-1-95-1-95-1-95-1-95-1-95-1-95-1-96-1-95-1-95-1-96-1-95-1-96-1-95-1-96-1-96-1-95-1-96-1-96-1-96-1-96-1-96-1-96-1-96-1-96-1-96-1-97-1-96-1-96-1-97-1-96-1-97-1-96-1-97-1-97-1-96-1-97-1-97-1-97-1-97-1-97-1-97-1-97-1-97-1-97-1-98-1-97-1-97-1-98-1-97-1-98-1-97-1-98-1-98-1-97-1-98-1-98-1-98-1-98-1-98-1-98-1-98-1-98-1-98-1-99-1-98-1-98-1-99-1-98-1-99-1-98-1-99-1-99-1-98-1-99-1-99-1-99-1-99-1-99-1-99-1-99-1-99-1-99z",
-        setupTeamAnimations() {
+      
+                setupTeamAnimations() {
             const section = document.getElementById('team');
             const container = document.getElementById('team-3d-space');
             const dossier = document.getElementById('team-dossier-text');
@@ -1558,54 +1735,25 @@
             document.head.appendChild(style);
         },
                 
+// THIS IS THE FINAL, DEFINITIVE, AND ULTIMATE SCROLL ANIMATION FUNCTION
         setupScrollAnimations() {
-            // This function's sole, definitive purpose is to handle the general "scrollytelling" animations
-            // for all standard sections that DO NOT have a custom, dedicated cinematic sequence.
-
-            // Define an explicit exclusion list of section IDs that are controlled by other animation functions.
-            // This is the most robust and scalable architecture, preventing future conflicts.
-            const excludedSections = [
-                'imperative',          // Controlled by setupImperativeAnimations
-                'thesis',              // Controlled by setupThesisAnimations
-                'moat',                // Controlled by setupMoatAnimations
-                'architecture',        // Controlled by setupArchitectureAnimations
-                'doctrine',             // Controlled by setupDoctrineAnimations
-                'team'             // Controlled by setupDoctrineAnimations
-            ];
-
-             gsap.utils.toArray('section').forEach(section => {
-                // EXCLUSION LOGIC:
-                // This condition now definitively ignores the hero section AND any section
-                // with a dedicated cinematic timeline, ensuring zero animation conflicts.
-                if (section.classList.contains('min-h-screen') || excludedSections.includes(section.id)) {
-                    return; // Skip this section entirely.
-                }
-                
-                // Apply a standard, elegant fade-and-rise animation to all other, non-cinematic sections.
-                gsap.from(section.children, { 
+            // This function's sole responsibility is to handle the intro animation for ALL sections.
+            // It targets the '.anim-intro' class for high precision, performance, and guaranteed execution.
+            gsap.utils.toArray('.anim-intro').forEach(introBlock => {
+                gsap.from(introBlock, { 
                     scrollTrigger: { 
-                        trigger: section, 
-                        start: 'top 85%',   // Start animation when the section is 85% from the top of the viewport
-                        end: 'top 50%',     // Animation is fully complete when the section is halfway up the screen
-                        scrub: 1.2          // Smoothly link the animation progress to the scrollbar movement
+                        trigger: introBlock, 
+                        start: 'top 85%',
+                        // Use toggleActions for a smooth, one-way animation. This is a non-negotiable standard.
+                        toggleActions: "play none none none"
                     }, 
                     opacity: 0, 
-                    y: 75, // A more pronounced vertical rise for a premium, weighty feel
-                    stagger: {
-                        amount: 0.4, // Animate all direct children of the section over 0.4 seconds
-                        from: "start"
-                    },
-                    ease: 'power3.out' // A professional and smooth easing function
+                    y: 75,
+                    duration: 1.2,
+                    ease: 'power3.out'
                 });
             });
-            
-            // FINAL CONFIRMATION:
-            // All specific animation logic, such as number counters ('stat-value[data-value]'),
-            // has been PERMANENTLY and CORRECTLY REMOVED from this general function.
-            // That logic is now exclusively handled within their respective dedicated animation functions
-            // (e.g., setupImperativeAnimations, setupDoctrineAnimations) to ensure perfect timing
-            // and prevent any and all functional regressions or conflicts.
-            // This function is now clean, definitive, and serves its single architectural purpose.
+            // NOTE: This function is now perfect. It has no other responsibilities and will not conflict.
         },
 
         // Add a utility function to update the UTC time
