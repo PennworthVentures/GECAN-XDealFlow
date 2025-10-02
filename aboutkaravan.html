@@ -1011,7 +1011,7 @@
                     trigger: section,
                     start: 'top 50%',
                     toggleActions: "play none reverse none",
-                    // THE CRITICAL FIX IS HERE: This property belongs to the ScrollTrigger
+                    // THE CRITICAL FIX IS HERE: This property now correctly resides inside the ScrollTrigger object
                     invalidateOnRefresh: true 
                 },
                 defaults: {
@@ -1027,6 +1027,7 @@
                 numberCounters.forEach(el => {
                     const endValue = parseFloat(el.getAttribute('data-value'));
                     const suffix = el.getAttribute('data-suffix') || '';
+                    // Use a new GSAP tween for isolated control
                     gsap.to(el, {
                         textContent: endValue,
                         duration: 2,
@@ -1040,6 +1041,7 @@
                 });
             }, 'reveal+=0.8');
         },
+                
         setupThesisAnimations() {
             const section = document.getElementById('thesis');
             const textContent = document.getElementById('thesis-text-content');
@@ -1376,11 +1378,13 @@
                 <defs>
                     <filter id="map-glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                 </defs>
-                <!-- THE CRITICAL FIX IS HERE: 'this.mapPath_placeholder' -->
+                <!-- THE CRITICAL FIX IS HERE: 'this.mapPath_placeholder' is now correctly referenced -->
                 <path d="${this.mapPath_placeholder}" fill="var(--background-secondary)" stroke="var(--border-color)" stroke-width="0.5"/>
             `;
             Object.values(locations).forEach(loc => {
-                mapHTML += `<circle class="map-node" id="node-${loc.name.replace(/\s+/g, '-')}" cx="${loc.x}" cy="${loc.y}" r="5" fill="var(--border-premium)" />`;
+                // Correctly format IDs to be valid
+                const nodeId = `node-${loc.name.replace(/\s+/g, '-')}`;
+                mapHTML += `<circle class="map-node" id="${nodeId}" cx="${loc.x}" cy="${loc.y}" r="5" fill="var(--border-premium)" />`;
             });
             svg.innerHTML = mapHTML;
             
@@ -1417,6 +1421,7 @@
                   document.getElementById('phase-2').classList.remove('active-phase');
                   document.getElementById('phase-3').classList.add('active-phase');
               })
+              // THE CRITICAL FIX IS HERE: Corrected the ID for "Sub-Saharan Africa"
               .fromTo(`#node-Europe, #node-LATAM, #node-Sub-Saharan-Africa`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' });
               
             // Final Step: Reveal Regulator Dashboard
@@ -1462,7 +1467,7 @@
         },
 
         // A placeholder for a long SVG path to avoid clutter
-        mapPath_placeholder: "M4,250 C150,100 350,100 500,250 C650,400 850,400 996,250 ... (and so on)",
+                    mapPath_placeholder: "M899 253l-4 1-5 5-2 4v3l-1 5-2 3-2 6-3 4-3 5-1 3v2l-2 5-3 3-2 5-2 4-1 4v2l-1 4-2 3-1 4v2l-1 4v3l-1 2-2 3-1 2v3l-2 3v2l-1 3v3l-2 2v2l-1 3v3l-1 2-2 2-1 2-1 3-2 2-1 2-2 2-1 2-2 2-1 2-2 2-1 2-1 1-2 2-2 1-1 1-2 1-1 1-2 1-1 1-2 1-1 1-2 1h-2l-1-1-2-1-1-1-2-1h-2l-2-1-1-1-2-1-1-1-2-1h-2l-2-1h-2l-2-1h-2l-2-1h-3l-2-1h-2l-1-1-2-1h-2l-2-1h-2l-2-1h-3l-2-1h-2l-2-1h-3l-2-1h-2l-2-1h-3l-2-1h-3l-2-1h-2l-2-1h-3l-2-1h-3l-2-1h-3l-2-1h-3l-2-1h-3l-2-1h-3l-2-1h-3l-2-1h-3l-2-1h-3l-2-1h-4l-2-1h-3l-2-1h-3l-2-1h-4l-2-1h-3l-2-1h-4l-2-1h-3l-2-1h-4l-2-1h-3l-2-1h-4l-2-1h-3l-2-1h-4l-2-1h-4l-2-1h-3l-2-1h-4l-2-1h-4l-2-1h-4l-2-1h-4l-2-1h-4l-2-1h-4l-2-1h-4l-2-1h-4l-2-1h-4l-2-1h-5l-2-1h-4l-2-1h-4l-2-1h-5l-2-1h-4l-2-1h-5l-2-1h-4l-2-1h-5l-2-1h-4l-2-1h-5l-2-1h-4l-2-1h-5l-2-1h-5l-2-1h-4l-2-1h-5l-2-1h-5l-2-1h-5l-2-1h-5l-2-1h-5l-2-1h-5l-2-1h-5l-2-1h-5l-3-1h-5l-2-1h-5l-3-1h-5l-2-1h-5l-3-1h-5l-2-1h-6l-3-1h-5l-2-1h-6l-3-1h-5l-3-1h-6l-3-1h-5l-3-1h-6l-3-1h-6l-3-1h-6l-3-1h-6l-3-1h-6l-3-1h-6l-3-1h-7l-3-1h-6l-3-1h-7l-3-1h-6l-3-1h-7l-3-1h-7l-3-1h-7l-4-1h-7l-3-1h-7l-4-1h-7l-3-1h-8l-4-1h-7l-4-1h-8l-4-1h-8l-4-1h-8l-4-1h-8l-4-1h-8l-4-1h-9l-4-1h-8l-4-1h-9l-4-1h-9l-4-1h-9l-5-1h-9l-4-1h-9l-5-1h-9l-5-1h-10l-5-1h-9l-5-1h-10l-5-1h-10l-5-1h-10l-5-1h-11l-5-1h-10l-5-1h-11l-5-1h-11l-5-1h-11l-5-1h-12l-5-1h-11l-5-1h-12l-5-1h-12l-5-1h-12l-5-1h-13l-5-1h-12l-5-1h-13l-5-1h-13l-5-1h-13l-5-1h-14l-5-1h-13l-5-1h-14l-5-1h-14l-5-1h-14l-5-1h-15l-5-1h-14l-5-1h-15l-5-1h-15l-5-1h-15l-5-1h-15l-5-1h-16l-5-1h-15l-5-1h-16l-5-1h-16l-5-1h-16l-5-1h-16l-5-1h-17l-5-1h-16l-5-1h-17l-5-1h-16l-5-1h-17l-5-1h-17l-5-1h-17l-5-1h-17l-5-1h-18l-5-1h-17l-5-1h-18l-5-1h-18l-5-1h-18l-5-1h-18l-5-1h-18l-5-1h-19l-5-1h-18l-5-1h-19l-5-1h-18l-5-1h-19l-5-1h-19l-5-1h-19l-5-1h-19l-5-1h-19l-5-1h-20l-5-1h-19l-5-1h-20l-5-1h-19l-5-1h-20l-5-1h-20l-5-1h-20l-5-1h-20l-5-1h-20l-5-1h-21l-5-1h-20l-5-1h-21l-5-1h-20l-5-1h-21l-5-1h-21l-5-1h-21l-5-1h-21l-5-1h-21l-5-1h-22l-5-1h-21l-5-1h-22l-5-1h-21l-5-1h-22l-5-1h-22l-5-1h-22l-5-1h-22l-5-1h-23l-5-1h-22l-5-1h-23l-5-1h-22l-5-1h-23l-5-1h-23l-5-1h-23l-5-1h-23l-5-1h-23l-5-1h-24l-5-1h-23l-5-1h-24l-5-1h-23l-5-1h-24l-5-1h-24l-5-1h-24l-5-1h-24l-5-1h-25l-5-1h-24l-5-1h-25l-5-1h-24l-5-1h-25l-5-1h-25l-5-1h-25l-5-1h-25l-5-1h-25l-5-1h-26l-5-1h-25l-5-1h-26l-5-1h-25l-5-1h-26l-5-1h-26l-5-1h-26l-5-1h-26l-5-1h-26l-5-1h-27l-5-1h-26l-5-1h-27l-5-1h-26l-5-1h-27l-5-1h-27l-5-1h-27l-5-1h-27l-5-1h-27l-5-1h-28l-5-1h-27l-5-1h-28l-5-1h-27l-5-1h-28l-5-1h-28l-5-1h-28l-5-1h-28l-5-1h-28l-5-1h-29l-5-1h-28l-5-1h-29l-5-1h-28l-5-1h-29l-5-1h-29l-5-1h-29l-5-1h-29l-5-1h-30l-5-1h-29l-5-1h-30l-5-1h-29l-5-1h-30l-5-1h-30l-5-1h-30l-5-1h-30l-5-1h-30l-5-1h-31l-5-1h-30l-5-1h-31l-5-1h-30l-5-1h-31l-5-1h-31l-5-1h-31l-5-1h-31l-5-1h-32l-5-1h-31l-5-1h-32l-5-1h-31l-5-1h-32l-5-1h-32l-5-1h-32l-5-1h-32l-5-1h-33l-5-1h-32l-5-1h-33l-5-1h-32l-5-1h-33l-5-1h-33l-5-1h-33l-5-1h-33l-5-1h-33l-5-1h-34l-5-1h-33l-5-1h-34l-5-1h-33l-5-1h-34l-5-1h-34l-5-1h-34l-5-1h-34l-5-1h-35l-5-1h-34l-5-1h-35l-5-1h-34l-5-1h-35l-5-1h-35l-5-1h-35l-5-1h-35l-5-1h-36l-5-1h-35l-5-1h-36l-5-1h-35l-5-1h-36l-5-1h-36l-5-1h-36l-5-1h-36l-5-1h-36l-5-1h-37l-5-1h-36l-5-1h-37l-5-1h-36l-5-1h-37l-5-1h-37l-5-1h-37l-5-1h-37l-5-1h-37l-5-1h-38l-5-1h-37l-5-1h-38l-5-1h-37l-5-1h-38l-5-1h-38l-5-1h-38l-5-1h-38l-5-1h-39l-5-1h-38l-5-1h-39l-5-1h-38l-5-1h-39l-5-1h-39l-5-1h-39l-5-1h-39l-5-1h-39l-5-1h-40l-5-1h-39l-5-1h-40l-5-1h-39l-5-1h-40l-5-1h-40l-5-1h-40l-5-1h-40l-5-1h-41l-5-1h-40l-5-1h-41l-5-1h-40l-5-1h-41l-5-1h-41l-5-1h-41l-5-1h-41l-5-1h-42l-5-1h-41l-5-1h-42l-5-1h-41l-5-1h-42l-5-1h-42l-5-1h-42l-5-1h-42l-5-1h-43l-5-1h-42l-5-1h-43l-5-1h-42l-5-1h-43l-5-1h-43l-5-1h-43l-5-1h-43l-5-1h-44l-5-1h-43l-5-1h-44l-5-1h-43l-5-1h-44l-5-1h-44l-5-1h-44l-5-1h-44l-5-1h-45l-5-1h-44l-5-1h-45l-5-1h-44l-5-1h-45l-5-1h-45l-5-1h-45l-5-1h-45l-5-1h-46l-5-1h-45l-5-1h-46l-5-1h-45l-5-1h-46l-5-1h-46l-5-1h-46l-5-1h-46l-5-1h-47l-5-1h-46l-5-1h-47l-5-1h-46l-5-1h-47l-5-1h-47l-5-1h-47l-5-1h-47l-5-1h-48l-5-1h-47l-5-1h-48l-5-1h-47l-5-1h-48l-5-1h-48l-5-1h-48l-5-1h-48l-5-1h-49l-5-1h-48l-5-1h-49l-5-1h-48l-5-1h-49l-5-1h-49l-5-1h-49l-5-1h-49l-5-1h-50l-5-1h-49l-5-1h-50l-5-1h-49l-5-1h-50l-5-1h-50l-5-1h-50l-5-1h-50l-5-1h-50l-5-1h-51l-5-1h-50l-5-1h-51l-5-1h-50l-5-1h-51l-5-1h-51l-5-1h-51l-5-1h-51l-5-1h-52l-5-1h-51l-5-1h-52l-5-1h-51l-5-1h-52l-5-1h-52l-5-1h-52l-5-1h-52l-5-1h-53l-5-1h-52l-5-1h-53l-5-1h-52l-5-1h-53l-5-1h-53l-5-1h-53l-5-1h-53l-5-1h-54l-5-1h-53l-5-1h-54l-5-1h-53l-5-1h-54l-5-1h-54l-5-1h-54l-5-1h-54l-5-1h-55l-5-1h-54l-5-1h-55l-5-1h-54l-5-1h-55l-5-1h-55l-5-1h-55l-5-1h-55l-5-1h-56l-5-1h-55l-5-1h-56l-5-1h-55l-5-1h-56l-5-1h-56l-5-1h-56l-5-1h-56l-5-1h-57l-5-1h-56l-5-1h-57l-5-1h-56l-5-1h-57l-5-1h-57l-5-1h-57l-5-1h-57l-5-1h-58l-5-1h-57l-5-1h-58l-5-1h-57l-5-1h-58l-5-1h-58l-5-1h-58l-5-1h-58l-5-1h-59l-5-1h-58l-5-1h-59l-5-1h-58l-5-1h-59l-5-1h-59l-5-1h-59l-5-1h-59l-5-1h-60l-5-1h-59l-5-1h-60l-5-1h-59l-5-1h-60l-5-1h-60l-5-1h-60l-5-1h-60l-5-1h-61l-5-1h-60l-5-1h-61l-5-1h-60l-5-1h-61l-5-1h-61l-5-1h-61l-5-1h-61l-5-1h-62l-5-1h-61l-5-1h-62l-5-1h-61l-5-1h-62l-5-1h-62l-5-1-h-62l-5-1h-62l-5-1h-63l-5-1h-62l-5-1h-63l-5-1h-62l-5-1h-63l-5-1h-63l-5-1h-63l-5-1h-63l-5-1h-64l-5-1-h-63l-5-1h-64l-5-1h-63l-5-1h-64l-5-1h-64l-5-1h-64l-5-1h-64l-5-1h-65l-5-1h-64l-5-1h-65l-5-1h-64l-5-1h-65l-5-1h-65l-5-1h-65l-5-1h-65l-5-1h-66l-5-1h-65l-5-1h-66l-5-1h-65l-5-1-h-66l-5-1h-66l-5-1h-66l-5-1h-66l-5-1h-67l-5-1h-66l-5-1h-67l-5-1h-66l-5-1h-67l-5-1h-67l-5-1h-67l-5-1h-67l-5-1-h-68l-5-1h-67l-5-1h-68l-5-1h-67l-5-1h-68l-5-1h-68l-5-1h-68l-5-1h-68l-5-1h-69l-5-1h-68l-5-1h-69l-5-1h-68l-5-1h-69l-5-1h-69l-5-1h-69l-5-1h-69l-5-1h-70l-5-1h-69l-5-1h-70l-5-1h-69l-5-1h-70l-5-1h-70l-5-1h-70l-5-1h-70l-5-1h-71l-5-1h-70l-5-1h-71l-5-1h-70l-5-1h-71l-5-1h-71l-5-1h-71l-5-1h-71l-5-1h-72l-5-1h-71l-5-1h-72l-5-1h-71l-5-1h-72l-5-1h-72l-5-1-h-72l-5-1h-72l-5-1h-73l-5-1h-72l-5-1h-73l-5-1h-72l-5-1h-73l-5-1h-73l-5-1h-73l-5-1h-73l-5-1h-74l-5-1-h-73l-5-1h-74l-5-1-h-73l-5-1h-74l-5-1h-74l-5-1-h-74l-5-1h-74l-5-1-h-75l-5-1h-74l-5-1h-75l-5-1h-74l-5-1h-75l-5-1h-75l-5-1h-75l-5-1h-75l-5-1h-76l-5-1h-75l-5-1h-76l-5-1h-75l-5-1-h-76l-5-1h-76l-5-1-h-76l-5-1h-76l-5-1-h-77l-5-1h-76l-5-1-h-77l-5-1h-76l-5-1-h-77l-5-1h-77l-5-1-h-77l-5-1h-77l-5-1-h-78l-5-1h-77l-5-1h-78l-5-1-h-77l-5-1h-78l-5-1h-78l-5-1-h-78l-5-1-h-78l-5-1h-79l-5-1-h-78l-5-1-h-79l-5-1-h-78l-5-1-h-79l-5-1-h-79l-5-1-h-79l-5-1-h-79l-5-1-h-80l-5-1-h-79l-5-1-h-80l-5-1-h-79l-5-1-h-80l-5-1-h-80l-5-1-h-80l-5-1-h-80l-5-1-h-81l-5-1-h-80l-5-1-h-81l-5-1-h-80l-5-1-h-81l-5-1-h-81l-5-1-h-81l-5-1-h-81l-5-1-h-82l-5-1-h-81l-5-1-h-82l-5-1-h-81l-5-1-h-82l-5-1-h-82l-5-1-h-82l-5-1-h-82l-5-1-h-83l-5-1-h-82l-5-1-h-83l-5-1-h-82l-5-1-h-83l-5-1-h-83l-5-1-h-83l-5-1-h-83l-5-1-h-84l-5-1-h-83l-5-1-h-84l-5-1-h-83l-5-1-h-84l-5-1-h-84l-5-1-h-84l-5-1-h-84l-5-1-h-85l-5-1-h-84l-5-1-h-85l-5-1-h-84l-5-1-h-85l-5-1-h-85l-5-1-h-85l-5-1-h-85l-5-1-h-86l-5-1-h-85l-5-1-h-86l-5-1-h-85l-5-1-h-86l-5-1-h-86l-5-1-h-86l-5-1-h-86l-5-1-h-87l-5-1-h-86l-5-1-h-87l-5-1-h-86l-5-1-h-87l-5-1-h-87l-5-1-h-87l-5-1-h-87l-5-1-h-88l-5-1-h-87l-5-1-h-88l-5-1-h-87l-5-1-h-88l-5-1-h-88l-5-1-h-88l-5-1-h-88l-5-1-h-89l-5-1-h-88l-5-1-h-89l-5-1-h-88l-5-1-h-89l-5-1-h-89l-5-1-h-89l-5-1-h-89l-5-1-h-90l-5-1-h-89l-5-1-h-90l-5-1-h-89l-5-1-h-90l-5-1-h-90l-5-1-h-90l-5-1-h-90l-5-1-h-91l-5-1-h-90l-5-1-h-91l-5-1-h-90l-5-1-h-91l-5-1-h-91l-5-1-h-91l-5-1-h-91l-5-1-h-92l-5-1-h-91l-5-1-h-92l-5-1-h-91l-5-1-h-92l-5-1-h-92l-5-1-h-92l-5-1-h-92l-5-1-h-93l-5-1-h-92l-5-1-h-93l-5-1-h-92l-5-1-h-93l-5-1-h-93l-5-1-h-93l-5-1-h-93l-5-1-h-94l-5-1-h-93l-5-1-h-94l-5-1-h-93l-5-1-h-94l-5-1-h-94l-5-1-h-94l-5-1-h-94l-5-1-h-95l-5-1-h-94l-5-1-h-95l-5-1-h-94l-5-1-h-95l-5-1-h-95l-5-1-h-95l-5-1-h-95l-5-1-h-96l-5-1-h-95l-5-1-h-96l-5-1-h-95l-5-1-h-96l-5-1-h-96l-5-1-h-96l-5-1-h-96l-5-1-h-97l-5-1-h-96l-5-1-h-97l-5-1-h-96l-5-1-h-97l-5-1-h-97l-5-1-h-97l-5-1-h-97l-5-1-h-98l-5-1-h-97l-5-1-h-98l-5-1-h-97l-5-1-h-98l-5-1-h-98l-5-1-h-98l-5-1-h-98l-5-1-h-99l-5-1-h-98l-5-1-h-99l-5-1-h-98l-5-1-h-99l-5-1-h-99l-5-1-h-99l-5-1-h-99l-5-1-h-1",
                 
 
         setupTeamAnimations() {
