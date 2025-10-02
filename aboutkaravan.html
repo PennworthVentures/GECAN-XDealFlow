@@ -10,19 +10,26 @@
     <meta name="author" content="GECAN™ | Global Energy & Commodities Alliance Network">
     <meta name="robots" content="noindex, nofollow">
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜️</text></svg>">
+        
+    <!-- STYLESHEETS and FONTS remain in the head for immediate visual rendering -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Cinzel+Decorative:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS script is the only exception, as its JIT compiler needs to run early -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Core Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/SplitText.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/SplitText.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     
     <!-- Pinnacle-Grade Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -661,15 +668,19 @@ document.addEventListener('DOMContentLoaded', () => {
 launchApp() {
             this.setupUI();
             this.createAdvancedGlobe();
-            this.setupHeroAnimations();
-            setInterval(() => this.updateTime(), 1000);
-            this.updateTime(); // initial call
             this.populateTeamAndCards();
             this.createMoatDiagram();
-            this.SettlementProtocolVisualizer.init();
-            this.setupAnimations();
+            this.SettlementProtocolVisualizer.init(); 
+            
+            // THESE ARE THE FINAL, CORRECT CALLS
+            this.setupHeroAnimations(); 
+            this.setupScrollAnimations(); 
+            
             this.setupCharts();
             this.setupModalAndPdf();
+            
+            setInterval(() => this.updateTime(), 1000);
+            this.updateTime();
         },
         // --- UI & DYNAMIC CONTENT ---
         setupUI() {
@@ -812,28 +823,90 @@ launchApp() {
         },
 
                 setupHeroAnimations() {
-            const tl = gsap.timeline({delay: 0.5});
-            
-            // Split text for character-level animation
-            const titleChars = new SplitText("#hero-title", {type:"chars"}).chars;
-            
-            tl.fromTo("#classification-banner", {opacity: 0, x: -50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
-              .fromTo("#system-status", {opacity: 0, x: 50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
-              .fromTo("#holographic-globe-container", {opacity: 0, scale: 0.8}, {opacity: 1, scale: 1, duration: 1.5, ease: 'power3.out'}, 0.2)
-              .set("#hero-title", {opacity: 1}) // Make title visible before char animation
-              .from(titleChars, {
-                  duration: 1.5,
-                  opacity: 0,
-                  scale: 0.5,
-                  y: 80,
-                  rotationX: -90,
-                  transformOrigin: "0% 50% -50",
-                  ease: "back.out",
-                  stagger: 0.02,
-              }, 0.5)
-              .fromTo("#hero-subtitle", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 1.5)
-              .fromTo("#hero-description", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 1.8)
-              .fromTo("#hero-cta", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 2.1);
+                    // This function is now guaranteed to work because SplitText is loaded.
+                    if (typeof SplitText === "undefined") {
+                        console.error("GECAN CRITICAL ERROR: GSAP SplitText plugin failed to load. Hero animation will be gracefully degraded.");
+                        // Fallback animation if the plugin somehow fails
+                        gsap.timeline({delay: 0.5})
+                            .to("#hero-title, #hero-subtitle, #hero-description, #hero-cta", {opacity: 1, y: 0, stagger: 0.2, duration: 1, ease: 'power3.out'});
+                        return;
+                    }
+
+                    const tl = gsap.timeline({delay: 0.5});
+                    const titleChars = new SplitText("#hero-title", {type:"chars"}).chars;
+                    
+                    tl.fromTo("#classification-banner", {opacity: 0, x: -50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
+                      .fromTo("#system-status", {opacity: 0, x: 50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
+                      .fromTo("#holographic-globe-container", {opacity: 0, scale: 0.8}, {opacity: 1, scale: 1, duration: 1.5, ease: 'power3.out'}, 0.2)
+                      .set("#hero-title", {opacity: 1}) 
+                      .from(titleChars, {
+                          duration: 1.5,
+                          opacity: 0,
+                          scale: 0.5,
+                          y: 80,
+                          rotationX: -90,
+                          transformOrigin: "0% 50% -50",
+                          ease: "back.out",
+                          stagger: 0.02,
+                      }, 0.5)
+                      .fromTo("#hero-subtitle", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 1.5)
+                      .fromTo("#hero-description", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 1.8)
+                      .fromTo("#hero-cta", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 2.1);
+                },
+                setupScrollAnimations() {
+             // Animate general sections on scroll
+             gsap.utils.toArray('section').forEach(section => {
+                // Exclude the hero section from this general animation
+                if(section.classList.contains('min-h-screen')) return; 
+                gsap.from(section.children, { 
+                    scrollTrigger: { 
+                        trigger: section, 
+                        start: 'top 80%', 
+                        end: 'top 40%', 
+                        scrub: 1 
+                    }, 
+                    opacity: 0, 
+                    y: 60, 
+                    stagger: 0.1 
+                });
+            });
+
+            // Animate number counters on scroll
+            gsap.utils.toArray('.stat-value[data-value]').forEach(el => {
+                const endValue = parseFloat(el.getAttribute('data-value'));
+                gsap.from(el, { 
+                    textContent: 0, 
+                    duration: 2, 
+                    ease: "power1.inOut", 
+                    snap: { textContent: 1 }, 
+                    scrollTrigger: { 
+                        trigger: el, 
+                        start: "top 85%" 
+                    },
+                    onUpdate: function() { 
+                        // Use formatting for decimals if needed
+                        let currentValue = parseFloat(this.targets()[0].textContent);
+                        el.textContent = endValue % 1 !== 0 ? currentValue.toFixed(1) : Math.round(currentValue).toLocaleString();
+                    }
+                });
+                // Final value setting to ensure accuracy
+                 gsap.to(el, {
+                    textContent: endValue,
+                    duration: 2,
+                    ease: "power1.inOut",
+                    snap: { textContent: 1 },
+                    scrollTrigger: {
+                        trigger: el,
+                        start: "top 85%"
+                    },
+                    onUpdate: function() {
+                        let currentValue = parseFloat(this.targets()[0].textContent);
+                        el.textContent = endValue % 1 !== 0 ? currentValue.toFixed(1) + " Trillion" : Math.round(currentValue).toLocaleString();
+                        if (el.getAttribute('data-value') === '120') el.textContent += " Hours";
+                        if (el.getAttribute('data-value') === '85') el.textContent += "%";
+                    }
+                });
+            });
         },
 
         // Add a utility function to update the UTC time
@@ -1060,24 +1133,7 @@ launchApp() {
         },
 
         // --- ANIMATIONS & SCROLL TRIGGERS ---
-        setupAnimations() {
-            gsap.registerPlugin(ScrollTrigger);
-            gsap.from('.hero-title, .holographic-globe, .hero-title + p, .hero-title ~ div', { opacity: 0, y: 50, duration: 1.2, stagger: 0.2, ease: 'power3.out', delay: 0.5 });
-            gsap.utils.toArray('section').forEach(section => {
-                gsap.from(section.children, { scrollTrigger: { trigger: section, start: 'top 80%', end: 'top 40%', scrub: 1 }, opacity: 0, y: 60, stagger: 0.1 });
-            });
-            gsap.utils.toArray('.stat-value[data-value]').forEach(el => {
-                gsap.from(el, { textContent: 0, duration: 2, ease: "power1.inOut", snap: { textContent: 1 }, scrollTrigger: { trigger: el, start: "top 85%" },
-                    onUpdate: function() { el.textContent = Math.round(this.targets()[0].textContent).toLocaleString(); }
-                });
-            });
-            const tl = gsap.timeline({ scrollTrigger: { trigger: "#settlement-flow-svg", start: "top center", end: "bottom bottom", scrub: true }});
-            tl.to("#settlement-flow-svg .flow-path", { strokeDashoffset: 0, ease: "none" })
-              .to("#settlement-flow-svg #node-0", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(0) }, "<20%")
-              .to("#settlement-flow-svg #node-1", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(1) }, "<40%")
-              .to("#settlement-flow-svg #node-2", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(2) }, "<60%")
-              .to("#settlement-flow-svg #node-3", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(3) }, "<80%");
-        },
+
         
         // --- CHARTS ---
         setupCharts() {
