@@ -430,14 +430,21 @@
                 <p class="mt-4 max-w-3xl mx-auto text-lg">The execution of this mandate is contingent upon the caliber of its leadership. This is a bifurcated consortium blending "Old World" credibility with "New World" agility, purpose-built with deep, verifiable track records in the precise domains required for success.</p>
             </div>
 
-            <!-- 3D Visualization Space for the Team Cards -->
+            <!-- 3D Visualization Space for the Team Carousel -->
             <div id="team-3d-space" class="relative h-[500px] mt-16 perspective-[3000px]">
                 <!-- The team cards will be dynamically injected and positioned in 3D space by JavaScript -->
             </div>
             
+            <!-- Carousel Navigation Controls -->
+            <div id="team-nav-controls" class="flex justify-center items-center gap-8 mt-8 opacity-0">
+                <button id="team-prev-btn" class="carousel-btn text-3xl text-text-muted hover:text-text-gold transition-colors"><i class="fas fa-chevron-left"></i></button>
+                <div id="team-operator-name" class="text-2xl font-bold text-text-diamond text-center w-80 h-8"></div>
+                <button id="team-next-btn" class="carousel-btn text-3xl text-text-muted hover:text-text-gold transition-colors"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            
             <!-- Dossier Text Area for displaying detailed bios -->
-            <div id="team-dossier-text" class="mt-12 min-h-[100px] max-w-4xl mx-auto text-center text-lg leading-relaxed text-text-silver transition-opacity duration-500">
-                <p class="italic text-text-muted">Hover over an operator's card to view their dossier summary.</p>
+            <div id="team-dossier-text" class="mt-4 min-h-[120px] max-w-3xl mx-auto text-center text-lg leading-relaxed text-text-silver transition-opacity duration-500">
+                <p class="italic text-text-muted">Select an operator to review their dossier.</p>
             </div>
         </section>
 
@@ -1489,6 +1496,10 @@
             const section = document.getElementById('team');
             const container = document.getElementById('team-3d-space');
             const dossier = document.getElementById('team-dossier-text');
+            const operatorName = document.getElementById('team-operator-name');
+            const navControls = document.getElementById('team-nav-controls');
+            const prevBtn = document.getElementById('team-prev-btn');
+            const nextBtn = document.getElementById('team-next-btn');
 
             if (!section || !container || !dossier) return;
 
@@ -1496,88 +1507,90 @@
             let cardsHTML = '';
             this.teamData.forEach((member, index) => {
                 cardsHTML += `
-                    <div id="team-card-${index}" class="team-card-3d absolute w-full md:w-1/4 h-80 cursor-pointer" style="transform-style: preserve-3d;">
+                    <div id="team-card-${index}" class="team-card-3d absolute w-full md:w-1/4 h-80 cursor-pointer" data-index="${index}">
                         <div class="card-face card-front quantum-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-full w-full">
                             <i class="fas ${member.icon} text-4xl text-brand-gold-medium mb-4"></i>
                             <h3 class="font-bold text-lg text-text-diamond">${member.name}</h3>
                             <p class="text-sm text-text-muted">${member.title}</p>
                             <p class="font-semibold text-brand-gold-light mt-3">${member.role}</p>
                         </div>
-                        <div class="card-face card-back quantum-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-full w-full bg-background-secondary">
-                            <p class="text-xs leading-relaxed">${member.bio}</p>
-                        </div>
                     </div>
                 `;
             });
             container.innerHTML = cardsHTML;
             const cards = gsap.utils.toArray('.team-card-3d');
-            const numCards = cards.length;
-            const angleIncrement = 40; // Degrees between cards
-            const radius = 400; // Radius of the arc
+            let currentIndex = 0;
 
-            // --- Set Initial 3D Positions ---
-            gsap.set(cards, {
-                opacity: 0,
-                transformOrigin: 'center center',
-                left: '50%',
-                top: '50%',
-                xPercent: -50,
-                yPercent: -50,
-                z: -1500,
-                rotationY: (i) => (i - Math.floor(numCards / 2)) * angleIncrement
-            });
-            
+            // --- Carousel Logic ---
+            const numCards = cards.length;
+            const angleIncrement = 360 / numCards;
+            const radius = 400; // Radius of the carousel circle
+
+            function positionCards(rotationOffset = 0) {
+                cards.forEach((card, index) => {
+                    const angle = (index * angleIncrement + rotationOffset) * (Math.PI / 180);
+                    const x = radius * Math.sin(angle);
+                    const z = radius * Math.cos(angle) - radius; // Pulls the circle forward
+                    const scale = (z + radius * 2) / (radius * 2); // Fakes perspective scaling
+                    
+                    gsap.to(card, {
+                        x: x,
+                        z: z,
+                        rotationY: index * angleIncrement + rotationOffset,
+                        scale: Math.max(0.4, scale * 0.8),
+                        opacity: Math.max(0.2, scale * 0.9),
+                        duration: 0.8,
+                        ease: 'power3.out'
+                    });
+                });
+                
+                // Update text for the focused card
+                const focusedCardIndex = (numCards - Math.round(rotationOffset / angleIncrement)) % numCards;
+                const member = App.teamData[focusedCardIndex];
+                
+                gsap.to([operatorName, dossier], { opacity: 0, y: 10, duration: 0.3, onComplete: () => {
+                    operatorName.textContent = member.name;
+                    dossier.innerHTML = `<p class="italic">${member.bio}</p>`;
+                    gsap.to([operatorName, dossier], { opacity: 1, y: 0, duration: 0.5 });
+                }});
+            }
+
             // --- Animation Timeline ---
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
                     start: 'top 40%',
-                    toggleActions: "play none reverse none" // Consistent cinematic playback
+                    toggleActions: "play none reverse none"
                 }
             });
 
-            // 1. Animate the cards into their 3D arc formation
-            masterTimeline.to(cards, {
-                z: 0,
-                opacity: 1,
-                duration: 2,
-                stagger: 0.15,
-                ease: 'expo.out'
-            });
-            
-            // 2. Add interactive hover effects AFTER the initial animation
-            masterTimeline.add(() => {
-                cards.forEach((card, index) => {
-                    const front = card.querySelector('.card-front');
-                    const back = card.querySelector('.card-back');
-                    
-                    card.addEventListener('mouseenter', () => {
-                        // Bring card forward and show dossier text
-                        gsap.to(card, { z: 150, rotationY: (i) => (i - Math.floor(numCards / 2)) * angleIncrement, duration: 0.5, ease: 'power3.out' });
-                        gsap.to(front, { opacity: 0, duration: 0.2 });
-                        gsap.to(back, { opacity: 1, duration: 0.2, delay: 0.1 });
-                        
-                        dossier.innerHTML = `<p class="italic">${this.teamData[index].bio}</p>`;
-                        gsap.fromTo(dossier, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5 });
-                    });
-
-                    card.addEventListener('mouseleave', () => {
-                        // Return card to its position in the arc
-                        gsap.to(card, { z: 0, duration: 0.5, ease: 'power3.out' });
-                        gsap.to(front, { opacity: 1, duration: 0.2, delay: 0.1 });
-                        gsap.to(back, { opacity: 0, duration: 0.2 });
-
-                        gsap.to(dossier, { opacity: 0, onComplete: () => {
-                            dossier.innerHTML = `<p class="italic text-text-muted">Hover over an operator's card to view their dossier summary.</p>`;
-                            gsap.to(dossier, { opacity: 1 });
-                        }});
-                    });
-                });
+            // 1. Animate the cards appearing from the center
+            masterTimeline.from(cards, {
+                x: 0, y: 0, z: 0, rotationY: 0, scale: 0,
+                opacity: 0,
+                duration: 1.5,
+                stagger: 0.1,
+                ease: 'expo.out',
+                onComplete: () => {
+                    // 2. Once they've appeared, move them into the carousel formation
+                    positionCards(0);
+                    gsap.to(navControls, { opacity: 1, duration: 0.5 });
+                }
             });
 
-            // Add some CSS for the card faces
+            // --- Add Interactivity ---
+            function rotateCarousel(direction) {
+                currentIndex += direction;
+                const rotation = -currentIndex * angleIncrement;
+                positionCards(rotation);
+            }
+
+            nextBtn.addEventListener('click', () => rotateCarousel(1));
+            prevBtn.addEventListener('click', () => rotateCarousel(-1));
+
+            // Add some CSS for the card faces that might not have been added
             const style = document.createElement('style');
-            style.innerHTML = `.team-card-3d .card-face { backface-visibility: hidden; } .team-card-3d .card-back { transform: rotateY(180deg); opacity: 0; }`;
+            style.innerHTML = `.team-card-3d { transform-style: preserve-3d; left: 50%; top: 50%; margin-left: -12.5%; margin-top: -10rem; }`;
             document.head.appendChild(style);
         },
                 
