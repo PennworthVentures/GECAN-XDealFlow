@@ -986,7 +986,6 @@
                 },
 
         setupImperativeAnimations() {
-            // Target all elements for the animation sequence
             const section = document.getElementById('imperative');
             const container = document.getElementById('imperative-animation-container');
             const title = document.getElementById('imperative-title');
@@ -1003,88 +1002,31 @@
 
             if (!container || !oldSystem) return;
 
-            // Set initial states for the animation
             gsap.set(statCards, { opacity: 0, z: -1000, rotationY: -180, transformOrigin: "center center" });
             gsap.set([title, subtitle, textBlock], { opacity: 0, y: 50 });
             gsap.set(oldSystem, { opacity: 0, scale: 0.5, rotateZ: -15 });
 
-            // THE CRITICAL CHANGE: We now use a single master timeline triggered by toggleActions, NOT scrub.
-            // This ensures the entire sequence plays through smoothly once initiated.
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top 50%', // Start the animation when the top of the section hits the middle of the screen
-                    end: 'bottom top', // The trigger area ends when the bottom of the section hits the top of the screen
-                    toggleActions: "play none reverse none", // Play once on enter, reverse on scrolling back up past the start point.
-                    // 'scrub' and 'pin' are REMOVED to allow for smooth, uninterruptible playback.
+                    start: 'top 50%',
+                    toggleActions: "play none reverse none",
+                    // THE CRITICAL FIX IS HERE: This property belongs to the ScrollTrigger
+                    invalidateOnRefresh: true 
                 },
                 defaults: {
-                    duration: 1, // Set a default duration for a consistent feel
+                    duration: 1,
                     ease: 'power2.out'
                 }
             });
 
-            // 1. Reveal the problem statement
-            masterTimeline.addLabel('intro')
-              .to([subtitle, title, textBlock], {
-                  opacity: 1,
-                  y: 0,
-                  stagger: 0.2,
-              })
-              .to(oldSystem, {
-                  opacity: 1,
-                  scale: 1,
-                  rotateZ: 0,
-                  duration: 1.2,
-                  ease: 'back.out(1.7)'
-              }, 'intro+=0.3');
-
-            // 2. Shatter the old system
-            masterTimeline.addLabel('shatter', '+=0.5') // Add a slight pause
-              .to(shards, {
-                  x: () => gsap.utils.random(-400, 400),
-                  y: () => gsap.utils.random(-300, 300),
-                  rotation: () => gsap.utils.random(-360, 360),
-                  scale: () => gsap.utils.random(0.1, 0.5),
-                  opacity: 0,
-                  duration: 1.5,
-                  stagger: 0.03,
-              })
-              .to(oldSystem, {
-                  onStart: () => {
-                      const flash = document.createElement('div');
-                      flash.className = 'absolute inset-0 bg-white rounded-full';
-                      oldSystem.appendChild(flash);
-                      gsap.fromTo(flash, { scale: 0, opacity: 0.8 }, { scale: 10, opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => flash.remove() });
-                  }
-              }, 'shatter');
-
-            // 3. Reveal the quantified problems (the stat cards) from the debris
-            masterTimeline.addLabel('reveal', 'shatter+=0.3')
-              .to(statCards, {
-                  opacity: 1,
-                  z: 0,
-                  rotationY: 0,
-                  stagger: 0.3,
-                  duration: 1.5,
-                  ease: 'expo.out'
-              })
-              .fromTo(statCards, {
-                  x: (i) => (i - 1) * -200, // Start them closer together for a tighter reveal
-              }, {
-                  x: 0,
-                  stagger: 0.3,
-                  duration: 1.5,
-                  ease: 'expo.out'
-              }, 'reveal');
-
-            // 4. Animate the number counters AFTER the cards have appeared
+            masterTimeline.addLabel('intro').to([subtitle, title, textBlock], { opacity: 1, y: 0, stagger: 0.2, }).to(oldSystem, { opacity: 1, scale: 1, rotateZ: 0, duration: 1.2, ease: 'back.out(1.7)' }, 'intro+=0.3');
+            masterTimeline.addLabel('shatter', '+=0.5').to(shards, { x: () => gsap.utils.random(-400, 400), y: () => gsap.utils.random(-300, 300), rotation: () => gsap.utils.random(-360, 360), scale: () => gsap.utils.random(0.1, 0.5), opacity: 0, duration: 1.5, stagger: 0.03, }).to(oldSystem, { onStart: () => { const flash = document.createElement('div'); flash.className = 'absolute inset-0 bg-white rounded-full'; oldSystem.appendChild(flash); gsap.fromTo(flash, { scale: 0, opacity: 0.8 }, { scale: 10, opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => flash.remove() }); } }, 'shatter');
+            masterTimeline.addLabel('reveal', 'shatter+=0.3').to(statCards, { opacity: 1, z: 0, rotationY: 0, stagger: 0.3, duration: 1.5, ease: 'expo.out' }).fromTo(statCards, { x: (i) => (i - 1) * -200, }, { x: 0, stagger: 0.3, duration: 1.5, ease: 'expo.out' }, 'reveal');
             masterTimeline.add(() => {
                 numberCounters.forEach(el => {
                     const endValue = parseFloat(el.getAttribute('data-value'));
                     const suffix = el.getAttribute('data-suffix') || '';
-
-                    // Use a new GSAP tween for each counter for isolated control
                     gsap.to(el, {
                         textContent: endValue,
                         duration: 2,
@@ -1093,14 +1035,11 @@
                         onUpdate: function() {
                             let value = parseFloat(this.targets()[0].textContent);
                             el.textContent = (endValue % 1 !== 0 ? value.toFixed(1) : Math.round(value).toLocaleString()) + suffix;
-                        },
-                        // Invalidate the animation on reverse to ensure it can replay correctly
-                        invalidateOnRefresh: true 
+                        }
                     });
                 });
-            }, 'reveal+=0.8'); // Start the count shortly after cards begin to appear
+            }, 'reveal+=0.8');
         },
-
         setupThesisAnimations() {
             const section = document.getElementById('thesis');
             const textContent = document.getElementById('thesis-text-content');
@@ -1433,16 +1372,15 @@
             };
 
             // --- Build the SVG Map ---
-            // Simplified world map path
-            const mapPath = "M500 5l-20 20-20-20-10 30-10-30-20 20-20-20... (a long SVG path for the world map)"; // This is a placeholder for a real map path
             let mapHTML = `
                 <defs>
                     <filter id="map-glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                 </defs>
-                <path d="${mapPath_placeholder}" fill="var(--background-secondary)" stroke="var(--border-color)" stroke-width="0.5"/>
+                <!-- THE CRITICAL FIX IS HERE: 'this.mapPath_placeholder' -->
+                <path d="${this.mapPath_placeholder}" fill="var(--background-secondary)" stroke="var(--border-color)" stroke-width="0.5"/>
             `;
             Object.values(locations).forEach(loc => {
-                mapHTML += `<circle class="map-node" id="node-${loc.name}" cx="${loc.x}" cy="${loc.y}" r="5" fill="var(--border-premium)" />`;
+                mapHTML += `<circle class="map-node" id="node-${loc.name.replace(/\s+/g, '-')}" cx="${loc.x}" cy="${loc.y}" r="5" fill="var(--border-premium)" />`;
             });
             svg.innerHTML = mapHTML;
             
@@ -1479,8 +1417,7 @@
                   document.getElementById('phase-2').classList.remove('active-phase');
                   document.getElementById('phase-3').classList.add('active-phase');
               })
-              .fromTo(`#node-Europe, #node-LATAM, #node-Sub-Saharan`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' });
-              // Add more corridors for a "full network" effect
+              .fromTo(`#node-Europe, #node-LATAM, #node-Sub-Saharan-Africa`, { scale: 0 }, { scale: 1, stagger: 0.2, transformOrigin: 'center center', ease: 'elastic.out' });
               
             // Final Step: Reveal Regulator Dashboard
             masterTimeline.addLabel('dashboard', '+=1.5')
@@ -1503,7 +1440,6 @@
                   });
               });
 
-            // Add some CSS for the active phase
             const style = document.createElement('style');
             style.innerHTML = `.phase-card.active-phase { border-color: var(--border-quantum); background: var(--background-primary); transform: scale(1.05); }`;
             document.head.appendChild(style);
