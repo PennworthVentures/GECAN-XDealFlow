@@ -17,6 +17,7 @@
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -107,20 +108,50 @@
 
     <main class="container mx-auto px-6">
 
-        <!-- [SLIDE 1] Hero Section -->
-        <section class="min-h-screen flex flex-col items-center justify-center text-center relative">
-            <div class="absolute top-0 left-0 p-4 text-xs font-mono text-red-400 opacity-70">CLASSIFICATION: GECAN-PRIME // LEVEL-V</div>
-            <div class="holographic-globe w-[500px] h-[500px] relative mb-12">
+<!-- [SLIDE 1] Hero Section -->
+        <section class="min-h-screen flex flex-col items-center justify-center text-center relative overflow-hidden">
+            <!-- Background Enhancements -->
+            <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+            <div class="absolute inset-0 bg-radial-gradient(ellipse_at_center,_rgba(212,175,55,0.1)_0%,_transparent_60%)"></div>
+
+            <!-- UI Overlay Elements for "Briefing Room" Atmosphere -->
+            <div id="classification-banner" class="absolute top-6 left-6 flex items-center gap-3 p-2 pr-4 border border-red-500/50 bg-red-900/20 rounded-sm text-xs font-mono text-red-400 backdrop-blur-sm">
+                <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                <span>CLASSIFICATION: GECAN-PRIME // LEVEL-V</span>
+            </div>
+            <div id="system-status" class="absolute top-6 right-6 flex items-center gap-4 text-xs font-mono text-text-muted">
+                <div class="flex items-center gap-2">
+                    <span>SYSTEM STATUS:</span>
+                    <span class="text-green-400">NOMINAL</span>
+                    <span class="w-2 h-2 bg-green-400 rounded-full animate-ping opacity-75"></span>
+                </div>
+                <span id="utc-time"></span>
+            </div>
+
+            <!-- The 3D Interactive Globe -->
+            <div id="holographic-globe-container" class="w-[600px] h-[600px] relative mb-8 transition-transform duration-500 ease-out">
                 <!-- Advanced Globe injected by JS -->
             </div>
-            <h1 class="hero-title text-5xl md:text-7xl lg:text-8xl">PROJECT KINESIS</h1>
-            <p class="mt-6 text-xl md:text-2xl max-w-4xl mx-auto text-text-silver font-light tracking-wide">
-                The Architectural Blueprint for a Multi-Trillion Dollar Financial Utility & The Inevitability of a New Global Settlement Rail.
-            </p>
-            <div class="mt-12">
+
+            <!-- Cinematic Text Block -->
+            <div class="relative">
+                <h1 id="hero-title" class="hero-title text-5xl md:text-7xl lg:text-8xl opacity-0">PROJECT KINESIS</h1>
+                <p id="hero-subtitle" class="section-subtitle mt-4 opacity-0">A NON-DISCRETIONARY EVOLUTION OF GLOBAL FINANCE</p>
+                <p id="hero-description" class="mt-6 text-xl md:text-2xl max-w-4xl mx-auto text-text-silver font-light tracking-wide opacity-0">
+                    The Architectural Blueprint for a Multi-Trillion Dollar Financial Utility & The Inevitability of a New Global Settlement Rail.
+                </p>
+            </div>
+
+            <!-- Call to Action -->
+            <div id="hero-cta" class="mt-12 opacity-0">
                 <a href="#imperative" class="action-button px-10 py-4 rounded-full text-base">
                     <i class="fas fa-angle-double-down mr-2"></i> Uncover The Mandate
                 </a>
+            </div>
+            
+            <!-- Animated Scroll Indicator -->
+            <div class="absolute bottom-10 text-text-muted animate-bounce">
+                <i class="fas fa-chevron-down text-2xl"></i>
             </div>
         </section>
 
@@ -583,6 +614,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    gsap.registerPlugin(MotionPathPlugin);
     const App = {
         // --- CORE DATA & CONSTANTS ---
         teamData: [
@@ -628,6 +660,9 @@ document.addEventListener('DOMContentLoaded', () => {
 launchApp() {
             this.setupUI();
             this.createAdvancedGlobe();
+            this.setupHeroAnimations();
+            setInterval(() => this.updateTime(), 1000);
+            this.updateTime(); // initial call
             this.populateTeamAndCards();
             this.createMoatDiagram();
             this.SettlementProtocolVisualizer.init();
@@ -644,9 +679,173 @@ launchApp() {
             this.tickerInterval = setInterval(() => { committedCapital += Math.random() * 2500 + 750; if (committedCapital >= 10000000) { committedCapital = 10000000; clearInterval(this.tickerInterval); } ticker.textContent = `$${committedCapital.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; progressBar.style.width = `${(committedCapital / 10000000) * 100}%`; }, 2800);
         },
         createAdvancedGlobe() {
-            const container = document.querySelector('.holographic-globe'); if (!container) return; let ringsHTML = ''; for(let i=0; i<15; i++) { ringsHTML += `<div class="globe-ring" style="transform: rotateY(${i*24}deg) rotateX(${Math.random()*180-90}deg); animation-delay: -${i*0.5}s;"></div>`; }
-            container.innerHTML = `<style> .holographic-globe { perspective: 3000px; } .globe-container { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: rotate-globe 60s linear infinite; } @keyframes rotate-globe { 100% { transform: rotateY(360deg) rotateX(10deg); } } .globe-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--border-premium); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.1); animation: ring-pulse 4s ease-in-out infinite; } @keyframes ring-pulse { 50% { opacity: 0.5; border-width: 1px; } } .globe-core { position: absolute; inset: 25%; background: radial-gradient(circle at center, rgba(212, 175, 55, 0.5) 0%, transparent 70%); border-radius: 50%; filter: blur(20px); animation: pulse-core 4s ease-in-out infinite; } @keyframes pulse-core { 50% { transform: scale(1.1); opacity: 0.8; } } </style> <div class="globe-container">${ringsHTML}<div class="globe-core"></div></div>`;
+            const container = document.getElementById('holographic-globe-container');
+            if (!container) return;
+
+            // Defines the aesthetic and physics of the globe
+            const globeConfig = {
+                radius: 250,
+                numPoints: 500, // Increased for density
+                numRings: 5,
+                numCorridors: 8,
+                rotationSpeed: 0.0005
+            };
+
+            // Generate points for a 3D sphere effect
+            let points = [];
+            for (let i = 0; i < globeConfig.numPoints; i++) {
+                const theta = Math.random() * 2 * Math.PI;
+                const phi = Math.acos(2 * Math.random() - 1);
+                points.push({
+                    x: globeConfig.radius * Math.sin(phi) * Math.cos(theta),
+                    y: globeConfig.radius * Math.sin(phi) * Math.sin(theta),
+                    z: globeConfig.radius * Math.cos(phi),
+                    elem: document.createElementNS("http://www.w3.org/2000/svg", "circle")
+                });
+            }
+
+            // Create SVG container
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("viewBox", "-300 -300 600 600");
+            container.appendChild(svg);
+            
+            // Add elements to SVG
+            points.forEach(p => {
+                p.elem.setAttribute("r", "1");
+                p.elem.setAttribute("fill", "var(--border-premium)");
+                svg.appendChild(p.elem);
+            });
+            
+            // Add orbital rings
+            for (let i = 0; i < globeConfig.numRings; i++) {
+                const ring = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                ring.setAttribute("cx", "0");
+                ring.setAttribute("cy", "0");
+                ring.setAttribute("rx", globeConfig.radius * (0.8 + Math.random() * 0.4));
+                ring.setAttribute("ry", globeConfig.radius * (0.3 + Math.random() * 0.3));
+                ring.setAttribute("fill", "none");
+                ring.setAttribute("stroke", "var(--border-color)");
+                ring.setAttribute("stroke-width", "0.5");
+                ring.setAttribute("transform", `rotate(${Math.random()*180} ${Math.random()*180} ${Math.random()*180})`);
+                svg.appendChild(ring);
+            }
+
+            // Add animated corridor arcs
+            let corridorPaths = [];
+            for (let i = 0; i < globeConfig.numCorridors; i++) {
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", "var(--brand-gold-medium)");
+                path.setAttribute("stroke-width", "1.5");
+                path.style.filter = "url(#glow)";
+                path.style.strokeDasharray = "500";
+                path.style.strokeDashoffset = "500";
+                svg.appendChild(path);
+                corridorPaths.push(path);
+            }
+
+            let angleX = 0, angleY = 0;
+
+            function animate() {
+                angleX += globeConfig.rotationSpeed;
+                angleY += globeConfig.rotationSpeed;
+
+                const cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+                const cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+
+                points.forEach(p => {
+                    const y1 = p.y * cosX - p.z * sinX;
+                    const z1 = p.y * sinX + p.z * cosX;
+                    const x2 = p.x * cosY - z1 * sinY;
+                    const z2 = p.x * sinY + z1 * cosY;
+                    const scale = 300 / (300 + z2);
+
+                    p.elem.setAttribute("cx", x2 * scale);
+                    p.elem.setAttribute("cy", y1 * scale);
+                    p.elem.setAttribute("r", 1 * scale);
+                    p.elem.setAttribute("opacity", (z2 + globeConfig.radius) / (2 * globeConfig.radius));
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Animate corridor arcs sequentially
+            function animateCorridors() {
+                corridorPaths.forEach((path, i) => {
+                    setTimeout(() => {
+                        const p1Index = Math.floor(Math.random() * globeConfig.numPoints);
+                        const p2Index = Math.floor(Math.random() * globeConfig.numPoints);
+                        
+                        // Use GSAP to animate the arc drawing
+                        gsap.to(path, {
+                            duration: 2,
+                            attr: {
+                                d: `M ${points[p1Index].elem.getAttribute('cx')} ${points[p1Index].elem.getAttribute('cy')} Q 0 0 ${points[p2Index].elem.getAttribute('cx')} ${points[p2Index].elem.getAttribute('cy')}`
+                            },
+                            strokeDashoffset: 0,
+                            ease: "power2.inOut",
+                            onComplete: () => {
+                                gsap.to(path, { duration: 1, strokeDashoffset: -500, ease: "power2.in" });
+                            }
+                        });
+                    }, i * 1000);
+                });
+            }
+
+            animate();
+            setInterval(animateCorridors, globeConfig.numCorridors * 1000);
+            animateCorridors();
+
+            // Interactive mouse follow effect
+            container.addEventListener('mousemove', e => {
+                const rect = container.getBoundingClientRect();
+                const mouseX = (e.clientX - rect.left - rect.width / 2) / rect.width;
+                const mouseY = (e.clientY - rect.top - rect.height / 2) / rect.height;
+                gsap.to(container, {
+                    duration: 1,
+                    rotationY: mouseX * 20,
+                    rotationX: -mouseY * 20,
+                    ease: "power1.out"
+                });
+            });
         },
+
+                setupHeroAnimations() {
+            const tl = gsap.timeline({delay: 0.5});
+            
+            // Split text for character-level animation
+            const titleChars = new SplitText("#hero-title", {type:"chars"}).chars;
+            
+            tl.fromTo("#classification-banner", {opacity: 0, x: -50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
+              .fromTo("#system-status", {opacity: 0, x: 50}, {opacity: 1, x: 0, duration: 1, ease: 'power3.out'}, 0)
+              .fromTo("#holographic-globe-container", {opacity: 0, scale: 0.8}, {opacity: 1, scale: 1, duration: 1.5, ease: 'power3.out'}, 0.2)
+              .set("#hero-title", {opacity: 1}) // Make title visible before char animation
+              .from(titleChars, {
+                  duration: 1.5,
+                  opacity: 0,
+                  scale: 0.5,
+                  y: 80,
+                  rotationX: -90,
+                  transformOrigin: "0% 50% -50",
+                  ease: "back.out",
+                  stagger: 0.02,
+              }, 0.5)
+              .fromTo("#hero-subtitle", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 1.5)
+              .fromTo("#hero-description", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 1.8)
+              .fromTo("#hero-cta", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 2.1);
+        },
+
+        // Add a utility function to update the UTC time
+        updateTime() {
+            const timeEl = document.getElementById('utc-time');
+            if(timeEl) {
+                const now = new Date();
+                timeEl.textContent = `UTC ${now.getUTCHours().toString().padStart(2,'0')}:${now.getUTCMinutes().toString().padStart(2,'0')}:${now.getUTCSeconds().toString().padStart(2,'0')}`;
+            }
+        },
+
+
+        
         populateTeamAndCards() {
             const container = document.querySelector('#team .grid'); let teamHTML = '';
             this.teamData.forEach(member => { teamHTML += `<div class="team-card quantum-card rounded-2xl cursor-pointer relative h-80"> <div class="card-face card-front p-6 text-center flex flex-col items-center justify-center"> <i class="fas ${member.icon} text-4xl text-brand-gold-medium mb-4"></i> <h3 class="font-bold text-lg text-text-diamond">${member.name}</h3> <p class="text-sm text-text-muted">${member.title}</p> <p class="font-semibold text-brand-gold-light mt-3">${member.role}</p> <div class="mt-4 text-xs pill px-2 py-1 rounded-full">Click to Uncover Dossier</div> </div> <div class="card-face card-back p-6 text-center flex flex-col items-center justify-center bg-background-secondary rounded-2xl"> <p class="text-sm leading-relaxed">${member.bio}</p> </div> </div>`; });
@@ -666,7 +865,7 @@ launchApp() {
                 point.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
             });
         },
-// This is a new, severely upgraded object to be added inside the main App object.
+// This is the new, severely upgraded, and CORRECTED object.
         SettlementProtocolVisualizer: {
             svg: null,
             infoPanel: null,
@@ -754,7 +953,7 @@ launchApp() {
                     <g id="tunnel-group" transform-origin="center center">
                         <path id="tunnel-path-bg" d="M 400 300 C 500 200, 700 200, 800 300" stroke="var(--border-color)" stroke-width="60" fill="none" opacity="0.2"/>
                         <path id="tunnel-path" d="M 400 300 C 500 200, 700 200, 800 300" stroke="url(#pathGradient)" stroke-width="4" fill="none" filter="url(#glow)"/>
-                        <circle id="tx-particle" r="8" fill="var(--brand-gold-light)" filter="url(#glow)"/>
+                        <circle id="tx-particle" r="8" fill="var(--brand-gold-light)" filter="url(#glow)" opacity="0"/>
                     </g>
                     
                     <!-- Nodes -->
@@ -783,7 +982,6 @@ launchApp() {
             },
             
             buildNav() {
-                // Creates interactive timeline buttons for each step
                 let navHTML = '';
                 this.steps.forEach((step, index) => {
                     navHTML += `<button data-step="${index}" class="timeline-nav-btn flex-1 text-center text-text-muted hover:text-text-gold transition-colors duration-300 p-2 rounded-lg">
@@ -796,14 +994,12 @@ launchApp() {
                 this.navContainer.querySelectorAll('.timeline-nav-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const stepIndex = parseInt(btn.dataset.step);
-                        // Jump the master animation timeline to the start of the selected step
                         this.timeline.seek(`step-${stepIndex}`);
                     });
                 });
             },
             
             updatePanel(index) {
-                // Updates the information panel with details for the current step
                 const step = this.steps[index];
                 this.infoPanel.innerHTML = `
                     <div class="opacity-0">
@@ -818,28 +1014,24 @@ launchApp() {
                 `;
                 gsap.fromTo(this.infoPanel.children[0], {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 0.5, ease: 'power3.out'});
 
-                // Update active state on navigation buttons
                 this.navContainer.querySelectorAll('.timeline-nav-btn').forEach((btn, i) => {
                     const icon = btn.querySelector('i');
                     if (i === index) {
-                        btn.classList.add('active', 'text-text-gold');
-                        btn.classList.remove('text-text-muted');
+                        btn.classList.add('active', 'text-text-gold'); btn.classList.remove('text-text-muted');
                         icon.className = 'fas fa-check-circle block mx-auto mb-1 text-lg text-brand-gold-medium';
                     } else {
-                        btn.classList.remove('active', 'text-text-gold');
-                        btn.classList.add('text-text-muted');
+                        btn.classList.remove('active', 'text-text-gold'); btn.classList.add('text-text-muted');
                         icon.className = 'fas fa-dot-circle block mx-auto mb-1 text-lg';
                     }
                 });
             },
             
             buildAnimationTimeline() {
-                // The master GSAP timeline that orchestrates the entire visualization
                 const tl = gsap.timeline({
                     scrollTrigger: {
-                        trigger: '.quantum-card', // Trigger on the parent card
-                        start: 'top top',
-                        end: '+=4000', // 4000px of scroll for the full animation
+                        trigger: '#settlement-info-panel', // Triggering on a more stable element
+                        start: 'top center',
+                        end: '+=4000', 
                         scrub: 1.5,
                         pin: true,
                     },
@@ -848,58 +1040,21 @@ launchApp() {
                 
                 this.timeline = tl;
 
-                const animatePath = (pathId) => ({ strokeDashoffset: 0, duration: 1 });
+                const animatePath = (pathId, offset) => ({ strokeDashoffset: 0, duration: 1 });
                 const showNode = (nodeId) => ({ opacity: 1, scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.75)' });
 
                 // Step 1: Initiation
-                tl.addLabel('step-0')
-                  .call(() => this.updatePanel(0))
-                  .to('#node-initiation', showNode('#node-initiation'));
-
+                tl.addLabel('step-0').call(() => this.updatePanel(0)).to('#node-initiation', showNode('#node-initiation'));
                 // Step 2: On-Ramp
-                tl.addLabel('step-1', "+=0.5")
-                  .call(() => this.updatePanel(1))
-                  .to('#path-init-onramp', animatePath('#path-init-onramp'))
-                  .to('#node-onramp', showNode('#node-onramp'), "-=0.5");
-
+                tl.addLabel('step-1', "+=0.5").call(() => this.updatePanel(1)).to('#path-init-onramp', { strokeDashoffset: 0, duration: 1 }).to('#node-onramp', showNode('#node-onramp'), "-=0.5");
                 // Step 3: Compliance
-                tl.addLabel('step-2', "+=0.5")
-                  .call(() => this.updatePanel(2))
-                  .to('#path-onramp-comp', animatePath('#path-onramp-comp'))
-                  .to('#node-compliance', showNode('#node-compliance'), "-=0.5")
-                  .fromTo('#node-compliance .fa', { rotate: 0 }, { rotate: 360, duration: 1, repeat: 1, ease: 'none' }, "-=0.5");
-
-                // Step 4: Atomic Settlement (The 3D Tunnel)
-                tl.addLabel('step-3', "+=0.5")
-                  .call(() => this.updatePanel(3))
-                  .to('#tunnel-group', { scale: 1.2, rotationX: -20, duration: 1.5, ease: 'power3.inOut' })
-                  .set('#tx-particle', { opacity: 1 })
-                  .to('#tx-particle', { 
-                      motionPath: { 
-                          path: '#tunnel-path', 
-                          align: '#tunnel-path', 
-                          autoRotate: true, 
-                          alignOrigin: [0.5, 0.5] 
-                      }, 
-                      duration: 2, 
-                      ease: 'power1.inOut' 
-                  }, "-=1.5")
-                  .to('#tunnel-group', { scale: 1, rotationX: 0, duration: 1.5, ease: 'power3.inOut' })
-                  .set('#tx-particle', { opacity: 0 });
-
-
+                tl.addLabel('step-2', "+=0.5").call(() => this.updatePanel(2)).to('#path-onramp-comp', { strokeDashoffset: 0, duration: 1 }).to('#node-compliance', showNode('#node-compliance'), "-=0.5").fromTo('#node-compliance .fa', { rotate: 0 }, { rotate: 360, duration: 1, repeat: 1, ease: 'none' }, "-=0.5");
+                // Step 4: Atomic Settlement
+                tl.addLabel('step-3', "+=0.5").call(() => this.updatePanel(3)).to('#tunnel-group', { scale: 1.2, rotationX: -20, duration: 1.5, ease: 'power3.inOut' }).set('#tx-particle', { opacity: 1 }).to('#tx-particle', { motionPath: { path: '#tunnel-path', align: '#tunnel-path', autoRotate: true, alignOrigin: [0.5, 0.5] }, duration: 2, ease: 'power1.inOut' }, "-=1.5").to('#tunnel-group', { scale: 1, rotationX: 0, duration: 1.5, ease: 'power3.inOut' }).set('#tx-particle', { opacity: 0 });
                 // Step 5: Off-Ramp
-                tl.addLabel('step-4', "+=0.5")
-                  .call(() => this.updatePanel(4))
-                  .to('#path-comp-offramp', animatePath('#path-comp-offramp'))
-                  .to('#node-offramp', showNode('#node-offramp'), "-=0.5");
-
+                tl.addLabel('step-4', "+=0.5").call(() => this.updatePanel(4)).to('#path-comp-offramp', { strokeDashoffset: 0, duration: 1 }).to('#node-offramp', showNode('#node-offramp'), "-=0.5");
                 // Step 6: Juridical Finality
-                tl.addLabel('step-5', "+=0.5")
-                  .call(() => this.updatePanel(5))
-                  .to('#path-offramp-final', animatePath('#path-offramp-final'))
-                  .to('#node-finality', showNode('#node-finality'), "-=0.5")
-                  .fromTo('#node-finality', { scale: 1 }, { scale: 1.2, yoyo: true, repeat: 1, duration: 0.3, ease: 'power2.in' }, "-=0.2");
+                tl.addLabel('step-5', "+=0.5").call(() => this.updatePanel(5)).to('#path-offramp-final', { strokeDashoffset: 0, duration: 1 }).to('#node-finality', showNode('#node-finality'), "-=0.5").fromTo('#node-finality', { scale: 1 }, { scale: 1.2, yoyo: true, repeat: 1, duration: 0.3, ease: 'power2.in' }, "-=0.2");
             }
         },
 
