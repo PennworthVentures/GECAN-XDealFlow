@@ -422,15 +422,22 @@
             </div>
         </section>
 
-        <!-- [SLIDE 14] The Core Team -->
+<!-- [SLIDE 14] The Core Team -->
         <section id="team" class="py-20 md:py-32">
             <div class="text-center">
                 <p class="section-subtitle">VIII. The Consortium</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">Domain Alpha Operators</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">The execution of this mandate is contingent upon the caliber of its leadership. This is a bifurcated consortium blending "Old World" credibility with "New World" agility, purpose-built to execute this mission.</p>
+                <p class="mt-4 max-w-3xl mx-auto text-lg">The execution of this mandate is contingent upon the caliber of its leadership. This is a bifurcated consortium blending "Old World" credibility with "New World" agility, purpose-built with deep, verifiable track records in the precise domains required for success.</p>
             </div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mt-16">
-                <!-- Team Cards injected by JS -->
+
+            <!-- 3D Visualization Space for the Team Cards -->
+            <div id="team-3d-space" class="relative h-[500px] mt-16 perspective-[3000px]">
+                <!-- The team cards will be dynamically injected and positioned in 3D space by JavaScript -->
+            </div>
+            
+            <!-- Dossier Text Area for displaying detailed bios -->
+            <div id="team-dossier-text" class="mt-12 min-h-[100px] max-w-4xl mx-auto text-center text-lg leading-relaxed text-text-silver transition-opacity duration-500">
+                <p class="italic text-text-muted">Hover over an operator's card to view their dossier summary.</p>
             </div>
         </section>
 
@@ -788,7 +795,7 @@
         launchApp() {
             this.setupUI();
             this.createAdvancedGlobe();
-            this.populateTeamAndCards();
+            // DELETE the old populateTeamAndCards() call
             this.SettlementProtocolVisualizer.init(); 
             
             this.setupHeroAnimations(); 
@@ -796,7 +803,8 @@
             this.setupThesisAnimations(); 
             this.setupMoatAnimations(); 
             this.setupArchitectureAnimations();
-            this.setupDoctrineAnimations(); // <-- ADD THIS NEW CALL
+            this.setupDoctrineAnimations();
+            this.setupTeamAnimations(); // <-- ADD THIS NEW CALL
             this.setupScrollAnimations(); 
             
             this.setupCharts();
@@ -1520,7 +1528,104 @@
         // A placeholder for a long SVG path to avoid clutter
         mapPath_placeholder: "M4,250 C150,100 350,100 500,250 C650,400 850,400 996,250 ... (and so on)",
                 
-setupScrollAnimations() {
+
+        setupTeamAnimations() {
+            const section = document.getElementById('team');
+            const container = document.getElementById('team-3d-space');
+            const dossier = document.getElementById('team-dossier-text');
+
+            if (!section || !container || !dossier) return;
+
+            // --- Dynamically Build and Inject Team Cards ---
+            let cardsHTML = '';
+            this.teamData.forEach((member, index) => {
+                cardsHTML += `
+                    <div id="team-card-${index}" class="team-card-3d absolute w-full md:w-1/4 h-80 cursor-pointer" style="transform-style: preserve-3d;">
+                        <div class="card-face card-front quantum-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-full w-full">
+                            <i class="fas ${member.icon} text-4xl text-brand-gold-medium mb-4"></i>
+                            <h3 class="font-bold text-lg text-text-diamond">${member.name}</h3>
+                            <p class="text-sm text-text-muted">${member.title}</p>
+                            <p class="font-semibold text-brand-gold-light mt-3">${member.role}</p>
+                        </div>
+                        <div class="card-face card-back quantum-card rounded-2xl p-6 text-center flex flex-col items-center justify-center h-full w-full bg-background-secondary">
+                            <p class="text-xs leading-relaxed">${member.bio}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = cardsHTML;
+            const cards = gsap.utils.toArray('.team-card-3d');
+            const numCards = cards.length;
+            const angleIncrement = 40; // Degrees between cards
+            const radius = 400; // Radius of the arc
+
+            // --- Set Initial 3D Positions ---
+            gsap.set(cards, {
+                opacity: 0,
+                transformOrigin: 'center center',
+                left: '50%',
+                top: '50%',
+                xPercent: -50,
+                yPercent: -50,
+                z: -1500,
+                rotationY: (i) => (i - Math.floor(numCards / 2)) * angleIncrement
+            });
+            
+            // --- Animation Timeline ---
+            const masterTimeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 40%',
+                    toggleActions: "play none reverse none" // Consistent cinematic playback
+                }
+            });
+
+            // 1. Animate the cards into their 3D arc formation
+            masterTimeline.to(cards, {
+                z: 0,
+                opacity: 1,
+                duration: 2,
+                stagger: 0.15,
+                ease: 'expo.out'
+            });
+            
+            // 2. Add interactive hover effects AFTER the initial animation
+            masterTimeline.add(() => {
+                cards.forEach((card, index) => {
+                    const front = card.querySelector('.card-front');
+                    const back = card.querySelector('.card-back');
+                    
+                    card.addEventListener('mouseenter', () => {
+                        // Bring card forward and show dossier text
+                        gsap.to(card, { z: 150, rotationY: (i) => (i - Math.floor(numCards / 2)) * angleIncrement, duration: 0.5, ease: 'power3.out' });
+                        gsap.to(front, { opacity: 0, duration: 0.2 });
+                        gsap.to(back, { opacity: 1, duration: 0.2, delay: 0.1 });
+                        
+                        dossier.innerHTML = `<p class="italic">${this.teamData[index].bio}</p>`;
+                        gsap.fromTo(dossier, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5 });
+                    });
+
+                    card.addEventListener('mouseleave', () => {
+                        // Return card to its position in the arc
+                        gsap.to(card, { z: 0, duration: 0.5, ease: 'power3.out' });
+                        gsap.to(front, { opacity: 1, duration: 0.2, delay: 0.1 });
+                        gsap.to(back, { opacity: 0, duration: 0.2 });
+
+                        gsap.to(dossier, { opacity: 0, onComplete: () => {
+                            dossier.innerHTML = `<p class="italic text-text-muted">Hover over an operator's card to view their dossier summary.</p>`;
+                            gsap.to(dossier, { opacity: 1 });
+                        }});
+                    });
+                });
+            });
+
+            // Add some CSS for the card faces
+            const style = document.createElement('style');
+            style.innerHTML = `.team-card-3d .card-face { backface-visibility: hidden; } .team-card-3d .card-back { transform: rotateY(180deg); opacity: 0; }`;
+            document.head.appendChild(style);
+        },
+                
+        setupScrollAnimations() {
             // This function's sole, definitive purpose is to handle the general "scrollytelling" animations
             // for all standard sections that DO NOT have a custom, dedicated cinematic sequence.
 
@@ -1531,7 +1636,8 @@ setupScrollAnimations() {
                 'thesis',              // Controlled by setupThesisAnimations
                 'moat',                // Controlled by setupMoatAnimations
                 'architecture',        // Controlled by setupArchitectureAnimations
-                'doctrine'             // Controlled by setupDoctrineAnimations
+                'doctrine',             // Controlled by setupDoctrineAnimations
+                'team'             // Controlled by setupDoctrineAnimations
             ];
 
              gsap.utils.toArray('section').forEach(section => {
