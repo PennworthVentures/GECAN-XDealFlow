@@ -942,7 +942,6 @@
                       .fromTo("#hero-cta", {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 1, ease: 'power3.out'}, 2.1);
                 },
 
-// THIS IS THE NEW, DEDICATED ANIMATION FUNCTION FOR THE IMPERATIVE SECTION
         setupImperativeAnimations() {
             // Target all elements for the animation sequence
             const section = document.getElementById('imperative');
@@ -966,93 +965,97 @@
             gsap.set([title, subtitle, textBlock], { opacity: 0, y: 50 });
             gsap.set(oldSystem, { opacity: 0, scale: 0.5, rotateZ: -15 });
 
-            // The main cinematic timeline, controlled by scroll
-            const tl = gsap.timeline({
+            // THE CRITICAL CHANGE: We now use a single master timeline triggered by toggleActions, NOT scrub.
+            // This ensures the entire sequence plays through smoothly once initiated.
+            const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top top',
-                    end: 'bottom bottom', // Animation plays out over the full section height
-                    scrub: 1.2,
-                    pin: container,
-                    anticipatePin: 1
+                    start: 'top 50%', // Start the animation when the top of the section hits the middle of the screen
+                    end: 'bottom top', // The trigger area ends when the bottom of the section hits the top of the screen
+                    toggleActions: "play none reverse none", // Play once on enter, reverse on scrolling back up past the start point.
+                    // 'scrub' and 'pin' are REMOVED to allow for smooth, uninterruptible playback.
+                },
+                defaults: {
+                    duration: 1, // Set a default duration for a consistent feel
+                    ease: 'power2.out'
                 }
             });
 
             // 1. Reveal the problem statement
-            tl.addLabel('intro')
+            masterTimeline.addLabel('intro')
               .to([subtitle, title, textBlock], {
                   opacity: 1,
                   y: 0,
-                  stagger: 0.3,
-                  ease: 'power3.out'
+                  stagger: 0.2,
               })
               .to(oldSystem, {
                   opacity: 1,
                   scale: 1,
                   rotateZ: 0,
-                  duration: 1.5,
+                  duration: 1.2,
                   ease: 'back.out(1.7)'
-              }, 'intro+=0.5');
+              }, 'intro+=0.3');
 
             // 2. Shatter the old system
-            tl.addLabel('shatter', '+=1')
+            masterTimeline.addLabel('shatter', '+=0.5') // Add a slight pause
               .to(shards, {
                   x: () => gsap.utils.random(-400, 400),
                   y: () => gsap.utils.random(-300, 300),
                   rotation: () => gsap.utils.random(-360, 360),
                   scale: () => gsap.utils.random(0.1, 0.5),
                   opacity: 0,
-                  duration: 2,
-                  stagger: 0.05,
-                  ease: 'power2.out'
+                  duration: 1.5,
+                  stagger: 0.03,
               })
               .to(oldSystem, {
-                  // Add a flash effect on shatter
                   onStart: () => {
                       const flash = document.createElement('div');
                       flash.className = 'absolute inset-0 bg-white rounded-full';
                       oldSystem.appendChild(flash);
-                      gsap.fromTo(flash, { scale: 0, opacity: 0.8 }, { scale: 10, opacity: 0, duration: 0.5, ease: 'power2.out', onComplete: () => flash.remove() });
+                      gsap.fromTo(flash, { scale: 0, opacity: 0.8 }, { scale: 10, opacity: 0, duration: 0.4, ease: 'power2.out', onComplete: () => flash.remove() });
                   }
               }, 'shatter');
 
             // 3. Reveal the quantified problems (the stat cards) from the debris
-            tl.addLabel('reveal', 'shatter+=0.5')
+            masterTimeline.addLabel('reveal', 'shatter+=0.3')
               .to(statCards, {
                   opacity: 1,
                   z: 0,
                   rotationY: 0,
-                  stagger: 0.4,
-                  duration: 2,
+                  stagger: 0.3,
+                  duration: 1.5,
                   ease: 'expo.out'
               })
               .fromTo(statCards, {
-                  x: (i) => (i - 1) * -300, // Spread them out initially
+                  x: (i) => (i - 1) * -200, // Start them closer together for a tighter reveal
               }, {
                   x: 0,
-                  stagger: 0.4,
-                  duration: 2,
+                  stagger: 0.3,
+                  duration: 1.5,
                   ease: 'expo.out'
               }, 'reveal');
 
             // 4. Animate the number counters AFTER the cards have appeared
-            tl.add(() => {
+            masterTimeline.add(() => {
                 numberCounters.forEach(el => {
                     const endValue = parseFloat(el.getAttribute('data-value'));
                     const suffix = el.getAttribute('data-suffix') || '';
 
+                    // Use a new GSAP tween for each counter for isolated control
                     gsap.to(el, {
                         textContent: endValue,
-                        duration: 2.5,
+                        duration: 2,
                         ease: "power2.out",
                         snap: { textContent: endValue % 1 !== 0 ? 0.1 : 1 },
                         onUpdate: function() {
                             let value = parseFloat(this.targets()[0].textContent);
                             el.textContent = (endValue % 1 !== 0 ? value.toFixed(1) : Math.round(value).toLocaleString()) + suffix;
-                        }
+                        },
+                        // Invalidate the animation on reverse to ensure it can replay correctly
+                        invalidateOnRefresh: true 
                     });
                 });
-            }, 'reveal+=1');
+            }, 'reveal+=0.8'); // Start the count shortly after cards begin to appear
         },
 
 // THIS IS THE NEW, DEDICATED ANIMATION FUNCTION FOR THE THESIS SECTION
