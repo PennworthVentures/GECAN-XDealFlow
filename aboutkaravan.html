@@ -363,7 +363,8 @@
             <div class="grid lg:grid-cols-2 gap-12 items-center">
                 <div id="world-map-container" class="gsap-reveal">
                      <svg class="w-full h-auto" viewBox="0 0 1000 562.5" preserveAspectRatio="xMidYMid meet">
-                        <path class="world-map-svg" d="..."></path> <!-- A simplified world map path would go here for rendering -->
+                        <!-- The 'd' attribute is now empty and will be populated by JavaScript -->
+                        <path class="world-map-svg"></path> 
                         <g id="phase-1-corridors" class="opacity-0">
                             <path class="corridor-path" d="M220,200 Q 750,100 800,300" />
                             <text x="510" y="160" class="phase-label">Phase I: ASEAN Hub</text>
@@ -524,7 +525,8 @@ document.addEventListener('DOMContentLoaded', () => {
     gsap.registerPlugin(ScrollTrigger);
 
     const PINNACLE_PARTICLES = {"particles":{"number":{"value":80,"density":{"enable":true,"value_area":800}},"color":{"value":"#d4af37"},"shape":{"type":"circle"},"opacity":{"value":0.4,"random":true,"anim":{"enable":true,"speed":1,"opacity_min":0.1,"sync":false}},"size":{"value":2,"random":true,"anim":{"enable":false}},"line_linked":{"enable":true,"distance":120,"color":"#c9a961","opacity":0.2,"width":1},"move":{"enable":true,"speed":0.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":false},"resize":true},"modes":{"grab":{"distance":140,"line_linked":{"opacity":0.5}}}},"retina_detect":true};
-    const WORLD_MAP_PATH = "M500,5C225,5,5,225,5,500s220,495,495,495s495-220,495-495S775,5,500,5z M872.2,347.9h-73.8c-10.3-43.3-25.5-84.6-45.1-122.9l52.1-52.1c5.3-5.3,5.3-13.8,0-19.1L766.1,114c-5.3-5.3-13.8-5.3-19.1,0l-52.1,52.1c-38.3-19.6-79.6-34.8-122.9-45.1v-73.8c0-7.5-6.1-13.6-13.6-13.6h-75.4c-7.5,0-13.6,6.1-13.6,13.6v73.8c-43.3,10.3-84.6,25.5-122.9,45.1l-52.1-52.1c-5.3-5.3-13.8-5.3-19.1,0L138,153.1c-5.3,5.3-5.3,13.8,0,19.1l52.1,52.1c-19.6,38.3-34.8,79.6-45.1,122.9H71.2c-7.5,0-13.6,6.1-13.6,13.6v75.4c0,7.5,6.1,13.6,13.6,13.6h73.8c10.3,43.3,25.5,84.6,45.1,122.9l-52.1,52.1c-5.3,5.3-5.3,13.8,0,19.1l39.3,39.3c5.3,5.3,13.8,5.3,19.1,0l52.1-52.1c38.3,19.6,79.6,34.8,122.9,45.1v73.8c0,7.5,6.1,13.6,13.6,13.6h75.4c7.5,0,13.6-6.1,13.6-13.6v-73.8c43.3-10.3,84.6-25.5,122.9-45.1l52.1,52.1c5.3,5.3,13.8,5.3,19.1,0l39.3-39.3c5.3-5.3,5.3-13.8,0-19.1l-52.1-52.1c19.6-38.3,34.8-79.6,45.1-122.9h73.8c7.5,0,13.6-6.1,13.6-13.6v-75.4C885.8,354,879.7,347.9,872.2,347.9z M500,687.1c-103.3,0-187.1-83.8-187.1-187.1S396.7,312.9,500,312.9s187.1,83.8,187.1,187.1S603.3,687.1,500,687.1z"; // Placeholder path
+    // A sample, simplified SVG path for a world map. A more detailed one could be used.
+    const WORLD_MAP_PATH = "M844 332.2c-2.3-1.6-4.9-2.5-7.6-2.5h-52.5c-4-32.9-10.8-64.8-20.1-95.2l37.1-37.1c4.2-4.2 4.2-11 0-15.2l-39.7-39.7c-4.2-4.2-11-4.2-15.2 0l-37.1 37.1c-30.4-9.3-62.3-16.1-95.2-20.1v-52.5c0-5.5-4.5-10-10-10h-56.2c-5.5 0-10 4.5-10 10v52.5c-32.9 4-64.8 10.8-95.2 20.1l-37.1-37.1c-4.2-4.2-11-4.2-15.2 0l-39.7 39.7c-4.2 4.2-4.2 11 0 15.2l37.1 37.1c-9.3 30.4-16.1 62.3-20.1 95.2h-52.5c-5.5 0-10 4.5-10 10v56.2c0 5.5 4.5 10 10 10h52.5c4 32.9 10.8 64.8 20.1 95.2l-37.1 37.1c-4.2 4.2-4.2 11 0 15.2l39.7 39.7c4.2 4.2 11 4.2 15.2 0l37.1-37.1c30.4 9.3 62.3 16.1 95.2 20.1v52.5c0 5.5 4.5 10 10 10h56.2c5.5 0 10-4.5 10-10v-52.5c32.9-4 64.8-10.8 95.2-20.1l37.1 37.1c4.2 4.2 11 4.2 15.2 0l39.7-39.7c4.2-4.2 4.2-11 0-15.2l-37.1-37.1c9.3-30.4 16.1-62.3 20.1-95.2h52.5c5.5 0 10-4.5 10-10v-56.2c0-2.7-.9-5.3-2.6-7.5zM500 625c-69.1 0-125-55.9-125-125s55.9-125 125-125 125 55.9 125 125-55.9 125-125 125z";
 
     const App = {
         init() {
@@ -537,7 +539,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setupUI() {
             if (typeof particlesJS !== 'undefined') particlesJS('particles-js', PINNACLE_PARTICLES);
             
-            document.querySelector('.world-map-svg').setAttribute('d', WORLD_MAP_PATH);
+            // Correctly set the SVG path data via JavaScript to avoid parsing errors
+            const worldMapElement = document.querySelector('.world-map-svg');
+            if (worldMapElement) {
+                worldMapElement.setAttribute('d', WORLD_MAP_PATH);
+            }
 
             window.addEventListener('scroll', () => {
                 document.querySelector('.supreme-header').classList.toggle('scrolled', window.pageYOffset > 50);
@@ -557,8 +563,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setInterval(() => {
                 committedCapital += Math.random() * 2500 + 750;
                 if (committedCapital > 10000000) committedCapital = 10000000;
-                ticker.textContent = `$${committedCapital.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                progressBar.style.width = `${(committedCapital / 10000000) * 100}%`;
+                if (ticker) ticker.textContent = `$${committedCapital.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                if (progressBar) progressBar.style.width = `${(committedCapital / 10000000) * 100}%`;
             }, 2000);
         },
         
@@ -590,7 +596,9 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupCharts() {
-            const ctx = document.getElementById('financial-chart').getContext('2d');
+            const chartEl = document.getElementById('financial-chart');
+            if (!chartEl) return;
+            const ctx = chartEl.getContext('2d');
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
             gradient.addColorStop(0, 'rgba(212, 175, 55, 0.6)');
             gradient.addColorStop(1, 'rgba(212, 175, 55, 0.05)');
@@ -668,7 +676,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
                 
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight > pdf.internal.pageSize.getHeight() ? pdf.internal.pageSize.getHeight() : pdfHeight);
                 pdf.save('Project-Kinesis-Strategic-Dossier-GECAN-PRIME.pdf');
                 document.getElementById('dossier-modal').classList.add('hidden');
 
