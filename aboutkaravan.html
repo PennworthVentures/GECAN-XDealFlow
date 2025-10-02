@@ -23,51 +23,101 @@
 
     <style>
 
-/* Add these new rules to your main <style> block */
+/* SEVERELY UPGRADED HEADER STYLES - REPLACE ALL PREVIOUS HEADER CSS */
 
+        .supreme-header { 
+            position: sticky; top: 0; z-index: 1000; 
+            background: rgba(2, 2, 4, 0.75); /* Slightly more opaque for clarity */
+            backdrop-filter: blur(40px) saturate(200%); 
+            -webkit-backdrop-filter: blur(40px) saturate(200%); 
+            border-bottom: 1px solid var(--border-color); 
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); 
+        }
+        .supreme-header.scrolled { 
+            background: rgba(2, 2, 4, 0.85);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), 0 0 100px rgba(212, 175, 55, 0.2); 
+            border-bottom-color: var(--border-premium); 
+        }
+
+        /* Pinnacle-Grade Logo Font */
         .logo-text { 
-            /* This is a more accurate font to match the image */
             font-family: 'Times New Roman', Times, serif; 
             font-weight: bold;
             font-style: italic;
             background: linear-gradient(135deg, var(--text-silver), var(--text-gold));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             letter-spacing: 0.05em;
+            transition: letter-spacing 0.4s ease;
+        }
+        .logo-text:hover {
+            letter-spacing: 0.1em;
         }
 
+        /* Definitive Navigation Link Styling */
         .nav-link {
-            transition: color 0.3s ease;
+            transition: color 0.3s ease, transform 0.3s ease;
         }
         .nav-link::after {
             content: '';
             position: absolute;
-            bottom: -8px;
+            bottom: -10px; /* More space for a premium look */
             left: 0;
             width: 100%;
-            height: 2px;
+            height: 3px; /* Thicker underline */
             background: var(--brand-gold-medium);
+            box-shadow: 0 0 10px var(--brand-gold-medium); /* Add a glow to the underline */
             transform: scaleX(0);
             transform-origin: center;
             transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
         }
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover {
+            color: var(--text-gold);
+            transform: translateY(-2px); /* Subtle lift effect */
+        }
+        .nav-link.active {
             color: var(--text-gold);
         }
         .nav-link.active::after {
             transform: scaleX(1);
         }
 
-        /* Upgraded Button Styles */
+        /* Severely Upgraded Button Styles */
         .action-button {
-            border-radius: 8px; /* Match the image's rounded corners */
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3), 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--background-primary);
+            background: linear-gradient(135deg, var(--brand-gold-medium) 0%, var(--brand-gold-rich) 100%);
+            border: 1px solid var(--brand-gold-dark);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), 0 5px 10px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
         }
         .action-button:hover {
-             box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 0 35px rgba(240, 210, 100, 0.7), 0 8px 15px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, var(--brand-gold-light) 0%, var(--brand-gold-medium) 100%);
         }
+
         .action-button-secondary {
             border-radius: 8px;
-            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background: transparent;
+            color: var(--brand-gold-medium);
+            border: 2px solid var(--border-premium);
+            box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.2);
+            transition: all 0.4s ease;
+        }
+        .action-button-secondary:hover { 
+            background: rgba(212, 175, 55, 0.1); 
+            color: var(--brand-gold-light); 
+            border-color: var(--border-quantum);
+            box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.5), 0 0 10px rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
         }
         :root {
             --brand-gold-faint: #FFFBEB; --brand-gold-light: #FDE68A; --brand-gold-medium: #D4AF37; --brand-gold-rich: #C9A961; --brand-gold-dark: #92400E;
@@ -127,31 +177,39 @@
     <div id="particles-js"></div>
 
 <header class="supreme-header">
-        <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-            <!-- Updated Logo for Pinnacle-Grade Accuracy -->
-            <div class="flex items-center gap-3">
-                <i class="fas fa-chess-queen text-3xl text-brand-gold-medium"></i>
-                <p class="logo-text text-3xl">KARAVAN</p>
+        <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+            
+            <!-- Left Side: Logo -->
+            <div class="flex-shrink-0">
+                <a href="#" class="flex items-center gap-3">
+                    <i class="fas fa-chess-queen text-3xl text-brand-gold-medium transform transition-transform duration-500 hover:scale-110"></i>
+                    <p class="logo-text text-3xl">KARAVAN</p>
+                </a>
             </div>
 
-            <!-- Definitive and Complete Navigation -->
-            <nav id="main-nav" class="hidden lg:flex items-center gap-8 text-sm text-text-silver font-semibold uppercase tracking-wider">
-                <a href="#imperative" data-section="imperative" class="nav-link relative">Imperative</a>
-                <a href="#thesis" data-section="thesis" class="nav-link relative">Thesis</a>
-                <a href="#moat" data-section="moat" class="nav-link relative">Moat</a>
-                <a href="#architecture" data-section="architecture" class="nav-link relative">Engine</a>
-                <a href="#protocol" data-section="protocol" class="nav-link relative">Protocol</a>
-                <a href="#doctrine" data-section="doctrine" class="nav-link relative">Doctrine</a>
-                <a href="#team" data-section="team" class="nav-link relative">Consortium</a>
-                <a href="#financials" data-section="financials" class="nav-link relative">Financials</a>
-                <a href="#investment-section" data-section="investment-section" class="nav-link relative">Invitation</a>
-            </nav>
-
-            <!-- Upgraded Buttons with Premium Styling -->
-            <div class="hidden md:flex items-center gap-4">
-                 <button id="request-access-btn" class="action-button-secondary px-6 py-2 rounded-lg text-sm">Request Access</button>
-                 <button id="download-dossier-btn" class="action-button px-6 py-2 rounded-lg text-sm">Secure Dossier</button>
+            <!-- Center: Definitive and Complete Navigation -->
+            <div class="flex-grow flex items-center justify-center">
+                <nav id="main-nav" class="hidden lg:flex items-center gap-8 text-sm text-text-silver font-semibold uppercase tracking-wider">
+                    <a href="#imperative" data-section="imperative" class="nav-link relative">Imperative</a>
+                    <a href="#thesis" data-section="thesis" class="nav-link relative">Thesis</a>
+                    <a href="#moat" data-section="moat" class="nav-link relative">Moat</a>
+                    <a href="#architecture" data-section="architecture" class="nav-link relative">Engine</a>
+                    <a href="#protocol" data-section="protocol" class="nav-link relative">Protocol</a>
+                    <a href="#doctrine" data-section="doctrine" class="nav-link relative">Doctrine</a>
+                    <a href="#team" data-section="team" class="nav-link relative">Consortium</a>
+                    <a href="#financials" data-section="financials" class="nav-link relative">Financials</a>
+                    <a href="#investment-section" data-section="investment-section" class="nav-link relative">Invitation</a>
+                </nav>
             </div>
+
+            <!-- Right Side: Action Buttons -->
+            <div class="flex-shrink-0">
+                <div class="hidden md:flex items-center gap-4">
+                     <button id="request-access-btn" class="action-button-secondary px-6 py-3 rounded-lg text-sm font-semibold">Request Access</button>
+                     <button id="download-dossier-btn" class="action-button px-6 py-3 rounded-lg text-sm font-semibold">Secure Dossier</button>
+                </div>
+            </div>
+
         </div>
     </header>
 
