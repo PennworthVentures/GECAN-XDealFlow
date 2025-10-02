@@ -1058,7 +1058,6 @@
             }, 'reveal+=0.8'); // Start the count shortly after cards begin to appear
         },
 
-// THIS IS THE NEW, DEDICATED ANIMATION FUNCTION FOR THE THESIS SECTION
         setupThesisAnimations() {
             const section = document.getElementById('thesis');
             const textContent = document.getElementById('thesis-text-content');
@@ -1075,61 +1074,63 @@
             gsap.set(samLayer, { opacity: 0, z: -2000, scale: 2 });
             gsap.set(somLayer, { opacity: 0, z: -2000, scale: 2 });
             
-            // The main cinematic timeline for this section, controlled by scroll
-            const tl = gsap.timeline({
+            // THE CRITICAL CHANGE: We now use a single master timeline triggered by toggleActions, NOT scrub.
+            // This ensures the entire 3D funnel sequence plays through smoothly once initiated.
+            const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top top',
-                    end: 'bottom bottom',
-                    scrub: 1.5,
-                    pin: true,
-                    anticipatePin: 1
+                    start: 'top 40%', // Start when the top of the section is 40% from the top of the viewport
+                    end: 'bottom top',
+                    toggleActions: "play none reverse none", // Play once on enter, reverse on scroll up past start
+                    // 'scrub' and 'pin' are REMOVED to allow for smooth, uninterruptible playback.
+                },
+                defaults: {
+                    ease: 'power2.out'
                 }
             });
 
             // Part 1: Introduce the Thesis Text
-            tl.addLabel('start')
+            masterTimeline.addLabel('start')
               .to(textContent, {
                   opacity: 1,
                   y: 0,
                   duration: 1,
-                  ease: 'power3.out'
               });
 
             // Part 2: Bring in the TAM layer from deep in Z space
-            tl.addLabel('show_tam', 'start+=0.5')
+            masterTimeline.addLabel('show_tam', 'start+=0.5')
               .to(tamLayer, {
                   opacity: 1,
                   z: 0,
                   scale: 1,
-                  duration: 2,
+                  duration: 1.5,
                   ease: 'expo.out'
               });
             
             // Part 3: Fade out TAM and bring in SAM, showing the funnel effect
-            tl.addLabel('show_sam', '+=1')
+            masterTimeline.addLabel('show_sam', '+=1') // Add a pause for readability
               .to(tamLayer, {
                   opacity: 0,
                   scale: 0.8,
-                  duration: 1,
+                  duration: 0.8,
                   ease: 'power2.in'
               })
               .fromTo(samLayer, { 
-                  opacity: 0, z: 200, scale: 1.2 // Start slightly behind and larger
+                  opacity: 0, z: 200, scale: 1.2 
               }, {
                   opacity: 1,
                   z: 0,
                   scale: 1,
-                  duration: 2,
+                  duration: 1.5,
                   ease: 'expo.out'
               }, 'show_sam');
 
             // Part 4: Fade out SAM and bring in SOM, completing the funnel
-            tl.addLabel('show_som', '+=1')
+            masterTimeline.addLabel('show_som', '+=1')
               .to(samLayer, {
                   opacity: 0,
                   scale: 0.8,
-                  duration: 1,
+                  duration: 0.8,
                   ease: 'power2.in'
               })
               .fromTo(somLayer, {
@@ -1138,7 +1139,7 @@
                   opacity: 1,
                   z: 0,
                   scale: 1,
-                  duration: 2,
+                  duration: 1.5,
                   ease: 'expo.out'
               }, 'show_som')
               .fromTo(somLayer.querySelector('.funnel-card'), {
@@ -1150,7 +1151,7 @@
                   borderColor: 'var(--border-quantum)',
                   duration: 1,
                   ease: 'power2.inOut'
-              }, 'show_som+=1.5');
+              }, 'show_som+=1');
         },
 
                 
