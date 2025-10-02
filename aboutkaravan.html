@@ -1256,102 +1256,119 @@
             const layer1 = document.getElementById('engine-layer-1');
             const layer2 = document.getElementById('engine-layer-2');
             const layer3 = document.getElementById('engine-layer-3');
+            const space = document.getElementById('architecture-3d-space');
 
-            if (!section || !layer1 || !layer2 || !layer3) return;
+            if (!section || !layer1 || !layer2 || !layer3 || !space) return;
 
-            // Set initial states for the 3D layers
-            gsap.set(intro, { opacity: 0 });
-            gsap.set(layer1, { opacity: 0, rotationX: -90, z: -500, transformOrigin: 'center bottom' });
-            gsap.set(layer2, { opacity: 0, y: -200 });
-            gsap.set(layer3, { opacity: 0, y: -200 });
+            // --- Set Initial States ---
+            // The intro text starts visible and will fade out.
+            gsap.set(intro, { opacity: 1 });
+            // The layers start completely hidden and off-screen.
+            gsap.set(layer1, { opacity: 0, z: -800, rotationX: -120, transformOrigin: 'center center' });
+            gsap.set(layer2, { opacity: 0, z: -800, rotationX: -120, transformOrigin: 'center center' });
+            gsap.set(layer3, { opacity: 0, z: -800, rotationX: -120, transformOrigin: 'center center' });
 
-            // The main cinematic timeline for this section, controlled by scroll
-            const tl = gsap.timeline({
+            // --- The Master Cinematic Timeline ---
+            // This timeline is now architected for a seamless, uninterruptible playback.
+            const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top top',
-                    end: 'bottom bottom',
-                    scrub: 1.5,
-                    pin: true,
-                    anticipatePin: 1
+                    start: 'top 50%', // Start when the section is centered
+                    toggleActions: "play none reverse none", // NO SCRUB, NO PIN
+                },
+                defaults: {
+                    duration: 1.5, // A longer duration for a more stately, authoritative feel
+                    ease: 'expo.out'
                 }
             });
 
-            // Part 1: Fade in the introductory text
-            tl.to(intro, {
-                opacity: 1,
-                duration: 1
+            // 1. Fade out the introductory text as the animation begins
+            masterTimeline.to(intro, {
+                opacity: 0,
+                y: -100,
+                duration: 1,
+                ease: 'power2.in'
             });
 
-            // Part 2: Build the foundation - Layer 1
-            tl.addLabel('build_layer_1')
-              .to(intro, {
-                  opacity: 0,
-                  y: -50,
-                  duration: 0.5
-              })
+            // 2. Animate in Layer 1 (The Foundation) from deep 3D space
+            masterTimeline.addLabel('build_layer_1')
               .to(layer1, {
                   opacity: 1,
-                  rotationX: 0,
                   z: 0,
-                  duration: 1.5,
-                  ease: 'expo.out'
-              });
+                  rotationX: 0,
+              }, 'build_layer_1');
 
-            // Part 3: Place Layer 2 on top of Layer 1
-            tl.addLabel('build_layer_2', '+=0.5')
-              .to(layer1, {
-                  z: -200, // Move Layer 1 back to make space
-                  scale: 0.9,
-                  duration: 1.5,
-                  ease: 'power2.inOut'
-              })
-              .fromTo(layer2, {
-                  opacity: 0, y: -200
-              }, {
+            // 3. Animate in Layer 2, stacking it visually on top of Layer 1
+            masterTimeline.addLabel('build_layer_2', '-=0.8') // Overlap animations for a seamless transition
+              .to(layer2, {
                   opacity: 1,
-                  y: 0,
-                  duration: 1.5,
-                  ease: 'power2.out'
-              }, 'build_layer_2')
+                  z: 0,
+                  rotationX: 0,
+              })
               .to(layer2.querySelector('i'), {
-                  // Add a pulse/spin to the icon on reveal
                   onStart: () => {
                       layer2.querySelector('i').classList.add('fa-spin');
                       layer2.querySelector('i').style.setProperty('--fa-animation-duration', '4s');
                   }
               }, 'build_layer_2');
 
-            // Part 4: Place Layer 3 on top of Layer 2
-            tl.addLabel('build_layer_3', '+=0.5')
-              .to([layer1, layer2], {
-                  z: (i, target) => (i === 0 ? -400 : -200), // Move both layers back further
-                  scale: (i, target) => (i === 0 ? 0.8 : 0.9),
-                  duration: 1.5,
-                  ease: 'power2.inOut'
-              })
-              .fromTo(layer3, {
-                  opacity: 0, y: -200
-              }, {
+            // 4. Animate in Layer 3, completing the initial stack
+            masterTimeline.addLabel('build_layer_3', '-=0.8')
+              .to(layer3, {
                   opacity: 1,
-                  y: 0,
-                  duration: 1.5,
-                  ease: 'power2.out'
-              }, 'build_layer_3');
-            
-            // Part 5: Assemble the final stack
-            tl.addLabel('assemble', '+=0.5')
-              .to('#architecture-3d-space', {
-                  rotationX: -15, // Tilt the entire 3D space for a dramatic final view
-                  rotationY: 10,
+                  z: 0,
+                  rotationX: 0,
+              });
+
+            // 5. The Grand Reveal: Separate the layers into a final, 3D stacked view
+            masterTimeline.addLabel('assemble', '-=0.5')
+              .to(space, { // Rotate the entire 3D container for a dramatic perspective shift
+                  rotationX: -20,
+                  rotationY: 15,
                   duration: 2,
                   ease: 'power3.inOut'
-              })
-              .to('.engine-layer', {
-                  y: (i) => (2 - i) * -150, // Stack them vertically
+              }, 'assemble')
+              .to(layer1, { // Move Layer 1 to the bottom of the stack
+                  z: -300,
+                  y: 200,
+                  duration: 2,
+                  ease: 'power3.inOut'
+              }, 'assemble')
+              .to(layer2, { // Layer 2 remains in the center
+                  z: 0,
+                  y: 0,
+                  duration: 2,
+                  ease: 'power3.inOut'
+              }, 'assemble')
+              .to(layer3, { // Move Layer 3 to the top of the stack
+                  z: 300,
+                  y: -200,
                   duration: 2,
                   ease: 'power3.inOut'
               }, 'assemble');
+
+            // 6. Add Premium Hover Effects AFTER the main animation completes
+            masterTimeline.add(() => {
+                [layer1, layer2, layer3].forEach((layer, index) => {
+                    const z_positions = [-300, 0, 300];
+                    layer.addEventListener('mouseenter', () => {
+                        gsap.to(layer, {
+                            z: z_positions[index] + 100, // Bring the hovered layer forward
+                            scale: 1.05,
+                            duration: 0.4,
+                            ease: 'power2.out'
+                        });
+                    });
+                    layer.addEventListener('mouseleave', () => {
+                        gsap.to(layer, {
+                            z: z_positions[index], // Return to its resting position in the stack
+                            scale: 1,
+                            duration: 0.4,
+                            ease: 'power2.out'
+                        });
+                    });
+                });
+            });
         },
 
         setupDoctrineAnimations() {
