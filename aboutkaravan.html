@@ -23,6 +23,51 @@
 
     <style>
 
+/* SEVERELY UPGRADED VERTICAL NAVIGATION STYLES */
+
+        .vertical-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--border-premium);
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .nav-label {
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            pointer-events: none; /* Hide label from mouse events */
+        }
+
+        .vertical-nav-link:hover .nav-dot,
+        .vertical-nav-link.active .nav-dot {
+            transform: scale(2.0);
+            background-color: var(--brand-gold-light);
+            box-shadow: 0 0 15px var(--brand-gold-light);
+        }
+
+        .vertical-nav-link:hover .nav-label,
+        .vertical-nav-link.active .nav-label {
+            opacity: 1;
+            transform: translateX(0);
+            color: var(--text-gold);
+        }
+
 /* SEVERELY UPGRADED HEADER STYLES - REPLACE ALL PREVIOUS HEADER CSS */
 
         .supreme-header { 
@@ -176,42 +221,31 @@
 
     <div id="particles-js"></div>
 
-<header class="supreme-header">
+<!-- SEVERELY UPGRADED AND SIMPLIFIED HEADER -->
+    <header class="supreme-header">
         <div class="container mx-auto px-6 h-20 flex items-center justify-between">
             
             <!-- Left Side: Logo -->
-            <div class="flex-shrink-0">
-                <a href="#" class="flex items-center gap-3">
-                    <i class="fas fa-chess-queen text-3xl text-brand-gold-medium transform transition-transform duration-500 hover:scale-110"></i>
-                    <p class="logo-text text-3xl">KARAVAN</p>
-                </a>
-            </div>
-
-            <!-- Center: Definitive and Complete Navigation -->
-            <div class="flex-grow flex items-center justify-center">
-                <nav id="main-nav" class="hidden lg:flex items-center gap-8 text-sm text-text-silver font-semibold uppercase tracking-wider">
-                    <a href="#imperative" data-section="imperative" class="nav-link relative">Imperative</a>
-                    <a href="#thesis" data-section="thesis" class="nav-link relative">Thesis</a>
-                    <a href="#moat" data-section="moat" class="nav-link relative">Moat</a>
-                    <a href="#architecture" data-section="architecture" class="nav-link relative">Engine</a>
-                    <a href="#protocol" data-section="protocol" class="nav-link relative">Protocol</a>
-                    <a href="#doctrine" data-section="doctrine" class="nav-link relative">Doctrine</a>
-                    <a href="#team" data-section="team" class="nav-link relative">Consortium</a>
-                    <a href="#financials" data-section="financials" class="nav-link relative">Financials</a>
-                    <a href="#investment-section" data-section="investment-section" class="nav-link relative">Invitation</a>
-                </nav>
-            </div>
+            <a href="#" class="flex items-center gap-3">
+                <i class="fas fa-chess-queen text-3xl text-brand-gold-medium transform transition-transform duration-500 hover:scale-110"></i>
+                <p class="logo-text text-3xl">KARAVAN</p>
+            </a>
 
             <!-- Right Side: Action Buttons -->
-            <div class="flex-shrink-0">
-                <div class="hidden md:flex items-center gap-4">
-                     <button id="request-access-btn" class="action-button-secondary px-6 py-3 rounded-lg text-sm font-semibold">Request Access</button>
-                     <button id="download-dossier-btn" class="action-button px-6 py-3 rounded-lg text-sm font-semibold">Secure Dossier</button>
-                </div>
+            <div class="flex items-center gap-4">
+                 <button id="request-access-btn" class="action-button-secondary px-6 py-3 rounded-lg text-sm font-semibold">Request Access</button>
+                 <button id="download-dossier-btn" class="action-button px-6 py-3 rounded-lg text-sm font-semibold">Secure Dossier</button>
             </div>
 
         </div>
     </header>
+
+<!-- PINNACLE-GRADE VERTICAL NAVIGATION SIDEBAR -->
+    <div id="vertical-nav-container" class="fixed top-1/2 left-8 -translate-y-1/2 z-50 hidden lg:block">
+        <nav id="vertical-nav" class="flex flex-col items-start gap-4">
+            <!-- Navigation links will be dynamically injected by JavaScript -->
+        </nav>
+    </div>
 
     <main class="container mx-auto px-6">
 
@@ -911,7 +945,7 @@
             this.createAdvancedGlobe();
             this.SettlementProtocolVisualizer.init(); 
             
-            this.setupHeaderAnimations(); // <-- ADD THIS NEW CALL
+            this.setupVerticalNav(); // <-- REPLACE setupHeaderAnimations with this NEW CALL
             this.setupHeroAnimations(); 
             this.setupImperativeAnimations(); 
             this.setupThesisAnimations(); 
@@ -1067,20 +1101,52 @@
             });
         },
 
-// THIS IS THE NEW, DEDICATED FUNCTION FOR HEADER INTERACTIVITY
-        setupHeaderAnimations() {
-            const navLinks = gsap.utils.toArray('.nav-link');
+// THIS IS THE NEW, DEFINITIVE FUNCTION FOR THE VERTICAL NAVIGATION SIDEBAR
+        setupVerticalNav() {
+            const navContainer = document.getElementById('vertical-nav');
+            if (!navContainer) return;
+
+            // Define the navigation items with precision
+            const navItems = [
+                { id: 'imperative', label: 'Imperative' },
+                { id: 'thesis', label: 'Thesis' },
+                { id: 'moat', label: 'Moat' },
+                { id: 'architecture', label: 'Engine' },
+                { id: 'protocol', label: 'Protocol' },
+                { id: 'doctrine', label: 'Doctrine' },
+                { id: 'team', label: 'Consortium' },
+                { id: 'financials', label: 'Financials' },
+                { id: 'investment-section', label: 'Invitation' }
+            ];
+
+            // Dynamically build the navigation links
+            let navHTML = '';
+            navItems.forEach(item => {
+                navHTML += `
+                    <a href="#${item.id}" data-section="${item.id}" class="vertical-nav-link">
+                        <div class="nav-dot"></div>
+                        <span class="nav-label">${item.label}</span>
+                    </a>
+                `;
+            });
+            navContainer.innerHTML = navHTML;
             
+            const navLinks = gsap.utils.toArray('.vertical-nav-link');
+
             // This logic uses ScrollTrigger to automatically highlight the correct nav link
-            // as the user scrolls through the document.
+            // as the user scrolls, providing persistent and accurate orientation.
             gsap.utils.toArray('section').forEach(section => {
+                // Ensure the section has an ID to be tracked
+                if (!section.id) return;
+
                 ScrollTrigger.create({
                     trigger: section,
-                    start: 'top center+=100', // When the top of the section is a bit past the center
-                    end: 'bottom center-=100', // When the bottom of the section is a bit before the center
+                    start: 'top center',
+                    end: 'bottom center',
+                    // onEnter, onLeave, onEnterBack, onLeaveBack
                     onToggle: self => {
                         if (self.isActive) {
-                            const activeLink = document.querySelector(`.nav-link[data-section="${section.id}"]`);
+                            const activeLink = document.querySelector(`.vertical-nav-link[data-section="${section.id}"]`);
                             navLinks.forEach(link => link.classList.remove('active'));
                             if (activeLink) {
                                 activeLink.classList.add('active');
@@ -1088,6 +1154,15 @@
                         }
                     }
                 });
+            });
+
+            // Animate the entire sidebar into view after the hero animation
+            gsap.from("#vertical-nav-container", {
+                delay: 2.5, // Wait for hero animation to complete
+                opacity: 0,
+                x: -50,
+                duration: 1.5,
+                ease: 'expo.out'
             });
         },
 
