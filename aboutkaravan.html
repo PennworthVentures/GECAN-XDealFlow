@@ -10,7 +10,7 @@
     <meta name="author" content="GECAN™ | Global Energy & Commodities Alliance Network">
     <meta name="robots" content="noindex, nofollow">
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜️</text></svg>">
 
     <!-- Core Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,15 +30,15 @@
     <style>
         :root {
             --brand-gold-faint: #FFFBEB; --brand-gold-light: #FDE68A; --brand-gold-medium: #D4AF37; --brand-gold-rich: #C9A961; --brand-gold-dark: #92400E;
-            --background-primary: #020204; --background-secondary: #101014; --background-glass: rgba(16, 16, 20, 0.6); --background-glass-premium: rgba(16, 16, 20, 0.85);
+            --background-primary: #020204; --background-secondary: #0A0A0C; --background-glass: rgba(10, 10, 12, 0.6); --background-glass-premium: rgba(10, 10, 12, 0.85);
             --border-color: rgba(212, 175, 55, 0.2); --border-premium: rgba(212, 175, 55, 0.5); --border-quantum: rgba(212, 175, 55, 0.9);
             --text-diamond: #F5F5F7; --text-gold: #FDE68A; --text-silver: #C2C2C5; --text-muted: #8A8A8E;
             --glow-gold: 0 0 60px rgba(212, 175, 55, 0.5); --shadow-supreme: 0 0 150px rgba(212, 175, 55, 0.4), 0 40px 100px -20px rgba(0, 0, 0, 0.9);
         }
         html { scroll-behavior: smooth; }
         body { font-family: 'Inter', sans-serif; color: var(--text-silver); background: var(--background-primary); overflow-x: hidden; position: relative; }
-        body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(var(--border-color) 0.5px, transparent 0.5px); background-size: 25px 25px; opacity: 0.2; z-index: -2; animation: pulse-grid 10s ease-in-out infinite; }
-        @keyframes pulse-grid { 50% { opacity: 0.05; } }
+        body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(var(--border-color) 0.5px, transparent 0.5px); background-size: 30px 30px; opacity: 0.15; z-index: -2; animation: pulse-grid 15s ease-in-out infinite; }
+        @keyframes pulse-grid { 50% { opacity: 0.05; transform: scale(1.02); } }
         #particles-js { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: var(--background-secondary); } ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--brand-gold-medium), var(--brand-gold-rich)); border-radius: 4px; } ::selection { background: var(--brand-gold-medium); color: var(--background-primary); }
         .supreme-header { position: sticky; top: 0; z-index: 1000; background: rgba(2, 2, 4, 0.7); backdrop-filter: blur(40px) saturate(200%); -webkit-backdrop-filter: blur(40px) saturate(200%); border-bottom: 1px solid var(--border-color); transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
@@ -52,7 +52,9 @@
         .quantum-card:hover { transform: translateY(-12px) scale(1.02); background: var(--background-glass-premium); border-color: var(--border-quantum); box-shadow: var(--shadow-supreme); }
         .quantum-card:hover::before { opacity: 1; }
         .action-button { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--background-primary); background: linear-gradient(135deg, var(--brand-gold-medium) 0%, var(--brand-gold-rich) 100%); border: 2px solid var(--brand-gold-dark); box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.3); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: 0.1em; }
+        .action-button::after { content: ''; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px; background: rgba(255, 255, 255, 0.7); border-radius: 50%; transform: translate(-50%, -50%) scale(0); transition: transform 0.8s ease, width 0.8s ease, height 0.8s ease; }
         .action-button:hover { transform: translateY(-6px) scale(1.05); box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.4); background: linear-gradient(135deg, var(--brand-gold-light) 0%, var(--brand-gold-medium) 100%); }
+        .action-button:hover::after { transform: translate(-50%, -50%) scale(1); width: 400px; height: 400px; }
         .action-button-secondary { background: transparent; color: var(--brand-gold-medium); border: 2px solid var(--border-premium); box-shadow: none; }
         .action-button-secondary:hover { background: rgba(212, 175, 55, 0.1); color: var(--brand-gold-light); border-color: var(--border-quantum); }
         .stat-card { border-left: 4px solid var(--border-premium); }
@@ -60,13 +62,18 @@
         .pill { background: rgba(212, 175, 55, 0.1); color: var(--brand-gold-light); border: 1px solid rgba(212, 175, 55, 0.3); }
         .team-card { transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .team-card.flipped { transform: rotateY(180deg); }
-        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; position: absolute; inset:0; }
         .card-back { transform: rotateY(180deg); }
         .preloader { position: fixed; inset: 0; background: var(--background-primary); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease-out; }
         .preloader-logo { font-family: 'Cinzel Decorative', serif; font-size: 3rem; color: var(--text-gold); animation: pulse-logo 2.5s infinite ease-in-out; }
-        @keyframes pulse-logo { 50% { opacity: 0.6; transform: scale(0.98); } }
+        @keyframes pulse-logo { 50% { opacity: 0.6; transform: scale(0.98); text-shadow: 0 0 20px rgba(212, 175, 55, 0.5); } }
         .preloader-text { font-family: 'Orbitron', monospace; margin-top: 1rem; color: var(--text-muted); letter-spacing: 0.3em; text-transform: uppercase; font-size: 0.8rem; }
-        /* Add more pinnacle styles here */
+        .moat-diagram .moat-point { transition: all 0.3s ease; }
+        .moat-diagram .moat-point:hover { transform: scale(1.5); filter: drop-shadow(0 0 15px var(--brand-gold-medium)); }
+        .moat-diagram .moat-point:hover + .moat-label { opacity: 1; transform: translateY(-10px); }
+        .moat-diagram .moat-label { transition: all 0.3s ease; opacity: 0.5; }
+        .settlement-flow-svg .flow-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; }
+        .settlement-flow-svg .flow-node { opacity: 0; transform: scale(0.5); transition: all 0.5s ease; }
     </style>
 </head>
 <body class="antialiased opacity-0">
@@ -101,10 +108,10 @@
     <main class="container mx-auto px-6">
 
         <!-- [SLIDE 1] Hero Section -->
-        <section class="min-h-screen flex flex-col items-center justify-center text-center">
+        <section class="min-h-screen flex flex-col items-center justify-center text-center relative">
             <div class="absolute top-0 left-0 p-4 text-xs font-mono text-red-400 opacity-70">CLASSIFICATION: GECAN-PRIME // LEVEL-V</div>
             <div class="holographic-globe w-[500px] h-[500px] relative mb-12">
-                <!-- Advanced Globe will be injected by JS -->
+                <!-- Advanced Globe injected by JS -->
             </div>
             <h1 class="hero-title text-5xl md:text-7xl lg:text-8xl">PROJECT KINESIS</h1>
             <p class="mt-6 text-xl md:text-2xl max-w-4xl mx-auto text-text-silver font-light tracking-wide">
@@ -129,16 +136,16 @@
             </div>
             <div class="grid md:grid-cols-3 gap-8 mt-16">
                 <div class="quantum-card rounded-2xl p-8 text-center stat-card">
-                    <p class="stat-value text-5xl md:text-6xl">$2.3 Trillion</p>
-                    <p class="mt-3 text-text-muted">Annual Economic Deadweight Loss</p>
+                    <p class="stat-value text-5xl md:text-6xl" data-value="2.3">0</p>
+                    <p class="mt-3 text-text-muted">Trillion USD Annual Deadweight Loss</p>
                 </div>
                 <div class="quantum-card rounded-2xl p-8 text-center stat-card">
-                    <p class="stat-value text-5xl md:text-6xl">T+2 to T+5</p>
-                    <p class="mt-3 text-text-muted">Legacy Settlement Latency</p>
+                    <p class="stat-value text-5xl md:text-6xl" data-value="120">0</p>
+                    <p class="mt-3 text-text-muted">Hours Average Settlement Latency</p>
                 </div>
                 <div class="quantum-card rounded-2xl p-8 text-center stat-card">
-                    <p class="stat-value text-5xl md:text-6xl">&gt;85%</p>
-                    <p class="mt-3 text-text-muted">Rent-Extraction Cost Structure</p>
+                    <p class="stat-value text-5xl md:text-6xl" data-value="85">0</p>
+                    <p class="mt-3 text-text-muted">% Structural Cost Inefficiency</p>
                 </div>
             </div>
         </section>
@@ -150,120 +157,47 @@
                     <p class="section-subtitle">II. The Investment Thesis</p>
                     <h2 class="section-title text-4xl md:text-5xl mt-4">An Asymmetric Bet On Inevitability</h2>
                     <p class="mt-6 text-lg leading-relaxed">The successor to today’s financial infrastructure must, by necessity, be hybrid in design and regulatory-first in execution. It must reconcile the velocity of decentralized protocols with the sovereign acceptability of regulated frameworks.</p>
-                    <p class="mt-4">The Karavan Protocol is expressly architected to fulfill this role of inevitability. Investment in Karavan transcends conventional equity valuation; it is participation in the foundational reshaping of global financial infrastructure, where the upside is disproportionate and the downside is bounded by a compliance-first design.</p>
+                    <p class="mt-4">Incumbents are structurally incapable of this evolution; pure crypto-natives are regulatorily incapacitated. Karavan exploits this vacuum. Investment in Karavan therefore transcends conventional equity valuation. It embodies participation in the foundational reshaping of global financial infrastructure, with asymmetry deriving from the disproportionate upside captured by those positioned at inception relative to the marginal downside bounded by the protocol’s inherently regulated and compliance-first design.</p>
                 </div>
                 <div class="quantum-card rounded-2xl p-8 space-y-6">
                     <div>
-                        <div class="flex justify-between items-baseline">
-                           <p class="font-bold text-text-diamond text-lg">Total Addressable Market (TAM)</p>
-                           <p class="stat-value text-2xl">$150.8 Trillion</p>
-                        </div>
-                        <p class="text-sm text-text-muted">The full systemic volume of global value transfer.</p>
+                        <div class="flex justify-between items-baseline"><p class="font-bold text-text-diamond text-lg">Total Addressable Market (TAM)</p><p class="stat-value text-2xl">$150.8 Trillion</p></div>
+                        <p class="text-sm text-text-muted">Global B2B Cross-Border Payments + Global Remittances.</p>
                     </div>
                      <div>
-                        <div class="flex justify-between items-baseline">
-                           <p class="font-bold text-text-diamond text-lg">Serviceable Addressable Market (SAM)</p>
-                           <p class="stat-value text-2xl">$450 Billion</p>
-                        </div>
-                        <p class="text-sm text-text-muted">Phase I & II priority corridors (ASEAN, MENA-Asia).</p>
+                        <div class="flex justify-between items-baseline"><p class="font-bold text-text-diamond text-lg">Serviceable Addressable Market (SAM)</p><p class="stat-value text-2xl">$450 Billion</p></div>
+                        <p class="text-sm text-text-muted">Phase I & II priority corridors (ASEAN, MENA-Asia) with highest infrastructural asymmetry.</p>
                     </div>
                      <div>
-                        <div class="flex justify-between items-baseline">
-                           <p class="font-bold text-text-diamond text-lg">Serviceable Obtainable Market (SOM)</p>
-                           <p class="stat-value text-2xl">$12.55 Billion</p>
-                        </div>
-                        <p class="text-sm text-text-muted">Projected Year 5 GTV (~2.7% SAM penetration).</p>
+                        <div class="flex justify-between items-baseline"><p class="font-bold text-text-diamond text-lg">Serviceable Obtainable Market (SOM)</p><p class="stat-value text-2xl">$12.55 Billion</p></div>
+                        <p class="text-sm text-text-muted">Projected Year 5 GTV, representing a disciplined ~2.7% penetration of SAM.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- [SLIDE 5] Comparative Unit Economics -->
-        <section class="py-20 md:py-32">
-            <div class="text-center">
-                <p class="section-subtitle">III. The Disruption Vector</p>
-                <h2 class="section-title text-4xl md:text-5xl mt-4">The Anatomy of an 85%+ Disruption</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">A forensic dissection of incumbent inefficiency versus the protocol-driven efficiency of Karavan reveals not a marginal improvement, but an existential reconfiguration.</p>
-            </div>
-            <div class="quantum-card rounded-2xl p-8 md:p-12 mt-16">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="border-b border-border-premium">
-                                <th class="p-4 text-text-gold font-semibold">Metric</th>
-                                <th class="p-4 text-text-silver">Incumbent System (Bank Wire / MTO)</th>
-                                <th class="p-4 text-text-gold font-bold">GECAN™ Karavan Protocol</th>
-                                <th class="p-4 text-brand-gold-light text-center">Strategic Delta</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="border-b border-border-color">
-                                <td class="p-4 font-semibold">Average End-to-End Fee</td>
-                                <td class="p-4 text-red-400">4.00% – 8.00% (Opaque)</td>
-                                <td class="p-4 font-bold text-green-400">≤ 1.00% (Transparent)</td>
-                                <td class="p-4 text-center font-bold text-lg stat-value">≥ 85%</td>
-                            </tr>
-                            <tr class="border-b border-border-color">
-                                <td class="p-4 font-semibold">Settlement Latency</td>
-                                <td class="p-4 text-red-400">T+2 to T+5 (48-120 Hours)</td>
-                                <td class="p-4 font-bold text-green-400">≤ 180 Seconds (Atomic)</td>
-                                <td class="p-4 text-center font-bold text-lg stat-value">≥ 99.9%</td>
-                            </tr>
-                            <tr class="border-b border-border-color">
-                                <td class="p-4 font-semibold">Transparency</td>
-                                <td class="p-4 text-red-400">Obfuscated FX Spreads</td>
-                                <td class="p-4 font-bold text-green-400">Guaranteed Institutional Rate</td>
-                                <td class="p-4 text-center font-bold text-lg stat-value">Absolute</td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 font-semibold">Auditability</td>
-                                <td class="p-4 text-red-400">Fragmented, Opaque Ledgers</td>
-                                <td class="p-4 font-bold text-green-400">Singular, Immutable Proof</td>
-                                <td class="p-4 text-center font-bold text-lg stat-value">Certainty</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- [SLIDE 6-8] The Unfair Advantage -->
+        <!-- [SLIDE 5-6] The 15-Point Moat -->
         <section class="py-20 md:py-32">
             <div class="text-center">
                 <p class="section-subtitle">IV. The Defensible Moat</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">A 15-Point Fortress of Inevitability</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">Karavan establishes a fortified, multi-jurisdictional moat, interwoven legally, technologically, and operationally to create a fortress of competitive durability.</p>
+                <p class="mt-4 max-w-4xl mx-auto text-lg">Our advantage is not a feature; it is a system. Karavan establishes a fortified, multi-jurisdictional moat, interwoven legally, technologically, and operationally to create a fortress of competitive durability that is existentially irreplicable by any competitor class.</p>
             </div>
-            <div class="quantum-card rounded-2xl p-8 md:p-12 mt-16">
-                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>1. Hybrid CeFi/Web3 Architecture:</strong> Dual-domain synthesis inaccessible to single-domain actors.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>2. Licensed Liquidity Network:</strong> A federated, regulated lattice of fiat anchors.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>3. Instantaneous Gross Settlement:</strong> Sub-180 second atomic finality.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>4. Pinnacle Transparency Doctrine:</strong> Obliterates incumbents' hidden rent models.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>5. Compliance Firewall:</strong> Sovereign-grade AML/CTF at the transaction layer.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>6. Regulatory Partnership Doctrine:</strong> Regulators as co-sovereigns in oversight.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>7. On/Off-Ramp Supremacy:</strong> Solves the "hardest problem in crypto" at scale.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>8. Dual Product Suite:</strong> Monopolizes retail & institutional verticals on unified rails.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>9. Immutable Audit Trail:</strong> Absolute finality of record via Proof-of-Settlement Certificates.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>10. Capital Velocity Liberation:</strong> Eliminates multi-day settlement traps.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>11. Partner Incentivization Model:</strong> Enriches and aligns liquidity partners, embedding loyalty.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>12. GECAN™ Intelligence Synergy:</strong> Proprietary AI-driven risk-weighted transaction scoring.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>13. Reduced Counterparty Risk:</strong> Atomic settlement enforces mathematical certainty.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>14. User Experience Abstraction:</strong> Fiat-native simplicity with protocol-level power.</div>
-                    <div class="p-4 rounded-lg bg-background-primary border border-border-color"><strong>15. Scalable Corridor Model:</strong> Disciplined, repeatable, capital-efficient global scaling.</div>
-                </div>
-                <div class="mt-8 pt-6 border-t border-border-premium text-center">
+            <div class="quantum-card rounded-2xl p-8 md:p-12 mt-16 relative">
+                <div id="moat-tooltip" class="absolute top-0 left-0 bg-background-primary border border-border-premium p-4 rounded-lg text-sm shadow-lg pointer-events-none opacity-0 transition-opacity z-20 max-w-xs"></div>
+                <svg id="moat-diagram" class="moat-diagram w-full h-auto" viewBox="0 0 1000 600"></svg>
+                 <div class="mt-8 pt-6 border-t border-border-premium text-center">
                     <p class="font-bold text-text-diamond">To attack Karavan, incumbents must commit structural hara-kiri. To ignore it, they concede inevitability.</p>
                 </div>
             </div>
         </section>
 
-        <!-- [SLIDE 9-12] The Kinesis Engine Architecture -->
+        <!-- [SLIDE 7-9] The Kinesis Engine Architecture -->
         <section id="architecture" class="py-20 md:py-32">
              <div class="text-center">
                 <p class="section-subtitle">V. The Operational Doctrine</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">The Kinesis Engine</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">A self-reinforcing, tripartite system: anchored in licensed liquidity, powered by atomic settlement, and delivered via a seamless abstraction layer.</p>
+                <p class="mt-4 max-w-3xl mx-auto text-lg">A self-reinforcing, tripartite system: anchored in licensed liquidity, powered by atomic settlement, and delivered via a seamless abstraction layer. Each layer performs discrete, mission-critical functions while maintaining holistic integrity and systemic resilience.</p>
             </div>
             <div class="mt-16 relative">
                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold-medium/5 rounded-full blur-[150px]"></div>
@@ -290,89 +224,76 @@
             </div>
         </section>
 
-        <!-- [SLIDE 13] The 180-Second Protocol -->
+        <!-- [SLIDE 10-11] The 180-Second Protocol -->
         <section class="py-20 md:py-32">
             <div class="text-center">
                 <p class="section-subtitle">VI. Operational Supremacy</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">The 180-Second Global Settlement Protocol</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">Demonstrating the operational efficacy of atomic, multi-jurisdictional settlement. From days of uncertainty to sub-three-minute, legally enforceable finality.</p>
+                <p class="mt-4 max-w-4xl mx-auto text-lg">Observe the operational efficacy of atomic, multi-jurisdictional settlement. This is not a theoretical model; it is the codified, repeatable workflow that renders the incumbent system obsolete. From days of uncertainty to sub-three-minute, legally enforceable finality.</p>
             </div>
-            <div class="quantum-card rounded-2xl mt-16 p-8 md:p-12">
-                <div class="settlement-timeline"> <!-- JS will animate this -->
-                    <div class="step" data-time="0-30s">
-                        <i class="icon fas fa-keyboard"></i>
-                        <div class="content"><h3>INITIATION</h3><p>User inputs transfer. Pinnacle Quote™ locks in institutional FX and a sub-1% fee. A legally binding quote is generated.</p></div>
+            <div class="quantum-card rounded-2xl mt-16 p-8 md:p-12 relative">
+                <div class="grid lg:grid-cols-5 gap-8 items-center">
+                    <div class="lg:col-span-3">
+                        <svg id="settlement-flow-svg" class="settlement-flow-svg w-full" viewBox="0 0 800 500"></svg>
                     </div>
-                    <div class="step" data-time="30-90s">
-                        <i class="icon fas fa-shield-alt"></i>
-                        <div class="content"><h3>ON-RAMP & COMPLIANCE</h3><p>Funds received by origin LP, converted to stablecoin. GECAN™ Compliance Firewall performs instant multi-vector screening against sanctions lists and illicit typologies.</p></div>
-                    </div>
-                    <div class="step" data-time="90-95s">
-                        <i class="icon fas fa-bolt"></i>
-                        <div class="content"><h3>ATOMIC SETTLEMENT</h3><p>Cryptographically signed instruction dispatches USDC across the blockchain rail to the destination LP treasury. Irrevocable, timestamped proof. No float. Zero counterparty risk.</p></div>
-                    </div>
-                    <div class="step" data-time="95-180s">
-                        <i class="icon fas fa-flag-checkered"></i>
-                        <div class="content"><h3>OFF-RAMP & FINALITY</h3><p>Destination LP executes local fiat disbursement via rails like InstaPay/SEPA. A legally-defensible Proof-of-Settlement Certificate is immutably recorded and issued.</p></div>
+                    <div id="settlement-info-panel" class="lg:col-span-2 space-y-4 p-6 bg-background-primary/50 rounded-lg border border-border-color">
+                        <!-- Info panel content updated by JS -->
                     </div>
                 </div>
             </div>
         </section>
         
-        <!-- [SLIDE 14-15] Governance & Expansion -->
+        <!-- [SLIDE 12-13] Governance & Expansion -->
         <section id="doctrine" class="py-20 md:py-32">
             <div class="text-center">
                  <p class="section-subtitle">VII. Governance & Expansion</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">The "Sovereign Respect" Doctrine</h2>
-                <p class="mt-4 max-w-4xl mx-auto text-lg">Our regulatory architecture is not ancillary; it is the operational bedrock. We do not circumvent jurisdictional authority; we amplify regulatory visibility, transforming GECAN™ into an indispensable partner in national security and sovereign oversight.</p>
+                <p class="mt-4 max-w-4xl mx-auto text-lg">Our regulatory architecture is not ancillary; it is the operational bedrock. We do not circumvent jurisdictional authority; we amplify regulatory visibility, transforming GECAN™ into an indispensable partner in national security and sovereign oversight. This doctrine converts compliance from a procedural obligation into a strategic weapon.</p>
             </div>
             <div class="mt-16 grid lg:grid-cols-2 gap-12 items-center">
                 <div class="quantum-card rounded-2xl p-8 h-full">
                     <h3 class="text-2xl font-bold text-text-diamond mb-4">The Corridor-by-Corridor Doctrine</h3>
-                    <p class="mb-6">A meticulously sequenced campaign of corridor activation, designed to maximize capital velocity, regulatory trust, and network effect leverage.</p>
+                    <p class="mb-6">A meticulously sequenced, capital-efficient campaign of corridor activation. Each corridor functions as both a strategic foothold and a funding engine for subsequent expansion, ensuring measurable value capture and sustainable scalability.</p>
                     <div class="space-y-4">
-                        <div class="p-4 rounded-lg border border-border-premium"><strong>Phase I (0-18 Mo):</strong> ASEAN Hub Pilot (SG-PH). Establish operational credibility.</div>
-                        <div class="p-4 rounded-lg border border-border-color"><strong>Phase II (19-36 Mo):</strong> MENA-Asia Bridge (UAE-IN/ID). Build institutional adoption.</div>
-                        <div class="p-4 rounded-lg border border-border-color"><strong>Phase III (37-60 Mo):</strong> Global Network Effect. Achieve dominant market share.</div>
+                        <div class="p-4 rounded-lg border border-border-premium bg-background-primary/50"><strong>Phase I (0-18 Mo): ASEAN Hub Pilot.</strong> Corridors: SG→PH, UAE→PH. Objective: Establish operational credibility, regulatory trust, and proof-of-settlement protocols.</div>
+                        <div class="p-4 rounded-lg border border-border-color"><strong>Phase II (19-36 Mo): MENA-Asia Bridge.</strong> Corridors: UAE→IN, UAE→ID. Objective: Build institutional adoption and generate cross-corridor liquidity synergies.</div>
+                        <div class="p-4 rounded-lg border border-border-color"><strong>Phase III (37-60 Mo): Global Network Effect.</strong> Corridors: EU, LATAM, SSA. Objective: Achieve dominant market share and establish Karavan as the default global settlement utility.</div>
                     </div>
                 </div>
                 <div class="quantum-card rounded-2xl p-8 bg-background-glass-premium border-border-quantum">
                     <h3 class="text-2xl font-bold text-text-diamond mb-4">Conceptual Regulator's Dashboard</h3>
-                    <p class="text-sm text-text-muted mb-6">Delivering Unprecedented Sovereign Oversight</p>
+                    <p class="text-sm text-text-muted mb-6">Delivering Unprecedented Sovereign Oversight and Auditable Transparency</p>
                     <div class="bg-black/50 p-6 rounded-lg border border-border-color">
                         <div class="grid grid-cols-2 gap-6">
-                            <div><p class="text-xs text-text-muted">24h GTV</p><p class="stat-value text-2xl">$1.42B</p></div>
+                            <div><p class="text-xs text-text-muted">24h GTV (Anonymized)</p><p class="stat-value text-2xl">$1.42B</p></div>
                             <div><p class="text-xs text-text-muted">Avg. Tx Size</p><p class="stat-value text-2xl">$2,350</p></div>
-                            <div><p class="text-xs text-text-muted">AML/CTF Flags</p><p class="stat-value text-2xl text-green-400">0</p></div>
-                            <div><p class="text-xs text-text-muted">Avg. Settlement</p><p class="stat-value text-2xl">&lt;180s</p></div>
+                            <div><p class="text-xs text-text-muted">AML/CTF Flags Triggered</p><p class="stat-value text-2xl text-green-400">0</p></div>
+                            <div><p class="text-xs text-text-muted">Avg. Settlement Finality</p><p class="stat-value text-2xl">&lt;180s</p></div>
                         </div>
-                        <div class="mt-6">
-                           <!-- Placeholder for a mini map/chart -->
-                           <div class="h-24 bg-background-primary rounded flex items-center justify-center text-text-muted text-sm">Corridor Heatmap Visualization</div>
-                        </div>
+                        <div class="mt-6"><canvas id="corridor-chart" class="h-32"></canvas></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- [SLIDE 16] The Core Team -->
+        <!-- [SLIDE 14] The Core Team -->
         <section id="team" class="py-20 md:py-32">
             <div class="text-center">
                 <p class="section-subtitle">VIII. The Consortium</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">Domain Alpha Operators</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">The execution of this mandate is contingent upon the caliber of its leadership. This is a bifurcated consortium blending "Old World" credibility with "New World" agility.</p>
+                <p class="mt-4 max-w-3xl mx-auto text-lg">The execution of this mandate is contingent upon the caliber of its leadership. This is a bifurcated consortium blending "Old World" credibility with "New World" agility, purpose-built to execute this mission.</p>
             </div>
             <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mt-16">
-                <!-- Team Cards will be injected by JS -->
+                <!-- Team Cards injected by JS -->
             </div>
         </section>
 
-        <!-- [SLIDE 17-19] Financials -->
+        <!-- [SLIDE 15-17] Financials -->
         <section id="financials" class="py-20 md:py-32">
             <div class="text-center">
                 <p class="section-subtitle">IX. The Financial Architecture</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">A Calculated Trajectory</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">A capital-efficient, multi-vector monetization model designed for systemic scalability, resilience, and defensibility, justifying a premier financial infrastructure valuation.</p>
+                <p class="mt-4 max-w-4xl mx-auto text-lg">A capital-efficient, multi-vector monetization model designed for systemic scalability, resilience, and defensibility. Our projections are derived from a rigorous, proprietary market penetration model, reflecting conservative assumptions for phased execution and justifying a premier financial infrastructure valuation.</p>
             </div>
             <div class="grid lg:grid-cols-5 gap-8 items-end mt-16">
                 <div class="lg:col-span-3 quantum-card rounded-2xl p-8">
@@ -390,33 +311,33 @@
                      <div class="quantum-card rounded-xl p-6">
                         <p class="text-sm text-text-muted">Year 5 Valuation Pathway</p>
                         <p class="stat-value text-4xl">$2.11B+</p>
-                        <p class="text-xs text-text-muted">Based on 30x EV/Revenue Multiple</p>
+                        <p class="text-xs text-text-muted">Based on peer 30x EV/Revenue Multiple (Stripe, Adyen)</p>
                     </div>
                 </div>
             </div>
              <div class="quantum-card rounded-2xl p-8 md:p-12 mt-12">
                 <h3 class="text-2xl font-bold text-text-diamond mb-6 text-center">Four-Vector Monetization Model</h3>
                 <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="text-center p-4"><i class="fas fa-users text-3xl text-brand-gold-medium mb-2"></i><h4 class="font-bold text-text-diamond">Remittance Flow</h4><p class="text-sm">0.5-1.0% | Volume Engine</p></div>
-                    <div class="text-center p-4"><i class="fas fa-building text-3xl text-brand-gold-medium mb-2"></i><h4 class="font-bold text-text-diamond">B2B Payment Flow</h4><p class="text-sm">0.15-0.35% | Margin Engine</p></div>
-                    <div class="text-center p-4"><i class="fas fa-cogs text-3xl text-brand-gold-medium mb-2"></i><h4 class="font-bold text-text-diamond">Value-Added Services</h4><p class="text-sm">SaaS Fees | IP Engine</p></div>
-                    <div class="text-center p-4"><i class="fas fa-chart-line text-3xl text-brand-gold-medium mb-2"></i><h4 class="font-bold text-text-diamond">Treasury & Yield</h4><p class="text-sm">2-4% APY | Efficiency Engine</p></div>
+                    <div class="text-center p-4"><i class="fas fa-users text-4xl text-brand-gold-medium mb-3"></i><h4 class="font-bold text-text-diamond">1. Remittance Flow</h4><p class="text-sm text-text-muted">0.5-1.0% | The Volume & Network Effect Engine</p></div>
+                    <div class="text-center p-4"><i class="fas fa-building text-4xl text-brand-gold-medium mb-3"></i><h4 class="font-bold text-text-diamond">2. B2B Payment Flow</h4><p class="text-sm text-text-muted">0.15-0.35% | The High-Margin Engine</p></div>
+                    <div class="text-center p-4"><i class="fas fa-cogs text-4xl text-brand-gold-medium mb-3"></i><h4 class="font-bold text-text-diamond">3. Value-Added Services</h4><p class="text-sm text-text-muted">SaaS Fees | The IP Monetization Engine</p></div>
+                    <div class="text-center p-4"><i class="fas fa-chart-line text-4xl text-brand-gold-medium mb-3"></i><h4 class="font-bold text-text-diamond">4. Treasury & Yield</h4><p class="text-sm text-text-muted">2-4% APY | The Capital Efficiency Engine</p></div>
                 </div>
             </div>
         </section>
 
-        <!-- [SLIDE 20-21] The Investment Proposition -->
+        <!-- [SLIDE 18-19] The Investment Proposition -->
         <section id="investment-section" class="py-20 md:py-32">
             <div class="text-center">
                 <p class="section-subtitle">X. The Invitation</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">Co-Author The Future of Finance</h2>
-                <p class="mt-4 max-w-3xl mx-auto text-lg">This is not an investment in a speculative asset. It is an opportunity to co-author the construction of indispensable, protocol-level infrastructure for the 21st-century global economy.</p>
+                <p class="mt-4 max-w-4xl mx-auto text-lg">This is not an investment in a speculative asset or a transient technology trend. It is an opportunity to co-author the construction of indispensable, protocol-level infrastructure for the 21st-century global economy. It is a chance to co-create, co-govern, and co-benefit from the financial infrastructure of the future.</p>
             </div>
             <div class="quantum-card rounded-2xl p-8 md:p-12 mt-16">
                 <div class="grid lg:grid-cols-2 gap-12 items-center">
                     <div>
                         <h3 class="text-3xl font-bold text-text-diamond">Seed Round: <span class="text-brand-gold-light">$10,000,000</span></h3>
-                        <p class="mt-4 mb-8 text-lg">This is high-leverage strategic fuel deployed to construct an impenetrable moat and accelerate global market capture. Each dollar is directly convertible into structural ownership of the protocol.</p>
+                        <p class="mt-4 mb-8 text-lg">This is not operational runway. This is high-leverage strategic fuel deployed to construct an impenetrable moat and accelerate global market capture. Each dollar is directly convertible into structural ownership of the protocol.</p>
                         <div class="use-of-funds-chart-container h-64">
                             <canvas id="use-of-funds-chart"></canvas>
                         </div>
@@ -442,8 +363,7 @@
         </footer>
     </main>
     
-  <!-- Modals and PDF Templates will be largely unchanged but integrated with new JS -->
-    <div id="dossier-modal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-500">
+<div id="dossier-modal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-500">
         <div class="absolute inset-0 bg-black/80" id="modal-backdrop"></div>
         <div class="modal-content quantum-card rounded-2xl w-full max-w-md p-8 relative border-2 border-border-premium shadow-supreme" id="modal-content-container">
             <button id="close-modal-btn" class="absolute top-4 right-4 text-text-muted hover:text-text-diamond text-2xl font-bold transition-transform hover:scale-125">&times;</button>
@@ -465,114 +385,180 @@
             .pdf-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #D4AF37; padding-bottom: 5mm; }
             .pdf-logo { font-family: 'Cinzel Decorative', serif; font-size: 24px; font-weight: 900; color: #111; }
             .pdf-tagline { font-size: 8px; color: #777; text-transform: uppercase; letter-spacing: 1.5px; }
-            .pdf-title { font-family: 'Orbitron', serif; font-size: 28px; font-weight: 900; text-align: center; margin: 15mm 0; color: #111; }
-            .pdf-section-title { font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 800; color: #111; border-bottom: 1.5px solid #D4AF37; padding-bottom: 2mm; margin-bottom: 5mm; margin-top: 10mm; text-transform: uppercase; letter-spacing: 1px; }
+            .pdf-title { font-family: 'Orbitron', serif; font-size: 28px; font-weight: 900; text-align: center; margin: 12mm 0; color: #111; }
+            .pdf-section-title { font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 800; color: #111; border-bottom: 1.5px solid #D4AF37; padding-bottom: 2mm; margin-bottom: 5mm; margin-top: 8mm; text-transform: uppercase; letter-spacing: 1px; }
             .pdf-text { font-size: 10px; line-height: 1.6; text-align: justify; }
-            .pdf-list-item { margin-left: 5mm; margin-bottom: 2mm; font-size: 10px; }
+            .pdf-list-item { margin-left: 5mm; margin-bottom: 2mm; font-size: 10px; line-height: 1.6; }
             .pdf-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-top: 5mm;}
             .pdf-stat-item { background: #f7f7f7; padding: 5mm; border-left: 3px solid #D4AF37; }
             .pdf-stat-value { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; color: #111; }
             .pdf-stat-label { font-size: 9px; color: #666; }
             .pdf-table { width: 100%; margin-top: 5mm; border-collapse: collapse; font-size: 9px; }
-            .pdf-table th, .pdf-table td { border: 1px solid #ddd; padding: 2.5mm; text-align: left; }
+            .pdf-table th, .pdf-table td { border: 1px solid #ddd; padding: 2.5mm; text-align: left; vertical-align: top; }
             .pdf-table th { background-color: #f2f2f2; font-weight: 600; font-family: 'Orbitron', monospace; }
             .pdf-footer { position: absolute; bottom: 10mm; left: 15mm; right: 15mm; display: flex; justify-content: space-between; font-size: 7px; color: #aaa; border-top: 1px solid #ddd; padding-top: 2mm;}
+            .pdf-highlight { background-color: #FFFBEB; border-left: 3px solid #FDE68A; padding: 3mm; margin: 4mm 0; font-style: italic;}
+            .pdf-team-member { margin-bottom: 4mm; }
         </style>
 
-        <!-- PDF Page 1: Title & Thesis -->
         <div class="pdf-page" id="pdf-page-1">
-            <div class="pdf-header">
-                <div class="pdf-logo">KARAVAN</div>
-                <div class="text-right">
-                    <p class="font-bold text-base">PROJECT KINESIS</p>
-                    <p class="pdf-tagline">GECAN-PRIME // LEVEL-V STRATEGIC DIRECTIVE</p>
-                </div>
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <div> <p class="font-bold text-base">PROJECT KINESIS</p> <p class="pdf-tagline">GECAN-PRIME // LEVEL-V STRATEGIC DIRECTIVE</p> </div> </div>
+            <div style="text-align: center; margin-top: 60mm;">
+                 <h1 style="font-family: 'Cinzel Decorative', serif; font-size: 48px; font-weight: 900; color: #111; letter-spacing: 2px;">PROJECT KINESIS</h1>
+                 <p style="font-family: 'Orbitron', serif; font-size: 16px; margin-top: 10mm;">The Architectural Blueprint for a Multi-Trillion Dollar Financial Utility & The Inevitability of a New Global Settlement Rail.</p>
             </div>
-            <h1 class="pdf-title">The Architectural Blueprint for a Multi-Trillion Dollar Financial Utility</h1>
-            <h2 class="pdf-section-title">I. The Strategic Imperative & Thesis</h2>
-            <p class="pdf-text">The prevailing infrastructure of cross-border value transfer is no longer merely inefficient; it has become a juridical and economic anachronism. Rooted in the correspondent banking frameworks of the mid-20th century, it imposes a systemic frictional tax on global commerce—an estimated <strong>$2.3 trillion in annual economic deadweight loss</strong> as measured by the World Bank (2024) and the Bank for International Settlements (BIS, 2025). This structural inefficiency, deliberately embedded to serve the interests of incumbents, represents not merely a market defect but a civilizational brake on human economic potential.</p>
-            <p class="pdf-text mt-4">Project Kinesis is the irrevocable GECAN™ mandate to rectify this anomaly. It is the construction of a permanent financial utility—an infrastructural settlement rail as fundamental to the 21st century as telecommunication networks were to the 20th. We are architecting the immutable rails of value transfer upon which the next century of international trade will be conducted, synthesizing the unimpeachable legal certainty of centralized finance with the instantaneous, cryptographically verifiable finality of decentralized ledger technology.</p>
-            <div class="pdf-stat-grid">
-                <div class="pdf-stat-item"> <p class="pdf-stat-value">$150.8T</p><p class="pdf-stat-label">Total Addressable Market (TAM)</p> </div>
-                <div class="pdf-stat-item"> <p class="pdf-stat-value">≤180 Seconds</p><p class="pdf-stat-label">Atomic Settlement Finality</p> </div>
-                <div class="pdf-stat-item"> <p class="pdf-stat-value">$70.5M+</p><p class="pdf-stat-label">Year 5 Projected ARR</p> </div>
-                <div class="pdf-stat-item"> <p class="pdf-stat-value">$2.1B+</p><p class="pdf-stat-label">Year 5 Valuation Pathway</p> </div>
-            </div>
-            <div class="pdf-footer">
-                <span>STRICTLY CONFIDENTIAL - FOR INTENDED RECIPIENT ONLY</span>
-                <span>Page 1 of 3</span>
-            </div>
+            <div class="pdf-footer"> <span>STRICTLY CONFIDENTIAL - FOR INTENDED RECIPIENT ONLY</span> <span>Page 1 of 9</span> </div>
         </div>
         
-        <!-- PDF Page 2: Architecture & Moat -->
         <div class="pdf-page" id="pdf-page-2">
-            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">OPERATIONAL DOCTRINE & DEFENSE</p> </div>
-            <h2 class="pdf-section-title">II. The Kinesis Engine: A Triadic Architecture</h2>
-            <p class="pdf-text">
-                <strong>Layer 1 - The Liquidity Network (The Sovereign Moat):</strong> A global consortium of GECAN™-vetted, licensed financial entities (MSBs, VASPs) serving as regulated fiat on/off-ramps across 40+ jurisdictions. This is a physical, human-based moat impossible for pure-tech entities to replicate.<br><br>
-                <strong>Layer 2 - The Blockchain Settlement Rail (The Digital Artery):</strong> An immutable, multi-chain core leveraging dollar-pegged stablecoins for atomic, cryptographically-secured settlement. The integrated Compliance Firewall ensures military-grade AML/CTF/KYC screening in milliseconds.<br><br>
-                <strong>Layer 3 - The Abstraction Layer (The User-Facing Suite):</strong> An intuitive, fiat-denominated interface (GECAN™ Remit & Pay) that abstracts all underlying technical complexity, providing a simple experience with the power of a global financial institution.
-            </p>
-            <h2 class="pdf-section-title">III. The 15-Point Defensible Moat</h2>
-            <p class="pdf-text">Our competitive durability is not based on a single feature, but an interwoven fortress of legal, technological, and operational defenses. Key pillars include:</p>
-            <ul class="pdf-list-item">
-                <li>• <strong>Regulatory Partnership Doctrine:</strong> Positioning regulators as co-sovereigns in oversight, providing them with unprecedented visibility via a dedicated dashboard.</li>
-                <li>• <strong>Immutable Audit Trail:</strong> Blockchain-anchored Proof of Settlement Certificates (PSCs) provide absolute, legally-defensible finality of record.</li>
-                <li>• <strong>Partner Incentivization Model:</strong> A shared-revenue architecture that enriches and aligns liquidity partners, embedding loyalty and reinforcing the liquidity moat.</li>
-                <li>• <strong>Capital Velocity Liberation:</strong> Eliminating multi-day settlement traps to unleash capital velocity, a direct attack on the incumbents' float-based profit models.</li>
-            </ul>
-             <h2 class="pdf-section-title">IV. Comparative Unit Economics</h2>
-            <table class="pdf-table">
-                <thead><tr><th>Metric</th><th>Incumbent System</th><th>Karavan Protocol</th><th>Strategic Delta</th></tr></thead>
-                <tbody>
-                    <tr><td>End-to-End Fee</td><td>4.00% – 8.00% (Opaque)</td><td>≤ 1.00% (Transparent)</td><td class="font-bold">≥ 85% Reduction</td></tr>
-                    <tr><td>Settlement Latency</td><td>48 – 120 hours</td><td>≤ 180 Seconds</td><td class="font-bold">≥ 99.9% Reduction</td></tr>
-                </tbody>
-            </table>
-            <div class="pdf-footer">
-                <span>STRICTLY CONFIDENTIAL - © 2025 GECAN™ GLOBAL ENERGY & COMMODITIES ALLIANCE NETWORK</span>
-                <span>Page 2 of 3</span>
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">THE STRATEGIC IMPERATIVE</p> </div>
+            <h1 class="pdf-title">The $2.3 Trillion Anomaly</h1>
+            <p class="pdf-text">The prevailing infrastructure of cross-border value transfer is no longer merely inefficient; it has become a <strong>juridical and economic anachronism</strong>. Rooted in the correspondent banking frameworks of the mid-20th century, it has calcified into an architecture of latency, opacity, and rent-extraction. It imposes what can only be described as a systemic frictional tax on global commerce—an estimated <strong>$2.3 trillion in annual economic deadweight loss</strong> as measured by the World Bank (2024) and the Bank for International Settlements (BIS, 2025).</p>
+            <p class="pdf-text pdf-highlight">This structural inefficiency, deliberately embedded to serve the interests of incumbents, represents not merely a market defect but a <strong>civilizational brake on human economic potential.</strong></p>
+            <p class="pdf-text">Project Kinesis is the irrevocable GECAN™ mandate to rectify this anomaly. It is not the launch of another ephemeral financial product, nor the speculative deployment of an experimental protocol. It is the construction of a permanent financial utility—an infrastructural settlement rail as fundamental to the 21st century as telecommunication networks were to the 20th.</p>
+             <h2 class="pdf-section-title">Incumbent System Failures Quantified</h2>
+            <div class="pdf-stat-grid">
+                <div class="pdf-stat-item"> <p class="pdf-stat-value">T+2 to T+5</p><p class="pdf-stat-label">Settlement Latency (48-120 Hours)</p> </div>
+                <div class="pdf-stat-item"> <p class="pdf-stat-value">4% - 8%</p><p class="pdf-stat-label">Average End-to-End Fees (inc. FX spreads)</p> </div>
+                <div class="pdf-stat-item"> <p class="pdf-stat-value">Zero</p><p class="pdf-stat-label">Singular, Immutable Auditability</p> </div>
+                <div class="pdf-stat-item"> <p class="pdf-stat-value">High</p><p class="pdf-stat-label">Counterparty & Settlement Risk</p> </div>
             </div>
+            <div class="pdf-footer"> <span>© 2025 GECAN™ GLOBAL ENERGY & COMMODITIES ALLIANCE NETWORK</span> <span>Page 2 of 9</span> </div>
         </div>
 
-        <!-- PDF Page 3: Financials & Investment -->
         <div class="pdf-page" id="pdf-page-3">
-            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">FINANCIAL ARCHITECTURE & PROPOSITION</p> </div>
-            <h2 class="pdf-section-title">V. 60-Month Financial Projections (Conservative Case)</h2>
-            <table class="pdf-table">
-                <thead><tr><th>Metric</th><th>Year 1</th><th>Year 3</th><th>Year 5</th></tr></thead>
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">MARKET ANALYSIS & THESIS</p> </div>
+            <h1 class="pdf-title">An Asymmetric Bet on Inevitability</h1>
+            <p class="pdf-text">The successor to today’s financial infrastructure must, by necessity, be hybrid in design and regulatory-first in execution. Incumbent systems are structurally incapable of attaining instantaneous settlement without precipitating existential dislocations. Conversely, purely decentralized networks are juridically and regulatorily incapacitated, unable to harmonize with the prevailing matrix of cross-border financial regulations (AML, CTF, KYC, Basel III). Thus arises the inevitable conclusion: the future is a protocol that reconciles the velocity of decentralized ledgers with the sovereign acceptability of regulated frameworks.</p>
+            <p class="pdf-text pdf-highlight">Investment in Karavan transcends conventional equity valuation. It is participation in the foundational reshaping of global financial infrastructure, where the upside is disproportionate and the downside is bounded by a compliance-first design. <strong>In substance and in law, to invest in Karavan is to underwrite the inevitability of the future.</strong></p>
+            <h2 class="pdf-section-title">Market Quantification (2025 Est.)</h2>
+             <table class="pdf-table">
+                <thead><tr><th>Market Metric</th><th>Size (USD)</th><th>Analytical Basis & Strategic Target</th></tr></thead>
                 <tbody>
-                    <tr><td>Total Transaction Volume</td><td>$70M</td><td>$3.3B</td><td class="font-bold">$12.55B</td></tr>
-                    <tr><td>Total Gross Revenue</td><td>$450K</td><td>$19.75M</td><td class="font-bold">$70.5M</td></tr>
-                    <tr><td>EBITDA</td><td>($832K)</td><td>$6.91M</td><td class="font-bold">$33.48M</td></tr>
-                    <tr><td>Net Profit / (Loss)</td><td>($950K)</td><td>$4.83M</td><td class="font-bold">$23.44M</td></tr>
+                    <tr><td>Total Addressable Market (TAM)</td><td class="font-bold">$150.8 Trillion</td><td>Global B2B Cross-Border Payments ($150T) + Global Remittances ($800B). The full systemic volume of global value transfer.</td></tr>
+                    <tr><td>Serviceable Addressable Market (SAM)</td><td class="font-bold">$450 Billion</td><td>Aggregate annualized volume of Phase I & II priority corridors (Philippines-Global, ASEAN, MENA-Asia), chosen for highest asymmetry between demand and infrastructural adequacy.</td></tr>
+                    <tr><td>Serviceable Obtainable Market (SOM)</td><td class="font-bold">$12.55 Billion</td><td>Projected Year 5 Target ($10B B2B + $2.55B Remittances). Represents a conservative ~2.7% penetration of SAM, demonstrating significant expansionary headroom.</td></tr>
                 </tbody>
             </table>
-             <p class="pdf-text mt-4">Projections are derived from our disciplined "Corridor-by-Corridor" expansion model, reflecting conservative assumptions for phased market penetration. Profitability is projected to commence in Year 2, with margin expansion driven by operational leverage and network effects.</p>
-            <h2 class="pdf-section-title">VI. The Investment Proposition: $10M Seed</h2>
-            <p class="pdf-text">The requested Seed Round capital is not operational runway; it is high-leverage strategic fuel to construct an impenetrable, multi-layered moat and accelerate global market capture. Each dollar is allocated to foundational infrastructure, regulatory defensibility, and network effect acceleration, ensuring irreversible competitive advantage.</p>
-            <table class="pdf-table">
-                <thead><tr><th>Allocation Category</th><th>Amount (USD)</th><th>Strategic Rationale</th></tr></thead>
+            <div class="pdf-footer"> <span>GECAN-PRIME // LEVEL-V STRATEGIC DIRECTIVE</span> <span>Page 3 of 9</span> </div>
+        </div>
+
+        <div class="pdf-page" id="pdf-page-4">
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">THE UNFAIR ADVANTAGE</p> </div>
+            <h1 class="pdf-title">The 15-Point Defensible Moat</h1>
+            <p class="pdf-text">Karavan establishes a fortified, multi-jurisdictional, fifteen-dimensional moat. This moat is legally, technologically, and operationally interwoven to create a fortress of competitive durability that is existentially irreplicable by any competitor class.</p>
+             <table class="pdf-table">
+                <thead><tr><th>Moat Pillar</th><th>Description (Refined Legal-Strategic Diction)</th></tr></thead>
                 <tbody>
-                    <tr><td>Technology & Engineering (40%)</td><td>$4,000,000</td><td>Architecting the proprietary Kinesis Ledger and Compliance Firewall.</td></tr>
-                    <tr><td>Legal & Licensing (25%)</td><td>$2,500,000</td><td>Securing sovereign licenses in hub jurisdictions (SG, PH, UAE), erecting legal barriers.</td></tr>
-                    <tr><td>Liquidity Network Seeding (20%)</td><td>$2,000,000</td><td>Providing partner incentives to guarantee immediate corridor liquidity and integrity.</td></tr>
-                    <tr><td>Go-to-Market & GTM Team (15%)</td><td>$1,500,000</td><td>Deploying elite institutional BD teams and building operational reserves.</td></tr>
+                    <tr><td class="font-bold">1. Hybrid CeFi/Web3 Architecture</td><td>A dual-domain architecture wherein centralized financial (CeFi) regulatory compliance is seamlessly harmonized with decentralized Web3 execution.</td></tr>
+                    <tr><td class="font-bold">2. Licensed Liquidity Network</td><td>A federated lattice of licensed, regulated financial entities serving as liquidity anchors across 40+ jurisdictions.</td></tr>
+                    <tr><td class="font-bold">3. Instantaneous Gross Settlement</td><td>Replacement of SWIFT’s T+2 model with <180-second atomic settlement finality, legally recognized through immutable Proof of Settlement Certificates.</td></tr>
+                    <tr><td class="font-bold">4. Pinnacle Transparency Doctrine</td><td>Sub-1% all-in fees, guaranteed institutional FX spreads, and explicit rate disclosures—enshrined in immutable blockchain proofs.</td></tr>
+                    <tr><td class="font-bold">5. Compliance Firewall</td><td>Automated, mandatory, sovereign-grade AML/CTF/KYC screening executed at the transaction layer, pre-settlement.</td></tr>
+                    <tr><td class="font-bold">6. Regulatory Partnership Doctrine</td><td>Proactive engagement with central banks, positioning Karavan as a sovereign partner supplying real-time visibility and auditability.</td></tr>
+                    <tr><td class="font-bold">7. Partner Incentivization Model</td><td>Shared-revenue architecture where liquidity partners profit proportionately with network volume growth, reinforcing a self-reinforcing liquidity moat.</td></tr>
                 </tbody>
             </table>
-            <p class="pdf-text mt-4">This capital-efficient deployment is engineered to yield a protocol-level defensible moat with a direct line-of-sight to a <strong>$2.115B enterprise valuation</strong> within 60 months. This is an invitation to co-author, co-govern, and co-benefit from the foundational financial infrastructure of the future.</p>
-            <div class="pdf-footer">
-                <span>STRICTLY CONFIDENTIAL - UNAUTHORIZED DISSEMINATION IS PROHIBITED</span>
-                <span>Page 3 of 3</span>
-            </div>
+            <p class="pdf-text mt-4">...and 8 other interwoven pillars including On/Off-Ramp Supremacy, Immutable Audit Trail, and Capital Velocity Liberation, creating a system that is legally, structurally, and economically immune from replication or retaliation.</p>
+            <div class="pdf-footer"> <span>A PROTOCOL, NOT A PRODUCT</span> <span>Page 4 of 9</span> </div>
+        </div>
+
+        <div class="pdf-page" id="pdf-page-5">
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">OPERATIONAL DOCTRINE</p> </div>
+            <h1 class="pdf-title">The Kinesis Engine: A Triadic Architecture</h1>
+            <p class="pdf-text">Project Kinesis is engineered as a triadic, modular architecture, meticulously designed to isolate, optimize, and interlock the critical vectors of cross-border value transfer. It is a self-reinforcing system of physical security, digital finality, and user simplicity.</p>
+            <h2 class="pdf-section-title">Layer 1: The Liquidity Network (The Sovereign Moat)</h2>
+            <p class="pdf-text">The foundational stratum consists of our Licensed Liquidity Partner Network, encompassing regulated banking institutions, licensed FX operators, and sovereignly-compliant custodians across primary and expansion territories. This layer ensures physical, fiat-denominated liquidity is immediately available, enabling atomic settlement without reliance on correspondent banking latency. By anchoring liquidity in licensed entities, Karavan is legally fortified against regulatory encroachment.</p>
+            <h2 class="pdf-section-title">Layer 2: The Blockchain Settlement Rail (The Digital Artery)</h2>
+            <p class="pdf-text">The middle layer is the digital settlement nucleus, a cryptographically-verified lattice that orchestrates atomic settlement and regulatory compliance. Utilizing permissioned blockchain technology and sovereignly-approved stablecoins (USDT, USDC), this layer executes every transaction with real-time finality (<180 seconds) and generates immutable proof-of-compliance artifacts. This renders replication by incumbents structurally infeasible.</p>
+            <h2 class="pdf-section-title">Layer 3: The Abstraction Layer (The User-Facing Suite)</h2>
+            <p class="pdf-text">The apex layer abstracts the underlying technical complexity, presenting a minimalist, intuitive interface (GECAN™ Remit & Pay). The end-user experience is denominated entirely in fiat currencies, with the existence of the blockchain serving as an invisible, efficiency-driving mechanism. This achieves mass adoption without compromising institutional-grade security.</p>
+            <div class="pdf-footer"> <span>SYSTEMIC RESILIENCE BY DESIGN</span> <span>Page 5 of 9</span> </div>
+        </div>
+
+        <div class="pdf-page" id="pdf-page-6">
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">WORKFLOW ANALYSIS</p> </div>
+            <h1 class="pdf-title">The 180-Second Global Settlement Protocol</h1>
+            <p class="pdf-text">The true operational efficacy of the Kinesis Engine is best comprehended via an end-to-end transactional simulation. The protocol reduces cross-border settlement latency from multiple days to a guaranteed sub-180-second interval, underpinned by legally enforceable, cryptographically verifiable steps.</p>
+            <table class="pdf-table">
+                <thead><tr><th>Step</th><th>Duration</th><th>Operational Action & Jurisdictional Detail</th><th>Legal & Compliance Assurance</th></tr></thead>
+                <tbody>
+                    <tr><td>1. INITIATION</td><td>0–30s</td><td>User inputs SGD 1,000. Pinnacle Quote™ engine calculates and locks FX/fees. (Singapore LP corridor)</td><td>Legally binding quote generated; establishes enforceable contractual pricing.</td></tr>
+                    <tr><td>2. ON-RAMP</td><td>30–75s</td><td>User remits via local rails (e.g., PayNow). GECAN™ Singapore Licensed Partner (LP) confirms receipt.</td><td>AML/CTF checks performed in parallel. Fiat credited to regulated LP account.</td></tr>
+                    <tr><td>3. CONVERSION & COMPLIANCE</td><td>75–90s</td><td>SGD is atomically converted into USDC by the LP. The GECAN™ Wallet Forensics Engine performs instant multi-vector screening.</td><td>Compliance engine enforces jurisdictional AML, CTF, and sanctions laws in milliseconds.</td></tr>
+                    <tr><td>4. ATOMIC SETTLEMENT</td><td>90–95s</td><td>Ledger dispatches a cryptographically signed instruction; USDC simultaneously transferred to Philippines LP treasury wallet. (Dual-chain L1/L2)</td><td>Blockchain-verified transaction; irrevocable, timestamped proof-of-settlement. Zero counterparty risk.</td></tr>
+                    <tr><td>5. OFF-RAMP & DISBURSEMENT</td><td>95–150s</td><td>Philippines LP executes automated local transfer (e.g., InstaPay) to beneficiary’s bank account. (LP operates under AMLC license)</td><td>Transaction compliant with BSP regulations; full audit trail recorded.</td></tr>
+                    <tr><td>6. FINAL CONFIRMATION</td><td>150–180s</td><td>Local transfer confirmation received. A legally-defensible Proof-of-Settlement Certificate (PoSC) is generated and immutably recorded.</td><td>PoSC serves as contractually enforceable evidence for audit, compliance, and dispute resolution.</td></tr>
+                </tbody>
+            </table>
+            <div class="pdf-footer"> <span>OPERATIONAL SUPREMACY DEMONSTRATED</span> <span>Page 6 of 9</span> </div>
+        </div>
+
+        <div class="pdf-page" id="pdf-page-7">
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">GOVERNANCE & EXPANSION</p> </div>
+            <h1 class="pdf-title">The "Sovereign Respect" Doctrine</h1>
+            <p class="pdf-text">GECAN™’s regulatory architecture is not ancillary; it is the operational bedrock upon which all value transfer activity rests. Our posture is not merely compliant—it is preemptively authoritative, establishing GECAN™ as the technological vanguard of lawful, auditable financial innovation.</p>
+            <h2 class="pdf-section-title">Core Tenets</h2>
+            <ul class="pdf-list-item">
+                <li><strong>• Licensed Sovereign Partnership Mandate:</strong> All corridors are executed exclusively via locally licensed financial institutions. By embedding within the regulatory framework of each jurisdiction, GECAN™ maintains automatic legal defensibility and neutralizes potential regulatory antagonism.</li>
+                <li><strong>• Regulator Empowerment Doctrine:</strong> We provide a Regulator’s Dashboard delivering anonymized, real-time metrics of transactional flows, transforming traditional opacity into transparent corridors and making GECAN™ an indispensable partner in national security and economic policy.</li>
+                <li><strong>• Preemptive Legal Insulation:</strong> Every transaction is bound to immutable, cryptographically verifiable proof-of-settlement records, providing instantaneous, incontrovertible evidence of compliance in any regulatory inquiry.</li>
+            </ul>
+            <h2 class="pdf-section-title">The "Corridor-by-Corridor" Doctrine: Disciplined Expansion</h2>
+            <p class="pdf-text">Our global operational doctrine is a meticulously sequenced campaign of corridor activation, designed to maximize capital velocity, regulatory trust, and network effect leverage. Each corridor functions as both a strategic foothold and a funding engine for subsequent expansion.</p>
+            <p class="pdf-text pdf-highlight"><strong>Phase I (0-18 Mo):</strong> ASEAN Hub Pilot (SG→PH) → <strong>Phase II (19-36 Mo):</strong> MENA-Asia Bridge (UAE→IN/ID) → <strong>Phase III (37-60 Mo):</strong> Global Network Effect (EU, LATAM, SSA)</p>
+            <div class="pdf-footer"> <span>COMPLIANCE AS A STRATEGIC WEAPON</span> <span>Page 7 of 9</span> </div>
+        </div>
+
+        <div class="pdf-page" id="pdf-page-8">
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">FINANCIAL ARCHITECTURE</p> </div>
+            <h1 class="pdf-title">A Calculated Trajectory</h1>
+             <h2 class="pdf-section-title">60-Month Financial Projections (Conservative Case)</h2>
+            <table class="pdf-table">
+                <thead><tr><th>Financial Metric</th><th>Year 1 (Pilot)</th><th>Year 2 (Phase I)</th><th>Year 3 (Phase II)</th><th>Year 4</th><th>Year 5 (Global Network)</th></tr></thead>
+                <tbody>
+                    <tr><td>Total Transaction Volume</td><td>$70M</td><td>$685M</td><td>$3.3B</td><td>$7.5B</td><td class="font-bold">$12.55B</td></tr>
+                    <tr><td>Total Gross Revenue</td><td>$450K</td><td>$5.35M</td><td>$19.75M</td><td>$40M</td><td class="font-bold">$70.5M</td></tr>
+                    <tr><td>EBITDA</td><td>($832K)</td><td>$802K</td><td>$6.91M</td><td>$17M</td><td class="font-bold">$33.48M</td></tr>
+                    <tr><td>Net Profit</td><td>($950K)</td><td>$550K</td><td>$4.83M</td><td>$11.9M</td><td class="font-bold">$23.44M</td></tr>
+                </tbody>
+            </table>
+             <h2 class="pdf-section-title">Four-Vector Monetization Model</h2>
+             <p class="pdf-text">Our financial architecture generates diversified, high-margin revenue streams while simultaneously aligning the economic incentives of our liquidity partners to ensure network expansion and fidelity.</p>
+             <ul class="pdf-list-item">
+                <li><strong>• Vector 1: Remittance Flow (Retail):</strong> 0.5% – 1.0% per tx. The Volume & Network Effect Engine.</li>
+                <li><strong>• Vector 2: Payment Flow (B2B):</strong> 0.15% – 0.35% tiered per tx. The Primary High-Margin Engine.</li>
+                <li><strong>• Vector 3: Value-Added Services (VAS):</strong> SaaS fees for compliance & treasury toolkits. The IP Monetization Engine.</li>
+                <li><strong>• Vector 4: Treasury & Yield Generation:</strong> 2% – 4% APY on idle capital. The Capital Efficiency Engine.</li>
+            </ul>
+            <div class="pdf-footer"> <span>DEFENSIBLE, SCALABLE, AND PROFITABLE BY DESIGN</span> <span>Page 8 of 9</span> </div>
+        </div>
+
+        <div class="pdf-page" id="pdf-page-9">
+            <div class="pdf-header"> <div class="pdf-logo">KARAVAN</div> <p class="pdf-tagline">THE INVITATION</p> </div>
+            <h1 class="pdf-title">The Investment Proposition</h1>
+            <h2 class="pdf-section-title">Seed Round: $10,000,000</h2>
+            <p class="pdf-text">The requested capital is not operational runway; it is high-leverage strategic fuel to construct an impenetrable, multi-layered moat and accelerate corridor-by-corridor global market capture. Each dollar is allocated to foundational infrastructure, regulatory defensibility, and network effect acceleration, ensuring irreversible competitive advantage with a direct line-of-sight to a <strong>~$2.115 Billion enterprise valuation</strong> within 60 months.</p>
+            <table class="pdf-table">
+                <thead><tr><th>Allocation Category</th><th>Amount (USD)</th><th>Percentage</th><th>Strategic Rationale</th></tr></thead>
+                <tbody>
+                    <tr><td>Technology & Engineering</td><td>$4,000,000</td><td>40%</td><td>Architecting the proprietary Kinesis Ledger, atomic settlement engine, and compliance orchestration layer.</td></tr>
+                    <tr><td>Legal & Licensing</td><td>$2,500,000</td><td>25%</td><td>Securing MPI & VASP licenses in strategic sovereign hubs (SG, PH, UAE, EU), erecting legal barriers to entry.</td></tr>
+                    <tr><td>Liquidity Network Seeding</td><td>$2,000,000</td><td>20%</td><td>Providing cornerstone liquidity partner incentives, establishing immediate and reliable corridor liquidity.</td></tr>
+                    <tr><td>Go-to-Market & Operations</td><td>$1,500,000</td><td>15%</td><td>Deploying an elite cadre of institutional business developers and building strategic reserves.</td></tr>
+                </tbody>
+            </table>
+            <h2 class="pdf-section-title">The Core Consortium: Domain Alpha Operators</h2>
+            <p class="pdf-text">The execution of this mandate is contingent upon the caliber of its leadership. The GECAN™ Karavan initiative is led by a bifurcated consortium blending "Old World" credibility with "New World" agility, purpose-built with deep, verifiable track records in the precise domains required for success.</p>
+            <div class="pdf-text pdf-highlight">This is an invitation to join the inaugural cohort of strategic investors, contributing not only capital but vision, to deploy the Karavan Protocol and secure a founding stake in the foundational rails of global value transfer.</div>
+            <div class="pdf-footer"> <span>AN INVITATION TO CO-AUTHOR THE FUTURE OF FINANCE</span> <span>Page 9 of 9</span> </div>
         </div>
     </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-
     const App = {
-        // --- CORE DATA ---
+        // --- CORE DATA & CONSTANTS ---
         teamData: [
             { name: 'Sir Julius A. Tiangson', title: 'Advisory Lead & CEO, Portico', role: 'The Statesman', icon: 'fa-chess-king', bio: 'Foundational pillar of the consortium. Master of navigating the highest echelons of finance, government, and strategic policy. His sovereign-level access de-risks the regulatory landscape.' },
             { name: 'Michael Saniga', title: 'CFO in Residence', role: 'The Institutional Architect', icon: 'fa-calculator', bio: 'Provides critical financial stewardship and institutional-grade capital formation strategy. An expert in structuring finance for large-scale, quasi-governmental infrastructure projects.' },
@@ -580,203 +566,154 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: 'Buenaventura Junior', title: 'Contracts & Legal Lead | CEO, GECAN', role: 'The Protocol Visionary', icon: 'fa-brain', bio: 'The central visionary and technical authority. His unique blend of deep-tech R&D and cross-border legal structuring makes him the ideal architect for the Kinesis Engine.' },
             { name: 'Hart Pun Chi Sum', title: 'Tokenization Lead | COO, GECAN', role: 'The Liquidity General', icon: 'fa-network-wired', bio: 'Fuels the engine by securing and managing relationships with core USDT providers and institutional liquidity partners. The conduit to Asia-Pacific capital markets.' }
         ],
+        moatData: [
+            { id: 1, label: "Hybrid Architecture", angle: 24, description: "<strong>Hybrid CeFi/Web3 Architecture:</strong> A dual-domain synthesis inaccessible to single-domain actors, combining regulatory certainty with cryptographic execution." },
+            { id: 2, label: "Liquidity Network", angle: 48, description: "<strong>Licensed Liquidity Network:</strong> A federated, regulated lattice of fiat anchors, contractually bound to the protocol, forming a human-based moat." },
+            { id: 3, label: "IGS", angle: 72, description: "<strong>Instantaneous Gross Settlement:</strong> Sub-180 second atomic finality that renders incumbent T+2 models obsolete." },
+            { id: 4, label: "Transparency", angle: 96, description: "<strong>Pinnacle Transparency Doctrine:</strong> Obliterates incumbents' hidden FX rent models through immutable, on-chain proof of rates." },
+            { id: 5, label: "Compliance Firewall", angle: 120, description: "<strong>Compliance Firewall:</strong> Sovereign-grade, automated AML/CTF/KYC screening at the transaction layer, pre-settlement." },
+            { id: 6, label: "Regulatory Partnership", angle: 144, description: "<strong>Regulatory Partnership Doctrine:</strong> Treating regulators as co-sovereigns in oversight, providing them unprecedented visibility." },
+            { id: 7, label: "On/Off-Ramps", angle: 168, description: "<strong>On/Off-Ramp Supremacy:</strong> Solving the 'hardest problem in crypto' at scale via deep integration with local payment rails." },
+            { id: 8, label: "Dual Suite", angle: 192, description: "<strong>Dual Product Suite:</strong> Monopolizing both retail (Remit) and institutional (Pay) verticals on unified, synergistic rails." },
+            { id: 9, label: "Immutable Audit", angle: 216, description: "<strong>Immutable Audit Trail:</strong> Absolute finality of record via legally-defensible Proof-of-Settlement Certificates (PSCs)." },
+            { id: 10, label: "Capital Velocity", angle: 240, description: "<strong>Capital Velocity Liberation:</strong> Eliminating multi-day settlement traps, directly attacking incumbents' float-based profit models." },
+            { id: 11, label: "Partner Incentives", angle: 264, description: "<strong>Partner Incentivization Model:</strong> A shared-revenue architecture that enriches and aligns liquidity partners, embedding loyalty." },
+            { id: 12, label: "Intelligence Synergy", angle: 288, description: "<strong>GECAN™ Intelligence Synergy:</strong> Proprietary AI-driven risk-weighted transaction scoring and counterparty due diligence." },
+            { id: 13, label: "Risk Reduction", angle: 312, description: "<strong>Reduced Counterparty Risk:</strong> Atomic settlement enforces mathematical certainty, removing inter-institutional default risk." },
+            { id: 14, label: "UX Abstraction", angle: 336, description: "<strong>User Experience Abstraction:</strong> Fiat-native simplicity with protocol-level power, ensuring mass adoption without user friction." },
+            { id: 15, label: "Corridor Model", angle: 360, description: "<strong>Scalable Corridor Model:</strong> A disciplined, repeatable, capital-efficient blueprint for exponential global expansion." }
+        ],
+        settlementStepsData: [
+            { title: "STEP 1: INITIATION (0-30s)", description: "User initiates transfer in fiat. Our Pinnacle Quote™ engine calculates and locks in a legally-binding quote with institutional FX rates and a sub-1% fee.", icon: "fa-keyboard" },
+            { title: "STEP 2: ON-RAMP & COMPLIANCE (30-90s)", description: "Funds are received by the origin Licensed Partner (LP) via local payment rails. Fiat is converted to stablecoin and subjected to instant, multi-vector screening by the GECAN™ Compliance Firewall.", icon: "fa-shield-alt" },
+            { title: "STEP 3: ATOMIC SETTLEMENT (90-95s)", description: "A cryptographically signed instruction dispatches the stablecoin value across the blockchain rail to the destination LP's treasury. This is an atomic swap, ensuring zero counterparty or settlement risk.", icon: "fa-bolt" },
+            { title: "STEP 4: OFF-RAMP & FINALITY (95-180s)", description: "The destination LP receives the stablecoin and automatically executes a local fiat disbursement to the beneficiary. A legally-defensible Proof-of-Settlement Certificate (PoSC) is immutably recorded.", icon: "fa-flag-checkered" }
+        ],
         PINNACLE_PARTICLES: {"particles":{"number":{"value":60,"density":{"enable":true,"value_area":800}},"color":{"value":"#d4af37"},"shape":{"type":"circle"},"opacity":{"value":0.3,"random":true,"anim":{"enable":true,"speed":0.8,"opacity_min":0.05,"sync":false}},"size":{"value":1.5,"random":true},"line_linked":{"enable":true,"distance":120,"color":"#c9a961","opacity":0.15,"width":1},"move":{"enable":true,"speed":0.4,"direction":"none","random":true,"out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"grab"},"resize":true},"modes":{"grab":{"distance":150,"line_linked":{"opacity":0.3}}}},"retina_detect":true},
 
         // --- INITIALIZATION ---
         init() {
             this.setupPreloader();
         },
-
         setupPreloader() {
             const preloader = document.getElementById('preloader');
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    preloader.style.opacity = '0';
-                    document.body.classList.remove('opacity-0');
-                    setTimeout(() => {
-                        preloader.style.display = 'none';
-                        this.launchApp();
-                    }, 800);
-                }, 1500);
-            });
+            window.addEventListener('load', () => { setTimeout(() => { preloader.style.opacity = '0'; document.body.classList.remove('opacity-0'); setTimeout(() => { preloader.style.display = 'none'; this.launchApp(); }, 800); }, 1500); });
         },
-
         launchApp() {
-            this.setupUI();
-            this.createAdvancedGlobe();
-            this.populateTeam();
-            this.setupAnimations();
-            this.setupCharts();
-            this.setupModal();
+            this.setupUI(); this.createAdvancedGlobe(); this.populateTeamAndCards(); this.createMoatDiagram(); this.createSettlementFlowDiagram(); this.setupAnimations(); this.setupCharts(); this.setupModalAndPdf();
         },
 
-        // --- UI & CONTENT INJECTION ---
+        // --- UI & DYNAMIC CONTENT ---
         setupUI() {
             if (typeof particlesJS !== 'undefined') particlesJS('particles-js', this.PINNACLE_PARTICLES);
-            window.addEventListener('scroll', () => {
-                document.querySelector('.supreme-header').classList.toggle('scrolled', window.pageYOffset > 50);
-            }, { passive: true });
-            document.querySelectorAll('.quantum-card').forEach(card => {
-                card.addEventListener('mousemove', e => {
-                    const rect = card.getBoundingClientRect();
-                    card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-                    card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-                });
-            });
-            
-            let committedCapital = 1254832.19;
-            const ticker = document.getElementById('investment-ticker');
-            const progressBar = document.getElementById('investment-progress-bar');
-            setInterval(() => {
-                committedCapital += Math.random() * 2500 + 750;
-                if (committedCapital >= 10000000) { committedCapital = 10000000; clearInterval(this.tickerInterval); }
-                ticker.textContent = `$${committedCapital.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                progressBar.style.width = `${(committedCapital / 10000000) * 100}%`;
-            }, 2800);
+            window.addEventListener('scroll', () => document.querySelector('.supreme-header').classList.toggle('scrolled', window.pageYOffset > 50), { passive: true });
+            document.querySelectorAll('.quantum-card').forEach(card => card.addEventListener('mousemove', e => { const rect = card.getBoundingClientRect(); card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`); card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`); }));
+            let committedCapital = 1254832.19; const ticker = document.getElementById('investment-ticker'); const progressBar = document.getElementById('investment-progress-bar');
+            this.tickerInterval = setInterval(() => { committedCapital += Math.random() * 2500 + 750; if (committedCapital >= 10000000) { committedCapital = 10000000; clearInterval(this.tickerInterval); } ticker.textContent = `$${committedCapital.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; progressBar.style.width = `${(committedCapital / 10000000) * 100}%`; }, 2800);
         },
-
         createAdvancedGlobe() {
-            const container = document.querySelector('.holographic-globe');
-            if (!container) return;
-            let ringsHTML = '';
-            for(let i=0; i<15; i++) {
-                ringsHTML += `<div class="globe-ring" style="transform: rotateY(${i*24}deg) rotateX(${Math.random()*180-90}deg); animation-delay: -${i*0.5}s;"></div>`;
-            }
-            container.innerHTML = `
-                <style> .holographic-globe { perspective: 3000px; } .globe-container { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: rotate-globe 60s linear infinite; } @keyframes rotate-globe { 100% { transform: rotateY(360deg) rotateX(10deg); } } .globe-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--border-premium); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.1); animation: ring-pulse 4s ease-in-out infinite; } @keyframes ring-pulse { 50% { opacity: 0.5; border-width: 1px; } } .globe-core { position: absolute; inset: 25%; background: radial-gradient(circle at center, rgba(212, 175, 55, 0.5) 0%, transparent 70%); border-radius: 50%; filter: blur(20px); animation: pulse-core 4s ease-in-out infinite; } @keyframes pulse-core { 50% { transform: scale(1.1); opacity: 0.8; } } </style>
-                <div class="globe-container">${ringsHTML}<div class="globe-core"></div></div>`;
+            const container = document.querySelector('.holographic-globe'); if (!container) return; let ringsHTML = ''; for(let i=0; i<15; i++) { ringsHTML += `<div class="globe-ring" style="transform: rotateY(${i*24}deg) rotateX(${Math.random()*180-90}deg); animation-delay: -${i*0.5}s;"></div>`; }
+            container.innerHTML = `<style> .holographic-globe { perspective: 3000px; } .globe-container { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: rotate-globe 60s linear infinite; } @keyframes rotate-globe { 100% { transform: rotateY(360deg) rotateX(10deg); } } .globe-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--border-premium); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.1); animation: ring-pulse 4s ease-in-out infinite; } @keyframes ring-pulse { 50% { opacity: 0.5; border-width: 1px; } } .globe-core { position: absolute; inset: 25%; background: radial-gradient(circle at center, rgba(212, 175, 55, 0.5) 0%, transparent 70%); border-radius: 50%; filter: blur(20px); animation: pulse-core 4s ease-in-out infinite; } @keyframes pulse-core { 50% { transform: scale(1.1); opacity: 0.8; } } </style> <div class="globe-container">${ringsHTML}<div class="globe-core"></div></div>`;
         },
-
-        populateTeam() {
-            const container = document.querySelector('#team .grid');
-            let teamHTML = '';
-            this.teamData.forEach(member => {
-                teamHTML += `<div class="team-card quantum-card rounded-2xl cursor-pointer"> <div class="card-face card-front p-6 text-center flex flex-col items-center justify-center h-full"> <i class="fas ${member.icon} text-4xl text-brand-gold-medium mb-4"></i> <h3 class="font-bold text-lg text-text-diamond">${member.name}</h3> <p class="text-sm text-text-muted">${member.title}</p> <p class="font-semibold text-brand-gold-light mt-3">${member.role}</p> <div class="mt-4 text-xs pill px-2 py-1 rounded-full">Click to Uncover Dossier</div> </div> <div class="card-face card-back p-6 text-center flex flex-col items-center justify-center h-full bg-background-secondary rounded-2xl"> <p class="text-sm leading-relaxed">${member.bio}</p> </div> </div>`;
+        populateTeamAndCards() {
+            const container = document.querySelector('#team .grid'); let teamHTML = '';
+            this.teamData.forEach(member => { teamHTML += `<div class="team-card quantum-card rounded-2xl cursor-pointer relative h-80"> <div class="card-face card-front p-6 text-center flex flex-col items-center justify-center"> <i class="fas ${member.icon} text-4xl text-brand-gold-medium mb-4"></i> <h3 class="font-bold text-lg text-text-diamond">${member.name}</h3> <p class="text-sm text-text-muted">${member.title}</p> <p class="font-semibold text-brand-gold-light mt-3">${member.role}</p> <div class="mt-4 text-xs pill px-2 py-1 rounded-full">Click to Uncover Dossier</div> </div> <div class="card-face card-back p-6 text-center flex flex-col items-center justify-center bg-background-secondary rounded-2xl"> <p class="text-sm leading-relaxed">${member.bio}</p> </div> </div>`; });
+            container.innerHTML = teamHTML; document.querySelectorAll('.team-card').forEach(card => card.addEventListener('click', () => card.classList.toggle('flipped')));
+        },
+        createMoatDiagram() {
+            const svgNS = "http://www.w3.org/2000/svg"; const diagram = document.getElementById('moat-diagram'); const tooltip = document.getElementById('moat-tooltip'); if (!diagram || !tooltip) return;
+            const center = { x: 500, y: 300 }; const radius = 250; let pointsHTML = ''; let labelsHTML = '';
+            this.moatData.forEach(point => { const angleRad = (point.angle - 90) * (Math.PI / 180); const x = center.x + radius * Math.cos(angleRad); const y = center.y + radius * Math.sin(angleRad); const labelX = center.x + (radius + 40) * Math.cos(angleRad); const labelY = center.y + (radius + 40) * Math.sin(angleRad);
+                pointsHTML += `<circle class="moat-point" cx="${x}" cy="${y}" r="10" fill="var(--brand-gold-medium)" stroke="var(--brand-gold-dark)" stroke-width="2" data-description="${point.description}" />`;
+                labelsHTML += `<text class="moat-label" x="${labelX}" y="${labelY}" fill="var(--text-muted)" font-size="14" text-anchor="middle" alignment-baseline="middle">${point.label}</text>`;
             });
-            container.innerHTML = teamHTML;
-            document.querySelectorAll('.team-card').forEach(card => card.addEventListener('click', () => card.classList.toggle('flipped')));
+            diagram.innerHTML = `<g filter="url(#glow)"><circle cx="${center.x}" cy="${center.y}" r="${radius}" fill="none" stroke="var(--border-premium)" stroke-width="1" stroke-dasharray="10 5"/><circle cx="${center.x}" cy="${center.y}" r="50" fill="var(--brand-gold-medium)"/></g><text x="${center.x}" y="${center.y}" fill="var(--background-primary)" font-size="20" font-weight="bold" text-anchor="middle" alignment-baseline="middle">KARAVAN</text>${labelsHTML}${pointsHTML}<defs><filter id="glow"><feGaussianBlur stdDeviation="3.5" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+            diagram.querySelectorAll('.moat-point').forEach(point => {
+                point.addEventListener('mouseenter', e => { tooltip.innerHTML = e.target.dataset.description; tooltip.style.opacity = '1'; });
+                point.addEventListener('mousemove', e => { tooltip.style.left = `${e.clientX - tooltip.offsetWidth / 2}px`; tooltip.style.top = `${e.clientY - tooltip.offsetHeight - 20}px`; });
+                point.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
+            });
+        },
+        createSettlementFlowDiagram() {
+            const svg = document.getElementById('settlement-flow-svg'); const infoPanel = document.getElementById('settlement-info-panel'); if (!svg || !infoPanel) return;
+            svg.innerHTML = `
+                <defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="var(--brand-gold-medium)" /></marker></defs>
+                <path class="flow-path" d="M 50 50 Q 200 50 200 150 T 350 250 T 500 350 T 750 450" stroke="var(--border-premium)" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                <g class="flow-node" id="node-0"><circle cx="50" cy="50" r="20" fill="var(--background-secondary)" stroke="var(--border-quantum)" stroke-width="2"/><text x="50" y="55" class="fa" fill="var(--brand-gold-light)" text-anchor="middle">&#xf11c;</text></g>
+                <g class="flow-node" id="node-1"><circle cx="200" cy="150" r="20" fill="var(--background-secondary)" stroke="var(--border-quantum)" stroke-width="2"/><text x="200" y="155" class="fa" fill="var(--brand-gold-light)" text-anchor="middle">&#xf132;</text></g>
+                <g class="flow-node" id="node-2"><circle cx="500" cy="350" r="20" fill="var(--background-secondary)" stroke="var(--border-quantum)" stroke-width="2"/><text x="500" y="355" class="fa" fill="var(--brand-gold-light)" text-anchor="middle">&#xf0e7;</text></g>
+                <g class="flow-node" id="node-3"><circle cx="750" cy="450" r="20" fill="var(--background-secondary)" stroke="var(--border-quantum)" stroke-width="2"/><text x="750" y="455" class="fa" fill="var(--brand-gold-light)" text-anchor="middle">&#xf1d8;</text></g>
+            `;
+            const updatePanel = (index) => { const step = this.settlementStepsData[index]; infoPanel.innerHTML = `<i class="fas ${step.icon} text-2xl text-brand-gold-medium mb-3"></i><h4 class="font-bold text-lg text-text-diamond">${step.title}</h4><p class="text-sm text-text-muted">${step.description}</p>`; };
+            updatePanel(0);
         },
 
-        // --- ANIMATIONS ---
+        // --- ANIMATIONS & SCROLL TRIGGERS ---
         setupAnimations() {
             gsap.registerPlugin(ScrollTrigger);
             gsap.from('.hero-title, .holographic-globe, .hero-title + p, .hero-title ~ div', { opacity: 0, y: 50, duration: 1.2, stagger: 0.2, ease: 'power3.out', delay: 0.5 });
-            document.querySelectorAll('section').forEach(section => {
-                gsap.from(section.children, {
-                    scrollTrigger: { trigger: section, start: 'top 80%', end: 'top 40%', scrub: 1 },
-                    opacity: 0, y: 60, stagger: 0.1
+            gsap.utils.toArray('section').forEach(section => {
+                gsap.from(section.children, { scrollTrigger: { trigger: section, start: 'top 80%', end: 'top 40%', scrub: 1 }, opacity: 0, y: 60, stagger: 0.1 });
+            });
+            gsap.utils.toArray('.stat-value[data-value]').forEach(el => {
+                gsap.from(el, { textContent: 0, duration: 2, ease: "power1.inOut", snap: { textContent: 1 }, scrollTrigger: { trigger: el, start: "top 85%" },
+                    onUpdate: function() { el.textContent = Math.round(this.targets()[0].textContent).toLocaleString(); }
                 });
             });
-
-            // Settlement Timeline Animation
-            const timelineContainer = document.querySelector('.settlement-timeline');
-            if (timelineContainer) {
-                const steps = gsap.utils.toArray('.settlement-timeline .step');
-                gsap.to('.settlement-timeline .progress', {
-                    height: '100%',
-                    ease: 'none',
-                    scrollTrigger: { trigger: timelineContainer, start: 'top center', end: 'bottom center+=100', scrub: true }
-                });
-                steps.forEach(step => {
-                    gsap.from(step, {
-                        opacity: 0.3, scale: 0.95,
-                        scrollTrigger: { trigger: step, start: 'top 60%', end: 'top 40%', scrub: true, onEnter: () => step.classList.add('active'), onLeaveBack: () => step.classList.remove('active') }
-                    });
-                });
-            }
+            const tl = gsap.timeline({ scrollTrigger: { trigger: "#settlement-flow-svg", start: "top center", end: "bottom bottom", scrub: true }});
+            tl.to("#settlement-flow-svg .flow-path", { strokeDashoffset: 0, ease: "none" })
+              .to("#settlement-flow-svg #node-0", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(0) }, "<20%")
+              .to("#settlement-flow-svg #node-1", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(1) }, "<40%")
+              .to("#settlement-flow-svg #node-2", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(2) }, "<60%")
+              .to("#settlement-flow-svg #node-3", { opacity: 1, scale: 1, ease: "elastic.out(1, 0.5)", onStart: () => this.settlementStepsData.length > 0 && this.createSettlementFlowDiagram.updatePanel(3) }, "<80%");
         },
-
+        
         // --- CHARTS ---
         setupCharts() {
             const chartDefaultOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: 'var(--text-muted)' }, grid: { color: 'rgba(212, 175, 55, 0.1)' } }, x: { ticks: { color: 'var(--text-muted)' }, grid: { display: false } } } };
-            
             const finCtx = document.getElementById('financial-chart').getContext('2d');
-            const gradient = finCtx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.6)');
-            gradient.addColorStop(1, 'rgba(212, 175, 55, 0.05)');
-            new Chart(finCtx, { type: 'line', data: { labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'], datasets: [{ label: 'Gross Revenue ($M)', data: [0.45, 5.35, 19.75, 40.0, 70.5], backgroundColor: gradient, borderColor: 'var(--border-quantum)', borderWidth: 2, pointBackgroundColor: 'var(--text-diamond)', pointBorderColor: 'var(--border-quantum)', tension: 0.4, fill: true, }] }, options: chartDefaultOptions });
-
+            const gradient = finCtx.createLinearGradient(0, 0, 0, 400); gradient.addColorStop(0, 'rgba(212, 175, 55, 0.6)'); gradient.addColorStop(1, 'rgba(212, 175, 55, 0.05)');
+            new Chart(finCtx, { type: 'line', data: { labels: ['Y1', 'Y2', 'Y3', 'Y4', 'Y5'], datasets: [{ label: 'Gross Revenue ($M)', data: [0.45, 5.35, 19.75, 40.0, 70.5], backgroundColor: gradient, borderColor: 'var(--border-quantum)', borderWidth: 2, pointBackgroundColor: 'var(--text-diamond)', pointBorderColor: 'var(--border-quantum)', tension: 0.4, fill: true, }] }, options: chartDefaultOptions });
             const uofCtx = document.getElementById('use-of-funds-chart').getContext('2d');
-            new Chart(uofCtx, { type: 'doughnut', data: { labels: ['Tech & Engineering (40%)', 'Legal & Licensing (25%)', 'Liquidity Network (20%)', 'GTM & Ops (15%)'], datasets: [{ data: [40, 25, 20, 15], backgroundColor: ['#FDE68A', '#D4AF37', '#C9A961', '#92400E'], borderColor: 'var(--background-secondary)', borderWidth: 4, hoverOffset: 15 }] }, options: { ...chartDefaultOptions, scales: {}, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: 'var(--text-silver)', boxWidth: 15, padding: 20 } } } } });
+            new Chart(uofCtx, { type: 'doughnut', data: { labels: ['Tech & Eng (40%)', 'Legal & Lic (25%)', 'Liquidity Net (20%)', 'GTM & Ops (15%)'], datasets: [{ data: [40, 25, 20, 15], backgroundColor: ['#FDE68A', '#D4AF37', '#C9A961', '#92400E'], borderColor: 'var(--background-secondary)', borderWidth: 4, hoverOffset: 15 }] }, options: { ...chartDefaultOptions, scales: {}, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: 'var(--text-silver)', boxWidth: 15, padding: 20 } } } } });
+            const corridorCtx = document.getElementById('corridor-chart')?.getContext('2d');
+            if (corridorCtx) new Chart(corridorCtx, { type: 'bar', data: { labels: ['SG→PH', 'UAE→PH', 'UAE→IN', 'UAE→ID'], datasets: [{ label: 'Corridor Volume (Normalized)', data: [100, 85, 120, 95], backgroundColor: 'rgba(212, 175, 55, 0.5)', borderColor: 'var(--border-quantum)', borderWidth: 1 }] }, options: { ...chartDefaultOptions, indexAxis: 'y' } });
         },
         
-        // --- MODAL & PDF LOGIC ---
-        setupModal() {
-            const modal = document.getElementById('dossier-modal');
-            const openBtns = [document.getElementById('download-dossier-btn'), document.getElementById('request-access-btn'), document.getElementById('invest-now-btn')];
-            const closeBtn = document.getElementById('close-modal-btn');
-            const backdrop = document.getElementById('modal-backdrop');
-            const form = document.getElementById('dossier-form');
-
+        // --- MODAL & PDF ---
+        setupModalAndPdf() {
+            const modal = document.getElementById('dossier-modal'); const openBtns = [document.getElementById('download-dossier-btn'), document.getElementById('request-access-btn'), document.getElementById('invest-now-btn')]; const closeBtn = document.getElementById('close-modal-btn'); const backdrop = document.getElementById('modal-backdrop'); const form = document.getElementById('dossier-form');
             const openModal = () => { modal.classList.remove('hidden'); setTimeout(() => modal.classList.remove('opacity-0'), 10); };
             const closeModal = () => { modal.classList.add('opacity-0'); setTimeout(() => modal.classList.add('hidden'), 500); };
-            
-            openBtns.forEach(btn => btn.addEventListener('click', openModal));
-            closeBtn.addEventListener('click', closeModal);
-            backdrop.addEventListener('click', closeModal);
-            document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
-
+            openBtns.forEach(btn => btn.addEventListener('click', openModal)); closeBtn.addEventListener('click', closeModal); backdrop.addEventListener('click', closeModal); document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
             form.addEventListener('submit', (e) => { e.preventDefault(); this.handleDossierDownload(); });
         },
-
         handleDossierDownload() {
-            const email = document.getElementById('investor-email').value;
-            const password = document.getElementById('dossier-password').value;
-            const errorDiv = document.getElementById('modal-error');
-            const correctPassword = "KinesisPrime2025";
-
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                errorDiv.textContent = 'A valid corporate email address is required.';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-            if (password !== correctPassword) {
-                errorDiv.textContent = 'Invalid Access Code. Please contact GECAN for credentials.';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-            
-            errorDiv.classList.add('hidden');
-            this.generatePdf(email);
+            const email = document.getElementById('investor-email').value; const password = document.getElementById('dossier-password').value; const errorDiv = document.getElementById('modal-error'); const correctPassword = "KinesisPrime2025";
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errorDiv.textContent = 'A valid corporate email address is required.'; errorDiv.classList.remove('hidden'); return; }
+            if (password !== correctPassword) { errorDiv.textContent = 'Invalid Access Code. Please contact GECAN for credentials.'; errorDiv.classList.remove('hidden'); return; }
+            errorDiv.classList.add('hidden'); this.generatePdf(email);
         },
-
         async generatePdf(investorEmail) {
-            const btn = document.getElementById('submit-dossier-btn');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i>Forging Dossier...';
-            btn.disabled = true;
-
+            const btn = document.getElementById('submit-dossier-btn'); const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-cog fa-spin mr-2"></i>Forging Dossier...'; btn.disabled = true;
             console.log(`%c[GECAN COMPLIANCE] Dossier access authorized for: ${investorEmail}. IP and timestamp logged.`, "color: #D4AF37; font-weight: bold;");
             alert(`Access Authorized for ${investorEmail}.\nA compliance notification has been dispatched. Your download will begin shortly.`);
-
-            const { jsPDF } = window.jspdf;
-            const pdfRenderTarget = document.getElementById('pdf-render-target');
-            const pdfPages = pdfRenderTarget.querySelectorAll('.pdf-page');
-
+            const { jsPDF } = window.jspdf; const pdfRenderTarget = document.getElementById('pdf-render-target'); const pdfPages = pdfRenderTarget.querySelectorAll('.pdf-page');
             try {
-                pdfRenderTarget.classList.remove('hidden');
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                
+                pdfRenderTarget.classList.remove('hidden'); const pdf = new jsPDF('p', 'mm', 'a4');
                 for (let i = 0; i < pdfPages.length; i++) {
                     const canvas = await html2canvas(pdfPages[i], { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95); const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight();
                     if (i > 0) pdf.addPage();
                     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
                 }
-
                 pdf.save('Project-Kinesis-Strategic-Dossier-GECAN-PRIME.pdf');
                 document.getElementById('dossier-modal').classList.add('hidden');
-
             } catch (error) {
-                console.error("Pinnacle PDF Generation Failed:", error);
-                alert("An error occurred while forging the dossier. Please try again or contact GECAN support.");
+                console.error("Pinnacle PDF Generation Failed:", error); alert("An error occurred while forging the dossier. Please try again or contact GECAN support.");
             } finally {
-                pdfRenderTarget.classList.add('hidden');
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
+                pdfRenderTarget.classList.add('hidden'); btn.innerHTML = originalHTML; btn.disabled = false;
             }
         }
     };
