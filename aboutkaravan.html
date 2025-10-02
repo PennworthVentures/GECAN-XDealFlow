@@ -22,6 +22,53 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+
+/* Add these new rules to your main <style> block */
+
+        .logo-text { 
+            /* This is a more accurate font to match the image */
+            font-family: 'Times New Roman', Times, serif; 
+            font-weight: bold;
+            font-style: italic;
+            background: linear-gradient(135deg, var(--text-silver), var(--text-gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-link {
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--brand-gold-medium);
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--text-gold);
+        }
+        .nav-link.active::after {
+            transform: scaleX(1);
+        }
+
+        /* Upgraded Button Styles */
+        .action-button {
+            border-radius: 8px; /* Match the image's rounded corners */
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3), 0 4px 8px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+        .action-button:hover {
+             box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        }
+        .action-button-secondary {
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.2);
+        }
         :root {
             --brand-gold-faint: #FFFBEB; --brand-gold-light: #FDE68A; --brand-gold-medium: #D4AF37; --brand-gold-rich: #C9A961; --brand-gold-dark: #92400E;
             --background-primary: #020204; --background-secondary: #0A0A0C; --background-glass: rgba(10, 10, 12, 0.6); --background-glass-premium: rgba(10, 10, 12, 0.85);
@@ -79,22 +126,31 @@
 
     <div id="particles-js"></div>
 
-    <header class="supreme-header">
+<header class="supreme-header">
         <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <!-- Updated Logo for Pinnacle-Grade Accuracy -->
             <div class="flex items-center gap-3">
-                <i class="fas fa-chess-queen text-2xl text-brand-gold-medium"></i>
-                <p class="logo-text text-2xl">KARAVAN</p>
+                <i class="fas fa-chess-queen text-3xl text-brand-gold-medium"></i>
+                <p class="logo-text text-3xl">KARAVAN</p>
             </div>
-            <nav class="hidden lg:flex items-center gap-6 text-sm text-text-silver">
-                <a href="#imperative" class="hover:text-text-gold transition-colors">Imperative</a>
-                <a href="#architecture" class="hover:text-text-gold transition-colors">Architecture</a>
-                <a href="#doctrine" class="hover:text-text-gold transition-colors">Doctrine</a>
-                <a href="#financials" class="hover:text-text-gold transition-colors">Financials</a>
-                <a href="#team" class="hover:text-text-gold transition-colors">Consortium</a>
+
+            <!-- Definitive and Complete Navigation -->
+            <nav id="main-nav" class="hidden lg:flex items-center gap-8 text-sm text-text-silver font-semibold uppercase tracking-wider">
+                <a href="#imperative" data-section="imperative" class="nav-link relative">Imperative</a>
+                <a href="#thesis" data-section="thesis" class="nav-link relative">Thesis</a>
+                <a href="#moat" data-section="moat" class="nav-link relative">Moat</a>
+                <a href="#architecture" data-section="architecture" class="nav-link relative">Engine</a>
+                <a href="#protocol" data-section="protocol" class="nav-link relative">Protocol</a>
+                <a href="#doctrine" data-section="doctrine" class="nav-link relative">Doctrine</a>
+                <a href="#team" data-section="team" class="nav-link relative">Consortium</a>
+                <a href="#financials" data-section="financials" class="nav-link relative">Financials</a>
+                <a href="#investment-section" data-section="investment-section" class="nav-link relative">Invitation</a>
             </nav>
+
+            <!-- Upgraded Buttons with Premium Styling -->
             <div class="hidden md:flex items-center gap-4">
-                 <button id="request-access-btn" class="action-button-secondary px-6 py-2 rounded-full text-sm">Request Access</button>
-                 <button id="download-dossier-btn" class="action-button px-6 py-2 rounded-full text-sm">Secure Dossier</button>
+                 <button id="request-access-btn" class="action-button-secondary px-6 py-2 rounded-lg text-sm">Request Access</button>
+                 <button id="download-dossier-btn" class="action-button px-6 py-2 rounded-lg text-sm">Secure Dossier</button>
             </div>
         </div>
     </header>
@@ -791,19 +847,20 @@
             const preloader = document.getElementById('preloader');
             window.addEventListener('load', () => { setTimeout(() => { preloader.style.opacity = '0'; document.body.classList.remove('opacity-0'); setTimeout(() => { preloader.style.display = 'none'; this.launchApp(); }, 800); }, 1500); });
         },
+// In the App object, find and modify launchApp
         launchApp() {
             this.setupUI();
             this.createAdvancedGlobe();
-            // DELETE the old populateTeamAndCards() call
             this.SettlementProtocolVisualizer.init(); 
             
+            this.setupHeaderAnimations(); // <-- ADD THIS NEW CALL
             this.setupHeroAnimations(); 
             this.setupImperativeAnimations(); 
             this.setupThesisAnimations(); 
             this.setupMoatAnimations(); 
             this.setupArchitectureAnimations();
             this.setupDoctrineAnimations();
-            this.setupTeamAnimations(); // <-- ADD THIS NEW CALL
+            this.setupTeamAnimations();
             this.setupScrollAnimations(); 
             
             this.setupCharts();
@@ -948,6 +1005,30 @@
                     rotationY: mouseX * 20,
                     rotationX: -mouseY * 20,
                     ease: "power1.out"
+                });
+            });
+        },
+
+// THIS IS THE NEW, DEDICATED FUNCTION FOR HEADER INTERACTIVITY
+        setupHeaderAnimations() {
+            const navLinks = gsap.utils.toArray('.nav-link');
+            
+            // This logic uses ScrollTrigger to automatically highlight the correct nav link
+            // as the user scrolls through the document.
+            gsap.utils.toArray('section').forEach(section => {
+                ScrollTrigger.create({
+                    trigger: section,
+                    start: 'top center+=100', // When the top of the section is a bit past the center
+                    end: 'bottom center-=100', // When the bottom of the section is a bit before the center
+                    onToggle: self => {
+                        if (self.isActive) {
+                            const activeLink = document.querySelector(`.nav-link[data-section="${section.id}"]`);
+                            navLinks.forEach(link => link.classList.remove('active'));
+                            if (activeLink) {
+                                activeLink.classList.add('active');
+                            }
+                        }
+                    }
                 });
             });
         },
