@@ -212,27 +212,52 @@
             </div>
         </section>
 
-        <!-- [SLIDE 3-4] Market Quantification & Thesis -->
-        <section class="py-20 md:py-32">
-            <div class="grid lg:grid-cols-2 gap-16 items-center">
-                <div>
-                    <p class="section-subtitle">II. The Investment Thesis</p>
-                    <h2 class="section-title text-4xl md:text-5xl mt-4">An Asymmetric Bet On Inevitability</h2>
-                    <p class="mt-6 text-lg leading-relaxed">The successor to today’s financial infrastructure must, by necessity, be hybrid in design and regulatory-first in execution. It must reconcile the velocity of decentralized protocols with the sovereign acceptability of regulated frameworks.</p>
-                    <p class="mt-4">Incumbents are structurally incapable of this evolution; pure crypto-natives are regulatorily incapacitated. Karavan exploits this vacuum. Investment in Karavan therefore transcends conventional equity valuation. It embodies participation in the foundational reshaping of global financial infrastructure, with asymmetry deriving from the disproportionate upside captured by those positioned at inception relative to the marginal downside bounded by the protocol’s inherently regulated and compliance-first design.</p>
-                </div>
-                <div class="quantum-card rounded-2xl p-8 space-y-6">
-                    <div>
-                        <div class="flex justify-between items-baseline"><p class="font-bold text-text-diamond text-lg">Total Addressable Market (TAM)</p><p class="stat-value text-2xl">$150.8 Trillion</p></div>
-                        <p class="text-sm text-text-muted">Global B2B Cross-Border Payments + Global Remittances.</p>
-                    </div>
-                     <div>
-                        <div class="flex justify-between items-baseline"><p class="font-bold text-text-diamond text-lg">Serviceable Addressable Market (SAM)</p><p class="stat-value text-2xl">$450 Billion</p></div>
-                        <p class="text-sm text-text-muted">Phase I & II priority corridors (ASEAN, MENA-Asia) with highest infrastructural asymmetry.</p>
-                    </div>
-                     <div>
-                        <div class="flex justify-between items-baseline"><p class="font-bold text-text-diamond text-lg">Serviceable Obtainable Market (SOM)</p><p class="stat-value text-2xl">$12.55 Billion</p></div>
-                        <p class="text-sm text-text-muted">Projected Year 5 GTV, representing a disciplined ~2.7% penetration of SAM.</p>
+<!-- [SLIDE 3-4] Market Quantification & Thesis -->
+        <section id="thesis" class="relative min-h-[300vh] py-20 md:py-32">
+            <!-- This outer container provides the scroll distance for the animation -->
+            <div class="sticky top-0 h-screen flex items-center">
+                <div class="container mx-auto px-6">
+                    <div class="grid lg:grid-cols-2 gap-16 items-center">
+                        <!-- Left Side: Textual Thesis -->
+                        <div id="thesis-text-content">
+                            <p class="section-subtitle">II. The Investment Thesis</p>
+                            <h2 class="section-title text-4xl md:text-5xl mt-4">An Asymmetric Bet On Inevitability</h2>
+                            <p class="mt-6 text-lg leading-relaxed">The successor to today’s financial infrastructure must, by necessity, be hybrid in design and regulatory-first in execution. It must reconcile the velocity of decentralized protocols with the sovereign acceptability of regulated frameworks.</p>
+                            <p class="mt-4">Incumbents are structurally incapable of this evolution; pure crypto-natives are regulatorily incapacitated. Karavan exploits this vacuum. Investment in Karavan therefore transcends conventional equity valuation. It embodies participation in the foundational reshaping of global financial infrastructure, with asymmetry deriving from the disproportionate upside captured by those positioned at inception relative to the marginal downside bounded by the protocol’s inherently regulated and compliance-first design.</p>
+                        </div>
+
+                        <!-- Right Side: 3D Visualization of the Market Funnel -->
+                        <div id="market-funnel-3d" class="relative h-[500px] perspective-[2000px]">
+                            <!-- The 3D elements will be positioned absolutely within this container -->
+
+                            <!-- Total Addressable Market (TAM) -->
+                            <div id="funnel-tam" class="funnel-layer absolute inset-0">
+                                <div class="funnel-card quantum-card h-full w-full flex flex-col justify-center p-8">
+                                    <p class="font-bold text-text-diamond text-lg">Total Addressable Market (TAM)</p>
+                                    <p class="stat-value text-5xl">$150.8 Trillion</p>
+                                    <p class="text-sm text-text-muted mt-2">The full systemic volume of global value transfer; the entire ocean.</p>
+                                </div>
+                            </div>
+
+                            <!-- Serviceable Addressable Market (SAM) -->
+                            <div id="funnel-sam" class="funnel-layer absolute inset-0">
+                                <div class="funnel-card quantum-card h-full w-full flex flex-col justify-center p-8">
+                                    <p class="font-bold text-text-diamond text-lg">Serviceable Addressable Market (SAM)</p>
+                                    <p class="stat-value text-5xl">$450 Billion</p>
+                                    <p class="text-sm text-text-muted mt-2">Phase I & II priority corridors where infrastructural asymmetry is highest.</p>
+                                </div>
+                            </div>
+
+                            <!-- Serviceable Obtainable Market (SOM) -->
+                            <div id="funnel-som" class="funnel-layer absolute inset-0">
+                                <div class="funnel-card quantum-card h-full w-full flex flex-col justify-center p-8">
+                                    <p class="font-bold text-text-diamond text-lg">Serviceable Obtainable Market (SOM)</p>
+                                    <p class="stat-value text-5xl">$12.55 Billion</p>
+                                    <p class="text-sm text-text-muted mt-2">Projected Year 5 GTV via disciplined ~2.7% penetration.</p>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>
@@ -734,9 +759,9 @@
             this.createMoatDiagram();
             this.SettlementProtocolVisualizer.init(); 
             
-            // THESE ARE THE FINAL, CORRECT CALLS
             this.setupHeroAnimations(); 
-            this.setupImperativeAnimations(); // <-- ADD THIS NEW CALL
+            this.setupImperativeAnimations(); 
+            this.setupThesisAnimations(); // <-- ADD THIS NEW CALL
             this.setupScrollAnimations(); 
             
             this.setupCharts();
@@ -1028,6 +1053,101 @@
                     });
                 });
             }, 'reveal+=1');
+        },
+
+// THIS IS THE NEW, DEDICATED ANIMATION FUNCTION FOR THE THESIS SECTION
+        setupThesisAnimations() {
+            const section = document.getElementById('thesis');
+            const textContent = document.getElementById('thesis-text-content');
+            const funnelContainer = document.getElementById('market-funnel-3d');
+            const tamLayer = document.getElementById('funnel-tam');
+            const samLayer = document.getElementById('funnel-sam');
+            const somLayer = document.getElementById('funnel-som');
+
+            if (!section || !funnelContainer) return;
+
+            // Set initial states for the 3D layers
+            gsap.set(textContent, { opacity: 0, y: 50 });
+            gsap.set(tamLayer, { opacity: 0, z: -2000, scale: 2 });
+            gsap.set(samLayer, { opacity: 0, z: -2000, scale: 2 });
+            gsap.set(somLayer, { opacity: 0, z: -2000, scale: 2 });
+            
+            // The main cinematic timeline for this section, controlled by scroll
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top top',
+                    end: 'bottom bottom',
+                    scrub: 1.5,
+                    pin: true,
+                    anticipatePin: 1
+                }
+            });
+
+            // Part 1: Introduce the Thesis Text
+            tl.addLabel('start')
+              .to(textContent, {
+                  opacity: 1,
+                  y: 0,
+                  duration: 1,
+                  ease: 'power3.out'
+              });
+
+            // Part 2: Bring in the TAM layer from deep in Z space
+            tl.addLabel('show_tam', 'start+=0.5')
+              .to(tamLayer, {
+                  opacity: 1,
+                  z: 0,
+                  scale: 1,
+                  duration: 2,
+                  ease: 'expo.out'
+              });
+            
+            // Part 3: Fade out TAM and bring in SAM, showing the funnel effect
+            tl.addLabel('show_sam', '+=1')
+              .to(tamLayer, {
+                  opacity: 0,
+                  scale: 0.8,
+                  duration: 1,
+                  ease: 'power2.in'
+              })
+              .fromTo(samLayer, { 
+                  opacity: 0, z: 200, scale: 1.2 // Start slightly behind and larger
+              }, {
+                  opacity: 1,
+                  z: 0,
+                  scale: 1,
+                  duration: 2,
+                  ease: 'expo.out'
+              }, 'show_sam');
+
+            // Part 4: Fade out SAM and bring in SOM, completing the funnel
+            tl.addLabel('show_som', '+=1')
+              .to(samLayer, {
+                  opacity: 0,
+                  scale: 0.8,
+                  duration: 1,
+                  ease: 'power2.in'
+              })
+              .fromTo(somLayer, {
+                  opacity: 0, z: 200, scale: 1.2
+              }, {
+                  opacity: 1,
+                  z: 0,
+                  scale: 1,
+                  duration: 2,
+                  ease: 'expo.out'
+              }, 'show_som')
+              .fromTo(somLayer.querySelector('.funnel-card'), {
+                  boxShadow: '0 0 0px rgba(212, 175, 55, 0)',
+                  borderColor: 'var(--border-color)'
+              }, {
+                  // Add a final "glow" effect to emphasize the target market
+                  boxShadow: 'var(--shadow-supreme)',
+                  borderColor: 'var(--border-quantum)',
+                  duration: 1,
+                  ease: 'power2.inOut'
+              }, 'show_som+=1.5');
         },
 
                 
