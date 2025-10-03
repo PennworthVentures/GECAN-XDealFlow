@@ -1986,15 +1986,14 @@ setupDoctrineAnimations() {
                 point.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
             });
         },
-// THIS IS THE FINAL, SEVERELY REVAMPED, AND AUTOMATIC CINEMATIC VISUALIZER
-        SettlementProtocolVisualizer: {
+SettlementProtocolVisualizer: {
             svg: null,
             infoPanel: null,
             timeline: null,
             
-            // SEVERELY UPGRADED data structure for utmost clarity and accuracy
+            // SEVERELY UPGRADED data structure for utmost clarity, accuracy, and impact
             steps: [
-                { id: 'initiation', title: 'STEP 1: INITIATION', duration: '0-30 Seconds', description: 'A user in Singapore accesses the GECAN™ Remit interface. The <strong>Pinnacle Quote™</strong> engine calculates and locks in a legally-binding quote with institutional-grade FX rates and a transparent, sub-1% all-in fee.', assurance: 'Creates an enforceable contractual price, completely eliminating the hidden fees and FX spread manipulation endemic in legacy systems.' },
+                { id: 'initiation', title: 'STEP 1: INITIATION', duration: '0-30 Seconds', description: 'User in Singapore accesses the GECAN™ Remit interface. The <strong>Pinnacle Quote™</strong> engine calculates and locks in a legally-binding quote with institutional-grade FX rates and a transparent, sub-1% all-in fee.', assurance: 'Creates an enforceable contractual price, completely eliminating the hidden fees and FX spread manipulation endemic in legacy systems.' },
                 { id: 'onramp', title: 'STEP 2: FIAT ON-RAMP', duration: '30-75 Seconds', description: 'The user remits SGD via local payment rails (e.g., PayNow). The GECAN™ Singapore Licensed Partner (LP) confirms receipt via API, crediting the funds to a <strong>regulated, segregated client account.</strong>', assurance: 'Maintains full compliance with Monetary Authority of Singapore (MAS) regulations. The value never leaves the regulated financial perimeter.' },
                 { id: 'compliance', title: 'STEP 3: CONVERSION & COMPLIANCE', duration: '75-90 Seconds', description: 'The received SGD is atomically converted to USDC. Simultaneously, the GECAN™ <strong>Compliance Firewall</strong> executes an instant, multi-vector screening against global sanctions lists, high-risk typologies, and illicit activity indicators.', assurance: 'Enforces military-grade, jurisdictional AML/CTF laws in milliseconds, achieving regulatory pre-clearance *before* cross-border dispatch.' },
                 { id: 'settlement', title: 'STEP 4: ATOMIC SETTLEMENT', duration: '90-95 Seconds', description: 'A cryptographically signed instruction is dispatched across the permissioned blockchain rail. The USDC value is simultaneously and <strong>atomically settled</strong> into the Philippines LP\'s treasury wallet. There is no float or settlement delay.', assurance: 'Blockchain-verified, irrevocable proof-of-settlement. Eliminates all counterparty and settlement failure risk inherent in the multi-day correspondent banking model.' },
@@ -2005,7 +2004,10 @@ setupDoctrineAnimations() {
             init() {
                 this.svg = document.getElementById('settlement-flow-svg');
                 this.infoPanel = document.getElementById('settlement-info-panel');
-                if (!this.svg || !this.infoPanel) return;
+                if (!this.svg || !this.infoPanel) {
+                    console.error("GECAN DIAGNOSTIC: Missing critical elements for Protocol animation. Sequence aborted.");
+                    return;
+                }
                 
                 this.buildSVG();
                 this.buildAnimationTimeline();
@@ -2015,7 +2017,7 @@ setupDoctrineAnimations() {
                 // SEVERELY UPGRADED SVG with pinnacle-grade, unambiguous icons
                 this.svg.innerHTML = `
                     <defs>
-                        <filter id="glow-strong"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                         <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="var(--brand-gold-rich)" /><stop offset="100%" stop-color="var(--brand-gold-light)" /></linearGradient>
                         
                         <!-- Pinnacle-Grade Icon Library -->
@@ -2048,7 +2050,7 @@ setupDoctrineAnimations() {
 
                     <style>
                         .node-group { opacity: 0.2; transform: scale(0.9); transition: all 0.5s ease; filter: brightness(0.7); }
-                        .node-group.active { opacity: 1; transform: scale(1.1); filter: brightness(1.2); }
+                        .node-group.active { opacity: 1; transform: scale(1.1); filter: brightness(1.2) drop-shadow(0 0 10px var(--brand-gold-light)); }
                         .node-group.completed { opacity: 0.6; transform: scale(1); filter: brightness(1); }
                         .node-group circle { fill: var(--background-secondary); stroke: var(--border-premium); stroke-width: 2; }
                         .node-group.active circle { stroke: var(--brand-gold-light); }
@@ -2057,7 +2059,14 @@ setupDoctrineAnimations() {
                 `;
             },
             
-            updatePanel(index) { /* ... same as previous correct version ... */ },
+            updatePanel(index) {
+                const step = this.steps[index];
+                if (!step) return;
+                const contentContainer = document.createElement('div');
+                contentContainer.innerHTML = `<p class="section-subtitle text-sm">${step.duration}</p><h3 class="section-title text-2xl mt-2 mb-4">${step.title}</h3><p class="text-base leading-relaxed mb-4">${step.description}</p><div class="p-4 bg-background-primary border-l-4 border-border-premium"><h4 class="font-bold text-text-diamond text-sm mb-1">Key Assurance:</h4><p class="text-sm text-text-silver">${step.assurance}</p></div>`;
+                gsap.to(this.infoPanel.children, { opacity: 0, y: -20, duration: 0.3, onComplete: () => { this.infoPanel.innerHTML = ''; this.infoPanel.appendChild(contentContainer); gsap.fromTo(contentContainer, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }); } });
+                gsap.utils.toArray('.node-group').forEach((node, i) => node.classList.toggle('active', i === index));
+            },
             
             buildAnimationTimeline() {
                 const masterTimeline = gsap.timeline({
@@ -2066,39 +2075,34 @@ setupDoctrineAnimations() {
                         trigger: '#protocol',
                         start: 'top center',
                         toggleActions: "play reset play reset",
+                        invalidateOnRefresh: true
                     },
                     defaults: { ease: 'power2.out', duration: 0.8 }
                 });
                 
                 this.timeline = masterTimeline;
                 const packet = "#data-packet";
-                const animatePacket = (startNode, endNode) => {
-                    const start = gsap.getProperty(startNode, "transform").match(/translate\(([^,]+), ([^)]+)\)/);
-                    const end = gsap.getProperty(endNode, "transform").match(/translate\(([^,]+), ([^)]+)\)/);
-                    const path = `M${start[1]},${start[2]} L${end[1]},${end[2]}`;
-                    return gsap.timeline().set(packet, { x: start[1], y: start[2], opacity: 1 }).to(packet, { motionPath: { path: path, align: path }, duration: 1.2, ease: 'power1.inOut' }).set(packet, { opacity: 0 });
+
+                // The final, robust, and unbreakable packet animation function.
+                const animatePacket = (startNodeSelector, endNodeSelector) => {
+                    const tl = gsap.timeline();
+                    const startX = gsap.getProperty(startNodeSelector, "x"); const startY = gsap.getProperty(startNodeSelector, "y");
+                    const endX = gsap.getProperty(endNodeSelector, "x"); const endY = gsap.getProperty(endNodeSelector, "y");
+                    const pathData = `M${startX},${startY} L${endX},${endY}`;
+                    tl.set(packet, { x: startX, y: startY, opacity: 1 }).to(packet, { motionPath: { path: pathData }, duration: 1.2, ease: 'power1.inOut' }).set(packet, { opacity: 0 });
+                    return tl;
                 };
 
-                // STEP 1: INITIATION
-                masterTimeline.addLabel('step-0').call(() => this.updatePanel(0)).to('#node-initiation', { class: 'node-group active' });
-
-                // STEP 2: ON-RAMP
-                masterTimeline.addLabel('step-1', "+=2.5").add(animatePacket("#node-initiation", "#node-onramp")).call(() => this.updatePanel(1)).to('#node-initiation', { class: 'node-group completed' }).to('#node-onramp', { class: 'node-group active' }, "<");
-
-                // STEP 3: COMPLIANCE
-                masterTimeline.addLabel('step-2', "+=2.5").add(animatePacket("#node-onramp", "#node-compliance")).call(() => this.updatePanel(2)).to('#node-onramp', { class: 'node-group completed' }).to('#node-compliance', { class: 'node-group active' }, "<").to('#node-compliance use', { rotate: 360, transformOrigin: 'center center', duration: 1, ease: 'none' }, "-=0.5");
-
-                // STEP 4: ATOMIC SETTLEMENT
+                // The final, deliberately paced cinematic sequence.
+                masterTimeline.addLabel('step-0').call(() => this.updatePanel(0)).to('#node-initiation', { className: 'node-group active' });
+                masterTimeline.addLabel('step-1', "+=2.5").add(animatePacket("#node-initiation", "#node-onramp")).call(() => this.updatePanel(1)).to('#node-initiation', { className: 'node-group completed' }).to('#node-onramp', { className: 'node-group active' }, "<");
+                masterTimeline.addLabel('step-2', "+=2.5").add(animatePacket("#node-onramp", "#node-compliance")).call(() => this.updatePanel(2)).to('#node-onramp', { className: 'node-group completed' }).to('#node-compliance', { className: 'node-group active' }, "<").to('#node-compliance use', { rotate: 360, transformOrigin: 'center center', duration: 1, ease: 'none' }, "-=0.5");
                 masterTimeline.addLabel('step-3', "+=2.5").call(() => this.updatePanel(3)).to('#tunnel-group', { rotationX: -15, scale: 1.1, duration: 1 }).set('#tx-particle', { opacity: 1 }).to('#tx-particle', { motionPath: { path: '#tunnel-path', align: '#tunnel-path' }, duration: 2, ease: 'power1.inOut' }, "-=0.5").to('#tunnel-group', { rotationX: 0, scale: 1, duration: 1 }).set('#tx-particle', { opacity: 0 }, "-=0.5");
-                
-                // STEP 5: OFF-RAMP
-                masterTimeline.addLabel('step-4', "+=1.0").call(() => this.updatePanel(4)).to('#node-compliance', { class: 'node-group completed' }).add(animatePacket("#node-compliance", "#node-offramp")).to('#node-offramp', { class: 'node-group active' }, "+=0.6");
-
-                // STEP 6: JURIDICAL FINALITY
-                masterTimeline.addLabel('step-5', "+=2.5").add(animatePacket("#node-offramp", "#node-finality")).call(() => this.updatePanel(5)).to('#node-offramp', { class: 'node-group completed' }).to('#node-finality', { class: 'node-group active' }, "<").fromTo('#node-finality', { scale: 1.1 }, { scale: 1.3, yoyo: true, repeat: 1, duration: 0.3, ease: 'power2.inOut' }, "-=0.2");
+                masterTimeline.addLabel('step-4', "+=1.0").call(() => this.updatePanel(4)).to('#node-compliance', { className: 'node-group completed' }).add(animatePacket("#node-compliance", "#node-offramp")).to('#node-offramp', { className: 'node-group active' }, "+=0.6");
+                masterTimeline.addLabel('step-5', "+=2.5").add(animatePacket("#node-offramp", "#node-finality")).call(() => this.updatePanel(5)).to('#node-offramp', { className: 'node-group completed' }).to('#node-finality', { className: 'node-group active' }, "<").fromTo('#node-finality', { scale: 1.1 }, { scale: 1.3, yoyo: true, repeat: 1, duration: 0.3, ease: 'power2.inOut' }, "-=0.2");
             }
         },
-
+                
         // --- ANIMATIONS & SCROLL TRIGGERS ---
 
         
