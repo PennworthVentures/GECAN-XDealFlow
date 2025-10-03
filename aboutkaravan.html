@@ -1435,16 +1435,21 @@ setupThesisAnimations() {
               }, 'show_som+=1.0');
         },
 
-// THIS IS THE FINAL, SEVERELY REVAMPED AND RE-ARCHITECTED ANIMATION FUNCTION
+// THIS IS THE FINAL, SEVERELY REVAMPED, AND FULLY RESOLVED ANIMATION FUNCTION
         setupMoatAnimations() {
             const section = document.getElementById('moat');
-            const pinContainer = document.getElementById('moat-pin-container');
-            const textContent = document.getElementById('moat-text-content');
             const dossier = document.getElementById('moat-dossier');
+            const dossierTitle = document.getElementById('moat-dossier-title');
+            const dossierContent = document.getElementById('moat-dossier-content');
+            
+            // THE CRITICAL FIX: Rename this variable for clarity and to resolve the error
+            const moat_3d_container = document.getElementById('moat-3d-container'); 
             const scene = document.getElementById('moat-scene');
-            const finalQuote = document.getElementById('moat-final-quote');
 
-            if (!section || !pinContainer || !scene) return;
+            if (!section || !scene || !moat_3d_container) {
+                console.error("GECAN DIAGNOSTIC: Missing critical elements for Moat animation. Sequence aborted.");
+                return;
+            }
 
             // --- Dynamically Build the 3D Fortress Elements ---
             let fortressHTML = `
@@ -1466,57 +1471,47 @@ setupThesisAnimations() {
             const ringElements = gsap.utils.toArray('.moat-ring');
             const pointElements = gsap.utils.toArray('.moat-point');
             
-            // --- The Master Cinematic Timeline using SCRUB for precise control ---
-            // This section's complexity benefits from a tightly controlled scrub animation.
+            // --- The Master Cinematic Timeline ---
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top top',
-                    end: 'bottom bottom',
-                    scrub: 1.5,
-                    pin: pinContainer, // Pin the main container
+                    start: 'top 30%',
+                    toggleActions: "play none reverse none",
                     invalidateOnRefresh: true
                 }
             });
 
-            // 1. Animate Intro Text
-            masterTimeline.fromTo(textContent, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1 });
+            // 1. Core Materialization
+            masterTimeline.fromTo(core, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.5, ease: 'elastic.out(1, 0.5)' });
 
-            // 2. Move Text Aside & Build Fortress
-            masterTimeline.addLabel('build')
-              .to(textContent, { x: '-10%', opacity: 0, duration: 1 }, 'build')
-              .from(scene, { opacity: 0, duration: 0.5 }, 'build')
-              .fromTo(core, { scale: 0 }, { scale: 1, duration: 1.5, ease: 'elastic.out' }, 'build')
-              .from(ringElements, { scale: 0.1, rotationX: 90, opacity: 0, stagger: 0.2, duration: 1.5, ease: 'expo.out' }, 'build+=0.5');
-            
-            // 3. Deploy Orbital Sentinels
+            // 2. Energy Rings Deployment
+            masterTimeline.fromTo(ringElements, { scale: 0.1, rotationX: 90, opacity: 0, transformOrigin: 'center center' }, { scale: 1, rotationX: 0, opacity: 1, duration: 1.5, stagger: 0.2, ease: 'expo.out' } , "-=1.0");
+
+            // 3. Orbital Sentinels (Moat Points) Emerge
             const outerRadius = rings[rings.length - 1];
             pointElements.forEach((point, index) => {
                 const angle = this.moatData[index].angle;
-                masterTimeline.from(point, {
-                    opacity: 0, scale: 0,
-                    motionPath: {
-                        path: `M ${outerRadius}, 0 A ${outerRadius},${outerRadius} 0 1,1 ${outerRadius}, -0.1 Z`,
-                        curviness: 0,
-                        start: (angle / 360) - 0.1, // Start behind
-                        end: (angle / 360)
-                    },
-                    duration: 1, ease: 'power2.out'
-                }, `build+=${1 + index * 0.05}`);
+                masterTimeline.fromTo(point, { opacity: 0, scale: 0 }, { 
+                    opacity: 1, scale: 1,
+                    motionPath: { path: `M ${outerRadius}, 0 A ${outerRadius},${outerRadius} 0 1,1 ${outerRadius}, -0.1 Z`, curviness: 0, start: (angle / 360), end: (angle / 360) + 0.001 },
+                    transformOrigin: 'center center', duration: 1, ease: 'back.out(1.7)'
+                }, "-=1.4");
             });
-
-            // 4. Reveal Dossier and Final Quote
-            masterTimeline.addLabel('reveal_dossier', '-=1.0')
-              .to(dossier, { opacity: 1, y: 0, duration: 1 })
-              .to(finalQuote, { opacity: 1, duration: 1 });
-
-            // 5. Add Pinnacle-Grade Interactivity that activates at the end
+            
+            // 4. Add Pinnacle-Grade Interactivity AFTER the build sequence
             masterTimeline.add(() => {
-                container.addEventListener('mousemove', e => {
-                    const rect = container.getBoundingClientRect();
+                // THE CRITICAL FIX IS HERE: The event listener is now attached to the correct, defined variable.
+                moat_3d_container.addEventListener('mousemove', e => {
+                    // This code now correctly references 'moat_3d_container'
+                    const rect = moat_3d_container.getBoundingClientRect();
                     const mouseX = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
                     const mouseY = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-                    gsap.to(scene, { rotationY: mouseX * 15, rotationX: -mouseY * 15, duration: 1, ease: 'power3.out' });
+                    gsap.to(scene, {
+                        rotationY: mouseX * 20,
+                        rotationX: -mouseY * 20,
+                        duration: 1.5,
+                        ease: 'power3.out'
+                    });
                 });
 
                 pointElements.forEach(point => {
@@ -1524,16 +1519,16 @@ setupThesisAnimations() {
                     const pointData = this.moatData[index];
 
                     point.addEventListener('mouseenter', () => {
-                        gsap.to(point, { scale: 2.5, backgroundColor: 'var(--brand-gold-light)', boxShadow: '0 0 30px var(--brand-gold-light)', duration: 0.3 });
-                        gsap.to([dossierTitle, dossierContent], { opacity: 0, y: 5, duration: 0.2, onComplete: () => {
+                        gsap.to(point, { scale: 2.5, backgroundColor: 'var(--brand-gold-light)', boxShadow: '0 0 30px var(--brand-gold-light)', duration: 0.4, ease: 'power3.out' });
+                        gsap.to([dossierTitle, dossierContent], { opacity: 0, y: 10, duration: 0.3, onComplete: () => {
                             dossierTitle.innerHTML = pointData.label;
                             dossierContent.innerHTML = `<p>${pointData.description}</p>`;
-                            gsap.to([dossierTitle, dossierContent], { opacity: 1, y: 0, duration: 0.3 });
+                            gsap.to([dossierTitle, dossierContent], { opacity: 1, y: 0, duration: 0.5 });
                         }});
                     });
 
                     point.addEventListener('mouseleave', () => {
-                        gsap.to(point, { scale: 1, backgroundColor: 'var(--brand-gold-rich)', boxShadow: '0 0 0px transparent', duration: 0.3 });
+                        gsap.to(point, { scale: 1, backgroundColor: 'var(--brand-gold-rich)', boxShadow: '0 0 0px transparent', duration: 0.4, ease: 'power3.out' });
                     });
                 });
             });
