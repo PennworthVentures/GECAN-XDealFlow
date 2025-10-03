@@ -495,40 +495,35 @@
 
 <!-- [SLIDE 10-11] The 180-Second Protocol -->
         <section id="protocol" class="py-20 md:py-32">
-            <!-- THE CRITICAL FIX: The 'anim-intro' class is added here -->
             <div class="text-center anim-intro">
                 <p class="section-subtitle">VI. Operational Supremacy</p>
                 <h2 class="section-title text-4xl md:text-5xl mt-4">The 180-Second Global Settlement Protocol</h2>
-                <p class="mt-4 max-w-4xl mx-auto text-lg">Observe the operational efficacy of atomic, multi-jurisdictional settlement. This is not a theoretical model; it is the codified, repeatable workflow that renders the incumbent system obsolete. From days of uncertainty to sub-three-minute, legally enforceable finality.</p>
+                <p class="mt-4 max-w-4xl mx-auto text-lg">This is not a theoretical model; it is the codified, repeatable workflow that renders the incumbent system obsolete. You are about to witness the automatic execution of a transaction from initiation to juridical finality.</p>
             </div>
             
-            <!-- The visualization container remains the same, but will now be animated correctly -->
             <div class="quantum-card rounded-2xl mt-16 p-8 md:p-12 relative overflow-visible">
                 <!-- Main Visualization Container -->
-                <div class="grid lg:grid-cols-2 gap-x-12 items-center">
+                <div class="grid lg:grid-cols-5 gap-x-12 items-center">
+                    
+                    <!-- The Dynamic Information Panel (Now on the left) -->
+                    <div id="settlement-info-panel" class="lg:col-span-2 h-[600px] flex flex-col justify-center">
+                        <!-- Content is dynamically injected by JavaScript -->
+                        <div class="text-center py-20 text-text-muted">
+                            <i class="fas fa-play-circle text-6xl mb-4 text-brand-gold-medium"></i>
+                            <p class="font-semibold">AUTOMATIC BRIEFING COMMENCES ON SCROLL</p>
+                        </div>
+                    </div>
+                    
                     <!-- The 3D Animated SVG Scene -->
-                    <div class="h-[600px] relative perspective-[2000px]">
+                    <div class="lg:col-span-3 h-[600px] relative perspective-[2000px]">
                         <svg id="settlement-flow-svg" class="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"></svg>
                     </div>
 
-                    <!-- The Dynamic Information Panel -->
-                    <div id="settlement-info-panel" class="h-[600px] flex flex-col justify-center space-y-4 p-8 bg-background-primary/50 rounded-lg border border-border-color backdrop-blur-sm">
-                        <!-- Content is dynamically injected by JavaScript -->
-                        <div class="text-center py-20 text-text-muted">
-                            <i class="fas fa-mouse-pointer text-4xl mb-4"></i>
-                            <p>Scroll to witness the protocol in action.</p>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Interactive Timeline Navigation -->
-                <div id="settlement-timeline-nav" class="flex justify-between items-center mt-12 border-t-2 border-border-premium pt-6">
-                    <!-- Navigation buttons are dynamically injected by JavaScript -->
-                </div>
-
-                <!-- Strategic Highlights -->
+                <!-- Strategic Highlights remain unchanged -->
                 <div class="mt-12 border-t-2 border-border-color pt-8">
-                     <!-- ... strategic highlights content remains the same ... -->
+                     <!-- ... strategic highlights content ... -->
                 </div>
             </div>
         </section>
@@ -2007,211 +2002,107 @@ setupDoctrineAnimations() {
                 point.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
             });
         },
-// This is the new, severely upgraded, and CORRECTED object.
+// THIS IS THE FINAL, SEVERELY REVAMPED, AND AUTOMATIC CINEMATIC VISUALIZER
         SettlementProtocolVisualizer: {
             svg: null,
             infoPanel: null,
-            navContainer: null,
-            timeline: null,
+            timeline: null, // Timeline is now the master control
             
-            // Comprehensive data structure for each step of the visualization (remains unchanged)
             steps: [
-                { id: 'initiation', title: 'STEP 1: INITIATION', duration: '0-30 Seconds', description: 'A user in Singapore inputs a transfer of SGD 1,000. The GECAN™ Pinnacle Quote™ engine calculates and locks in a legally-binding quote with institutional-grade FX rates and a transparent, sub-1% all-in fee.', assurance: 'Establishes an enforceable contractual price, eliminating hidden fees and FX spread manipulation common in legacy systems.', icon: 'fa-keyboard' },
-                { id: 'onramp', title: 'STEP 2: FIAT ON-RAMP', duration: '30-75 Seconds', description: 'The user remits SGD via local payment rails (e.g., PayNow). The GECAN™ Singapore Licensed Partner (LP) confirms receipt via API integration, crediting the funds to a regulated, segregated client account.', assurance: 'Maintains full compliance with Monetary Authority of Singapore (MAS) regulations. Funds remain within the regulated financial system at all times.', icon: 'fa-university' },
-                { id: 'compliance', title: 'STEP 3: CONVERSION & COMPLIANCE', duration: '75-90 Seconds', description: 'The received SGD is atomically converted into USDC by the LP. Simultaneously, the GECAN™ Compliance Firewall performs instant multi-vector screening against global sanctions lists, high-risk typologies, and illicit activity indicators.', assurance: 'Enforces military-grade, jurisdictional AML/CTF laws in milliseconds, achieving regulatory clearance prior to cross-border dispatch.', icon: 'fa-shield-alt' },
-                { id: 'settlement', title: 'STEP 4: ATOMIC SETTLEMENT', duration: '90-95 Seconds', description: 'A cryptographically signed instruction is dispatched across the permissioned blockchain rail. The USDC value is simultaneously and atomically settled into the Philippines LP\'s treasury wallet. There is no float.', assurance: 'Blockchain-verified, irrevocable proof-of-settlement. Eliminates all counterparty and settlement failure risk inherent in the correspondent banking model.', icon: 'fa-bolt' },
-                { id: 'offramp', title: 'STEP 5: FIAT OFF-RAMP', duration: '95-150 Seconds', description: 'The Philippines LP receives the USDC and the automated system executes an immediate local fiat (PHP) transfer via InstaPay to the beneficiary’s BPI bank account.', assurance: 'Transaction is fully compliant with Bangko Sentral ng Pilipinas (BSP) regulations, with a complete, auditable trail recorded by the locally licensed LP.', icon: 'fa-paper-plane' },
-                { id: 'finality', title: 'STEP 6: JURIDICAL FINALITY', duration: '150-180 Seconds', description: 'InstaPay confirmation is received. A legally-defensible, tamper-proof Proof-of-Settlement Certificate (PoSC) is automatically generated, cryptographically sealed, and immutably recorded on-chain.', assurance: 'The PoSC serves as a contractually enforceable legal instrument, providing incontrovertible evidence of value transfer for all parties, auditors, and regulators.', icon: 'fa-file-contract' }
+                { id: 'initiation', title: 'STEP 1: INITIATION', duration: '0-30 Seconds', description: 'User in Singapore initiates SGD 1,000 transfer. The Pinnacle Quote™ engine locks in a legally-binding, sub-1% fee and institutional FX rate.', assurance: 'Enforceable contractual pricing. No hidden fees.' },
+                { id: 'onramp', title: 'STEP 2: FIAT ON-RAMP', duration: '30-75 Seconds', description: 'User remits SGD via local rails (PayNow). The Singapore Licensed Partner (LP) confirms receipt into a regulated client account.', assurance: 'Full compliance with Monetary Authority of Singapore (MAS) regulations.' },
+                { id: 'compliance', title: 'STEP 3: CONVERSION & COMPLIANCE', duration: '75-90 Seconds', description: 'SGD is atomically converted to USDC. The GECAN™ Compliance Firewall executes instant, multi-vector AML/CTF screening.', assurance: 'Military-grade regulatory clearance achieved prior to cross-border dispatch.' },
+                { id: 'settlement', title: 'STEP 4: ATOMIC SETTLEMENT', duration: '90-95 Seconds', description: 'A cryptographically signed instruction dispatches USDC across the blockchain. Value is settled atomically into the Philippines LP\'s treasury.', assurance: 'Eliminates all counterparty and settlement failure risk. No float.' },
+                { id: 'offramp', title: 'STEP 5: FIAT OFF-RAMP', duration: '95-150 Seconds', description: 'Philippines LP receives USDC and automatically executes an immediate local PHP transfer via InstaPay to the beneficiary’s account.', assurance: 'Fully compliant with Bangko Sentral ng Pilipinas (BSP) regulations.' },
+                { id: 'finality', title: 'STEP 6: JURIDICAL FINALITY', duration: '150-180 Seconds', description: 'A legally-defensible, tamper-proof Proof-of-Settlement Certificate (PoSC) is generated, cryptographically sealed, and immutably recorded.', assurance: 'Creates a contractually enforceable legal instrument of finality.' }
             ],
             
             init() {
                 this.svg = document.getElementById('settlement-flow-svg');
                 this.infoPanel = document.getElementById('settlement-info-panel');
-                this.navContainer = document.getElementById('settlement-timeline-nav');
-                if (!this.svg || !this.infoPanel || !this.navContainer) return;
+                if (!this.svg || !this.infoPanel) return;
                 
                 this.buildSVG();
-                this.buildNav();
-                this.buildAnimationTimeline(); // This function will now be re-architected
+                this.buildAnimationTimeline();
             },
             
             buildSVG() {
-                // Defines the visual elements and their positions within the SVG canvas
+                // Defines the visual elements with new, custom animated icons
                 this.svg.innerHTML = `
                     <defs>
-                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
-                            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                        </filter>
-                        <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:var(--brand-gold-rich);stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:var(--brand-gold-light);stop-opacity:1" />
-                        </linearGradient>
+                        <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="var(--brand-gold-rich)" /><stop offset="100%" stop-color="var(--brand-gold-light)" /></linearGradient>
                     </defs>
 
-                    <!-- Jurisdictional Zones -->
-                    <rect x="10" y="10" width="380" height="580" rx="20" fill="var(--background-primary)" opacity="0.2" stroke="var(--border-color)" />
-                    <text x="200" y="50" fill="var(--text-muted)" font-size="20" text-anchor="middle" font-family="Orbitron">ORIGIN: SINGAPORE</text>
-                    <rect x="810" y="10" width="380" height="580" rx="20" fill="var(--background-primary)" opacity="0.2" stroke="var(--border-color)" />
-                    <text x="1000" y="50" fill="var(--text-muted)" font-size="20" text-anchor="middle" font-family="Orbitron">DESTINATION: PHILIPPINES</text>
+                    <!-- Background Grids for depth -->
+                    <g id="grid-group" opacity="0.2">
+                        <rect id="grid-z0" x="10" y="10" width="380" height="580" rx="20" fill="none" stroke="var(--border-color)" />
+                        <rect id="grid-z1" x="810" y="10" width="380" height="580" rx="20" fill="none" stroke="var(--border-color)" />
+                    </g>
+                    <text x="200" y="50" fill="var(--text-muted)" font-size="20" text-anchor="middle" font-family="Orbitron">ORIGIN JURISDICTION</text>
+                    <text x="1000" y="50" fill="var(--text-muted)" font-size="20" text-anchor="middle" font-family="Orbitron">DESTINATION JURISDICTION</text>
 
                     <!-- 3D Blockchain Tunnel -->
-                    <g id="tunnel-group" transform-origin="center center">
-                        <path id="tunnel-path-bg" d="M 400 300 C 500 200, 700 200, 800 300" stroke="var(--border-color)" stroke-width="60" fill="none" opacity="0.2"/>
-                        <path id="tunnel-path" d="M 400 300 C 500 200, 700 200, 800 300" stroke="url(#pathGradient)" stroke-width="4" fill="none" filter="url(#glow)"/>
-                        <circle id="tx-particle" r="8" fill="var(--brand-gold-light)" filter="url(#glow)" opacity="0"/>
-                    </g>
+                    <g id="tunnel-group"><path id="tunnel-path-bg" d="M 400 300 C 500 200, 700 200, 800 300" stroke="var(--border-color)" stroke-width="60" fill="none" opacity="0.2"/><path id="tunnel-path" d="M 400 300 C 500 200, 700 200, 800 300" stroke="url(#pathGradient)" stroke-width="4" fill="none" filter="url(#glow-strong)"/><circle id="tx-particle" r="10" fill="var(--brand-gold-light)" filter="url(#glow-strong)" opacity="0"/></g>
                     
-                    <!-- Nodes -->
-                    <g id="node-initiation" class="node-group"><circle cx="150" cy="150" r="30"/><text class="fa">&#xf11c;</text><text class="node-label">SENDER</text></g>
-                    <g id="node-onramp" class="node-group"><circle cx="150" cy="450" r="30"/><text class="fa">&#xf19c;</text><text class="node-label">ORIGIN LP</text></g>
-                    <g id="node-compliance" class="node-group"><circle cx="400" cy="300" r="40"/><text class="fa">&#xf132;</text><text class="node-label">COMPLIANCE FIREWALL</text></g>
-                    <g id="node-offramp" class="node-group"><circle cx="1050" cy="150" r="30"/><text class="fa">&#xf19c;</text><text class="node-label">DESTINATION LP</text></g>
-                    <g id="node-finality" class="node-group"><circle cx="1050" cy="450" r="40"/><text class="fa">&#xf15c;</text><text class="node-label">PoSC MINTED</text></g>
-
-                    <!-- Connecting Paths -->
-                    <path id="path-init-onramp" class="conn-path" d="M 150 180 V 420"/>
-                    <path id="path-onramp-comp" class="conn-path" d="M 180 450 H 360"/>
-                    <path id="path-comp-offramp" class="conn-path" d="M 800 300 C 900 400, 900 200, 1050 180"/>
-                    <path id="path-offramp-final" class="conn-path" d="M 1050 180 V 410"/>
+                    <!-- Nodes with Custom, Pinnacle-Grade Icons -->
+                    <g id="node-initiation" class="node-group"><circle r="30"/><g class="icon-group"><path d="M-12-10h24v20h-24z" /><path d="M-8-6h16v2h-16z M-8 0h16v2h-16z M-8 6h10v2h-10z" /></g></g>
+                    <g id="node-onramp" class="node-group"><circle r="30"/><g class="icon-group"><path d="M0-15 L12 0 L0 15 L-12 0 Z M0-8 L8 0 L0 8 L-8 0 Z" /></g></g>
+                    <g id="node-compliance" class="node-group"><circle r="40"/><g class="icon-group"><circle r="12" /><path d="M0-15v-5 M0 15v5 M-15 0h-5 M15 0h5" /></g></g>
+                    <g id="node-offramp" class="node-group"><circle r="30"/><g class="icon-group" transform="rotate(180)"><path d="M0-15 L12 0 L0 15 L-12 0 Z M0-8 L8 0 L0 8 L-8 0 Z" /></g></g>
+                    <g id="node-finality" class="node-group"><circle r="40"/><g class="icon-group"><path d="M-10-15 L10-15 L10 15 L-10 15 Z M-5-8 L5-8 M-5-3 L5-3 M-5 2 L5 2 M-5 7 L5 7" /></g></g>
 
                     <style>
-                        .node-group { cursor: pointer; transition: transform 0.3s ease; opacity: 0; transform: scale(0.5); }
-                        .node-group:hover { transform: scale(1.1) !important; }
+                        .node-group { opacity: 0.3; transform: scale(0.8); transition: all 0.5s ease; }
+                        .node-group.active { opacity: 1; transform: scale(1.1); }
                         .node-group circle { fill: var(--background-secondary); stroke: var(--border-premium); stroke-width: 2; }
-                        .node-group .fa { font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 24px; fill: var(--brand-gold-light); text-anchor: middle; dominant-baseline: middle; transform: translateY(-5px); pointer-events: none; }
-                        .node-group .node-label { font-size: 14px; fill: var(--text-silver); text-anchor: middle; dominant-baseline: middle; transform: translateY(15px); pointer-events: none; }
-                        #node-compliance circle, #node-finality circle { r: 40; }
-                        .conn-path { fill: none; stroke: var(--border-color); stroke-width: 1.5; stroke-dasharray: 5; stroke-dashoffset: 1000; }
+                        .node-group.active circle { stroke: var(--brand-gold-light); box-shadow: var(--glow-gold); }
+                        .node-group .icon-group { fill: none; stroke: var(--brand-gold-light); stroke-width: 2; transition: all 0.5s ease; }
+                        .node-group.active .icon-group { transform: scale(1.2) rotate(10deg); }
                     </style>
                 `;
-            },
-            
-            buildNav() {
-                let navHTML = '';
-                this.steps.forEach((step, index) => {
-                    navHTML += `<button data-step="${index}" class="timeline-nav-btn flex-1 text-center text-text-muted hover:text-text-gold transition-colors duration-300 p-2 rounded-lg">
-                        <i class="fas fa-dot-circle block mx-auto mb-1 text-lg"></i>
-                        <span class="text-xs font-semibold uppercase">${step.id}</span>
-                    </button>`;
-                });
-                this.navContainer.innerHTML = navHTML;
-                
-                this.navContainer.querySelectorAll('.timeline-nav-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const stepIndex = parseInt(btn.dataset.step);
-                        this.timeline.seek(`step-${stepIndex}`);
-                    });
-                });
+                // Position nodes
+                gsap.set("#node-initiation", { x: 150, y: 150 }); gsap.set("#node-onramp", { x: 150, y: 450 });
+                gsap.set("#node-compliance", { x: 400, y: 300 }); gsap.set("#node-offramp", { x: 1050, y: 150 });
+                gsap.set("#node-finality", { x: 1050, y: 450 });
             },
             
             updatePanel(index) {
-                // This function is now enhanced for the cinematic timeline
                 const step = this.steps[index];
                 if (!step) return;
-
-                // Create a container for the new content to animate it in
                 const contentContainer = document.createElement('div');
-                contentContainer.innerHTML = `
-                    <p class="section-subtitle text-sm">${step.duration}</p>
-                    <h3 class="section-title text-2xl mt-2 mb-4">${step.title}</h3>
-                    <p class="text-base leading-relaxed mb-4">${step.description}</p>
-                    <div class="p-4 bg-background-primary border-l-4 border-border-premium">
-                        <h4 class="font-bold text-text-diamond text-sm mb-1">Key Assurance:</h4>
-                        <p class="text-sm text-text-silver">${step.assurance}</p>
-                    </div>
-                `;
-                
-                // Animate out the old content and animate in the new
-                gsap.to(this.infoPanel.children, {
-                    opacity: 0,
-                    y: -20,
-                    duration: 0.3,
-                    ease: 'power2.in',
-                    onComplete: () => {
-                        this.infoPanel.innerHTML = '';
-                        this.infoPanel.appendChild(contentContainer);
-                        gsap.fromTo(contentContainer, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' });
-                    }
-                });
-
-                // Update active state on navigation buttons
-                this.navContainer.querySelectorAll('.timeline-nav-btn').forEach((btn, i) => {
-                    const icon = btn.querySelector('i');
-                    if (i === index) {
-                        btn.classList.add('active', 'text-text-gold'); btn.classList.remove('text-text-muted');
-                        icon.className = `fas ${this.steps[i].icon} block mx-auto mb-1 text-lg text-brand-gold-medium`;
-                    } else {
-                        btn.classList.remove('active', 'text-text-gold'); btn.classList.add('text-text-muted');
-                        icon.className = 'fas fa-dot-circle block mx-auto mb-1 text-lg';
-                    }
-                });
+                contentContainer.innerHTML = `<p class="section-subtitle text-sm">${step.duration}</p><h3 class="section-title text-2xl mt-2 mb-4">${step.title}</h3><p class="text-base leading-relaxed mb-4">${step.description}</p><div class="p-4 bg-background-primary border-l-4 border-border-premium"><h4 class="font-bold text-text-diamond text-sm mb-1">Key Assurance:</h4><p class="text-sm text-text-silver">${step.assurance}</p></div>`;
+                gsap.to(this.infoPanel.children, { opacity: 0, y: -20, duration: 0.3, onComplete: () => { this.infoPanel.innerHTML = ''; this.infoPanel.appendChild(contentContainer); gsap.fromTo(contentContainer, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }); } });
+                gsap.utils.toArray('.node-group').forEach((node, i) => node.classList.toggle('active', i === index));
             },
             
-            // THIS IS THE RE-ARCHITECTED, PINNACLE-GRADE ANIMATION FUNCTION
             buildAnimationTimeline() {
-                // The master GSAP timeline that orchestrates the entire visualization
                 const masterTimeline = gsap.timeline({
+                    paused: true, // The animation will be controlled by ScrollTrigger, not auto-play
                     scrollTrigger: {
-                        trigger: '.quantum-card', // Trigger on the parent card
-                        start: 'top 40%',
-                        toggleActions: "play none reverse none", // SEAMLESS CINEMATIC PLAYBACK
+                        trigger: '#protocol',
+                        start: 'top center',
+                        // Play the timeline from the start when entering, and reset it when leaving.
+                        // This guarantees a fresh, complete cinematic every time.
+                        toggleActions: "play reset play reset",
                     },
                     defaults: { ease: 'power2.out', duration: 1 }
                 });
                 
                 this.timeline = masterTimeline;
 
-                const showNode = (nodeId) => ({ opacity: 1, scale: 1, ease: 'elastic.out(1, 0.75)' });
-
-                // Step 1: Initiation
-                masterTimeline.addLabel('step-0')
-                  .call(() => this.updatePanel(0))
-                  .to('#node-initiation', showNode('#node-initiation'));
-
-                // Step 2: On-Ramp
-                masterTimeline.addLabel('step-1', "+=0.8") // Add pauses between steps
-                  .call(() => this.updatePanel(1))
-                  .to('#path-init-onramp', { strokeDashoffset: 0 })
-                  .to('#node-onramp', showNode('#node-onramp'), "-=0.5");
-
-                // Step 3: Compliance
-                masterTimeline.addLabel('step-2', "+=0.8")
-                  .call(() => this.updatePanel(2))
-                  .to('#path-onramp-comp', { strokeDashoffset: 0 })
-                  .to('#node-compliance', showNode('#node-compliance'), "-=0.5")
-                  .to('#node-compliance .fa', { rotate: 360, duration: 1.5, ease: 'none' }, "-=0.5");
-
-                // Step 4: Atomic Settlement (The 3D Tunnel)
-                masterTimeline.addLabel('step-3', "+=0.8")
-                  .call(() => this.updatePanel(3))
-                  .to('#tunnel-group', { scale: 1.2, rotationX: -20, duration: 1, ease: 'power3.inOut' })
-                  .set('#tx-particle', { opacity: 1 })
-                  .to('#tx-particle', { 
-                      motionPath: { 
-                          path: '#tunnel-path', 
-                          align: '#tunnel-path', 
-                          autoRotate: true, 
-                          alignOrigin: [0.5, 0.5] 
-                      }, 
-                      duration: 2, 
-                      ease: 'power1.inOut' 
-                  }, "-=0.5")
-                  .to('#tunnel-group', { scale: 1, rotationX: 0, duration: 1, ease: 'power3.inOut' })
-                  .set('#tx-particle', { opacity: 0 }, "-=0.5");
-
-                // Step 5: Off-Ramp
-                masterTimeline.addLabel('step-4', "+=0.8")
-                  .call(() => this.updatePanel(4))
-                  .to('#path-comp-offramp', { strokeDashoffset: 0 })
-                  .to('#node-offramp', showNode('#node-offramp'), "-=0.5");
-
-                // Step 6: Juridical Finality
-                masterTimeline.addLabel('step-5', "+=0.8")
-                  .call(() => this.updatePanel(5))
-                  .to('#path-offramp-final', { strokeDashoffset: 0 })
-                  .to('#node-finality', showNode('#node-finality'), "-=0.5")
-                  .fromTo('#node-finality', { scale: 1 }, { scale: 1.2, yoyo: true, repeat: 1, duration: 0.4, ease: 'power2.inOut' }, "-=0.2");
+                // 1. Initiation
+                masterTimeline.addLabel('step-0').call(() => this.updatePanel(0)).to('#node-initiation', { opacity: 1, scale: 1, ease: 'elastic.out' });
+                // 2. On-Ramp
+                masterTimeline.addLabel('step-1', "+=1.5").call(() => this.updatePanel(1)).to('#node-onramp', { opacity: 1, scale: 1, ease: 'elastic.out' });
+                // 3. Compliance
+                masterTimeline.addLabel('step-2', "+=1.5").call(() => this.updatePanel(2)).to('#node-compliance', { opacity: 1, scale: 1, ease: 'elastic.out' }).to('#node-compliance .icon-group', { rotate: 360, duration: 1, ease: 'none' }, '-=0.5');
+                // 4. Atomic Settlement
+                masterTimeline.addLabel('step-3', "+=1.5").call(() => this.updatePanel(3)).to('#tunnel-group', { rotationX: -15, scale: 1.1, duration: 1, ease: 'power3.inOut' }).set('#tx-particle', { opacity: 1 }).to('#tx-particle', { motionPath: { path: '#tunnel-path', align: '#tunnel-path' }, duration: 2, ease: 'power1.inOut' }, "-=0.5").to('#tunnel-group', { rotationX: 0, scale: 1, duration: 1, ease: 'power3.inOut' }).set('#tx-particle', { opacity: 0 }, '-=0.5');
+                // 5. Off-Ramp
+                masterTimeline.addLabel('step-4', "+=1.5").call(() => this.updatePanel(4)).to('#node-offramp', { opacity: 1, scale: 1, ease: 'elastic.out' });
+                // 6. Juridical Finality
+                masterTimeline.addLabel('step-5', "+=1.5").call(() => this.updatePanel(5)).to('#node-finality', { opacity: 1, scale: 1, ease: 'elastic.out' }).fromTo('#node-finality', { scale: 1 }, { scale: 1.2, yoyo: true, repeat: 1, duration: 0.4, ease: 'power2.inOut' }, '-=0.2');
             }
         },
 
