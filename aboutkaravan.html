@@ -412,38 +412,43 @@
         </section>
 
 <!-- [SLIDE 5-6] The 15-Point Moat -->
-        <section id="moat" class="py-20 md:py-32">
-            <div class="text-center anim-intro">
-                <p class="section-subtitle">IV. The Defensible Moat</p>
-                <h2 class="section-title text-4xl md:text-5xl mt-4">A Fortress of Inevitability</h2>
-                <p class="mt-4 max-w-4xl mx-auto text-lg">Our advantage is not a feature; it is a system. Karavan establishes a fortified, multi-jurisdictional moat, interwoven legally, technologically, and operationally to create a fortress of competitive durability that is existentially irreplicable by any competitor class.</p>
-            </div>
-            
-            <!-- Main container for the 3D visualization and its dossier -->
-            <div class="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+        <section id="moat" class="relative min-h-[300vh] py-20 md:py-32">
+            <!-- Pinned container for the entire cinematic sequence -->
+            <div id="moat-pin-container" class="sticky top-0 h-screen w-full overflow-hidden">
                 
-                <!-- 3D Kinetic Fortress Visualization -->
-                <div id="moat-3d-container" class="lg:col-span-2 h-[600px] relative perspective-[4000px]">
-                    <!-- The 3D scene will be dynamically built and animated here by JavaScript -->
-                    <div id="moat-scene" class="absolute inset-0" style="transform-style: preserve-3d;">
-                        <!-- Core, Rings, and Points will be injected here -->
-                    </div>
-                </div>
+                <!-- Main Grid Layout -->
+                <div class="container mx-auto h-full grid grid-cols-1 lg:grid-cols-5 items-center gap-8">
 
-                <!-- Interactive Dossier Panel -->
-                <div id="moat-dossier" class="lg:col-span-1 h-[600px] flex flex-col justify-center">
-                    <div class="quantum-card rounded-2xl p-8 h-full">
-                        <h3 id="moat-dossier-title" class="section-title text-2xl mb-4 transition-opacity duration-500">The 15 Pillars</h3>
-                        <div id="moat-dossier-content" class="text-text-silver transition-opacity duration-500">
-                             <p class="italic text-text-muted">Hover over a defensive node to examine its strategic importance to the Karavan Protocol.</p>
+                    <!-- Column 1 & 2: Title Block & Dossier Panel -->
+                    <div class="lg:col-span-2 h-full flex flex-col justify-center">
+                        <div id="moat-text-content" class="text-center lg:text-left">
+                            <p class="section-subtitle">IV. The Defensible Moat</p>
+                            <h2 class="section-title text-4xl md:text-5xl mt-4">A Fortress of Inevitability</h2>
+                            <p class="mt-4 max-w-xl mx-auto lg:mx-0 text-lg">Our advantage is not a feature; it is a system. Karavan establishes a fortified, multi-jurisdictional moat, interwoven legally, technologically, and operationally to create a fortress of competitive durability that is existentially irreplicable by any competitor class.</p>
+                        </div>
+
+                        <!-- Dossier Panel (Initially Hidden) -->
+                        <div id="moat-dossier" class="mt-8 opacity-0">
+                            <div class="quantum-card rounded-2xl p-6 h-[300px]">
+                                <h3 id="moat-dossier-title" class="section-title text-xl mb-3 transition-opacity duration-300">The 15 Pillars</h3>
+                                <div id="moat-dossier-content" class="text-text-silver text-sm transition-opacity duration-300">
+                                     <p class="italic text-text-muted">Hover over a defensive node to examine its strategic importance.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Column 3, 4, & 5: 3D Visualization Space -->
+                    <div id="moat-3d-container" class="lg:col-span-3 h-full relative perspective-[3000px]">
+                        <div id="moat-scene" class="absolute inset-0" style="transform-style: preserve-3d;">
+                            <!-- The 3D Kinetic Fortress will be built here by JavaScript -->
+                        </div>
+                    </div>
+
                 </div>
-
-            </div>
-
-            <div class="mt-16 pt-6 border-t border-border-premium text-center">
-                <p class="font-bold text-xl text-text-diamond">To attack Karavan, incumbents must commit structural hara-kiri. To ignore it, they concede inevitability.</p>
+                 <div id="moat-final-quote" class="absolute bottom-10 left-1/2 -translate-x-1/2 text-center w-full px-4 opacity-0">
+                    <p class="font-bold text-lg text-text-diamond">To attack Karavan, incumbents must commit structural hara-kiri. To ignore it, they concede inevitability.</p>
+                </div>
             </div>
         </section>
 
@@ -1428,24 +1433,25 @@ setupThesisAnimations() {
               }, 'show_som+=1.0');
         },
 
-// THIS IS THE NEW, SEVERELY REVAMPED AND RE-ARCHITECTED ANIMATION FUNCTION FOR THE MOAT
+// THIS IS THE FINAL, SEVERELY REVAMPED AND RE-ARCHITECTED ANIMATION FUNCTION
         setupMoatAnimations() {
             const section = document.getElementById('moat');
+            const pinContainer = document.getElementById('moat-pin-container');
+            const textContent = document.getElementById('moat-text-content');
+            const dossier = document.getElementById('moat-dossier');
             const scene = document.getElementById('moat-scene');
-            const container = document.getElementById('moat-3d-container');
-            const dossierTitle = document.getElementById('moat-dossier-title');
-            const dossierContent = document.getElementById('moat-dossier-content');
+            const finalQuote = document.getElementById('moat-final-quote');
 
-            if (!section || !scene) return;
+            if (!section || !pinContainer || !scene) return;
 
-            // --- Dynamically Build the 3D Fortress ---
+            // --- Dynamically Build the 3D Fortress Elements ---
             let fortressHTML = `
                 <div id="moat-core" class="absolute inset-0 m-auto w-48 h-48 rounded-full flex items-center justify-center" style="transform-style: preserve-3d; transform: translateZ(0px);">
                     <div class="absolute inset-0 bg-gradient-to-br from-brand-gold-light to-brand-gold-medium rounded-full"></div>
                     <p class="text-4xl font-black text-background-primary font-['Cinzel_Decorative']">KARAVAN</p>
                 </div>
             `;
-            const rings = [200, 300, 400]; // Radii for the 3D rings
+            const rings = [200, 300, 400];
             rings.forEach((radius, index) => {
                 fortressHTML += `<div id="moat-ring-${index}" class="moat-ring absolute inset-0 m-auto rounded-full border-2 border-border-premium" style="width:${radius*2}px; height:${radius*2}px; transform-style: preserve-3d;"></div>`;
             });
@@ -1458,62 +1464,57 @@ setupThesisAnimations() {
             const ringElements = gsap.utils.toArray('.moat-ring');
             const pointElements = gsap.utils.toArray('.moat-point');
             
-            // --- The Master Cinematic Timeline ---
+            // --- The Master Cinematic Timeline using SCRUB for precise control ---
+            // This section's complexity benefits from a tightly controlled scrub animation.
             const masterTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: section,
-                    start: 'top 30%',
-                    toggleActions: "play none reverse none",
+                    start: 'top top',
+                    end: 'bottom bottom',
+                    scrub: 1.5,
+                    pin: pinContainer, // Pin the main container
                     invalidateOnRefresh: true
                 }
             });
 
-            // 1. Core Materialization
-            masterTimeline.fromTo(core, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.5, ease: 'elastic.out(1, 0.5)' });
+            // 1. Animate Intro Text
+            masterTimeline.fromTo(textContent, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1 });
 
-            // 2. Energy Rings Deployment
-            masterTimeline.fromTo(ringElements, 
-                { scale: 0.1, rotationX: 90, opacity: 0, transformOrigin: 'center center' },
-                { scale: 1, rotationX: 0, opacity: 1, duration: 1.5, stagger: 0.2, ease: 'expo.out' }
-            , "-=1.0");
-
-            // 3. Orbital Sentinels (Moat Points) Emerge
+            // 2. Move Text Aside & Build Fortress
+            masterTimeline.addLabel('build')
+              .to(textContent, { x: '-10%', opacity: 0, duration: 1 }, 'build')
+              .from(scene, { opacity: 0, duration: 0.5 }, 'build')
+              .fromTo(core, { scale: 0 }, { scale: 1, duration: 1.5, ease: 'elastic.out' }, 'build')
+              .from(ringElements, { scale: 0.1, rotationX: 90, opacity: 0, stagger: 0.2, duration: 1.5, ease: 'expo.out' }, 'build+=0.5');
+            
+            // 3. Deploy Orbital Sentinels
             const outerRadius = rings[rings.length - 1];
             pointElements.forEach((point, index) => {
                 const angle = this.moatData[index].angle;
-                masterTimeline.fromTo(point, 
-                    { opacity: 0, scale: 0 },
-                    { 
-                        opacity: 1, 
-                        scale: 1,
-                        // Position points on a 3D sphere, not a flat circle
-                        motionPath: {
-                            path: `M ${outerRadius}, 0 A ${outerRadius},${outerRadius} 0 1,1 ${outerRadius}, -0.1 Z`,
-                            curviness: 0,
-                            start: (angle / 360),
-                            end: (angle / 360) + 0.001
-                        },
-                        transformOrigin: 'center center',
-                        duration: 1,
-                        ease: 'back.out(1.7)'
-                    }, 
-                    "-=1.4" // Heavily overlap for a rapid, cascading appearance
-                );
+                masterTimeline.from(point, {
+                    opacity: 0, scale: 0,
+                    motionPath: {
+                        path: `M ${outerRadius}, 0 A ${outerRadius},${outerRadius} 0 1,1 ${outerRadius}, -0.1 Z`,
+                        curviness: 0,
+                        start: (angle / 360) - 0.1, // Start behind
+                        end: (angle / 360)
+                    },
+                    duration: 1, ease: 'power2.out'
+                }, `build+=${1 + index * 0.05}`);
             });
-            
-            // 4. Add Pinnacle-Grade Interactivity AFTER the build sequence
+
+            // 4. Reveal Dossier and Final Quote
+            masterTimeline.addLabel('reveal_dossier', '-=1.0')
+              .to(dossier, { opacity: 1, y: 0, duration: 1 })
+              .to(finalQuote, { opacity: 1, duration: 1 });
+
+            // 5. Add Pinnacle-Grade Interactivity that activates at the end
             masterTimeline.add(() => {
-                // Interactive 3D rotation of the entire scene
                 container.addEventListener('mousemove', e => {
                     const rect = container.getBoundingClientRect();
                     const mouseX = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
                     const mouseY = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-                    gsap.to(scene, {
-                        rotationY: mouseX * 20,
-                        rotationX: -mouseY * 20,
-                        duration: 1.5,
-                        ease: 'power3.out'
-                    });
+                    gsap.to(scene, { rotationY: mouseX * 15, rotationX: -mouseY * 15, duration: 1, ease: 'power3.out' });
                 });
 
                 pointElements.forEach(point => {
@@ -1521,42 +1522,28 @@ setupThesisAnimations() {
                     const pointData = this.moatData[index];
 
                     point.addEventListener('mouseenter', () => {
-                        gsap.to(point, {
-                            scale: 2.5,
-                            backgroundColor: 'var(--brand-gold-light)',
-                            boxShadow: '0 0 30px var(--brand-gold-light)',
-                            duration: 0.4,
-                            ease: 'power3.out'
-                        });
-                        
-                        // Update the dossier panel with a premium animation
-                        gsap.to([dossierTitle, dossierContent], { opacity: 0, y: 10, duration: 0.3, onComplete: () => {
+                        gsap.to(point, { scale: 2.5, backgroundColor: 'var(--brand-gold-light)', boxShadow: '0 0 30px var(--brand-gold-light)', duration: 0.3 });
+                        gsap.to([dossierTitle, dossierContent], { opacity: 0, y: 5, duration: 0.2, onComplete: () => {
                             dossierTitle.innerHTML = pointData.label;
                             dossierContent.innerHTML = `<p>${pointData.description}</p>`;
-                            gsap.to([dossierTitle, dossierContent], { opacity: 1, y: 0, duration: 0.5 });
+                            gsap.to([dossierTitle, dossierContent], { opacity: 1, y: 0, duration: 0.3 });
                         }});
                     });
 
                     point.addEventListener('mouseleave', () => {
-                        gsap.to(point, {
-                            scale: 1,
-                            backgroundColor: 'transparent',
-                            boxShadow: '0 0 0px transparent',
-                            duration: 0.4,
-                            ease: 'power3.out'
-                        });
+                        gsap.to(point, { scale: 1, backgroundColor: 'var(--brand-gold-rich)', boxShadow: '0 0 0px transparent', duration: 0.3 });
                     });
                 });
             });
 
-            // Add some CSS for the 3D elements
+            // Add CSS for the 3D elements
             const style = document.createElement('style');
             style.innerHTML = `
-                .moat-ring { transform-style: preserve-3d; animation: spin 20s linear infinite; }
-                #moat-ring-1 { animation-duration: 30s; }
-                #moat-ring-2 { animation-duration: 40s; animation-direction: reverse; }
+                .moat-ring { transform-style: preserve-3d; animation: spin 30s linear infinite alternate; }
+                #moat-ring-1 { animation-duration: 45s; }
+                #moat-ring-2 { animation-duration: 60s; }
                 .moat-point { transform-style: preserve-3d; background: var(--brand-gold-rich); border: 1px solid var(--brand-gold-dark); }
-                @keyframes spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+                @keyframes spin { from { transform: rotateY(0deg) rotateX(5deg); } to { transform: rotateY(360deg) rotateX(-5deg); } }
             `;
             document.head.appendChild(style);
         },
