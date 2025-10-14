@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GECAN | Karavan - Strategic Constellation Chart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1426 100%);
+            color: #e0e6ff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+
+        .header {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: #00d9ff;
+            text-shadow: 0 0 20px rgba(0, 217, 255, 0.5), 0 0 40px rgba(0, 217, 255, 0.3);
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .chart-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            max-width: 1400px;
+            max-height: 900px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.1));
+        }
+
+        .core-center {
+            filter: drop-shadow(0 0 50px rgba(0, 217, 255, 0.8));
+        }
+
+        .founder-card {
+            position: absolute;
+            width: 280px;
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.95) 0%, rgba(15, 20, 38, 0.95) 100%);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 50;
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .founder-card:hover {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 1) 0%, rgba(15, 20, 38, 1) 100%);
+            border-color: rgba(0, 217, 255, 0.8);
+            box-shadow: 0 12px 48px rgba(0, 217, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(100, 200, 255, 0.1) 100%);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00d9ff;
+            font-size: 12px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .profile-image::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(0, 217, 255, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .founder-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #00d9ff;
+            margin-bottom: 5px;
+        }
+
+        .founder-title {
+            font-size: 11px;
+            color: #a0a8d8;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .founder-domain {
+            font-size: 10px;
+            color: #64c8ff;
+            background: rgba(0, 217, 255, 0.1);
+            padding: 6px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 10px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .founder-desc {
+            font-size: 10px;
+            color: #b0b8e0;
+            line-height: 1.5;
+            max-height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .exec-card {
+            position: absolute;
+            width: 240px;
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.9) 0%, rgba(15, 20, 38, 0.9) 100%);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 40;
+            box-shadow: 0 6px 24px rgba(0, 217, 255, 0.05);
+            backdrop-filter: blur(8px);
+        }
+
+        .exec-card:hover {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 1) 0%, rgba(15, 20, 38, 1) 100%);
+            border-color: rgba(0, 217, 255, 0.6);
+            box-shadow: 0 10px 36px rgba(0, 217, 255, 0.2);
+            transform: scale(1.03);
+        }
+
+        .exec-card.placeholder {
+            border: 2px dashed rgba(0, 217, 255, 0.3);
+            opacity: 0.7;
+        }
+
+        .exec-image {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.05) 0%, rgba(100, 200, 255, 0.05) 100%);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00d9ff;
+            font-size: 10px;
+            border: 1px solid rgba(0, 217, 255, 0.15);
+        }
+
+        .exec-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #00d9ff;
+            margin-bottom: 3px;
+        }
+
+        .exec-title {
+            font-size: 9px;
+            color: #a0a8d8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .exec-function {
+            font-size: 9px;
+            color: #b0b8e0;
+            line-height: 1.4;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.95) 0%, rgba(15, 20, 38, 0.95) 100%);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #00d9ff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .legend-item {
+            font-size: 10px;
+            color: #b0b8e0;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .legend-item::before {
+            content: '';
+            width: 12px;
+            height: 2px;
+            background: #00d9ff;
+            margin-right: 8px;
+            border-radius: 1px;
+        }
+
+        .legend-item.alliance::before {
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            box-shadow: 0 0 8px rgba(0, 217, 255, 0.5);
+        }
+
+        .legend-item.counsel::before {
+            background: #64c8ff;
+            opacity: 0.6;
+        }
+
+        .info-panel {
+            position: absolute;
+            right: 20px;
+            top: 100px;
+            width: 300px;
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.95) 0%, rgba(15, 20, 38, 0.95) 100%);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            max-height: 500px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
+        }
+
+        .info-panel h3 {
+            color: #00d9ff;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .info-panel p {
+            font-size: 11px;
+            color: #b0b8e0;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .control-panel {
+            position: absolute;
+            left: 20px;
+            top: 100px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(100, 200, 255, 0.1) 100%);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 6px;
+            color: #00d9ff;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.2) 0%, rgba(100, 200, 255, 0.2) 100%);
+            border-color: rgba(0, 217, 255, 0.6);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 217, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 217, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 217, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⬢ GECAN | KARAVAN ⬢</h1>
+            <p>STRATEGIC CONSTELLATION CHART V3.0</p>
+        </div>
+
+        <div class="control-panel">
+            <button class="control-btn" onclick="toggleParticles()">Particles</button>
+            <button class="control-btn" onclick="resetChart()">Reset</button>
+        </div>
+
+        <div class="chart-container">
+            <svg viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <filter id="glow1">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="glow2">
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#00d9ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#00ff88;stop-opacity:0.8" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Command Lines (Ring 1) -->
+                <line x1="700" y1="450" x2="550" y2="250" stroke="rgba(0,217,255,0.4)" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="700" y1="450" x2="850" y2="250" stroke="rgba(0,217,255,0.4)" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="700" y1="450" x2="700" y2="200" stroke="rgba(0,217,255,0.4)" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="700" y1="450" x2="900" y2="400" stroke="rgba(0,217,255,0.4)" stroke-width="2" stroke-dasharray="5,5"/>
+
+                <!-- Advisory Lines (Ring 2) -->
+                <line x1="700" y1="450" x2="300" y2="250" stroke="rgba(100,200,255,0.3)" stroke-width="1.5" stroke-dasharray="3,3" class="pulse-line"/>
+                <line x1="700" y1="450" x2="1100" y2="250" stroke="rgba(100,200,255,0.3)" stroke-width="1.5" stroke-dasharray="3,3" class="pulse-line"/>
+                <line x1="700" y1="450" x2="200" y2="450" stroke="rgba(100,200,255,0.3)" stroke-width="1.5" stroke-dasharray="3,3" class="pulse-line"/>
+
+                <!-- Ring 3 Connections -->
+                <line x1="700" y1="450" x2="400" y2="650" stroke="rgba(0,217,255,0.3)" stroke-width="2" class="flow-line"/>
+                <line x1="700" y1="450" x2="1000" y2="650" stroke="rgba(0,217,255,0.3)" stroke-width="2" class="flow-line"/>
+
+                <!-- Ring 4 Connections -->
+                <line x1="700" y1="450" x2="300" y2="750" stroke="rgba(0,217,255,0.2)" stroke-width="1.5"/>
+                <line x1="700" y1="450" x2="700" y2="750" stroke="rgba(0,217,255,0.2)" stroke-width="1.5"/>
+                <line x1="700" y1="450" x2="1100" y2="750" stroke="rgba(0,217,255,0.2)" stroke-width="1.5"/>
+
+                <!-- Outer Rim -->
+                <line x1="700" y1="450" x2="200" y2="200" stroke="rgba(0,217,255,0.15)" stroke-width="1"/>
+                <line x1="700" y1="450" x2="1200" y2="200" stroke="rgba(0,217,255,0.15)" stroke-width="1"/>
+                <line x1="700" y1="450" x2="150" y2="700" stroke="rgba(0,217,255,0.15)" stroke-width="1"/>
+                <line x1="700" y1="450" x2="1250" y2="700" stroke="rgba(0,217,255,0.15)" stroke-width="1"/>
+
+                <!-- CORE CIRCLE -->
+                <circle class="core-center" cx="700" cy="450" r="90" fill="url(#coreGrad)" opacity="0.8" filter="url(#glow1)"/>
+                <circle cx="700" cy="450" r="85" fill="none" stroke="rgba(0,255,136,0.3)" stroke-width="2" stroke-dasharray="4,4"/>
+                <circle cx="700" cy="450" r="95" fill="none" stroke="rgba(0,217,255,0.2)" stroke-width="1"/>
+
+                <text x="700" y="445" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="bold">OFFICE OF</text>
+                <text x="700" y="462" font-size="12" fill="#00d9ff" text-anchor="middle" font-weight="bold">FOUNDERS</text>
+
+                <!-- RING 1 NODES -->
+                <circle cx="550" cy="250" r="35" fill="rgba(0,217,255,0.1)" stroke="rgba(0,217,255,0.5)" stroke-width="2" filter="url(#glow2)"/>
+                <circle cx="850" cy="250" r="35" fill="rgba(0,217,255,0.1)" stroke="rgba(0,217,255,0.5)" stroke-width="2" filter="url(#glow2)"/>
+                <circle cx="700" cy="200" r="35" fill="rgba(0,217,255,0.1)" stroke="rgba(0,217,255,0.5)" stroke-width="2" filter="url(#glow2)"/>
+                <circle cx="900" cy="400" r="35" fill="rgba(0,217,255,0.1)" stroke="rgba(0,217,255,0.5)" stroke-width="2" filter="url(#glow2)"/>
+
+                <text x="550" y="255" font-size="10" fill="#00d9ff" text-anchor="middle" font-weight="bold">CFO</text>
+                <text x="850" y="255" font-size="10" fill="#00d9ff" text-anchor="middle" font-weight="bold">CTO</text>
+                <text x="700" y="205" font-size="10" fill="#00d9ff" text-anchor="middle" font-weight="bold">CCO</text>
+                <text x="900" y="405" font-size="10" fill="#00d9ff" text-anchor="middle" font-weight="bold">CRCO</text>
+
+                <!-- RING 2 ADVISORY NODES -->
+                <circle cx="300" cy="250" r="25" fill="rgba(100,200,255,0.05)" stroke="rgba(100,200,255,0.4)" stroke-width="1.5" stroke-dasharray="3,3"/>
+                <circle cx="1100" cy="250" r="25" fill="rgba(100,200,255,0.05)" stroke="rgba(100,200,255,0.4)" stroke-width="1.5" stroke-dasharray="3,3"/>
+                <circle cx="200" cy="450" r="25" fill="rgba(100,200,255,0.05)" stroke="rgba(100,200,255,0.4)" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+                <text x="300" y="260" font-size="9" fill="#64c8ff" text-anchor="middle">ADVISORY</text>
+                <text x="1100" y="260" font-size="9" fill="#64c8ff" text-anchor="middle">ADVISORY</text>
+                <text x="200" y="460" font-size="9" fill="#64c8ff" text-anchor="middle">SAB</text>
+
+                <!-- RING 3 ECOSYSTEM NODES -->
+                <circle cx="400" cy="650" r="30" fill="rgba(0,217,255,0.08)" stroke="rgba(0,217,255,0.4)" stroke-width="2"/>
+                <circle cx="1000" cy="650" r="30" fill="rgba(0,217,255,0.08)" stroke="rgba(0,217,255,0.4)" stroke-width="2"/>
+
+                <text x="400" y="655" font-size="9" fill="#00d9ff" text-anchor="middle">SPARK</text>
+                <text x="1000" y="655" font-size="9" fill="#00d9ff" text-anchor="middle">BRIDGE</text>
+
+                <!-- RING 4 NETWORK NODES -->
+                <circle cx="300" cy="750" r="25" fill="rgba(0,217,255,0.05)" stroke="rgba(0,217,255,0.3)" stroke-width="1.5"/>
+                <circle cx="700" cy="750" r="25" fill="rgba(0,217,255,0.05)" stroke="rgba(0,217,255,0.3)" stroke-width="1.5"/>
+                <circle cx="1100" cy="750" r="25" fill="rgba(0,217,255,0.05)" stroke="rgba(0,217,255,0.3)" stroke-width="1.5"/>
+
+                <text x="300" y="760" font-size="8" fill="#b0b8e0" text-anchor="middle">LP PARTNERS</text>
+                <text x="700" y="760" font-size="8" fill="#b0b8e0" text-anchor="middle">CLIENTS</text>
+                <text x="1100" y="760" font-size="8" fill="#b0b8e0" text-anchor="middle">OMNI-PAY</text>
+
+                <!-- OUTER RIM CAPITAL NODES -->
+                <circle cx="200" cy="200" r="20" fill="rgba(0,217,255,0.04)" stroke="rgba(0,217,255,0.25)" stroke-width="1"/>
+                <circle cx="1200" cy="200" r="20" fill="rgba(0,217,255,0.04)" stroke="rgba(0,217,255,0.25)" stroke-width="1"/>
+                <circle cx="150" cy="700" r="20" fill="rgba(0,217,255,0.04)" stroke="rgba(0,217,255,0.25)" stroke-width="1"/>
+                <circle cx="1250" cy="700" r="20" fill="rgba(0,217,255,0.04)" stroke="rgba(0,217,255,0.25)" stroke-width="1"/>
+
+                <text x="200" y="210" font-size="7" fill="#666" text-anchor="middle">SEED</text>
+                <text x="1200" y="210" font-size="7" fill="#666" text-anchor="middle">SERIES A</text>
+                <text x="150" y="710" font-size="7" fill="#666" text-anchor="middle">SERIES B+</text>
+            </svg>
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">Structural Legend</div>
+            <div class="legend-item">Command Authority</div>
+            <div class="legend-item alliance">Strategic Alliance</div>
+            <div class="legend-item counsel">Advisory Counsel</div>
+        </div>
+    </div>
+
+    <!-- FOUNDER CARDS -->
+    <div class="founder-card" style="top: 120px; left: 100px;" onclick="showInfo(this)">
+        <div class="profile-image">
+            [BASE64_PLACEHOLDER_BUENAVENTURA]
+        </div>
+        <div class="founder-name">BUENAVENTURA JUNIOR</div>
+        <div class="founder-title">Co-Founder & CEO</div>
+        <div class="founder-domain">The Architect</div>
+        <div class="founder-desc">Ultimate Strategic Authority. Chief Protocol & Capital Architect. Commands Kinesis Engine and $GCN tokenomics.</div>
+    </div>
+
+    <div class="founder-card" style="top: 120px; right: 100px;" onclick="showInfo(this)">
+        <div class="profile-image">
+            [BASE64_PLACEHOLDER_HART_PUN_CHI_SUM]
+        </div>
+        <div class="founder-name">HART PUN CHI SUM</div>
+        <div class="founder-title">Co-Founder & President</div>
+        <div class="founder-domain">The Commander</div>
+        <div class="founder-desc">Supreme Commander of Execution. Liquidity Sovereign. Master of Scale and global operations.</div>
+    </div>
+
+    <div class="founder-card" style="bottom: 120px; left: 50%; transform: translateX(-50%);" onclick="showInfo(this)">
+        <div class="profile-image">
+            [BASE64_PLACEHOLDER_JULIUS_TIANGSON]
+        </div>
+        <div class="founder-name">JULIUS A. TIANGSON</div>
+        <div class="founder-title">Co-Founder & CSAO</div>
+        <div class="founder-domain">The Statesman</div>
+        <div class="founder-desc">Sovereign Emissary to regulatory bodies. Architect of Regulatory Moat. Curator of pinnacle-grade human capital.</div>
+    </div>
+
+    <!-- EXECUTIVE CARDS -->
+    <div class="exec-card" style="top: 240px; left: 450px;" onclick="showInfo(this)">
+        <div class="exec-image">[BASE64_PLACEHOLDER_SANIGA]</div>
+        <div class="exec-name">MICHAEL SANIGA</div>
+        <div class="exec-title">Chief Financial Officer</div>
+        <div class="exec-function">Architect of Credibility. Financial modeling and institutional reporting.</div>
+    </div>
+
+    <div class="exec-card placeholder" style="top: 240px; left: 750px;">
+        <div class="exec-image">CTO (Y1Q1)</div>
+        <div class="exec-name">CHIEF TECHNOLOGY</div>
+        <div class="exec-title">To Be Hired</div>
+        <div class="exec-function">Commander of the Forge. Protocol, security, and infrastructure.</div>
+    </div>
+
+    <div class="exec-card placeholder" style="top: 240px; right: 450px;">
+        <div class="exec-image">CCO (Y1Q1)</div>
+        <div class="exec-name">CHIEF COMMERCIAL</div>
+        <div class="exec-title">To Be Hired</div>
+        <div class="exec-function">Commander of Capital & Revenue. Fundraising and institutional sales.</div>
+    </div>
+
+    <div class="exec-card placeholder" style="top: 240px; right: 100px;">
+        <div class="exec-image">CRCO (Y1Q2)</div>
+        <div class="exec-name">CHIEF RISK & COMP</div>
+        <div class="exec-title">To Be Hired</div>
+        <div class="exec-function">Guardian of the Fortress. AML/CFT and enterprise risk management.</div>
+    </div>
+
+    <div class="info-panel" id="infoPanel" style="display:none;">
+        <h3 id="infoPanelTitle">Information</h3>
+        <p id="infoPanelContent">Select a profile to view detailed information.</p>
+    </div>
+
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .pulse-line {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes flow {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -20; }
+        }
+
+        .flow-line {
+            stroke-dasharray: 10;
+            animation: flow 20s linear infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.4)); }
+            50% { filter: drop-shadow(0 0 50px rgba(0, 217, 255, 0.8)); }
+        }
+
+        .core-center {
+            animation: glow-pulse 3s infinite;
+        }
+    </style>
+
+    <script>
+        // PARTICLE SYSTEM - Military Grade 3D Animation
+        class ParticleSystem {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.enabled = true;
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                for (let i = 0; i < 120; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        z: Math.random() * 100,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        vz: Math.random() * 0.3 + 0.1,
+                        size: Math.random() * 2 + 0.5,
+                        opacity: Math.random() * 0.5 + 0.3,
+                        color: Math.random() > 0.5 ? '#00d9ff' : '#00ff88'
+                    });
+                }
+            }
+
+            update() {
+                if (!this.enabled) return;
+
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.z += p.vz;
+
+                    if (p.z > 100) {
+                        p.z = 0;
+                        p.x = Math.random() * this.canvas.width;
+                        p.y = Math.random() * this.canvas.height;
+                    }
+
+                    p.opacity = (p.z / 100) * 0.6;
+                });
+            }
+
+            draw() {
+                if (!this.enabled) return;
+
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.particles.sort((a, b) => a.z - b.z);
+
+                this.particles.forEach(p => {
+                    const scale = p.z / 100;
+                    const size = p.size * (0.3 + scale * 0.7);
+
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.globalAlpha = p.opacity;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    if (scale > 0.7) {
+                        this.ctx.strokeStyle = p.color;
+                        this.ctx.globalAlpha = p.opacity * 0.5;
+                        this.ctx.lineWidth = 0.5;
+                        this.ctx.stroke();
+                    }
+                });
+
+                this.ctx.globalAlpha = 1;
+            }
+
+            animate() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize Particle System
+        const canvas = document.getElementById('particleCanvas');
+        const particleSystem = new ParticleSystem(canvas);
+        particleSystem.init();
+        particleSystem.animate();
+
+        // UI Functions
+        function toggleParticles() {
+            particleSystem.enabled = !particleSystem.enabled;
+            if (!particleSystem.enabled) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function resetChart() {
+            particleSystem.particles = [];
+            particleSystem.init();
+        }
+
+        function showInfo(element) {
+            const panel = document.getElementById('infoPanel');
+            const title = element.querySelector('.founder-name, .exec-name');
+            const desc = element.querySelector('.founder-desc, .exec-function');
+            const titleVal = element.querySelector('.founder-title, .exec-title');
+
+            if (title) {
+                document.getElementById('infoPanelTitle').textContent = title.textContent;
+                document.getElementById('infoPanelContent').innerHTML = 
+                    `<strong>${titleVal.textContent}</strong><br><br>${desc.textContent}`;
+                panel.style.display = 'block';
+            }
+        }
+
+        // 3D Rotation Effect on Card Hover
+        document.querySelectorAll('.founder-card, .exec-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const rotateX = (y - rect.height / 2) * 0.1;
+                const rotateY = (x - rect.width / 2) * 0.1;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+            });
+        });
+
+        // Enhanced Glow Effect on SVG Elements
+        const svgElements = document.querySelectorAll('svg circle, svg line');
+        svgElements.forEach(el => {
+            el.addEventListener('mouseenter', function() {
+                if (this.tagName === 'circle' && this.r.baseVal.value > 20) {
+                    this.style.filter = 'drop-shadow(0 0 20px rgba(0, 217, 255, 0.8))';
+                }
+            });
+
+            el.addEventListener('mouseleave', function() {
+                this.style.filter = '';
+            });
+        });
+
+        // Responsive Design
+        window.addEventListener('resize', () => {
+            const container = document.querySelector('.chart-container');
+            if (window.innerWidth < 1024) {
+                container.style.transform = 'translate(-50%, -50%) scale(0.8)';
+            } else {
+                container.style.transform = 'translate(-50%, -50%)';
+            }
+        });
+    </script>
