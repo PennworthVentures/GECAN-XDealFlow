@@ -1,48 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-<!-- ========================================================================= -->
-<!-- === DEFINITIVE SVG FAVICON IMPLEMENTATION (PINNACLE STANDARD) === -->
-<!-- This provides a modern, scalable, and maskable icon like Google's. -->
-<!-- ========================================================================= -->
-
-<!-- 1. The modern SVG icon for browsers that support it. -->
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-
-<!-- 2. A fallback PNG for older browsers or specific contexts. -->
-<!-- Create a 32x32px PNG version of your icon. -->
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-
-<!-- 3. The traditional .ico for maximum legacy compatibility (still recommended). -->
-<link rel="shortcut icon" href="/favicon.ico">
-
-<!-- 4. The Apple Touch Icon for iOS home screens. -->
-<!-- Create a 180x180px PNG with a solid background color. -->
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <!-- ========================================================================= -->
+    <!-- === DEFINITIVE SVG FAVICON IMPLEMENTATION (PINNACLE STANDARD) === -->
+    <!-- ========================================================================= -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
     <base target="_top">
     <title>GECAN™ Commodities Exchange | XDealFlow Dashboard</title>
+    
+    <!-- 1. Load the main Tailwind CSS JIT Engine from the CDN. -->
     <script src="https://cdn.tailwindcss.com"></script>
-<!-- ========================================================================= -->
-<!-- === CUSTOM TAILWIND CONFIG FOR ULTRA-WIDE MONITORS === -->
-<!-- ========================================================================= -->
-<script>
-    tailwind.config = {
-        theme: {
-            screens: {
-                'sm': '640px',
-                'md': '768px',
-                'lg': '1024px',
-                'xl': '1280px',
-                '2xl': '1536px',
-                '3xl': '1920px', // Defines the new breakpoint for 5 columns
+
+    <!-- 2. Configure Tailwind AFTER the DOM is fully loaded to prevent race conditions. -->
+    <!-- ========================================================================= -->
+    <!-- === CUSTOM TAILWIND CONFIG FOR ULTRA-WIDE MONITORS (PINNACLE FIX) === -->
+    <!-- ========================================================================= -->
+    <script>
+        // This event listener is the definitive fix. It guarantees that the code
+        // inside it will only run AFTER the entire HTML document is fully loaded
+        // and parsed, ensuring the Tailwind CDN script has created the 'tailwind' object.
+        document.addEventListener('DOMContentLoaded', function () {
+            tailwind.config = {
+                theme: {
+                    screens: {
+                        'sm': '640px',
+                        'md': '768px',
+                        'lg': '1024px',
+                        'xl': '1280px',
+                        '2xl': '1536px',
+                        '3xl': '1920px', // Defines the new breakpoint for 5 columns
+                    }
+                }
             }
-        }
-    }
-</script>
+        });
+    </script>
+
+    <!-- 3. Load all other external scripts and stylesheets. -->
     <!-- ========================================================================= -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
     <!-- III. Inline CSS Styling Engine -->
     <style>
 
