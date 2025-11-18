@@ -1,49 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- ========================================================================= -->
+<!-- === DEFINITIVE SVG FAVICON IMPLEMENTATION (PINNACLE STANDARD) === -->
+<!-- This provides a modern, scalable, and maskable icon like Google's. -->
+<!-- ========================================================================= -->
+
+<!-- 1. The modern SVG icon for browsers that support it. -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<!-- 2. A fallback PNG for older browsers or specific contexts. -->
+<!-- Create a 32x32px PNG version of your icon. -->
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+
+<!-- 3. The traditional .ico for maximum legacy compatibility (still recommended). -->
+<link rel="shortcut icon" href="/favicon.ico">
+
+<!-- 4. The Apple Touch Icon for iOS home screens. -->
+<!-- Create a 180x180px PNG with a solid background color. -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
     <base target="_top">
     <title>GECAN™ Commodities Exchange | XDealFlow Dashboard</title>
-    
-    <!-- ========================================================================= -->
-    <!-- === PINNACLE STATIC TAILWIND FIX (REPLACES DYNAMIC CDN) === -->
-    <!-- ========================================================================= -->
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                screens: {
-                    'sm': '640px',
-                    'md': '768px',
-                    'lg': '1024px',
-                    'xl': '1280px',
-                    '2xl': '1536px',
-                    '3xl': '1920px',
-                }
-            },
-            content: [{ raw: document.getElementById('tailwind-classes').innerText }],
+    <script src="https://cdn.tailwindcss.com"></script>
+<!-- ========================================================================= -->
+<!-- === CUSTOM TAILWIND CONFIG FOR ULTRA-WIDE MONITORS === -->
+<!-- ========================================================================= -->
+<script>
+    tailwind.config = {
+        theme: {
+            screens: {
+                'sm': '640px',
+                'md': '768px',
+                'lg': '1024px',
+                'xl': '1280px',
+                '2xl': '1536px',
+                '3xl': '1920px', // Defines the new breakpoint for 5 columns
+            }
         }
-    </script>
-    
+    }
+</script>
+    <!-- ========================================================================= -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
-    <!-- This pre-tag holds all unique responsive classes for the static CDN to generate. -->
-    <pre id="tailwind-classes" class="hidden">
-        grid-cols-1 md:grid-cols-2 lg:grid-cols-4 3xl:grid-cols-5
-        grid-cols-2 md:grid-cols-3 lg:grid-cols-5
-        md:flex-row md:flex-1 md:text-2xl md:p-6 md:p-10
-        sm:grid-cols-2
-        lg:grid-cols-3
-        xl:flex-row xl:block
-        -mt-4
-        col-span-full
-    </pre>
-
     <!-- III. Inline CSS Styling Engine -->
     <style>
 
@@ -1731,7 +1730,7 @@ select.form-input { appearance: none; background-image: url("data:image/svg+xml,
       // =================================================================================
     // INSTRUCTION: ADD THIS CONSTANT AT THE TOP OF YOUR SCRIPT BLOCK
     // =================================================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbwWyouk2YxDGP1AKtzrY4nGlcrogfgE05m0IaHioYEwjzxavhK0rPBWyGmdQ4yX7b6l/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxQJw01c2UcT9Hsnan0WtibVzmr55VjXFQ0SYNYUlILjBdXbnfd3kAZLAbwWoDR8h0/exec";
     const DEFAULT_THEME_CONFIG = {"particles":{"number":{"value":120,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6,"random":true,"anim":{"enable":true,"speed":0.5,"opacity_min":0.1,"sync":false}},"size":{"value":2.5,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#4a4a5a","opacity":0.2,"width":1},"move":{"enable":true,"speed":1.5,"direction":"none","random":true,"straight":false,"out_mode":"out","bounce":false}},"interactivity":{"detect_on":"window","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":true,"mode":"repulse"},"resize":true},"modes":{"grab":{"distance":250,"line_linked":{"opacity":0.8,"color":"#8b5cf6"}},"repulse":{"distance":350,"duration":0.4}}},"retina_detect":true};
 
 
