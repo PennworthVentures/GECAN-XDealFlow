@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- ========================================================================= -->
-    <!-- === DEFINITIVE SVG FAVICON IMPLEMENTATION (PINNACLE STANDARD) === -->
-    <!-- ========================================================================= -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="shortcut icon" href="/favicon.ico">
@@ -12,38 +9,41 @@
     <base target="_top">
     <title>GECAN™ Commodities Exchange | XDealFlow Dashboard</title>
     
-    <!-- 1. Load the main Tailwind CSS JIT Engine from the CDN. -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- 2. Configure Tailwind AFTER the DOM is fully loaded to prevent race conditions. -->
     <!-- ========================================================================= -->
-    <!-- === CUSTOM TAILWIND CONFIG FOR ULTRA-WIDE MONITORS (PINNACLE FIX) === -->
+    <!-- === PINNACLE STATIC TAILWIND FIX (REPLACES DYNAMIC CDN) === -->
     <!-- ========================================================================= -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script>
-        // This event listener is the definitive fix. It guarantees that the code
-        // inside it will only run AFTER the entire HTML document is fully loaded
-        // and parsed, ensuring the Tailwind CDN script has created the 'tailwind' object.
-        document.addEventListener('DOMContentLoaded', function () {
-            tailwind.config = {
-                theme: {
-                    screens: {
-                        'sm': '640px',
-                        'md': '768px',
-                        'lg': '1024px',
-                        'xl': '1280px',
-                        '2xl': '1536px',
-                        '3xl': '1920px', // Defines the new breakpoint for 5 columns
-                    }
+        tailwind.config = {
+            theme: {
+                screens: {
+                    'sm': '640px',
+                    'md': '768px',
+                    'lg': '1024px',
+                    'xl': '1280px',
+                    '2xl': '1536px',
+                    '3xl': '1920px',
                 }
-            }
-        });
+            },
+            content: [{ raw: document.getElementById('tailwind-classes').innerText }],
+        }
     </script>
-
-    <!-- 3. Load all other external scripts and stylesheets. -->
-    <!-- ========================================================================= -->
+    
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
+    <!-- This pre-tag holds all unique responsive classes for the static CDN to generate. -->
+    <pre id="tailwind-classes" class="hidden">
+        grid-cols-1 md:grid-cols-2 lg:grid-cols-4 3xl:grid-cols-5
+        grid-cols-2 md:grid-cols-3 lg:grid-cols-5
+        md:flex-row md:flex-1 md:text-2xl md:p-6 md:p-10
+        sm:grid-cols-2
+        lg:grid-cols-3
+        xl:flex-row xl:block
+        -mt-4
+        col-span-full
+    </pre>
+
     <!-- III. Inline CSS Styling Engine -->
     <style>
 
